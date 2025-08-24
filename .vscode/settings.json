@@ -1,0 +1,8 @@
+{
+    "yaml.schemas": {
+        "./.vscode/emi-definitions.json": [
+            "*.emi.yml",
+            "*.emi.yaml",
+        ]
+    },
+}

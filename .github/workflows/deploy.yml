@@ -1,0 +1,43 @@
+name: Deploy React App
+
+on:
+  push:
+    branches:
+      - main  # or master, depending on your repo
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      
+      - name: Setup Go
+        uses: actions/setup-go@v4
+
+      - name: Install deps
+        run: cd playground && npm ci
+
+      - name: Make wasm
+        run: make wasm
+        
+      - name: Build
+        run: cd playground && npm run build
+
+
+      - name: add jekyl
+        run: touch playground/dist/.nojekyll
+
+      - name: Deploy pages 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: ./playground/dist # The folder the action should deploy.

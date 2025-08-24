@@ -1,0 +1,79 @@
+import * as monaco from "monaco-editor";
+
+import Editor, { type OnMount } from "@monaco-editor/react";
+import type { VirtualFile } from "../../definitions";
+
+const uriCheck = (uri: string) => uri.replaceAll("////", "///");
+
+export default function TypescriptEditor({
+  onChange,
+  value,
+  allFiles,
+  file,
+}: {
+  onChange: (value: string) => void;
+  value?: string;
+  file: VirtualFile;
+  allFiles: VirtualFile[]; // 👈 pass all virtual files here
+}) {
+  const handleMount: OnMount = () => {
+    registerVirtualFiles(allFiles);
+  };
+
+  return (
+    <Editor
+      path={uriCheck(`file:///${file.Location}/${file.Name}.${file.Extension}`)}
+      options={{
+        quickSuggestions: true, // show on typing
+        suggestOnTriggerCharacters: true, // e.g. after ":" etc.
+        wordBasedSuggestions: "allDocuments", // don’t suggest random words
+      }}
+      onMount={handleMount}
+      height="600px"
+      onChange={(value) => {
+        onChange(value as string);
+      }}
+      width={"calc(100vw - 50px)"}
+      defaultLanguage="typescript"
+      defaultValue={value}
+    />
+  );
+}
+
+export const registerVirtualFiles = (files: VirtualFile[]) => {
+  files.forEach((file) => {
+    const x = uriCheck(
+      `file:///${file.Location}/${file.Name}${file.Extension ? "." + file.Extension : ""}`
+    );
+    const uri = monaco.Uri.parse(x);
+    let model = monaco.editor.getModel(uri);
+
+    if (!model) {
+      model = monaco.editor.createModel(
+        file.ActualScript,
+        guessLanguage(file.Extension),
+        uri
+      );
+    } else {
+      model.setValue(file.ActualScript);
+    }
+  });
+};
+
+// crude but works for now
+function guessLanguage(ext: string) {
+  switch (ext) {
+    case "ts":
+    case "tsx":
+      return "typescript";
+    case "js":
+      return "javascript";
+    case "json":
+      return "json";
+    case "yaml":
+    case "yml":
+      return "yaml";
+    default:
+      return "plaintext";
+  }
+}
