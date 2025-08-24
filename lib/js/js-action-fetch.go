@@ -24,7 +24,46 @@ func findTokenByName(realms []core.GeneratedScriptToken, name string) *core.Gene
 }
 
 func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+
 	className := fmt.Sprintf("Fetch%vAction", core.ToUpper(action.Name))
+	fetchctx := fetchStaticFunctionContext{
+		DefaultUrlVariable: fmt.Sprintf("%v.URL", className),
+		UrlCreatorFunction: fmt.Sprintf("%v.NewUrl", className),
+		EndpointUrl:        action.Url,
+	}
+
+	if realms.RequestHeadersClass != nil {
+		requestHeadersClassToken := findTokenByName(realms.RequestHeadersClass.Tokens, TOKEN_ROOT_CLASS)
+		if requestHeadersClassToken != nil {
+			fetchctx.RequestHeadersClass = requestHeadersClassToken.Value
+		}
+	}
+
+	if realms.QueryStringClass != nil {
+		qsClassToken := findTokenByName(realms.QueryStringClass.Tokens, TOKEN_ROOT_CLASS)
+		if qsClassToken != nil {
+			fetchctx.QueryStringClass = qsClassToken.Value
+		}
+	}
+
+	claims := []core.JsFnArgument{
+		{
+			Key: "query.params",
+
+			// This is not perfect, the classname needs to come from previous state
+			Ts: fmt.Sprintf("params: %vPathParameter", className),
+			Js: "params",
+		},
+		{
+			Key: "qs",
+
+			// This is not perfect, the classname needs to come from previous state
+			Ts: fmt.Sprintf("qs?: %v", fetchctx.QueryStringClass),
+			Js: "qs",
+		},
+	}
+	claimsRendered := core.ClaimRender(claims, ctx)
+
 	isAxiosSupported := strings.Contains(ctx.Tags, GEN_AXIOS_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependenies: []core.CodeChunkDependency{
@@ -45,9 +84,10 @@ export class {{ .className }} {
 
   static NewUrl = (
 	{{ if .queryParams }}
-	params: {{ .className }}PathParameter,
+	|@query.params|
 	{{ end }}
-	qs?: {{ .fetchctx.QueryStringClass }}) => buildUrl(
+	|@qs|
+  ) => buildUrl(
 		{{ .className }}.URL,
 		
 		{{ if .queryParams }}
@@ -66,12 +106,6 @@ export class {{ .className }} {
   {{ .fetchStaticFunction }}
 }
 `
-
-	fetchctx := fetchStaticFunctionContext{
-		DefaultUrlVariable: fmt.Sprintf("%v.URL", className),
-		UrlCreatorFunction: fmt.Sprintf("%v.NewUrl", className),
-		EndpointUrl:        action.Url,
-	}
 
 	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
 		Name:  TOKEN_NEW_URL_FN,
@@ -95,20 +129,6 @@ export class {{ .className }} {
 			// therefor they might not need to cast to json, but still you need to create a class out of them.
 			fetchctx.CastToJson = true
 			fetchctx.ResponseClass = responseClassToken.Value
-		}
-	}
-
-	if realms.RequestHeadersClass != nil {
-		requestHeadersClassToken := findTokenByName(realms.RequestHeadersClass.Tokens, TOKEN_ROOT_CLASS)
-		if requestHeadersClassToken != nil {
-			fetchctx.RequestHeadersClass = requestHeadersClassToken.Value
-		}
-	}
-
-	if realms.QueryStringClass != nil {
-		qsClassToken := findTokenByName(realms.QueryStringClass.Tokens, TOKEN_ROOT_CLASS)
-		if qsClassToken != nil {
-			fetchctx.QueryStringClass = qsClassToken.Value
 		}
 	}
 
@@ -147,7 +167,12 @@ export class {{ .className }} {
 		return nil, err
 	}
 
-	res.ActualScript = []byte(buf.Bytes())
+	templateResult := buf.String()
+	for key, value := range claimsRendered {
+		templateResult = strings.ReplaceAll(templateResult, fmt.Sprintf("|@%v|", key), value)
+	}
+
+	res.ActualScript = []byte(templateResult)
 
 	return res, nil
 }

@@ -6,19 +6,20 @@ package js
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
 )
 
-type reactQueryOptions struct {
+type reactQueryOptionsType struct {
 	ActionQueryOptionsName string
 	ActionName             string
 }
 
 // generates a static function, to developers prefer to make calls via axios
-func ReactQueryOptions(rqoptions reactQueryOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
-
+func ReactQueryOptionsTypeFunction(rqoptions reactQueryOptionsType, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	className := fmt.Sprintf("%vActionQueryOptions", core.ToUpper(rqoptions.ActionName))
 	const tmpl = `
 export type {{ .className }} = Omit<
@@ -43,18 +44,21 @@ export type {{ .className }} = Omit<
 
 	res := &core.CodeChunkCompiled{
 		ActualScript: []byte(templateResult),
-		CodeChunkDependenies: []core.CodeChunkDependency{
-			{
-				Objects:  []string{"type UseQueryOptions"},
-				Location: "@tanstack/react-query",
-			},
-		},
 		Tokens: []core.GeneratedScriptToken{
 			{
 				Name:  TOKEN_ROOT_CLASS,
 				Value: className,
 			},
 		},
+	}
+
+	if isTypeScript {
+		res.CodeChunkDependenies = []core.CodeChunkDependency{
+			{
+				Objects:  []string{"type UseQueryOptions"},
+				Location: "@tanstack/react-query",
+			},
+		}
 	}
 
 	return res, nil

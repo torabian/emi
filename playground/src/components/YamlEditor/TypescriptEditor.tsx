@@ -34,6 +34,7 @@ export default function TypescriptEditor({
         onChange(value as string);
       }}
       width={"calc(100vw - 50px)"}
+      theme="vs-dark"
       defaultLanguage="typescript"
       defaultValue={value}
     />

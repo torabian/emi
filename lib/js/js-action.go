@@ -25,6 +25,8 @@ type jsActionRealms struct {
 
 func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	actionRealms := jsActionRealms{}
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isReact := strings.Contains(ctx.Tags, GEN_REACT_COMPATIBILITY)
 
 	res := &core.CodeChunkCompiled{}
 
@@ -87,24 +89,29 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 		}
 	}
 
-	optionsType, err := TsActionOptionsHelper(optionsctx, ctx)
-	if err != nil {
-		return nil, err
-	}
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, optionsType.CodeChunkDependenies...)
-	actionRealms.OptionsType = optionsType
+	if isTypeScript {
+		optionsType, err := TsActionOptionsTypeHelper(optionsctx, ctx)
+		if err != nil {
+			return nil, err
+		}
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, optionsType.CodeChunkDependenies...)
+		actionRealms.OptionsType = optionsType
 
-	// React Query options
-	rqoptions := reactQueryOptions{
-		ActionName:             action.Name,
-		ActionQueryOptionsName: findTokenByName(optionsType.Tokens, TOKEN_ROOT_CLASS).Value,
+		if isReact {
+
+			// React Query options
+			rqoptions := reactQueryOptionsType{
+				ActionName:             action.Name,
+				ActionQueryOptionsName: findTokenByName(optionsType.Tokens, TOKEN_ROOT_CLASS).Value,
+			}
+			reactQueryOptions, err := ReactQueryOptionsTypeFunction(rqoptions, ctx)
+			if err != nil {
+				return nil, err
+			}
+			res.CodeChunkDependenies = append(res.CodeChunkDependenies, reactQueryOptions.CodeChunkDependenies...)
+			actionRealms.ReactQueryOptions = reactQueryOptions
+		}
 	}
-	reactQueryOptions, err := ReactQueryOptions(rqoptions, ctx)
-	if err != nil {
-		return nil, err
-	}
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, reactQueryOptions.CodeChunkDependenies...)
-	actionRealms.ReactQueryOptions = reactQueryOptions
 
 	// Action request (in)
 	if action.In != nil && len(action.In.Fields) > 0 {
@@ -140,20 +147,25 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 	}
 	res.CodeChunkDependenies = append(res.CodeChunkDependenies, fetch.CodeChunkDependenies...)
 
-	// React Query use-query
-	useQueryOptions := reactUseQueryOptions{
-		ActionName:             action.Name,
-		ActionQueryOptionsName: findTokenByName(reactQueryOptions.Tokens, TOKEN_ROOT_CLASS).Value,
-		NewUrlFunctionName:     findTokenByName(fetch.Tokens, TOKEN_NEW_URL_FN).Value,
-		MetaDataClassName:      findTokenByName(fetch.Tokens, TOKEN_ROOT_CLASS).Value,
-	}
-	useQueryFunction, err := ReactUseQueryOptionsFunction(useQueryOptions, ctx)
-	if err != nil {
-		return nil, err
-	}
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, useQueryFunction.CodeChunkDependenies...)
-	actionRealms.UseQueryFunction = useQueryFunction
+	if isReact {
+		// React Query use-query
+		useQueryOptions := reactUseQueryOptions{
+			ActionName:         action.Name,
+			NewUrlFunctionName: findTokenByName(fetch.Tokens, TOKEN_NEW_URL_FN).Value,
+			MetaDataClassName:  findTokenByName(fetch.Tokens, TOKEN_ROOT_CLASS).Value,
+		}
 
+		if actionRealms.ReactQueryOptions != nil {
+			useQueryOptions.ActionQueryOptionsName = findTokenByName(actionRealms.ReactQueryOptions.Tokens, TOKEN_ROOT_CLASS).Value
+		}
+
+		useQueryFunction, err := ReactUseQueryOptionsFunction(useQueryOptions, ctx)
+		if err != nil {
+			return nil, err
+		}
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, useQueryFunction.CodeChunkDependenies...)
+		actionRealms.UseQueryFunction = useQueryFunction
+	}
 	const tmpl = `/**
 * Action to communicate with the action {{ .action.Name }}
 */
@@ -200,7 +212,6 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
 	nestJsDecorator := strings.Contains(ctx.Tags, GEN_NEST_JS_COMPATIBILITY)
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{

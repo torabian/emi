@@ -19,7 +19,7 @@ type jsActionOptionsContext struct {
 }
 
 // generates a static function, to developers prefer to make calls via axios
-func TsActionOptionsHelper(optionsctx jsActionOptionsContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+func TsActionOptionsTypeHelper(optionsctx jsActionOptionsContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
 	className := fmt.Sprintf("%vActionOptions", core.ToUpper(optionsctx.ActionName))
 	const tmpl = `

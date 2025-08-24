@@ -41,7 +41,7 @@ function App() {
         </span>
         <LanguageSelector onChange={setAssemblyFunction} />
         <FeatureSelector
-          options={["nestjs", "typescript", "axios"]}
+          options={["nestjs", "typescript", "axios", "react"]}
           setSelected={(value) => setFeatures(value)}
           selected={features}
         />

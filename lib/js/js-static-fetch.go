@@ -53,7 +53,7 @@ func GenerateTSParams(placeholders []string) string {
 
 // generates a static function, to developers prefer to make calls via axios
 func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
-
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	queryParams := core.ExtractPlaceholdersInUrl(fetchctx.EndpointUrl)
 	claims := []core.JsFnArgument{
 		{
@@ -141,10 +141,19 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		ActualScript: []byte(templateResult),
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"fetchx", "type TypedRequestInit"},
+				Objects:  []string{"fetchx"},
 				Location: INTERNAL_SDK_LOCATION,
 			},
 		},
+	}
+
+	if isTypeScript {
+		res.CodeChunkDependenies = []core.CodeChunkDependency{
+			{
+				Objects:  []string{"type TypedRequestInit"},
+				Location: INTERNAL_SDK_LOCATION,
+			},
+		}
 	}
 
 	return res, nil

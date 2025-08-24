@@ -6,6 +6,7 @@ package js
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -20,11 +21,19 @@ type reactUseQueryOptions struct {
 
 // generates a static function, to developers prefer to make calls via axios
 func ReactUseQueryOptionsFunction(useQueryOptions reactUseQueryOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
-
+	claims := []core.JsFnArgument{
+		{
+			Key: "options.argument",
+			Ts:  "options: " + useQueryOptions.ActionQueryOptionsName,
+			Js:  "options",
+		},
+	}
 	className := fmt.Sprintf("use%v", core.ToUpper(useQueryOptions.ActionName))
 	const tmpl = `
 		
-export const {{ .className }} = (options: {{ .useQueryOptions.ActionQueryOptionsName }}) => {
+export const {{ .className }} = (
+	|@options.argument|
+) => {
 	return useQuery({
 		...options,
 		queryKey: [
@@ -51,6 +60,10 @@ export const {{ .className }} = (options: {{ .useQueryOptions.ActionQueryOptions
 	}
 
 	templateResult := buf.String()
+	claimsRendered := core.ClaimRender(claims, ctx)
+	for key, value := range claimsRendered {
+		templateResult = strings.ReplaceAll(templateResult, fmt.Sprintf("|@%v|", key), value)
+	}
 
 	res := &core.CodeChunkCompiled{
 		ActualScript: []byte(templateResult),
