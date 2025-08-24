@@ -13,6 +13,7 @@ function App() {
     setValue,
     value,
     setFeatures,
+    features,
     ready,
     setAssemblyFunction,
     assemblyFunction,
@@ -36,12 +37,13 @@ function App() {
         </p>
         <span className="wasm-status">
           WASM Runtime: {ready ? "✅ Ready" : "⏳ Initializing..."} (
-          {assemblyFunction})
+          {assemblyFunction}) [{features.join(",")}]
         </span>
         <LanguageSelector onChange={setAssemblyFunction} />
         <FeatureSelector
           options={["nestjs", "typescript", "axios"]}
-          onChange={(value) => setFeatures(value)}
+          setSelected={(value) => setFeatures(value)}
+          selected={features}
         />
         <button onClick={() => void downloadZip(files)}>
           Download the sdk ({files.length})
@@ -72,6 +74,7 @@ function App() {
             <div className="tab-content">
               {activeFile && (
                 <TypescriptEditor
+                  key={activeFile.Name + activeFile.ActualScript} // force remount when content changes
                   allFiles={files}
                   value={activeFile.ActualScript}
                   onChange={(newValue) => {
