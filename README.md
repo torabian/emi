@@ -4,6 +4,8 @@ Backend for front-end code generation library based on Emi definition files. Thi
 for Fireback projects.
 
 
+Playground: https://torabian.github.io/emi
+
 ## Emi definition
 
 Emi definition is handling common contracts used across the software, such as entities, dtos, actions, web requests,
