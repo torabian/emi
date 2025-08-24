@@ -26,7 +26,14 @@ func findTokenByName(realms []core.GeneratedScriptToken, name string) *core.Gene
 func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	className := fmt.Sprintf("Fetch%vAction", core.ToUpper(action.Name))
 	isAxiosSupported := strings.Contains(ctx.Tags, GEN_AXIOS_COMPATIBILITY)
-	res := &core.CodeChunkCompiled{}
+	res := &core.CodeChunkCompiled{
+		CodeChunkDependenies: []core.CodeChunkDependency{
+			{
+				Objects:  []string{"buildUrl"},
+				Location: INTERNAL_SDK_LOCATION,
+			},
+		},
+	}
 	// How to do it iterte and call Compile?
 
 	const tmpl = `/**
@@ -35,6 +42,23 @@ func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms,
 
 export class {{ .className }} {
   static URL = '{{ .action.Url }}';
+
+  static NewUrl = (
+	{{ if .queryParams }}
+	params: {{ .className }}PathParameter,
+	{{ end }}
+	qs?: {{ .fetchctx.QueryStringClass }}) => buildUrl(
+		{{ .className }}.URL,
+		
+		{{ if .queryParams }}
+		params,
+		{{ else }}
+		 undefined,
+		{{ end }}
+		qs
+	);
+ 
+
   static Method = '{{ .action.Method }}';
 
   {{ .axiosStaticFunction }}
@@ -45,6 +69,22 @@ export class {{ .className }} {
 
 	fetchctx := fetchStaticFunctionContext{
 		DefaultUrlVariable: fmt.Sprintf("%v.URL", className),
+		UrlCreatorFunction: fmt.Sprintf("%v.NewUrl", className),
+		EndpointUrl:        action.Url,
+	}
+
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+		Name:  TOKEN_NEW_URL_FN,
+		Value: fetchctx.UrlCreatorFunction,
+	})
+
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+		Name:  TOKEN_ROOT_CLASS,
+		Value: className,
+	})
+
+	if len(core.ExtractPlaceholdersInUrl(action.Url)) > 0 {
+		fetchctx.PathParameterTypeName = fmt.Sprintf("%vPathParameter", className)
 	}
 
 	if realms.ResponseClass != nil {
@@ -99,7 +139,10 @@ export class {{ .className }} {
 		"axiosStaticFunction": axiosStaticFunction,
 		"fetchStaticFunction": string(fetchStaticFunction.ActualScript),
 		"shouldExport":        true,
+		"realms":              realms,
+		"fetchctx":            fetchctx,
 		"className":           className,
+		"queryParams":         core.ExtractPlaceholdersInUrl(action.Url),
 	}); err != nil {
 		return nil, err
 	}

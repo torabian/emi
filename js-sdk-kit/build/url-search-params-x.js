@@ -38,10 +38,13 @@ export class URLSearchParamsX extends URLSearchParams {
     }
     /** Get an iterator of top-level keys */
     keys() {
-        return (function* (obj) {
-            for (const key of Object.keys(obj))
+        const obj = this.data;
+        return (function* () {
+            for (const key of Object.keys(obj)) {
                 yield key;
-        })(this.data);
+            }
+            return undefined;
+        })();
     }
     /** Number of top-level keys */
     get size() {
@@ -60,10 +63,15 @@ export class URLSearchParamsX extends URLSearchParams {
     }
     /** Get an iterator of top-level values */
     values() {
-        return (function* (obj) {
-            for (const key of Object.keys(obj))
-                yield obj[key];
-        })(this.data);
+        const obj = this.data;
+        return (function* () {
+            for (const key of Object.keys(obj)) {
+                const val = obj[key];
+                // Make sure val is string
+                yield String(val);
+            }
+            return undefined;
+        })();
     }
     /** Get a single value by key */
     get(name) {
@@ -122,4 +130,26 @@ export class URLSearchParamsX extends URLSearchParams {
             return val === "true";
         return val;
     }
+}
+/**
+ * Handy tool to create a final callable url, from query string, query params,
+ * and the actual url.
+ * @param template
+ * @param params
+ * @param qs
+ * @returns
+ */
+export function buildUrl(url, params, qs) {
+    // Replace :placeholders
+    Object.entries(params).forEach(([key, value]) => {
+        url = url.replace(new RegExp(`:${key}`, "g"), encodeURIComponent(String(value)));
+    });
+    if (qs && qs instanceof URLSearchParamsX) {
+        url += `?${qs.toString()}`;
+    }
+    else if (qs && Object.keys(qs).length) {
+        const query = new URLSearchParams(Object.entries(qs).map(([k, v]) => [k, String(v)])).toString();
+        url += `?${query}`;
+    }
+    return url;
 }

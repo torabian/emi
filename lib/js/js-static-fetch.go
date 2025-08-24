@@ -13,14 +13,22 @@ import (
 )
 
 type fetchStaticFunctionContext struct {
+	EndpointUrl string
+
 	RequestClass     string
 	ResponseClass    string
 	QueryStringClass string
+
+	// Those requests with /:id/:item in them, will generate
+	// a custom type, and will be available here.
+	PathParameterTypeName string
 
 	RequestHeadersClass string
 
 	// The variable which will be used as default url
 	DefaultUrlVariable string
+
+	UrlCreatorFunction string
 
 	// For certain types, we need to make res.json() cast in fetch, if it's returning a dto,
 	// or entity, or has fields. For text, html, or others, it does not require and makes no sense,
@@ -28,8 +36,25 @@ type fetchStaticFunctionContext struct {
 	CastToJson bool
 }
 
+func GenerateTSParams(placeholders []string) string {
+	if len(placeholders) == 0 {
+		return "{}"
+	}
+
+	var builder strings.Builder
+	builder.WriteString("{\n")
+	for _, p := range placeholders {
+		builder.WriteString(fmt.Sprintf("  %s: string;\n", p))
+	}
+	builder.WriteString("}")
+
+	return builder.String()
+}
+
 // generates a static function, to developers prefer to make calls via axios
 func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+
+	queryParams := core.ExtractPlaceholdersInUrl(fetchctx.EndpointUrl)
 	claims := []core.JsFnArgument{
 		{
 			Key: "fetch.init",
@@ -51,39 +76,58 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			Ts:  "<unknown, unknown, unknown>",
 			Js:  "",
 		},
+		{
+			Key: "query.params",
+			Js:  "params",
+			Ts:  "params: " + fetchctx.PathParameterTypeName,
+		},
 	}
 
 	claimsRendered := core.ClaimRender(claims, ctx)
 
 	const tmpl = `
-	static Fetch = (
-		|@fetch.init|,
+	static Fetch = async (
+		{{ if .hasQueryParams }}
+			|@query.params|,
+		{{ end }}
 		|@fetch.qs|,
+		|@fetch.init|,
 		|@fetch.overrideUrl|
-	) =>
-		fetchx|@fetch.generic|(
-			new URL((overrideUrl {{ if .fetchctx.DefaultUrlVariable -}} ?? {{ .fetchctx.DefaultUrlVariable }} {{- end}} ) + '?' + qs?.toString()),
+	) => {
+		const res = await fetchx|@fetch.generic|(
+			overrideUrl ?? {{  .fetchctx.UrlCreatorFunction -}}(
+				{{ if .hasQueryParams }}
+				params,
+				{{ end }}
+				qs
+			),
 			init
 		)
 
 		{{ if .fetchctx.CastToJson }}
-			.then((res) => res.json())
+		const result = await res.json();
 		{{ else }}
-			.then((res) => res.text())
+		const result = await res.text();
 		{{ end }}
+
 
 	
 		{{ if .fetchctx.ResponseClass }}
-			.then((data) => new {{ .fetchctx.ResponseClass }} (data));
+			res.result = new {{ .fetchctx.ResponseClass }} (result);
+		{{ else }}
+			res.result = result as any;
 		{{ end }}
 
+		return res;
+	}
 	`
 
 	t := template.Must(template.New("axioshelper").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"claims":   claimsRendered,
-		"fetchctx": fetchctx,
+		"claims":         claimsRendered,
+		"fetchctx":       fetchctx,
+		"hasQueryParams": len(queryParams) > 0,
 	}); err != nil {
 		return nil, err
 	}
@@ -97,7 +141,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		ActualScript: []byte(templateResult),
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"fetchx", "TypedRequestInit"},
+				Objects:  []string{"fetchx", "type TypedRequestInit"},
 				Location: INTERNAL_SDK_LOCATION,
 			},
 		},

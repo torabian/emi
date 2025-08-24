@@ -233,3 +233,16 @@ func FsEmbedToVirtualFile(template *embed.FS, predir string) []VirtualFile {
 	return res
 
 }
+
+func ExtractPlaceholdersInUrl(url string) []string {
+	re := regexp.MustCompile(`:([A-Za-z0-9_]+)`)
+	matches := re.FindAllStringSubmatch(url, -1)
+
+	var result []string
+	for _, m := range matches {
+		if len(m) > 1 {
+			result = append(result, m[1])
+		}
+	}
+	return result
+}

@@ -1,31 +1,17 @@
 name: sampleModule
 actions:
-  - name: myaction
-    url: /
-    cliName: complex
-    method: post
-    description: Some sample request, to show case and test the emi compiler
-    in:
-      fields:
-        - name: toNumber
-          validate: required
-          type: string
-        - name: body
-          validate: required
-          type: string
-        - name: user
-          type: object
-          fields:
-            - name: firstName
-              type: string
-            - name: lastName
-              type: string
-            - name: visits
-              type: array
-              fields:
-                - name: field1
-                  type: int64
+  - name: getSinglePost
+    url: https://jsonplaceholder.typicode.com/posts/:id
+    cliName: get-single-post
+    method: get
+    description: Get's an specific post from the endpoint
     out:
       fields:
-        - name: queueId
+        - name: userId
+          type: int64
+        - name: id
+          type: int64
+        - name: title
+          type: string
+        - name: body
           type: string

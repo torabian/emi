@@ -11,13 +11,13 @@ export declare class URLSearchParamsX extends URLSearchParams {
     /** Append a value to an array or create a new array */
     append(name: string, value: string): void;
     /** Get an iterator of top-level keys */
-    keys(): Generator<string, void, unknown>;
+    keys(): URLSearchParamsIterator<string>;
     /** Number of top-level keys */
     get size(): number;
     /** Sort top-level keys */
     sort(): void;
     /** Get an iterator of top-level values */
-    values(): Generator<any, void, unknown>;
+    values(): URLSearchParamsIterator<string>;
     /** Get a single value by key */
     get(name: string): string | null;
     /** Check if key exists */
@@ -36,3 +36,12 @@ export declare class URLSearchParamsX extends URLSearchParams {
     toObject(): Record<string, any>;
     protected getTyped(key: string, type: string): string | number | boolean;
 }
+/**
+ * Handy tool to create a final callable url, from query string, query params,
+ * and the actual url.
+ * @param template
+ * @param params
+ * @param qs
+ * @returns
+ */
+export declare function buildUrl(url: string, params?: Record<string, unknown>, qs?: URLSearchParamsX): string;

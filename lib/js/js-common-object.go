@@ -64,7 +64,7 @@ func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroG
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 
 	if isTypeScript {
-		output = fmt.Sprintf("%v %v: %v;", jsdoc.String(), field.PrivateName(), tsFieldType)
+		output = fmt.Sprintf("%v %v?: %v;", jsdoc.String(), field.PrivateName(), tsFieldType)
 	}
 
 	getterjsdoc := NewJsDoc("  ")
@@ -147,10 +147,12 @@ type JsCommonObjectContext struct {
 }
 
 var TOKEN_ROOT_CLASS = "root.class"
+var TOKEN_NEW_URL_FN = "new.url.fn"
 
 // This function can be used in different locations of the code generation,
 // creates dtos, entities for actions or other specs.
 func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error) {
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{}
 
 	renderedClasses := jsRenderDataClasses(fields, jsctx.RootClassName, jsctx.RootClassName, true, ctx)
@@ -191,6 +193,7 @@ func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenConte
 {{ .JsDoc }}
 {{ .Signature  }} {
 
+	 
 	constructor(data) {
 		// This probably doesn't cover the nested objects
 		Object.assign(this, data)
@@ -205,9 +208,6 @@ func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenConte
 	{{ range .SubClasses }}
 		{{ template "printClass" . }}
 	{{ end }}
-
-	/** a placeholder for WebRequestX auto patching the json content to the object **/
-	static __jsonParsable;
 
 	{{ range .ClassStaticFunctions }}
 		{{ . }}
@@ -236,6 +236,7 @@ func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenConte
 	if err := t.Execute(&buf, core.H{
 		"shouldExport":    true,
 		"nestjsDecorator": nestJsDecorator,
+		"isTypeScript":    isTypeScript,
 		"renderedClasses": renderedClasses,
 		"fields":          fields,
 	}); err != nil {
@@ -243,6 +244,10 @@ func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenConte
 	}
 
 	res.ActualScript = buf.Bytes()
+
+	if isTypeScript {
+		res.ActualScript = []byte(strings.ReplaceAll(string(res.ActualScript), "constructor(data)", "constructor(data: unknown)"))
+	}
 
 	return res, nil
 }

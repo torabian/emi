@@ -18,14 +18,14 @@ function App() {
     setAssemblyFunction,
     assemblyFunction,
   } = usePlaygroundPresenter();
-  const [activeTab, setActiveTab] = useState(files[0]?.Name || "");
+  const [activeTab, setActiveTab] = useState(files?.[0]?.Name || "");
 
   // Update active tab if files change
-  if (files.length && !files.find((f) => f.Name === activeTab)) {
+  if (files?.length && !files.find((f) => f.Name === activeTab)) {
     setActiveTab(files[0].Name);
   }
 
-  const activeFile = files.find((f) => f.Name === activeTab);
+  const activeFile = files?.find((f) => f.Name === activeTab);
 
   return (
     <>
@@ -46,7 +46,7 @@ function App() {
           selected={features}
         />
         <button onClick={() => void downloadZip(files)}>
-          Download the sdk ({files.length})
+          Download the sdk ({files?.length || 0})
         </button>
       </header>
 
@@ -55,7 +55,7 @@ function App() {
           <YamlEditor value={value} onChange={setValue} />
         </div>
 
-        {files.length > 0 && (
+        {files?.length > 0 && (
           <div className="right-pane">
             <div className="tabs">
               {files.map((file) => (

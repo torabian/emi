@@ -6,10 +6,12 @@ export type TypedRequestInit<TBody = unknown, THeaders = unknown> = Omit<
   headers?: THeaders;
 };
 
-class TypedResponse<T> extends Response {
+export class TypedResponse<T> extends Response {
   json(): Promise<T> {
     return super.json();
   }
+
+  result: T | undefined;
 }
 
 export function fetchx<

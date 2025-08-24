@@ -13,6 +13,10 @@ import (
 )
 
 type jsActionRealms struct {
+	UseQueryFunction    *core.CodeChunkCompiled
+	ReactQueryOptions   *core.CodeChunkCompiled
+	PathParameter       *core.CodeChunkCompiled
+	OptionsType         *core.CodeChunkCompiled
 	RequestClass        *core.CodeChunkCompiled
 	ResponseClass       *core.CodeChunkCompiled
 	QueryStringClass    *core.CodeChunkCompiled
@@ -29,16 +33,78 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 	if err != nil {
 		return nil, err
 	}
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, header.CodeChunkDependenies...)
-	actionRealms.RequestHeadersClass = header
+
+	if header != nil {
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, header.CodeChunkDependenies...)
+		actionRealms.RequestHeadersClass = header
+	}
+
+	// Header is the http headers, extending the Headers class from standard javascript
+	pathParameter, err := JsActionPathParams(action)
+	if err != nil {
+		return nil, err
+	}
+
+	if pathParameter != nil {
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, pathParameter.CodeChunkDependenies...)
+		actionRealms.PathParameter = pathParameter
+	}
 
 	// Query strings for the request builder
 	qs, err := JsActionQsClass(action, ctx)
 	if err != nil {
 		return nil, err
 	}
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, qs.CodeChunkDependenies...)
-	actionRealms.QueryStringClass = qs
+
+	if qs != nil {
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, qs.CodeChunkDependenies...)
+		actionRealms.QueryStringClass = qs
+	}
+
+	// Options type, the type which defines how many different things can go
+	// into this request.
+	optionsctx := jsActionOptionsContext{
+		ActionName: action.Name,
+	}
+	if qs != nil {
+		token := findTokenByName(qs.Tokens, TOKEN_ROOT_CLASS)
+		if token != nil {
+			optionsctx.QsClassName = token.Value
+		}
+	}
+
+	if pathParameter != nil {
+		token := findTokenByName(pathParameter.Tokens, TOKEN_ROOT_CLASS)
+		if token != nil {
+			optionsctx.ParamsTypeName = token.Value
+		}
+	}
+
+	if header != nil {
+		token := findTokenByName(header.Tokens, TOKEN_ROOT_CLASS)
+		if token != nil {
+			optionsctx.RequestHeadersClassName = token.Value
+		}
+	}
+
+	optionsType, err := TsActionOptionsHelper(optionsctx, ctx)
+	if err != nil {
+		return nil, err
+	}
+	res.CodeChunkDependenies = append(res.CodeChunkDependenies, optionsType.CodeChunkDependenies...)
+	actionRealms.OptionsType = optionsType
+
+	// React Query options
+	rqoptions := reactQueryOptions{
+		ActionName:             action.Name,
+		ActionQueryOptionsName: findTokenByName(optionsType.Tokens, TOKEN_ROOT_CLASS).Value,
+	}
+	reactQueryOptions, err := ReactQueryOptions(rqoptions, ctx)
+	if err != nil {
+		return nil, err
+	}
+	res.CodeChunkDependenies = append(res.CodeChunkDependenies, reactQueryOptions.CodeChunkDependenies...)
+	actionRealms.ReactQueryOptions = reactQueryOptions
 
 	// Action request (in)
 	if action.In != nil && len(action.In.Fields) > 0 {
@@ -72,12 +138,43 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 	if err != nil {
 		return nil, err
 	}
-
 	res.CodeChunkDependenies = append(res.CodeChunkDependenies, fetch.CodeChunkDependenies...)
+
+	// React Query use-query
+	useQueryOptions := reactUseQueryOptions{
+		ActionName:             action.Name,
+		ActionQueryOptionsName: findTokenByName(reactQueryOptions.Tokens, TOKEN_ROOT_CLASS).Value,
+		NewUrlFunctionName:     findTokenByName(fetch.Tokens, TOKEN_NEW_URL_FN).Value,
+		MetaDataClassName:      findTokenByName(fetch.Tokens, TOKEN_ROOT_CLASS).Value,
+	}
+	useQueryFunction, err := ReactUseQueryOptionsFunction(useQueryOptions, ctx)
+	if err != nil {
+		return nil, err
+	}
+	res.CodeChunkDependenies = append(res.CodeChunkDependenies, useQueryFunction.CodeChunkDependenies...)
+	actionRealms.UseQueryFunction = useQueryFunction
 
 	const tmpl = `/**
 * Action to communicate with the action {{ .action.Name }}
 */
+
+{{ if .realms.OptionsType }}
+	{{ b2s .realms.OptionsType.ActualScript }}
+{{ end }}
+
+{{ if .realms.ReactQueryOptions }}
+	{{ b2s .realms.ReactQueryOptions.ActualScript }}
+{{ end }}
+
+{{ if .realms.UseQueryFunction }}
+	{{ b2s .realms.UseQueryFunction.ActualScript }}
+{{ end }}
+
+
+{{ if .realms.PathParameter }}
+	{{ b2s .realms.PathParameter.ActualScript }}
+{{ end }}
+ 
 
 {{ if .fetch }}
 	{{ .fetch }}

@@ -15,10 +15,12 @@ export const usePlaygroundPresenter = () => {
   const [files, setOutput] = useState<VirtualFile[]>([]);
 
   const rerender = (data: any) => {
-    const res = (window as any)[assemblyFunction](data, {
-      Tags: features.join(","),
-    });
-    setOutput(res);
+    try {
+      const res = (window as any)[assemblyFunction](data, {
+        Tags: features.join(","),
+      });
+      setOutput(res);
+    } catch (err) {}
   };
 
   const setValue = (data: string) => {

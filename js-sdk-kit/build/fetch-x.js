@@ -1,4 +1,4 @@
-class TypedResponse extends Response {
+export class TypedResponse extends Response {
     json() {
         return super.json();
     }
