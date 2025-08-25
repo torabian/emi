@@ -68,7 +68,7 @@ func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms,
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"buildUrl"},
+				Objects:  []string{"buildUrl", "fetchx"},
 				Location: INTERNAL_SDK_LOCATION,
 			},
 		},
@@ -79,12 +79,13 @@ func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms,
  * {{.className}}
  */
 
+
 export class {{ .className }} {
   static URL = '{{ .action.Url }}';
 
   static NewUrl = (
 	{{ if .queryParams }}
-	|@query.params|
+	|@query.params|,
 	{{ end }}
 	|@qs|
   ) => buildUrl(

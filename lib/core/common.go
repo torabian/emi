@@ -45,6 +45,8 @@ type CodeChunkCompiled struct {
 	SuggestedExtension string
 
 	Tokens []GeneratedScriptToken
+
+	Realms interface{}
 }
 
 type CodeChunkDependency struct {
