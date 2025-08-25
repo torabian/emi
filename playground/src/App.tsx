@@ -27,7 +27,7 @@ function App() {
     Name: "definition",
   };
 
-  const files = [yamlDoc, ...generatedFiles];
+  const files = [yamlDoc, ...(generatedFiles || [])];
   const [activeTab, setActiveTab] = useState(files?.[0]?.Name || "");
 
   // Update active tab if files change
