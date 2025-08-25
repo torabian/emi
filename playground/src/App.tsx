@@ -1,12 +1,11 @@
 import { useState } from "react";
 import "./App.css";
 import FeatureSelector from "./components/FeatureSelector";
-import LanguageSelector from "./components/LanguageSelector";
 import TypescriptEditor from "./components/YamlEditor/TypescriptEditor";
 import YamlEditor from "./components/YamlEditor/YamlEditor";
+import type { VirtualFile } from "./definitions";
 import { usePlaygroundPresenter } from "./helpers/usePlaygroundPresenter";
 import { downloadZip } from "./helpers/zipTools";
-import type { VirtualFile } from "./definitions";
 
 function App() {
   const {
@@ -16,8 +15,8 @@ function App() {
     setFeatures,
     features,
     ready,
-    setAssemblyFunction,
-    assemblyFunction,
+    // setAssemblyFunction,
+    // assemblyFunction,
   } = usePlaygroundPresenter();
 
   const yamlDoc: VirtualFile = {
