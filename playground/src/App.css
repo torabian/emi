@@ -21,6 +21,7 @@ body {
   display: flex;
   border-bottom: 1px solid #ccc;
   overflow-x: auto;
+  max-width: calc(100vw - 50px);
   background: #fafafa;
 }
 
