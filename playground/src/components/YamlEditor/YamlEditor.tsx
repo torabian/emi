@@ -1,6 +1,7 @@
 import Editor, { type BeforeMount } from "@monaco-editor/react";
 import { configureMonacoYaml } from "monaco-yaml";
 import * as monaco from "monaco-editor";
+import { useSystemTheme } from "../../helpers/useSystemTheme";
 
 export default function YamlEditor({
   onChange,
@@ -9,6 +10,8 @@ export default function YamlEditor({
   onChange: (value: string) => void;
   value?: string;
 }) {
+  const theme = useSystemTheme();
+
   const beforeMount: BeforeMount = () => {
     configureMonacoYaml(monaco, {
       enableSchemaRequest: true,
@@ -31,6 +34,7 @@ export default function YamlEditor({
         quickSuggestions: true, // show on typing
         suggestOnTriggerCharacters: true, // e.g. after ":" etc.
         wordBasedSuggestions: "allDocuments", // don’t suggest random words
+        fontSize: 16,
       }}
       height="50vh"
       onChange={(value) => {
@@ -39,6 +43,7 @@ export default function YamlEditor({
       width={"calc(100vw - 50px)"}
       defaultLanguage="yaml"
       defaultValue={value}
+      theme={theme}
       beforeMount={beforeMount}
     />
   );

@@ -6,10 +6,11 @@ import TypescriptEditor from "./components/YamlEditor/TypescriptEditor";
 import YamlEditor from "./components/YamlEditor/YamlEditor";
 import { usePlaygroundPresenter } from "./helpers/usePlaygroundPresenter";
 import { downloadZip } from "./helpers/zipTools";
+import type { VirtualFile } from "./definitions";
 
 function App() {
   const {
-    files,
+    files: generatedFiles,
     setValue,
     value,
     setFeatures,
@@ -18,6 +19,16 @@ function App() {
     setAssemblyFunction,
     assemblyFunction,
   } = usePlaygroundPresenter();
+
+  const yamlDoc: VirtualFile = {
+    ActualScript: "",
+    Extension: "",
+    Location: "",
+    MimeType: "yaml",
+    Name: "definition",
+  };
+
+  const files = [yamlDoc, ...generatedFiles];
   const [activeTab, setActiveTab] = useState(files?.[0]?.Name || "");
 
   // Update active tab if files change
@@ -31,30 +42,34 @@ function App() {
     <>
       <header className="intro">
         <h1>🔥 EMI JavaScript Compiler</h1>
-        <p>
-          A WebAssembly-powered playground for generating code dynamically.
-          Write input on the yaml editor, see generated files below.
-        </p>
-        <span className="wasm-status">
-          WASM Runtime: {ready ? "✅ Ready" : "⏳ Initializing..."} (
-          {assemblyFunction}) [{features.join(",")}]
-        </span>
-        <LanguageSelector onChange={setAssemblyFunction} />
-        <FeatureSelector
-          options={["nestjs", "typescript", "axios", "react"]}
-          setSelected={(value) => setFeatures(value)}
-          selected={features}
-        />
-        <button onClick={() => void downloadZip(files)}>
-          Download the sdk ({files?.length || 0})
-        </button>
+        <p>A WebAssembly-powered playground for generating code dynamically.</p>
+        <div
+          style={{
+            display: "flex",
+            justifyItems: "center",
+            alignItems: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <span className="wasm-status">
+            WASM Runtime: {ready ? "✅ Ready" : "⏳ Initializing..."}
+          </span>
+          <FeatureSelector
+            options={["nestjs", "angular", "typescript", "axios", "react"]}
+            setSelected={(value) => setFeatures(value)}
+            selected={features}
+          />
+          <button
+            style={{ marginBottom: "5px" }}
+            onClick={() => void downloadZip(files)}
+          >
+            Download the sdk ({files?.length || 0})
+          </button>
+        </div>
+        {/* <LanguageSelector onChange={setAssemblyFunction} /> */}
       </header>
 
       <div className="app-container">
-        <div className="left-pane">
-          <YamlEditor value={value} onChange={setValue} />
-        </div>
-
         {files?.length > 0 && (
           <div className="right-pane">
             <div className="tabs">
@@ -71,20 +86,24 @@ function App() {
               ))}
             </div>
 
-            <div className="tab-content">
-              {activeFile && (
-                <TypescriptEditor
-                  key={activeFile.Name + activeFile.ActualScript} // force remount when content changes
-                  allFiles={files}
-                  value={activeFile.ActualScript}
-                  onChange={(newValue) => {
-                    // Update the corresponding file content
-                    activeFile.ActualScript = newValue;
-                  }}
-                  file={activeFile}
-                />
-              )}
-            </div>
+            {activeFile ? (
+              <div className="tab-content">
+                {activeFile && activeFile.Name == "definition" ? (
+                  <YamlEditor value={value} onChange={setValue} />
+                ) : (
+                  <TypescriptEditor
+                    key={activeFile.Name + activeFile.ActualScript} // force remount when content changes
+                    allFiles={files}
+                    value={activeFile.ActualScript}
+                    onChange={(newValue) => {
+                      // Update the corresponding file content
+                      activeFile.ActualScript = newValue;
+                    }}
+                    file={activeFile}
+                  />
+                )}
+              </div>
+            ) : null}
           </div>
         )}
       </div>

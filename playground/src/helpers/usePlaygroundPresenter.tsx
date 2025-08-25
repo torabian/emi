@@ -11,6 +11,7 @@ export const usePlaygroundPresenter = () => {
     "nestjs",
     "axios",
     "typescript",
+    "angular",
     "react",
   ]);
   const [files, setOutput] = useState<VirtualFile[]>([]);

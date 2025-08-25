@@ -2,6 +2,7 @@ import * as monaco from "monaco-editor";
 
 import Editor, { type OnMount } from "@monaco-editor/react";
 import type { VirtualFile } from "../../definitions";
+import { useSystemTheme } from "../../helpers/useSystemTheme";
 
 const uriCheck = (uri: string) => uri.replaceAll("////", "///");
 
@@ -16,6 +17,8 @@ export default function TypescriptEditor({
   file: VirtualFile;
   allFiles: VirtualFile[]; // 👈 pass all virtual files here
 }) {
+  const theme = useSystemTheme();
+
   const handleMount: OnMount = () => {
     registerVirtualFiles(allFiles);
   };
@@ -27,6 +30,7 @@ export default function TypescriptEditor({
         quickSuggestions: true, // show on typing
         suggestOnTriggerCharacters: true, // e.g. after ":" etc.
         wordBasedSuggestions: "allDocuments", // don’t suggest random words
+        fontSize: 16,
       }}
       onMount={handleMount}
       height="600px"
@@ -34,7 +38,7 @@ export default function TypescriptEditor({
         onChange(value as string);
       }}
       width={"calc(100vw - 50px)"}
-      theme="vs-dark"
+      theme={theme}
       defaultLanguage="typescript"
       defaultValue={value}
     />
