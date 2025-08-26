@@ -33,11 +33,10 @@ export default function TypescriptEditor({
         fontSize: 16,
       }}
       onMount={handleMount}
-      height="600px"
+      height="calc(100vh - 250px)"
       onChange={(value) => {
         onChange(value as string);
       }}
-      width={"calc(100vw - 50px)"}
       theme={theme}
       defaultLanguage="typescript"
       defaultValue={value}

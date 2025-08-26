@@ -36,11 +36,10 @@ export default function YamlEditor({
         wordBasedSuggestions: "allDocuments", // don’t suggest random words
         fontSize: 16,
       }}
-      height="50vh"
+      height="calc(100vh - 250px)"
       onChange={(value) => {
         onChange(value as string);
       }}
-      width={"calc(100vw - 50px)"}
       defaultLanguage="yaml"
       defaultValue={value}
       theme={theme}

@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
+
+	"gopkg.in/yaml.v2"
 )
 
 type H map[string]any
@@ -22,6 +24,10 @@ type MicroGenContext struct {
 
 	// Output file or directory for generation context
 	Output string
+
+	Flags map[string]interface{}
+
+	Content string
 }
 
 // Each generated file can have a set of tokens, such as classes, strings, enums, etc.
@@ -247,4 +253,38 @@ func ExtractPlaceholdersInUrl(url string) []string {
 		}
 	}
 	return result
+}
+
+func StringToModule3Action(content string) (Module3Action, error) {
+	var action Module3Action
+	err := yaml.Unmarshal([]byte(content), &action)
+	return action, err
+}
+
+func StringToModule3(content string) (Module3, error) {
+	var module Module3
+	err := yaml.Unmarshal([]byte(content), &module)
+	return module, err
+}
+
+func ReadModule3FromString(content string) (*Module3, error) {
+
+	var data Module3
+	err := yaml.Unmarshal([]byte(content), &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+func ReadModule3ActionFromString(content string) (*Module3Action, error) {
+
+	var data Module3Action
+	err := yaml.Unmarshal([]byte(content), &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
 }

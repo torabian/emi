@@ -121,6 +121,7 @@ func renderTsJsHeaderClass(ctx core.MicroGenContext, action *core.Module3Action,
 }
 
 func JsActionHeaderClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+
 	const tmpl = `/**
  * {{.className}} class
  * Auto-generated from Module3Action

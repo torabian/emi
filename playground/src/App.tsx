@@ -40,7 +40,7 @@ function App() {
   return (
     <>
       <header className="intro">
-        <h1>🔥 EMI JavaScript Compiler</h1>
+        <h1>🔥 EMI Compiler</h1>
         <p>A WebAssembly-powered playground for generating code dynamically.</p>
         <div
           style={{

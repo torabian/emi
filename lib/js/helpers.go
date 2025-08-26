@@ -42,3 +42,39 @@ func CombineImportsJsWorld(chunk core.CodeChunkCompiled) string {
 	// combine with actual script
 	return strings.Join(importsList, "\r\n")
 }
+
+func commonJsActionStringCompiler(
+	ctx core.MicroGenContext,
+	callback func(action *core.Module3Action, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error),
+) (string, error) {
+
+	action, err := core.StringToModule3Action(ctx.Content)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := callback(&action, ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return AsFullDocument(result), nil
+}
+
+func commonJsModuleFileCompiler(
+	ctx core.MicroGenContext,
+	callback func(module *core.Module3, ctx core.MicroGenContext) ([]core.VirtualFile, error),
+) ([]core.VirtualFile, error) {
+
+	action, err := core.StringToModule3(ctx.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := callback(&action, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}

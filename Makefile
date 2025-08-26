@@ -12,4 +12,10 @@ sample:
 	./emi js:module --path ./examples/js-test/jsonplaceholder.emi.yml --output ./examples/js-test/backend/src/generated --tags typescript,nestjs
 
 wasm:
-	GOOS=js GOARCH=wasm go build -o ./playground/public/emi-compiler.wasm ./cmd/emi-wasm/main.go
+	GOOS=js GOARCH=wasm go build -o ./playground/public/emi-compiler.wasm ./cmd/emi-wasm/main.go && \
+	cp ./playground/public/emi-compiler.wasm  ./emi-npm/bin/emi-compiler.wasm
+
+ci:
+	make build;
+	cd playground && npm run build && cd -;
+	

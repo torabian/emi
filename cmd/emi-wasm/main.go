@@ -6,68 +6,125 @@ import (
 
 	"github.com/torabian/emi/lib/core"
 	emijs "github.com/torabian/emi/lib/js"
-	"gopkg.in/yaml.v2"
 )
-
-// Add two numbers
-func add(this js.Value, args []js.Value) any {
-	a := args[0].Int()
-	b := args[1].Int()
-	return a + b
-}
 
 func main() {
 
-	// Expose functions to JS global object
-	js.Global().Set("js_module", js.FuncOf(generateFiles))
+	js.Global().Set("getPublicActions", js.FuncOf(getPublicActions))
 
-	fmt.Println("Go WASM initialized")
-	select {} // keep running
+	for _, textAction := range emijs.GetJsPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range emijs.GetJsPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	select {}
 }
 
-func ReadModule3FromString(content string) (*core.Module3, error) {
+func VirtualFilesFactory(
+	callback func(ctx core.MicroGenContext) ([]core.VirtualFile, error),
+) func(this js.Value, args []js.Value) any {
 
-	var data core.Module3
-	err := yaml.Unmarshal([]byte(content), &data)
-	if err != nil {
-		return nil, err
-	}
+	return func(this js.Value, args []js.Value) any {
 
-	return &data, nil
-}
-
-func generateFiles(this js.Value, args []js.Value) any {
-	content := args[0].String()
-	ctx := core.MicroGenContext{
-		Tags: args[1].Get("Tags").String(),
-	}
-
-	// Example: generate multiple files
-
-	module, err := ReadModule3FromString(content)
-	if err != nil {
-		fmt.Println("Module error")
-		return nil
-	}
-
-	files, err := emijs.JsModuleFullVirtualFiles(module, ctx)
-	if err != nil {
-		fmt.Println("Generation error:", err.Error())
-		return nil
-	}
-
-	// Convert to JS array
-	jsArray := js.Global().Get("Array").New()
-	for _, f := range files {
-		obj := map[string]any{
-			"Name":         f.Name,
-			"MimeType":     f.MimeType,
-			"Location":     f.Location,
-			"ActualScript": f.ActualScript,
-			"Extension":    f.Extension,
+		content := args[0].String()
+		ctx := core.MicroGenContext{
+			Tags:    args[1].Get("Tags").String(),
+			Content: content,
 		}
-		jsArray.Call("push", js.ValueOf(obj))
+
+		files, err := callback(ctx)
+		if err != nil {
+			fmt.Println("Generation error:", err.Error())
+			return nil
+		}
+
+		// Convert to JS array
+		jsArray := js.Global().Get("Array").New()
+		for _, f := range files {
+			obj := map[string]any{
+				"Name":         f.Name,
+				"MimeType":     f.MimeType,
+				"Location":     f.Location,
+				"ActualScript": f.ActualScript,
+				"Extension":    f.Extension,
+			}
+			jsArray.Call("push", js.ValueOf(obj))
+		}
+
+		return jsArray
 	}
 
-	return jsArray
+}
+
+func StringOutFactory(
+	callback func(ctx core.MicroGenContext) (string, error),
+) func(this js.Value, args []js.Value) any {
+
+	return func(this js.Value, args []js.Value) any {
+		content := args[0].String()
+		ctx := core.MicroGenContext{
+			Tags:    args[1].Get("Tags").String(),
+			Content: content,
+		}
+
+		compiledChunk, err := callback(ctx)
+		if err != nil {
+			fmt.Println("Generation error:", err)
+			return nil
+		}
+
+		return compiledChunk
+	}
+}
+
+// Converts Go PublicAPIActions into a JS-friendly object
+func getPublicActions(this js.Value, args []js.Value) any {
+	actions := emijs.GetJsPublicActions() // from your js package
+	return publicAPIActionsToJS(actions)
+}
+
+// Helper to convert PublicAPIActions to JS object
+func publicAPIActionsToJS(actions core.PublicAPIActions) js.Value {
+	obj := js.Global().Get("Object").New()
+
+	// TextActions
+	textArr := js.Global().Get("Array").New()
+	for _, a := range actions.TextActions {
+		textArr.Call("push", actionToJS(a.BaseAction))
+	}
+	obj.Set("TextActions", textArr)
+
+	// FileActions
+	fileArr := js.Global().Get("Array").New()
+	for _, a := range actions.FileActions {
+		fileArr.Call("push", actionToJS(a.BaseAction))
+	}
+	obj.Set("FileActions", fileArr)
+
+	return obj
+}
+
+// Converts a BaseAction (name, description, flags) into JS object
+func actionToJS(a core.BaseAction) js.Value {
+	obj := js.Global().Get("Object").New()
+	obj.Set("Name", a.Name)
+	obj.Set("Description", a.Description)
+	obj.Set("WasmFunctionName", a.WasmFunctionName)
+
+	flagsArr := js.Global().Get("Array").New()
+	for _, f := range a.Flags {
+		fObj := js.Global().Get("Object").New()
+		fObj.Set("Name", f.Name)
+		fObj.Set("Usage", f.Usage)
+		fObj.Set("Required", f.Required)
+		fObj.Set("Type", string(f.Type))
+		fObj.Set("Default", f.Default)
+		flagsArr.Call("push", fObj)
+	}
+	obj.Set("Flags", flagsArr)
+
+	return obj
 }

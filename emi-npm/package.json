@@ -1,0 +1,11 @@
+{
+  "name": "emi2",
+  "version": "1.0.0",
+  "bin": {
+    "emi2": "./bin/index.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "commander": "^14.0.0"
+  }
+}

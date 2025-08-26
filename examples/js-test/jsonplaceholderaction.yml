@@ -1,0 +1,15 @@
+name: getSinglePost
+url: https://jsonplaceholder.typicode.com/posts/:id
+cliName: get-single-post
+method: get
+description: Get's an specific post from the endpoint
+out:
+  fields:
+    - name: userId
+      type: int64
+    - name: id
+      type: int64
+    - name: title
+      type: string
+    - name: body
+      type: string

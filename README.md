@@ -4,6 +4,10 @@ Backend for front-end code generation library based on Emi definition files. Thi
 for Fireback projects.
 
 
+## using via npx
+
+You can use this via npx on `emi-npm`, still not deployed.
+
 Playground: https://torabian.github.io/emi
 
 ## Emi definition
