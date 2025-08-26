@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { GetSinglePostHeaders } from './generated/GetSinglePostAction';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -16,7 +17,9 @@ describe('AppController', () => {
 
   describe('root', () => {
     it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+      expect(appController.getHello(new GetSinglePostHeaders())).toBe(
+        'Hello World!',
+      );
     });
   });
 });

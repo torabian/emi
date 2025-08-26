@@ -1,13 +1,13 @@
 export type TypedRequestInit<TBody = unknown, THeaders = unknown> = Omit<
   RequestInit,
-  "body" | "headers"
+  'body' | 'headers'
 > & {
   body?: TBody;
   headers?: THeaders;
 };
 
 export class TypedResponse<T> extends Response {
-  json(): Promise<T> {
+  override json(): Promise<T> {
     return super.json();
   }
 
@@ -17,10 +17,10 @@ export class TypedResponse<T> extends Response {
 export function fetchx<
   TResponse = undefined,
   TBody = unknown,
-  THeaders = unknown
+  THeaders = unknown,
 >(
   input: RequestInfo | URL,
-  init?: TypedRequestInit<TBody, THeaders>
+  init?: TypedRequestInit<TBody, THeaders>,
 ): Promise<TypedResponse<TResponse>> {
   return fetch(input, init as RequestInit) as Promise<TypedResponse<TResponse>>;
 }

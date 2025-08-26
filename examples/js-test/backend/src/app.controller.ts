@@ -1,21 +1,18 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { MyactionHeaders, MyactionReq } from './generated/MyactionAction';
+import { GetSinglePostHeaders } from './generated/GetSinglePostAction';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Post()
-  getHello(
-    @MyactionReq.Nest() req: MyactionReq,
-    @MyactionHeaders.Nest() headers: MyactionHeaders,
-  ): string {
-    return '' + req.getUser().firstName;
+  getHello(@GetSinglePostHeaders.Nest() headers: GetSinglePostHeaders): string {
+    return '' + headers.get('accept-content');
   }
 
   @Get()
-  home(@MyactionHeaders.Nest() headers: MyactionHeaders): string {
+  home(@GetSinglePostHeaders.Nest() headers: GetSinglePostHeaders): string {
     return headers.get('accept-language') || '';
   }
 }
