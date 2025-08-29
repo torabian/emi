@@ -29,6 +29,7 @@ func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms,
 	fetchctx := fetchStaticFunctionContext{
 		DefaultUrlVariable: fmt.Sprintf("%v.URL", className),
 		UrlCreatorFunction: fmt.Sprintf("%v.NewUrl", className),
+		UrlMethod:          fmt.Sprintf("%v.Method", className),
 		EndpointUrl:        action.Url,
 	}
 
@@ -111,6 +112,16 @@ export class {{ .className }} {
 	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
 		Name:  TOKEN_NEW_URL_FN,
 		Value: fetchctx.UrlCreatorFunction,
+	})
+
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+		Name:  TOKEN_URL_METHOD,
+		Value: fetchctx.UrlMethod,
+	})
+
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+		Name:  TOKEN_ACTUAL_METHOD,
+		Value: action.Method,
 	})
 
 	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{

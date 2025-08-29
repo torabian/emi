@@ -1,9 +1,13 @@
 name: Deploy React App
 
 on:
-  push:
+  pull_request:   # run on every PR
+    branches: ["*"]
+  push:           # still run on main push
     branches:
-      - main  # or master, depending on your repo
+      - main
+
+
 permissions:
   contents: write
 
@@ -33,11 +37,11 @@ jobs:
       - name: Build
         run: cd playground && npm run build
 
-
       - name: add jekyl
         run: touch playground/dist/.nojekyll
 
       - name: Deploy pages 🚀
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: ./playground/dist # The folder the action should deploy.
+          folder: ./playground/dist

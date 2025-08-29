@@ -2,7 +2,6 @@ package js
 
 import (
 	"bytes"
-	"fmt"
 	"regexp"
 	"strings"
 	"text/template"
@@ -19,21 +18,28 @@ type renderedJsHeader struct {
 	SetterFunc   string
 }
 
+type jsHeaderClassContext struct {
+	ClassName string
+	Columns   []core.Module3Header
+}
+
 func normalizeJsHeaderType(value string) (string, error) {
+	if IsNumericDataType(value) {
+		return "number | null", nil
+	}
+
 	switch value {
 	case "string":
 		return "string | null", nil
-	case "int64", "float64":
-		return "number | null", nil
 	case "bool":
 		return "boolean | null", nil
 	}
 	return "any", nil
 }
 
-func renderJsTsCommonHeadersInfo(action *core.Module3Action) ([]renderedJsHeader, error) {
+func renderJsTsCommonHeadersInfo(headerColumns []core.Module3Header) ([]renderedJsHeader, error) {
 	headers := []renderedJsHeader{}
-	for _, header := range action.Headers {
+	for _, header := range headerColumns {
 		headerType, err := normalizeJsHeaderType(header.Type)
 		if err != nil {
 			return nil, err
@@ -53,74 +59,14 @@ func renderJsTsCommonHeadersInfo(action *core.Module3Action) ([]renderedJsHeader
 var GEN_NEST_JS_COMPATIBILITY string = "nestjs"
 var GEN_TYPESCRIPT_COMPATIBILITY string = "typescript"
 var GEN_ANGULAR_COMPATIBILITY string = "angular"
+var GEN_AXIOS_BUNDLE_COMPATIBILITY string = "axiosbundle"
 var GEN_REACT_COMPATIBILITY string = "react"
 var GEN_AXIOS_COMPATIBILITY string = "axios"
 
-// generic renderer
-func renderTsJsHeaderClass(ctx core.MicroGenContext, action *core.Module3Action, headers []renderedJsHeader, tmpl string) (*core.CodeChunkCompiled, error) {
-	res := &core.CodeChunkCompiled{}
-
-	t := template.Must(template.New("headerclass").Funcs(core.CommonMap).Parse(tmpl))
-	nestJsDecorator := strings.Contains(ctx.Tags, GEN_NEST_JS_COMPATIBILITY)
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-
-	getTypeArgument := "type"
-	if isTypeScript {
-		getTypeArgument = "type: string"
-	}
-
-	getKeyArgument := "key"
-	if isTypeScript {
-		getKeyArgument = "key: string"
-	}
-
-	var nestJsDecoratorRendered = ""
-	className := fmt.Sprintf("%vHeaders", core.ToUpper(action.Name))
-
-	if nestJsDecorator {
-
-		nestjsStaticDecorator, err := JsNestJsStaticDecorator(NestJsStaticDecoratorContext{
-			ClassInstance:               className,
-			NestJsStaticFunctionUseCase: RequestHeaders,
-		}, ctx)
-
-		if err != nil {
-			return nil, err
-		}
-
-		// Make sure to add dependencies to render tree
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, nestjsStaticDecorator.CodeChunkDependenies...)
-
-		// Add the static function to the class bottom
-		nestJsDecoratorRendered = string(nestjsStaticDecorator.ActualScript)
-	}
-
-	var buf bytes.Buffer
-	if err := t.Execute(&buf, core.H{
-		"action":                  action,
-		"nestJsDecoratorRendered": nestJsDecoratorRendered,
-		"getTypeArgument":         getTypeArgument,
-		"getKeyArgument":          getKeyArgument,
-		"headers":                 headers,
-		"shouldExport":            true,
-		"nestjsDecorator":         nestJsDecoratorRendered,
-		"className":               className,
-	}); err != nil {
-		return nil, err
-	}
-
-	res.ActualScript = buf.Bytes()
-	res.Tokens = []core.GeneratedScriptToken{
-		{
-			Name:  TOKEN_ROOT_CLASS,
-			Value: className,
-		},
-	}
-
-	return res, nil
-}
-
-func JsActionHeaderClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+func JsHeaderClass(
+	headerctx jsHeaderClassContext,
+	ctx core.MicroGenContext,
+) (*core.CodeChunkCompiled, error) {
 
 	const tmpl = `/**
  * {{.className}} class
@@ -175,11 +121,68 @@ func JsActionHeaderClass(action *core.Module3Action, ctx core.MicroGenContext) (
   {{ end}}
 }
 `
-	result, err := renderJsTsCommonHeadersInfo(action)
+	renderedHeaders, err := renderJsTsCommonHeadersInfo(headerctx.Columns)
 	if err != nil {
 		return nil, err
 	}
-	return renderTsJsHeaderClass(ctx, action, result, tmpl)
+	res := &core.CodeChunkCompiled{}
+
+	t := template.Must(template.New("headerclass").Funcs(core.CommonMap).Parse(tmpl))
+	nestJsDecorator := strings.Contains(ctx.Tags, GEN_NEST_JS_COMPATIBILITY)
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+
+	getTypeArgument := "type"
+	if isTypeScript {
+		getTypeArgument = "type: string"
+	}
+
+	getKeyArgument := "key"
+	if isTypeScript {
+		getKeyArgument = "key: string"
+	}
+
+	var nestJsDecoratorRendered = ""
+
+	if nestJsDecorator {
+
+		nestjsStaticDecorator, err := JsNestJsStaticDecorator(NestJsStaticDecoratorContext{
+			ClassInstance:               headerctx.ClassName,
+			NestJsStaticFunctionUseCase: RequestHeaders,
+		}, ctx)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Make sure to add dependencies to render tree
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, nestjsStaticDecorator.CodeChunkDependenies...)
+
+		// Add the static function to the class bottom
+		nestJsDecoratorRendered = string(nestjsStaticDecorator.ActualScript)
+	}
+
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, core.H{
+		"nestJsDecoratorRendered": nestJsDecoratorRendered,
+		"getTypeArgument":         getTypeArgument,
+		"getKeyArgument":          getKeyArgument,
+		"headers":                 renderedHeaders,
+		"shouldExport":            true,
+		"nestjsDecorator":         nestJsDecoratorRendered,
+		"className":               headerctx.ClassName,
+	}); err != nil {
+		return nil, err
+	}
+
+	res.ActualScript = buf.Bytes()
+	res.Tokens = []core.GeneratedScriptToken{
+		{
+			Name:  TOKEN_ROOT_CLASS,
+			Value: headerctx.ClassName,
+		},
+	}
+
+	return res, nil
 }
 
 var camelCaseRe = regexp.MustCompile(`^[a-z][a-zA-Z0-9]*$`)

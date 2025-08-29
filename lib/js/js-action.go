@@ -14,17 +14,31 @@ import (
 
 func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	res := &core.CodeChunkCompiled{}
-	actionRealms, deps, err := JsActionClassRealms(action, ctx)
+	isReact := strings.Contains(ctx.Tags, GEN_REACT_COMPATIBILITY)
 
-	res.Tokens = []core.GeneratedScriptToken{
-		{
-			Name:  TOKEN_ORIGINAL_NAME,
-			Value: action.Name,
+	res := &core.CodeChunkCompiled{
+		Tokens: []core.GeneratedScriptToken{
+			{
+				Name:  TOKEN_ORIGINAL_NAME,
+				Value: action.Name,
+			},
 		},
 	}
+
+	actionRealms, jsDependencies, err := JsActionClassRealms(action, ctx)
 	if err != nil {
 		return nil, err
+	}
+	res.CodeChunkDependenies = append(res.CodeChunkDependenies, jsDependencies...)
+
+	var reactQuery *reactQueryHookRealms
+	if isReact {
+		reactQueryRealms, reactQuerydeps, err := ReactQueryHooksBasedOnActionRealms(action, ctx, *actionRealms)
+		if err != nil {
+			return nil, err
+		}
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, reactQuerydeps...)
+		reactQuery = reactQueryRealms
 	}
 
 	const tmpl = `/**
@@ -35,12 +49,26 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 	{{ b2s .realms.OptionsType.ActualScript }}
 {{ end }}
 
-{{ if .realms.ReactQueryOptions }}
-	{{ b2s .realms.ReactQueryOptions.ActualScript }}
-{{ end }}
+{{ if .reactQuery }}
+	{{ if .reactQuery.UseQuery }}
+		{{ if .reactQuery.UseQuery.ReactQueryOptions }}
+			{{ b2s .reactQuery.UseQuery.ReactQueryOptions.ActualScript }}
+		{{ end }}
 
-{{ if .realms.UseQueryFunction }}
-	{{ b2s .realms.UseQueryFunction.ActualScript }}
+		{{ if .reactQuery.UseQuery.UseQueryFunction }}
+			{{ b2s .reactQuery.UseQuery.UseQueryFunction.ActualScript }}
+		{{ end }}
+	{{ end }}
+	
+	{{ if .reactQuery.UseMutation }}
+		{{ if .reactQuery.UseMutation.UseMutationOptions }}
+			{{ b2s .reactQuery.UseMutation.UseMutationOptions.ActualScript }}
+		{{ end }}
+
+		{{ if .reactQuery.UseMutation.UseMutationFunction }}
+			{{ b2s .reactQuery.UseMutation.UseMutationFunction.ActualScript }}
+		{{ end }}
+	{{ end }}
 {{ end }}
 
 
@@ -61,14 +89,18 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 {{ b2s .realms.ResponseClass.ActualScript }}
 {{ end }}
 
-{{ if .headerCompiledClass }}
-{{ .headerCompiledClass }}
+{{ if .reqHeaderCompiledClass }}
+{{ .reqHeaderCompiledClass }}
+{{ end }}
+
+{{ if .resHeaderCompiledClass }}
+{{ .resHeaderCompiledClass }}
 {{ end }}
 
 {{ if .qsCompiledClass }}
 {{ .qsCompiledClass }}
 {{ end }}
- 
+
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
@@ -76,19 +108,20 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"action":              action,
-		"headerCompiledClass": string(actionRealms.RequestHeadersClass.ActualScript),
-		"qsCompiledClass":     string(actionRealms.QueryStringClass.ActualScript),
-		"shouldExport":        true,
-		"nestjsDecorator":     nestJsDecorator,
-		"fetch":               string(actionRealms.FetchMetaClass.ActualScript),
-		"realms":              actionRealms,
-		"className":           fmt.Sprintf("%vAction", action.Upper()),
+		"action":                 action,
+		"reqHeaderCompiledClass": string(actionRealms.RequestHeadersClass.ActualScript),
+		"resHeaderCompiledClass": string(actionRealms.ResponseHeadersClass.ActualScript),
+		"qsCompiledClass":        string(actionRealms.QueryStringClass.ActualScript),
+		"shouldExport":           true,
+		"reactQuery":             reactQuery,
+		"nestjsDecorator":        nestJsDecorator,
+		"fetch":                  string(actionRealms.FetchMetaClass.ActualScript),
+		"realms":                 actionRealms,
+		"className":              fmt.Sprintf("%vAction", action.Upper()),
 	}); err != nil {
 		return nil, err
 	}
 
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, deps...)
 	res.ActualScript = buf.Bytes()
 	res.SuggestedFileName = core.ToUpper(action.Name) + "Action"
 	res.SuggestedExtension = ".js"

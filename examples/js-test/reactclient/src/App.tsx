@@ -1,10 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import "./App.css";
 import {
   GetSinglePostQueryParams,
   useGetSinglePost,
 } from "./generated/GetSinglePostAction";
-import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 

@@ -30,6 +30,8 @@ type fetchStaticFunctionContext struct {
 
 	UrlCreatorFunction string
 
+	UrlMethod string
+
 	// For certain types, we need to make res.json() cast in fetch, if it's returning a dto,
 	// or entity, or has fields. For text, html, or others, it does not require and makes no sense,
 	// therefor needs to be casted res.text() from fetch perspective
@@ -53,12 +55,24 @@ func GenerateTSParams(placeholders []string) string {
 
 // generates a static function, to developers prefer to make calls via axios
 func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+
+	requestType := "unknown"
+	responseType := "unknown"
+	requestHeaderType := "unknown"
+
+	if fetchctx.ResponseClass != "" {
+		responseType = fetchctx.ResponseClass
+	}
+	if fetchctx.RequestHeadersClass != "" {
+		requestHeaderType = fetchctx.RequestHeadersClass
+	}
+
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	queryParams := core.ExtractPlaceholdersInUrl(fetchctx.EndpointUrl)
 	claims := []core.JsFnArgument{
 		{
 			Key: "fetch.init",
-			Ts:  "init?: TypedRequestInit<unknown, unknown>",
+			Ts:  fmt.Sprintf("init?: TypedRequestInit<%v, %v>", responseType, requestHeaderType),
 			Js:  "init",
 		},
 		{
@@ -73,7 +87,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		},
 		{
 			Key: "fetch.generic",
-			Ts:  "<unknown, unknown, unknown>",
+			Ts:  fmt.Sprintf("<%v, %v, %v>", responseType, requestType, requestHeaderType),
 			Js:  "",
 		},
 		{
@@ -101,7 +115,10 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 				{{ end }}
 				qs
 			),
-			init
+			{
+				method: {{  .fetchctx.UrlMethod -}},
+				...(init || {})
+			}
 		)
 
 		{{ if .fetchctx.CastToJson }}

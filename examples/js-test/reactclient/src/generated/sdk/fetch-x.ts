@@ -7,7 +7,7 @@ export type TypedRequestInit<TBody = unknown, THeaders = unknown> = Omit<
 };
 
 export class TypedResponse<T> extends Response {
-  json(): Promise<T> {
+  override json(): Promise<T> {
     return super.json();
   }
 
@@ -15,7 +15,7 @@ export class TypedResponse<T> extends Response {
 }
 
 export function fetchx<
-  TResponse = undefined,
+  TResponse = unknown,
   TBody = unknown,
   THeaders = unknown
 >(

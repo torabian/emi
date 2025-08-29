@@ -112,13 +112,7 @@ export class {{ .className }} {
 				options
 			)
 			{{ if .ResponseClassGenerator }}
-			.pipe(
-				map((res) => {
-					return this.{{ .ResponseClassGenerator }}Factory
-						? this.{{ .ResponseClassGenerator }}Factory.create(res)
-						: new {{ .ResponseClassGenerator }}(res);
-					})
-			);
+			// Create instance of {{ .ResponseClassGenerator }}
 			{{ end }}
 		}
 	{{end }}
@@ -132,6 +126,7 @@ export class {{ .className }} {
 		realms := action.Realms.(*jsActionRealms)
 		fetchMetaClassName := findTokenByName(realms.FetchMetaClass.Tokens, TOKEN_ROOT_CLASS)
 		urlGenerator := findTokenByName(realms.FetchMetaClass.Tokens, TOKEN_NEW_URL_FN)
+		method := findTokenByName(realms.FetchMetaClass.Tokens, TOKEN_ACTUAL_METHOD)
 
 		// Import the path paramter type into the class
 		if realms.PathParameter != nil {
@@ -222,7 +217,7 @@ export class {{ .className }} {
 			ResponseClassGenerator:    responseClassGenerator,
 			HttpCallerParams:          angularHttpCallerParams(realms),
 			FetchMetaClassName:        fetchMetaClassName.Value,
-			AngularHttpMethodFunction: "get",
+			AngularHttpMethodFunction: method.Value,
 		})
 
 	}

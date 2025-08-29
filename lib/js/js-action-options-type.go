@@ -12,13 +12,13 @@ import (
 )
 
 type jsActionOptionsContext struct {
-	ParamsTypeName          string
-	QsClassName             string
-	RequestHeadersClassName string
-	ActionName              string
+	ParamsTypeName           string
+	QsClassName              string
+	RequestHeadersClassName  string
+	ResponseHeadersClassName string
+	ActionName               string
 }
 
-// generates a static function, to developers prefer to make calls via axios
 func TsActionOptionsTypeHelper(optionsctx jsActionOptionsContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
 	className := fmt.Sprintf("%vActionOptions", core.ToUpper(optionsctx.ActionName))

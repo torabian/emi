@@ -36,7 +36,7 @@ export default function YamlEditor({
         wordBasedSuggestions: "allDocuments", // don’t suggest random words
         fontSize: 16,
       }}
-      height="calc(100vh - 250px)"
+      height="calc(100vh - 160px)"
       onChange={(value) => {
         onChange(value as string);
       }}

@@ -47,6 +47,7 @@ func JsModuleFullVirtualFiles(module *core.Module3, ctx core.MicroGenContext) ([
 
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	isAngular := strings.Contains(ctx.Tags, GEN_ANGULAR_COMPATIBILITY)
+	isAxiosBundle := strings.Contains(ctx.Tags, GEN_AXIOS_BUNDLE_COMPATIBILITY)
 
 	// For angular, we use the rendered actions, because generated class will be based on the decisions made
 	// inside that function, since we will import Meta classes and everything else from that file.
@@ -61,6 +62,18 @@ func JsModuleFullVirtualFiles(module *core.Module3, ctx core.MicroGenContext) ([
 			Name:         angularService.SuggestedFileName,
 			Extension:    angularService.SuggestedExtension,
 			ActualScript: AsFullDocument(angularService),
+		})
+	}
+
+	if isAxiosBundle {
+		axiosBundle, err := AxiosBundleClass(module, actionsRendered, ctx)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, core.VirtualFile{
+			Name:         axiosBundle.SuggestedFileName,
+			Extension:    axiosBundle.SuggestedExtension,
+			ActualScript: AsFullDocument(axiosBundle),
 		})
 	}
 

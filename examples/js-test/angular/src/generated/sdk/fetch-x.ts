@@ -1,6 +1,6 @@
 export type TypedRequestInit<TBody = unknown, THeaders = unknown> = Omit<
   RequestInit,
-  "body" | "headers"
+  'body' | 'headers'
 > & {
   body?: TBody;
   headers?: THeaders;
@@ -15,7 +15,7 @@ export class TypedResponse<T> extends Response {
 }
 
 export function fetchx<
-  TResponse = undefined,
+  TResponse = unknown,
   TBody = unknown,
   THeaders = unknown
 >(

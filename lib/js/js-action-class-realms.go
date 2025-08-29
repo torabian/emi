@@ -11,15 +11,18 @@ import (
 )
 
 type jsActionRealms struct {
-	UseQueryFunction    *core.CodeChunkCompiled
-	ReactQueryOptions   *core.CodeChunkCompiled
-	PathParameter       *core.CodeChunkCompiled
-	OptionsType         *core.CodeChunkCompiled
-	FetchMetaClass      *core.CodeChunkCompiled
-	RequestClass        *core.CodeChunkCompiled
-	ResponseClass       *core.CodeChunkCompiled
-	QueryStringClass    *core.CodeChunkCompiled
-	RequestHeadersClass *core.CodeChunkCompiled
+	ActionName           string
+	HttpMethod           string
+	UseQueryFunction     *core.CodeChunkCompiled
+	ReactQueryOptions    *core.CodeChunkCompiled
+	PathParameter        *core.CodeChunkCompiled
+	OptionsType          *core.CodeChunkCompiled
+	FetchMetaClass       *core.CodeChunkCompiled
+	RequestClass         *core.CodeChunkCompiled
+	ResponseClass        *core.CodeChunkCompiled
+	QueryStringClass     *core.CodeChunkCompiled
+	RequestHeadersClass  *core.CodeChunkCompiled
+	ResponseHeadersClass *core.CodeChunkCompiled
 }
 
 func JsActionClassRealms(
@@ -27,19 +30,44 @@ func JsActionClassRealms(
 	ctx core.MicroGenContext,
 ) (*jsActionRealms, []core.CodeChunkDependency, error) {
 	deps := []core.CodeChunkDependency{}
-	actionRealms := jsActionRealms{}
+	actionRealms := jsActionRealms{
+		ActionName: action.Name,
+		HttpMethod: action.MethodUpper(),
+	}
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	isReact := strings.Contains(ctx.Tags, GEN_REACT_COMPATIBILITY)
 
-	// Header is the http headers, extending the Headers class from standard javascript
-	header, err := JsActionHeaderClass(action, ctx)
+	reqheaderctx := jsHeaderClassContext{
+		ClassName: fmt.Sprintf("%vReqHeaders", core.ToUpper(action.Name)),
+	}
+
+	if action.In != nil && len(action.In.Headers) > 0 {
+		reqheaderctx.Columns = action.In.Headers
+	}
+	requestHeader, err := JsHeaderClass(reqheaderctx, ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if header != nil {
-		deps = append(deps, header.CodeChunkDependenies...)
-		actionRealms.RequestHeadersClass = header
+	if requestHeader != nil {
+		deps = append(deps, requestHeader.CodeChunkDependenies...)
+		actionRealms.RequestHeadersClass = requestHeader
+	}
+
+	resheaderctx := jsHeaderClassContext{
+		ClassName: fmt.Sprintf("%vResHeaders", core.ToUpper(action.Name)),
+	}
+
+	if action.Out != nil && len(action.Out.Headers) > 0 {
+		resheaderctx.Columns = action.Out.Headers
+	}
+	responseHeader, err := JsHeaderClass(resheaderctx, ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if responseHeader != nil {
+		deps = append(deps, responseHeader.CodeChunkDependenies...)
+		actionRealms.ResponseHeadersClass = responseHeader
 	}
 
 	// Header is the http headers, extending the Headers class from standard javascript
@@ -83,10 +111,17 @@ func JsActionClassRealms(
 		}
 	}
 
-	if header != nil {
-		token := findTokenByName(header.Tokens, TOKEN_ROOT_CLASS)
+	if requestHeader != nil {
+		token := findTokenByName(requestHeader.Tokens, TOKEN_ROOT_CLASS)
 		if token != nil {
 			optionsctx.RequestHeadersClassName = token.Value
+		}
+	}
+
+	if responseHeader != nil {
+		token := findTokenByName(responseHeader.Tokens, TOKEN_ROOT_CLASS)
+		if token != nil {
+			optionsctx.ResponseHeadersClassName = token.Value
 		}
 	}
 
@@ -98,20 +133,6 @@ func JsActionClassRealms(
 		deps = append(deps, optionsType.CodeChunkDependenies...)
 		actionRealms.OptionsType = optionsType
 
-		if isReact {
-
-			// React Query options
-			rqoptions := reactQueryOptionsType{
-				ActionName:             action.Name,
-				ActionQueryOptionsName: findTokenByName(optionsType.Tokens, TOKEN_ROOT_CLASS).Value,
-			}
-			reactQueryOptions, err := ReactQueryOptionsTypeFunction(rqoptions, ctx)
-			if err != nil {
-				return nil, nil, err
-			}
-			deps = append(deps, reactQueryOptions.CodeChunkDependenies...)
-			actionRealms.ReactQueryOptions = reactQueryOptions
-		}
 	}
 
 	// Action request (in)
@@ -143,12 +164,6 @@ func JsActionClassRealms(
 		deps = append(deps, fields.CodeChunkDependenies...)
 		actionRealms.ResponseClass = fields
 
-		mitem := fmt.Sprintf(`
-export abstract class %vFactory {
-	abstract create(data: unknown): %v;
-}
-		`, core.ToUpper(outClassName), core.ToUpper(outClassName))
-		fields.ActualScript = append(fields.ActualScript, []byte(mitem)...)
 	}
 
 	fetch, err := JsActionFetchAndMetaData(action, actionRealms, ctx)
@@ -157,26 +172,6 @@ export abstract class %vFactory {
 	}
 	deps = append(deps, fetch.CodeChunkDependenies...)
 	actionRealms.FetchMetaClass = fetch
-
-	if isReact {
-		// React Query use-query
-		useQueryOptions := reactUseQueryOptions{
-			ActionName:         action.Name,
-			NewUrlFunctionName: findTokenByName(fetch.Tokens, TOKEN_NEW_URL_FN).Value,
-			MetaDataClassName:  findTokenByName(fetch.Tokens, TOKEN_ROOT_CLASS).Value,
-		}
-
-		if actionRealms.ReactQueryOptions != nil {
-			useQueryOptions.ActionQueryOptionsName = findTokenByName(actionRealms.ReactQueryOptions.Tokens, TOKEN_ROOT_CLASS).Value
-		}
-
-		useQueryFunction, err := ReactUseQueryOptionsFunction(useQueryOptions, ctx)
-		if err != nil {
-			return nil, nil, err
-		}
-		deps = append(deps, useQueryFunction.CodeChunkDependenies...)
-		actionRealms.UseQueryFunction = useQueryFunction
-	}
 
 	return &actionRealms, deps, nil
 }

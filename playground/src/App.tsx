@@ -40,24 +40,44 @@ function App() {
   return (
     <>
       <header className="intro">
-        <h1>🔥 EMI Compiler</h1>
-        <p>A WebAssembly-powered playground for generating code dynamically.</p>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <h1>🔥 EMI Compiler</h1>
+          <p>
+            A WebAssembly-powered playground for generating code dynamically.
+          </p>
+        </div>
         <div
           style={{
             display: "flex",
             justifyItems: "center",
             alignItems: "center",
             marginBottom: "20px",
+            justifyContent: "space-between",
           }}
         >
-          <span className="wasm-status">
-            WASM Runtime: {ready ? "✅ Ready" : "⏳ Initializing..."}
-          </span>
-          <FeatureSelector
-            options={["nestjs", "angular", "typescript", "axios", "react"]}
-            setSelected={(value) => setFeatures(value)}
-            selected={features}
-          />
+          <div style={{ display: "flex" }}>
+            <span className="wasm-status">
+              WASM Runtime: {ready ? "✅ Ready" : "⏳ Initializing..."}
+            </span>
+            <FeatureSelector
+              options={[
+                "nestjs",
+                "angular",
+                "typescript",
+                "axios",
+                "react",
+                "axiosbundle",
+              ]}
+              setSelected={(value) => setFeatures(value)}
+              selected={features}
+            />
+          </div>
           <button
             style={{ marginBottom: "5px" }}
             onClick={() => void downloadZip(files)}

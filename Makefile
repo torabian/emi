@@ -15,7 +15,10 @@ wasm:
 	GOOS=js GOARCH=wasm go build -o ./playground/public/emi-compiler.wasm ./cmd/emi-wasm/main.go && \
 	cp ./playground/public/emi-compiler.wasm  ./emi-npm/bin/emi-compiler.wasm
 
+jstests:
+	cd tests/js && npm i && npm test
 ci:
 	make build;
 	cd playground && npm run build && cd -;
-	
+	make sample;
+	make jstests;

@@ -1,0 +1,21 @@
+{
+  "name": "emi-tests",
+  "version": "1.0.0",
+  "description": "Test the code generated via emi on typescript/javascript modules",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx vitest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "ts-morph": "^26.0.0"
+  }
+}
