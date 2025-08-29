@@ -1,9 +1,13 @@
 name: Deploy React App
 
 on:
-  push:
+  pull_request:   # run on every PR
+    branches: ["*"]
+  push:           # still run on main push
     branches:
-      - main  # or master, depending on your repo
+      - main
+
+
 permissions:
   contents: write
 
