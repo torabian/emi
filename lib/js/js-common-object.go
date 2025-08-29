@@ -22,18 +22,21 @@ type jsRenderedDataClass struct {
 
 // Each field when rendered, becomes like this
 type jsRenderedField struct {
-	Name       string
-	Type       string
-	Children   []jsRenderedField
-	Output     string
-	GetterFunc string
-	SetterFunc string
+	Name                    string
+	Type                    string
+	Children                []jsRenderedField
+	Output                  string
+	GetterFunc              string
+	SetterCallInConstructor string
+	SetterFunc              string
 }
 
 // Some field types such as array and object,
 // need to have the correct generated class to be assigned to them.
 func jsFieldTypeOnNestedClasses(field *core.Module3Field, parentChain string) string {
-
+	if field == nil {
+		return ""
+	}
 	if field.Type == core.FIELD_TYPE_ARRAY || field.Type == core.FIELD_TYPE_OBJECT {
 		return core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
 	}
@@ -42,12 +45,61 @@ func jsFieldTypeOnNestedClasses(field *core.Module3Field, parentChain string) st
 }
 
 func tsFieldTypeOnNestedClasses(field *core.Module3Field, parentChain string) string {
-
-	if field.Type == core.FIELD_TYPE_ARRAY || field.Type == core.FIELD_TYPE_OBJECT {
+	if field == nil {
+		return ""
+	}
+	if field.Type == core.FIELD_TYPE_OBJECT {
 		return fmt.Sprintf("InstanceType<typeof %v>", core.ToUpper(parentChain)+"."+core.ToUpper(field.Name))
+	}
+	if field.Type == core.FIELD_TYPE_ARRAY {
+		return fmt.Sprintf("InstanceType<typeof %v>[]", core.ToUpper(parentChain)+"."+core.ToUpper(field.Name))
 	}
 
 	return TsComputedField(field, false)
+}
+
+var setterTemplate = template.Must(template.New("setter").Parse(`
+{{.Jsdoc}}
+set{{.UpperName}}(value{{if .FieldType}}: {{.FieldType}}{{end}}) {
+	{{if eq .Type "array"}}
+	// Only accept array types
+	if (!Array.isArray(value) && value !== null && value !== undefined) {
+		return this
+	}
+
+	// If the value is array, we need to check first item, if is instance of the class
+	if (value.length > 0 && value[0] instanceof {{.ArrayClass}}) {
+		this["{{.Name}}"] = value
+	} else {
+		this["{{.Name}}"] = value.map(item => new {{.ArrayClass}}(item))
+	}
+	{{else}}
+	this["{{.Name}}"] = value
+	{{end}}
+	return this
+}
+`))
+
+func jsClassSetterFunction(jsFieldType string, field *core.Module3Field) (*JsdocComment, string) {
+	setterjsdoc := NewJsDoc("  ")
+	setterjsdoc.Add(fmt.Sprintf("@param {%v}", jsFieldType))
+	setterjsdoc.Add(fmt.Sprintf("@description %v", field.Description))
+
+	data := map[string]any{
+		"Jsdoc":      setterjsdoc.String(),
+		"UpperName":  core.ToUpper(field.Name),
+		"Name":       field.Name,
+		"FieldType":  jsFieldType,
+		"Type":       field.Type,
+		"ArrayClass": "GetSinglePostRes.Histories", // maybe dynamic later
+	}
+
+	var buf bytes.Buffer
+	if err := setterTemplate.Execute(&buf, data); err != nil {
+		panic(err)
+	}
+
+	return setterjsdoc, buf.String()
 }
 
 func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroGenContext) jsRenderedField {
@@ -72,10 +124,9 @@ func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroG
 	getterjsdoc.Add(fmt.Sprintf("@description %v", field.Description))
 	getterFunc := getterjsdoc.String() + fmt.Sprintf("get%v () { return this[`%v`] }", core.ToUpper(field.Name), field.Name)
 
-	setterjsdoc := NewJsDoc("  ")
-	setterjsdoc.Add(fmt.Sprintf("@param {%v}", jsFieldType))
-	setterjsdoc.Add(fmt.Sprintf("@description %v", field.Description))
-	setterFunc := setterjsdoc.String() + fmt.Sprintf("set%v (value) { this[`%v`] = value; return this; }", core.ToUpper(field.Name), field.Name)
+	setterjsdoc, setterFunc := jsClassSetterFunction(jsFieldType, field)
+
+	setterCallInConstructor := fmt.Sprintf("if (d[`%v`] !== undefined) { \r\n this.set%v (d[`%v`]) \r\n}", field.Name, core.ToUpper(field.Name), field.Name)
 
 	if isTypeScript {
 		setterFunc = setterjsdoc.String() +
@@ -88,11 +139,12 @@ func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroG
 	}
 
 	return jsRenderedField{
-		Name:       field.Name,
-		Type:       field.Type,
-		Output:     output,
-		SetterFunc: setterFunc,
-		GetterFunc: getterFunc,
+		Name:                    field.Name,
+		Type:                    field.Type,
+		Output:                  output,
+		SetterFunc:              setterFunc,
+		SetterCallInConstructor: setterCallInConstructor,
+		GetterFunc:              getterFunc,
 	}
 }
 
@@ -101,6 +153,9 @@ func jsRenderFieldsShallow(fields []*core.Module3Field, parentChain string, ctx 
 	output := []jsRenderedField{}
 
 	for _, field := range fields {
+		if field == nil {
+			continue
+		}
 		item := jsRenderField(field, parentChain, ctx)
 		output = append(output, item)
 	}
@@ -109,10 +164,14 @@ func jsRenderFieldsShallow(fields []*core.Module3Field, parentChain string, ctx 
 }
 
 func jsRenderDataClasses(fields []*core.Module3Field, className string, treeLocation string, isFirst bool, ctx core.MicroGenContext) []jsRenderedDataClass {
+	if len(fields) == 0 {
+		return []jsRenderedDataClass{}
+	}
+
 	var content []jsRenderedDataClass
 
 	jsdoc := NewJsDoc("  ").Add(fmt.Sprintf("@decription The base class definition for %v", core.ToLower(className)))
-	signature := fmt.Sprintf("export class %v", core.ToUpper(className))
+	signature := fmt.Sprintf("export class %v implements %vType", core.ToUpper(className), core.ToUpper(className))
 
 	// When it's first one, we use class. For children, signature is a bit different since they go inside.
 	if !isFirst {
@@ -126,8 +185,10 @@ func jsRenderDataClasses(fields []*core.Module3Field, className string, treeLoca
 		Signature: signature,
 	}
 
-	// then descend into object/array fields
 	for _, field := range fields {
+		if field == nil {
+			continue
+		}
 		if field.Type == core.FIELD_TYPE_OBJECT || field.Type == core.FIELD_TYPE_ARRAY {
 			childName := core.ToUpper(field.Name)
 			currentClass.SubClasses = append(currentClass.SubClasses, jsRenderDataClasses(field.Fields, core.ToUpper(childName), treeLocation+"."+core.ToUpper(childName), false, ctx)...)
@@ -151,6 +212,14 @@ type JsCommonObjectContext struct {
 func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{}
+
+	tsTypes, tsTypeError := TsCommonObjectGenerator(fields, ctx, TsCommonObjectContext{
+		RootTypeName: jsctx.RootClassName,
+	})
+
+	if tsTypeError != nil {
+		return nil, tsTypeError
+	}
 
 	renderedClasses := jsRenderDataClasses(fields, jsctx.RootClassName, jsctx.RootClassName, true, ctx)
 
@@ -186,6 +255,7 @@ func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenConte
 	}
 
 	const tmpl = `
+{{ .tsInterface }}
 {{ define "printClass" }}
 {{ .JsDoc }}
 {{ .Signature  }} {
@@ -193,7 +263,11 @@ func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenConte
 	 
 	constructor(data) {
 		// This probably doesn't cover the nested objects
-		Object.assign(this, data)
+		const d = data as Partial<{{ .ClassName }}>;
+
+		{{ range .Fields }}
+			{{ .SetterCallInConstructor }}
+		{{ end }}
 	}
 
 	{{ range .Fields }} 
@@ -217,6 +291,10 @@ func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenConte
 	{{ template "printClass" . }}
 {{ end }}
 
+{{ if .abstractFactoryClass }}
+	{{ .abstractFactoryClass }}
+{{ end }}
+
 {{ define "matches" }}
   {{ range .Matches }}
     get {{$.Name}}As{{ .PublicName }}(): {{ .PublicName }} | null {
@@ -229,13 +307,25 @@ func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenConte
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
 	nestJsDecorator := strings.Contains(ctx.Tags, GEN_NEST_JS_COMPATIBILITY)
 
+	// Abstract class factory is only useful then
+	abstractFactoryClass := ""
+	if isTypeScript {
+		abstractFactoryClass = fmt.Sprintf(`
+export abstract class %vFactory {
+	abstract create(data: unknown): %v;
+}
+		`, core.ToUpper(jsctx.RootClassName), core.ToUpper(jsctx.RootClassName))
+	}
+
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"shouldExport":    true,
-		"nestjsDecorator": nestJsDecorator,
-		"isTypeScript":    isTypeScript,
-		"renderedClasses": renderedClasses,
-		"fields":          fields,
+		"shouldExport":         true,
+		"nestjsDecorator":      nestJsDecorator,
+		"isTypeScript":         isTypeScript,
+		"tsInterface":          string(tsTypes.ActualScript),
+		"abstractFactoryClass": abstractFactoryClass,
+		"renderedClasses":      renderedClasses,
+		"fields":               fields,
 	}); err != nil {
 		return nil, err
 	}

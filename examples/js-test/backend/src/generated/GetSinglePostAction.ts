@@ -1,153 +1,163 @@
-import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ExecutionContext, createParamDecorator } from '@nestjs/common';
-import {
-  URLSearchParamsX,
-  buildUrl,
-  fetchx,
-  type TypedRequestInit,
-} from './sdk';
+import { URLSearchParamsX, buildUrl, fetchx, type TypedRequestInit } from './sdk';
 /**
- * Action to communicate with the action getSinglePost
- */
+* Action to communicate with the action getSinglePost
+*/
 export type GetSinglePostActionOptions = {
-  queryKey?: unknown[];
-  params: FetchGetSinglePostActionPathParameter;
-  qs?: GetSinglePostQueryParams;
-  headers?: GetSinglePostHeaders;
+	queryKey?: unknown[];
+	params: FetchGetSinglePostActionPathParameter;
+	qs?: GetSinglePostQueryParams;
+	headers?: GetSinglePostReqHeaders;
 };
-/**
+	/**
  * Path parameters for FetchGetSinglePostAction
  */
 export type FetchGetSinglePostActionPathParameter = {
-  id: string | number | boolean;
-};
-/**
+	id: string | number | boolean;
+}
+	/**
  * FetchGetSinglePostAction
  */
 export class FetchGetSinglePostAction {
   static URL = 'https://jsonplaceholder.typicode.com/posts/:id';
   static NewUrl = (
-    params: FetchGetSinglePostActionPathParameter,
-    qs?: GetSinglePostQueryParams,
-  ) => buildUrl(FetchGetSinglePostAction.URL, params, qs);
+	params: FetchGetSinglePostActionPathParameter,
+	qs?: GetSinglePostQueryParams
+  ) => buildUrl(
+		FetchGetSinglePostAction.URL,
+		params,
+		qs
+	);
   static Method = 'get';
-  static Axios: (
-    clientInstance: AxiosInstance,
-    config: AxiosRequestConfig<unknown>,
-  ) => Promise<AxiosResponse<unknown>> = (clientInstance, config) =>
-    clientInstance
-      .request<unknown, AxiosResponse<unknown>, unknown>(config)
-      .then((res) => {
-        return {
-          ...res,
-          // if there is a output class, create instance out of it.
-          data: new GetSinglePostRes(res.data),
-        };
-      });
-  static Fetch = async (
-    params: FetchGetSinglePostActionPathParameter,
-    qs?: GetSinglePostQueryParams,
-    init?: TypedRequestInit<unknown, unknown>,
-    overrideUrl?: string,
-  ) => {
-    const res = await fetchx<unknown, unknown, unknown>(
-      overrideUrl ?? FetchGetSinglePostAction.NewUrl(params, qs),
-      init,
-    );
-    const result = await res.json();
-    res.result = new GetSinglePostRes(result);
-    return res;
-  };
+	static Fetch = async (
+			params: FetchGetSinglePostActionPathParameter,
+		qs?: GetSinglePostQueryParams,
+		init?: TypedRequestInit<GetSinglePostRes, GetSinglePostReqHeaders>,
+		overrideUrl?: string
+	) => {
+		const res = await fetchx<GetSinglePostRes, unknown, GetSinglePostReqHeaders>(
+			overrideUrl ?? FetchGetSinglePostAction.NewUrl(
+				params,
+				qs
+			),
+			{
+				method: FetchGetSinglePostAction.Method,
+				...(init || {})
+			}
+		)
+		const result = await res.json();
+			res.result = new GetSinglePostRes (result);
+		return res;
+	}
+}
+	/**
+  * @description The base type definition for getSinglePostRes
+  **/
+	export type GetSinglePostResType =  {
+			/**
+  * @type {number}
+  * @description 
+  **/
+ userId?: number;
+			/**
+  * @type {number}
+  * @description 
+  **/
+ id?: number;
+			/**
+  * @type {string}
+  * @description 
+  **/
+ title?: string;
+			/**
+  * @type {string}
+  * @description 
+  **/
+ body?: string;
+	}
+export namespace GetSinglePostResType {
 }
 /**
- * @decription The base class definition for getSinglePostRes
- **/
-export class GetSinglePostRes {
-  constructor(data: unknown) {
-    // This probably doesn't cover the nested objects
-    Object.assign(this, data);
-  }
-  /**
-   * @type {number}
-   * @description
-   **/
-  userId?: number;
-  /**
-   * @returns {number}
-   * @description
-   **/
-  getUserId() {
-    return this[`userId`];
-  }
-  /**
-   * @param {number}
-   * @description
-   **/
-  setUserId(value: number) {
-    this[`userId`] = value;
-    return this;
-  }
-  /**
-   * @type {number}
-   * @description
-   **/
-  id?: number;
-  /**
-   * @returns {number}
-   * @description
-   **/
-  getId() {
-    return this[`id`];
-  }
-  /**
-   * @param {number}
-   * @description
-   **/
-  setId(value: number) {
-    this[`id`] = value;
-    return this;
-  }
-  /**
-   * @type {string}
-   * @description
-   **/
-  title?: string;
-  /**
-   * @returns {string}
-   * @description
-   **/
-  getTitle() {
-    return this[`title`];
-  }
-  /**
-   * @param {string}
-   * @description
-   **/
-  setTitle(value: string) {
-    this[`title`] = value;
-    return this;
-  }
-  /**
-   * @type {string}
-   * @description
-   **/
-  body?: string;
-  /**
-   * @returns {string}
-   * @description
-   **/
-  getBody() {
-    return this[`body`];
-  }
-  /**
-   * @param {string}
-   * @description
-   **/
-  setBody(value: string) {
-    this[`body`] = value;
-    return this;
-  }
-  /**
+  * @decription The base class definition for getSinglePostRes
+  **/
+export class GetSinglePostRes implements GetSinglePostResType {
+	constructor(data: unknown) {
+		// This probably doesn't cover the nested objects
+		const d = data as Partial<GetSinglePostRes>;
+			if (d[`userId`] !== undefined) { 
+ this.setUserId (d[`userId`]) 
+}
+			if (d[`id`] !== undefined) { 
+ this.setId (d[`id`]) 
+}
+			if (d[`title`] !== undefined) { 
+ this.setTitle (d[`title`]) 
+}
+			if (d[`body`] !== undefined) { 
+ this.setBody (d[`body`]) 
+}
+	}
+		/**
+  * @type {number}
+  * @description 
+  **/
+ userId?: number;
+		/**
+  * @returns {number}
+  * @description 
+  **/
+getUserId () { return this[`userId`] }
+		/**
+  * @param {number}
+  * @description 
+  **/
+setUserId (value: number) { this[`userId`] = value; return this; } 
+		/**
+  * @type {number}
+  * @description 
+  **/
+ id?: number;
+		/**
+  * @returns {number}
+  * @description 
+  **/
+getId () { return this[`id`] }
+		/**
+  * @param {number}
+  * @description 
+  **/
+setId (value: number) { this[`id`] = value; return this; } 
+		/**
+  * @type {string}
+  * @description 
+  **/
+ title?: string;
+		/**
+  * @returns {string}
+  * @description 
+  **/
+getTitle () { return this[`title`] }
+		/**
+  * @param {string}
+  * @description 
+  **/
+setTitle (value: string) { this[`title`] = value; return this; } 
+		/**
+  * @type {string}
+  * @description 
+  **/
+ body?: string;
+		/**
+  * @returns {string}
+  * @description 
+  **/
+getBody () { return this[`body`] }
+		/**
+  * @param {string}
+  * @description 
+  **/
+setBody (value: string) { this[`body`] = value; return this; } 
+		/**
    * Nest.js decorator for controller headers. Instead of using @Headers() value: any, now you can use for example:
    * @example
    * @Get()
@@ -157,23 +167,23 @@ export class GetSinglePostRes {
    */
   static Nest = createParamDecorator(
     (_data: unknown, ctx: ExecutionContext): GetSinglePostRes => {
-      const request = ctx.switchToHttp().getRequest<{
-        body: unknown;
-        headers: { [s: string]: string };
-        query: Record<string, string>;
-      }>();
+      const request = ctx.switchToHttp().getRequest<{ 
+	  	body: unknown ,
+		headers: { [s: string]: string }
+		query: Record<string, string>;
+	  }>();
       return new GetSinglePostRes(request.body as Partial<GetSinglePostRes>);
     },
   );
 }
 export abstract class GetSinglePostResFactory {
-  abstract create(data: unknown): GetSinglePostRes;
+	abstract create(data: unknown): GetSinglePostRes;
 }
 /**
- * GetSinglePostHeaders class
+ * GetSinglePostReqHeaders class
  * Auto-generated from Module3Action
  */
-export class GetSinglePostHeaders extends Headers {
+export class GetSinglePostReqHeaders extends Headers {
   /**
    * @returns {Record<string, string>}
    * Converts Headers to plain object
@@ -181,22 +191,53 @@ export class GetSinglePostHeaders extends Headers {
   toObject() {
     return Object.fromEntries(this.entries());
   }
-  /**
+	/**
    * Nest.js decorator for controller headers. Instead of using @Headers() value: any, now you can use for example:
    * @example
    * @Get()
-   * getHello(@GetSinglePostHeaders.Nest() headers: GetSinglePostHeaders): string {
+   * getHello(@GetSinglePostReqHeaders.Nest() headers: GetSinglePostReqHeaders): string {
    *  return JSON.stringify(headers.getContentType());
    * }
    */
   static Nest = createParamDecorator(
-    (_data: unknown, ctx: ExecutionContext): GetSinglePostHeaders => {
-      const request = ctx.switchToHttp().getRequest<{
-        body: unknown;
-        headers: { [s: string]: string };
-        query: Record<string, string>;
-      }>();
-      return new GetSinglePostHeaders(Object.entries(request.headers));
+    (_data: unknown, ctx: ExecutionContext): GetSinglePostReqHeaders => {
+      const request = ctx.switchToHttp().getRequest<{ 
+	  	body: unknown ,
+		headers: { [s: string]: string }
+		query: Record<string, string>;
+	  }>();
+      return new GetSinglePostReqHeaders(Object.entries(request.headers));
+    },
+  );
+}
+/**
+ * GetSinglePostResHeaders class
+ * Auto-generated from Module3Action
+ */
+export class GetSinglePostResHeaders extends Headers {
+  /**
+   * @returns {Record<string, string>}
+   * Converts Headers to plain object
+   */
+  toObject() {
+    return Object.fromEntries(this.entries());
+  }
+	/**
+   * Nest.js decorator for controller headers. Instead of using @Headers() value: any, now you can use for example:
+   * @example
+   * @Get()
+   * getHello(@GetSinglePostResHeaders.Nest() headers: GetSinglePostResHeaders): string {
+   *  return JSON.stringify(headers.getContentType());
+   * }
+   */
+  static Nest = createParamDecorator(
+    (_data: unknown, ctx: ExecutionContext): GetSinglePostResHeaders => {
+      const request = ctx.switchToHttp().getRequest<{ 
+	  	body: unknown ,
+		headers: { [s: string]: string }
+		query: Record<string, string>;
+	  }>();
+      return new GetSinglePostResHeaders(Object.entries(request.headers));
     },
   );
 }
@@ -205,7 +246,7 @@ export class GetSinglePostHeaders extends Headers {
  * Auto-generated from Module3Action
  */
 export class GetSinglePostQueryParams extends URLSearchParamsX {
-  /**
+	/**
    * Nest.js decorator for controller headers. Instead of using @Headers() value: any, now you can use for example:
    * @example
    * @Get()
@@ -215,11 +256,11 @@ export class GetSinglePostQueryParams extends URLSearchParamsX {
    */
   static Nest = createParamDecorator(
     (_data: unknown, ctx: ExecutionContext): GetSinglePostQueryParams => {
-      const request = ctx.switchToHttp().getRequest<{
-        body: unknown;
-        headers: { [s: string]: string };
-        query: Record<string, string>;
-      }>();
+      const request = ctx.switchToHttp().getRequest<{ 
+	  	body: unknown ,
+		headers: { [s: string]: string }
+		query: Record<string, string>;
+	  }>();
       return new GetSinglePostQueryParams(request.query);
     },
   );

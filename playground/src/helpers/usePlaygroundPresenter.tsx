@@ -11,6 +11,7 @@ export const usePlaygroundPresenter = () => {
     "nestjs",
     "axios",
     "typescript",
+    "axiosbundle",
     "angular",
     "react",
   ]);
@@ -55,9 +56,16 @@ actions:
   - name: getSinglePost
     url: https://jsonplaceholder.typicode.com/posts/1
     cliName: get-single-post
-    method: get
+    method: post
     description: Get's an specific post from the endpoint
+    in:
+      headers:
+        - name: accept-language
+          type: string
     out:
+      headers:
+        - name: content-type
+          type: string
       fields:
         - name: userId
           type: int64
@@ -66,4 +74,24 @@ actions:
         - name: title
           type: string
         - name: body
-          type: string`;
+          type: string
+        - name: user
+          type: object
+          fields:
+          - name: firstName
+            type: string?
+          - name: age
+            type: int64
+        - name: histories
+          type: array
+          fields:
+          - name: firstName
+            type: string?
+          - name: age
+            type: int64
+          - name: info
+            type: object
+            fields:
+            - name: memorySize
+              type: int64
+        `;

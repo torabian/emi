@@ -1,24 +1,8 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 const program = new Command();
-
-import "./wasm_exec.js";
-
-import fs from "fs";
-import { fileURLToPath } from "url";
-import path from "path";
 import { applyFlags } from "./cliutils.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const go = new Go(); // global from wasm_exec.js
-const wasmPath = path.join(__dirname, "emi-compiler.wasm");
-const wasmBuffer = fs.readFileSync(wasmPath);
-
-const { instance } = await WebAssembly.instantiate(wasmBuffer, go.importObject);
-go.run(instance);
-
-const { TextActions, FileActions } = globalThis.getPublicActions();
+import { FileActions, TextActions } from "./getPublicActions.js";
 
 for (const a of TextActions) {
   const cmd = program

@@ -56,7 +56,12 @@ func AxiosStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 
 	static Axios |@axios.returnType|
 		clientInstance
-		.request|@axios.request.generic|(config)
+		.request|@axios.request.generic|(
+			{
+				method: {{  .fetchctx.UrlMethod -}},
+				...(config || {})
+			}
+		)
 
 		{{ if and .fetchctx.CastToJson .fetchctx.ResponseClass }}
 		.then((res) => {

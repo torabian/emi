@@ -1,3 +1,4 @@
+// file: react-query-use-query-func.go
 // A type generated for type script, which holds all information
 // which we can modify for an action
 
@@ -17,6 +18,7 @@ type reactUseQueryOptions struct {
 	ActionName             string
 	NewUrlFunctionName     string
 	MetaDataClassName      string
+	HasPathParameters      bool
 }
 
 // generates a static function, to developers prefer to make calls via axios
@@ -35,14 +37,26 @@ export const {{ .className }} = (
 	|@options.argument|
 ) => {
 	return useQuery({
-		...options,
 		queryKey: [
-			{{ .useQueryOptions.NewUrlFunctionName }} (options.params, options.qs)
+			{{ .useQueryOptions.NewUrlFunctionName }} (
+			 	{{ if .useQueryOptions.HasPathParameters }}
+				options.params,
+				{{ end }}
+				
+				options.qs
+			)
 		],
 		queryFn: () =>
-		{{ .useQueryOptions.MetaDataClassName }}.Fetch(options.params, options.qs, {
-			headers: options.headers,
-		}),
+		{{ .useQueryOptions.MetaDataClassName }}.Fetch(
+		 	{{ if .useQueryOptions.HasPathParameters }}
+				options.params,
+			{{ end }}
+			options.qs,
+			{
+				headers: options.headers,
+			}
+		),
+		...(options || {}),
 	});
 };
 

@@ -1,4 +1,4 @@
-import { stringify, parse } from 'qs';
+import { stringify, parse } from "qs";
 
 /**
  * Extended URLSearchParams that stores data in a nested object
@@ -9,11 +9,11 @@ export class URLSearchParamsX extends URLSearchParams {
   private data: Record<string, any> = {};
 
   constructor(
-    init?: string[][] | Record<string, string> | string | URLSearchParams,
+    init?: string[][] | Record<string, string> | string | URLSearchParams
   ) {
     super(init);
     if (init) {
-      if (typeof init === 'string') {
+      if (typeof init === "string") {
         Object.assign(this.data, parse(init));
       } else if (init instanceof URLSearchParams) {
         Object.assign(this.data, parse(init.toString()));
@@ -93,7 +93,7 @@ export class URLSearchParamsX extends URLSearchParams {
 
   /** Iterate over top-level keys and values */
   override forEach(
-    callbackfn: (value: any, key: string, parent: any) => void,
+    callbackfn: (value: any, key: string, parent: any) => void
   ): void {
     for (const key of Object.keys(this.data)) {
       callbackfn(this.data[key], key, this);
@@ -136,8 +136,8 @@ export class URLSearchParamsX extends URLSearchParams {
     const val = this.get(key);
     if (val == null) return null;
     const t = type.toLowerCase();
-    if (t.includes('number')) return Number(val);
-    if (t.includes('bool')) return val === 'true';
+    if (t.includes("number")) return Number(val);
+    if (t.includes("bool")) return val === "true";
     return val;
   }
 }
@@ -153,13 +153,13 @@ export class URLSearchParamsX extends URLSearchParams {
 export function buildUrl(
   url: string,
   params?: Record<string, unknown>,
-  qs?: URLSearchParamsX,
+  qs?: URLSearchParamsX
 ) {
   // Replace :placeholders
   Object.entries(params as Record<string, string>).forEach(([key, value]) => {
     url = url.replace(
-      new RegExp(`:${key}`, 'g'),
-      encodeURIComponent(String(value)),
+      new RegExp(`:${key}`, "g"),
+      encodeURIComponent(String(value))
     );
   });
 
@@ -167,7 +167,7 @@ export function buildUrl(
     url += `?${qs.toString()}`;
   } else if (qs && Object.keys(qs).length) {
     const query = new URLSearchParams(
-      Object.entries(qs).map(([k, v]) => [k, String(v)]),
+      Object.entries(qs).map(([k, v]) => [k, String(v)])
     ).toString();
     url += `?${query}`;
   }

@@ -470,6 +470,9 @@ type Module3Dto struct {
 // Used in multiple places as the request/response signature.
 type Module3ActionBody struct {
 
+	// Typesafe headers for the action
+	Headers []Module3Header `yaml:"headers,omitempty" json:"headers,omitempty" jsonschema:"description=Typesafe headers."`
+
 	// Defines the fields directly, and DTO will be generated
 	// and assigned automatically.
 	Fields []*Module3Field `yaml:"fields,omitempty" json:"fields,omitempty" jsonschema:"Defines the fields directly and DTO will be generated and assigned automatically"`
@@ -530,9 +533,6 @@ type Module3Action struct {
 
 	// Type-safe query strings for action
 	Query []*Module3Field `yaml:"qs,omitempty" json:"qs,omitempty" jsonschema:"description=Type-safe query parameters for CLI and HTTP requests"`
-
-	// Typesafe headers for the action
-	Headers []Module3Header `yaml:"headers,omitempty" json:"headers,omitempty" jsonschema:"description=Typesafe headers."`
 
 	// Data channels in a typesafe mode in case of webrtc
 	DataChannels []Module3WebRtcDataChannel `yaml:"dataChannels,omitempty" json:"dataChannels,omitempty" jsonschema:"description=Data channels in a typesafe mode in case of webrtc"`

@@ -15,7 +15,7 @@ export class TypedResponse<T> extends Response {
 }
 
 export function fetchx<
-  TResponse = undefined,
+  TResponse = unknown,
   TBody = unknown,
   THeaders = unknown
 >(

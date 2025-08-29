@@ -6,6 +6,15 @@ import (
 	"github.com/torabian/emi/lib/core"
 )
 
+func IsNumericDataType(value string) bool {
+	switch value {
+	case "int64?", "int32?", "int?", "float64?", "float32?", "int64", "int32", "int":
+		return true
+	default:
+		return false
+	}
+}
+
 func TsComputedField(field *core.Module3Field, isWorkspace bool) string {
 	switch field.Type {
 	case "string", "text":
