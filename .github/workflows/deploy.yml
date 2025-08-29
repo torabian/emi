@@ -31,15 +31,11 @@ jobs:
       - name: Install deps
         run: cd playground && npm ci
 
-
       - name: Make wasm
         run: make wasm
         
       - name: Build
         run: cd playground && npm run build
-
-      - name: Generate the examples
-        run: make ci
 
       - name: add jekyl
         run: touch playground/dist/.nojekyll
