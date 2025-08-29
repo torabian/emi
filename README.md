@@ -72,6 +72,7 @@ Here is a list of features which will be generated via js/ts compiler:
 - [x] React.js useQuery
 - [x] React.js useMutation
 - [x] Angular service class
+- [ ] Package.json generation
 - [ ] Playground eslint
 - [ ] Static fields for the common object to access fields via json path
 - [ ] Constructor for javascript needs to use it’s own functions
