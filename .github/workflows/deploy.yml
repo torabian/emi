@@ -41,6 +41,7 @@ jobs:
         run: touch playground/dist/.nojekyll
 
       - name: Deploy pages 🚀
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: ./playground/dist # The folder the action should deploy.
+          folder: ./playground/dist
