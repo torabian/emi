@@ -22,7 +22,40 @@ export const usePlaygroundPresenter = () => {
       const res = (window as any)[assemblyFunction](data, {
         Tags: features.join(","),
       });
-      setOutput(res);
+
+      const formattedPromises = res.map(async (item: any) => {
+        try {
+          item.ActualScript = await (window as any).prettier.format(
+            item.ActualScript,
+            {
+              parser: "typescript",
+              plugins: (window as any).prettierPlugins,
+            }
+          );
+        } catch (e) {
+          console.error("Formatting failed for item:", item, e);
+        }
+        return item;
+      });
+
+      // Wait for all formatting to finish
+      Promise.all(formattedPromises).then((formattedRes) => {
+        setOutput(formattedRes);
+      });
+
+      // for (const item of res) {
+      //   // item.ActualScript is string, call it with prettier, which returns promise,
+      //   // and when all of them is resoled, put it back to item.ActionScript
+      // }
+
+      // // This is a promise. Run it for all files
+      // // (window as any).prettier
+      // // .format("var x = 10", {
+      // //   parser: "typescript",
+      // //   plugins: (window as any).prettierPlugins,
+      // // })
+
+      // setOutput(res);
     } catch (err) {}
   };
 

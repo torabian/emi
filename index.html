@@ -1,0 +1,14 @@
+<script type="module">
+  import * as prettier from "https://unpkg.com/prettier@3.6.2/standalone.mjs";
+  import * as prettierPluginBabel from "https://unpkg.com/prettier@3.6.2/plugins/babel.mjs";
+  import * as prettierPluginTypescript from "https://unpkg.com/prettier@3.6.2/plugins/typescript.mjs";
+  import * as prettierPluginEstree from "https://unpkg.com/prettier@3.6.2/plugins/estree.mjs";
+
+  console.log(
+    await prettier.format("type x =   string;;;;;", {
+      parser: "typescript",
+      plugins: [prettierPluginBabel, prettierPluginEstree, prettierPluginTypescript],
+    }),
+  );
+  // Output: const html = /* HTML */ `<DIV> </DIV>`;
+</script>

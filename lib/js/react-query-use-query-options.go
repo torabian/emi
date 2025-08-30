@@ -24,7 +24,11 @@ type reactQueryOptionsType struct {
 func ReactQueryOptionsTypeFunction(rqoptions reactQueryOptionsType, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	className := fmt.Sprintf("%vActionQueryOptions", core.ToUpper(rqoptions.ActionName))
-	responseClass := findTokenByName(rqoptions.JsActionRealms.ResponseClass.Tokens, TOKEN_ROOT_CLASS)
+
+	var responseClass *core.GeneratedScriptToken
+	if rqoptions.JsActionRealms.ResponseClass != nil {
+		responseClass = findTokenByName(rqoptions.JsActionRealms.ResponseClass.Tokens, TOKEN_ROOT_CLASS)
+	}
 
 	const tmpl = `
 export type {{ .className }} = Omit<
