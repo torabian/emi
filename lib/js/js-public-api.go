@@ -4,16 +4,16 @@ import "github.com/torabian/emi/lib/core"
 
 func GetJsPublicActions() core.PublicAPIActions {
 	textActions := []core.ActionText{
-		// {
-		// 	BaseAction: core.BaseAction{
-		// 		Name:             "js:action:headers",
-		// 		Description:      "Generate the javascript class for an action headers extending Headers class",
-		// 		WasmFunctionName: "jsGenActionHeaders",
-		// 	},
-		// 	Run: func(ctx core.MicroGenContext) (string, error) {
-		// 		return commonJsActionStringCompiler(ctx, JsActionHeaderClass)
-		// 	},
-		// },
+		{
+			BaseAction: core.BaseAction{
+				Name:             "js:fields",
+				Description:      "Generates the class out of fields",
+				WasmFunctionName: "jsGenObject",
+			},
+			Run: func(ctx core.MicroGenContext) (string, error) {
+				return commonJsObjectStringCompiler(ctx, JsCommonObjectGenerator)
+			},
+		},
 	}
 
 	fileActions := []core.ActionFile{

@@ -4,6 +4,7 @@ package js
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"text/template"
@@ -101,11 +102,68 @@ func jsClassSetterFunction(jsFieldType string, field *core.Module3Field) (*Jsdoc
 
 	return setterjsdoc, buf.String()
 }
+func getNullableDefaultValue(field *core.Module3Field) string {
+	// In case the feild has default value, we need to extract it.
+	if field.Default != nil {
+		switch v := field.Default.(type) {
+		case string:
+			return fmt.Sprintf(" = %q", v)
+		case int, int64, float64, bool:
+			return fmt.Sprintf(" = %v", v)
+		default:
+			b, _ := json.Marshal(v)
+			return " = '" + string(b) + "'"
+		}
+	}
+
+	return "null"
+}
+
+func jsGetSafeFieldValue(field *core.Module3Field) string {
+	if field == nil {
+		return "null"
+	}
+
+	// return default if explicitly defined
+	if field.Default != nil {
+		switch v := field.Default.(type) {
+		case string:
+			return fmt.Sprintf("%q", v)
+		case int, int64, float64, bool:
+			return fmt.Sprintf("%v", v)
+		default:
+			b, _ := json.Marshal(v)
+			return string(b)
+		}
+	}
+
+	switch field.Type {
+	case "array", "arrayP", "many2many":
+		return "[]"
+	case "json", "object", "embed":
+		return "{}"
+	case "string", "text":
+		return "\"\""
+	case "float", "float32", "float64", "float?", "float32?", "float64?":
+		return "0.0"
+	case "int", "int32", "int64", "int?", "int32?", "int64?":
+		return "0"
+	case "money?":
+		return `{"amount":0,"currency":"USD"}`
+	case "computed":
+		return "null" // maybe skip or undefined?
+	case "any":
+		return "null"
+	default:
+		return "null"
+	}
+}
 
 func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroGenContext) jsRenderedField {
 
 	jsFieldType := jsFieldTypeOnNestedClasses(field, parentChain)
 	tsFieldType := tsFieldTypeOnNestedClasses(field, parentChain)
+	isFieldNullable := strings.Contains(field.Type, "?")
 
 	jsdoc := NewJsDoc("  ")
 	jsdoc.Add(fmt.Sprintf("@type {%v}", jsFieldType))
@@ -115,8 +173,15 @@ func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroG
 	output := fmt.Sprintf("%v %v;", jsdoc.String(), field.PrivateName())
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 
+	// In typescript, we need to react
 	if isTypeScript {
-		output = fmt.Sprintf("%v %v?: %v;", jsdoc.String(), field.PrivateName(), tsFieldType)
+		if isFieldNullable {
+			nullableDefaultValue := getNullableDefaultValue(field)
+			output = fmt.Sprintf("%v %v?: %v | null %v", jsdoc.String(), field.PrivateName(), tsFieldType, nullableDefaultValue)
+		} else {
+			output = fmt.Sprintf("%v %v: %v = %v", jsdoc.String(), field.PrivateName(), tsFieldType, jsGetSafeFieldValue(field))
+		}
+
 	}
 
 	getterjsdoc := NewJsDoc("  ")

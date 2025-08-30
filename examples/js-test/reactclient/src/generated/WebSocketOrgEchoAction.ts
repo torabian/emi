@@ -68,7 +68,7 @@ export class WebSocketOrgEchoReq implements WebSocketOrgEchoReqType {
   * @type {string}
   * @description 
   **/
- firstName?: string;
+ firstName: string = "";
 		/**
   * @returns {string}
   * @description 
@@ -83,7 +83,7 @@ setFirstName (value: string) { this[`firstName`] = value; return this; }
   * @type {string}
   * @description 
   **/
- lastName?: string;
+ lastName: string = "";
 		/**
   * @returns {string}
   * @description 
@@ -126,7 +126,7 @@ export class WebSocketOrgEchoRes implements WebSocketOrgEchoResType {
   * @type {string}
   * @description 
   **/
- lastName?: string;
+ lastName: string = "";
 		/**
   * @returns {string}
   * @description 

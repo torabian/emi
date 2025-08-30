@@ -61,6 +61,25 @@ func commonJsActionStringCompiler(
 	return AsFullDocument(result), nil
 }
 
+func commonJsObjectStringCompiler(
+	ctx core.MicroGenContext,
+	callback func(fields []*core.Module3Field, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error),
+) (string, error) {
+
+	fields, err := core.StringToModule3Fields(ctx.Content)
+	if err != nil {
+		return "", err
+	}
+
+	// In this case, the only flag is the virtual class name which will be passed
+	result, err := callback(fields, ctx, JsCommonObjectContext{RootClassName: ctx.Flags})
+	if err != nil {
+		return "", err
+	}
+
+	return AsFullDocument(result), nil
+}
+
 func commonJsModuleFileCompiler(
 	ctx core.MicroGenContext,
 	callback func(module *core.Module3, ctx core.MicroGenContext) ([]core.VirtualFile, error),

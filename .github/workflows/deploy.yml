@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 24
 
       
       - name: Setup Go
@@ -36,6 +36,9 @@ jobs:
         
       - name: Build
         run: cd playground && npm run build
+        
+      - name: Javascript tests
+        run: cd tests/js && npm i -f && npx vitest run
 
       - name: add jekyl
         run: touch playground/dist/.nojekyll
