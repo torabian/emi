@@ -141,9 +141,11 @@ export class URLSearchParamsX extends URLSearchParams {
  */
 export function buildUrl(url, params, qs) {
     // Replace :placeholders
-    Object.entries(params).forEach(([key, value]) => {
-        url = url.replace(new RegExp(`:${key}`, "g"), encodeURIComponent(String(value)));
-    });
+    if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+            url = url.replace(new RegExp(`:${key}`, "g"), encodeURIComponent(String(value)));
+        });
+    }
     if (qs && qs instanceof URLSearchParamsX) {
         url += `?${qs.toString()}`;
     }

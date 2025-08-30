@@ -15,3 +15,11 @@ actions:
           type: string
         - name: body
           type: string
+  - name: sampleSse
+    url: http://localhost:3000/stream
+    method: sse
+    description: SSE Sample
+    out:
+      fields:
+        - name: message
+          type: string

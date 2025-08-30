@@ -1,5 +1,6 @@
 import { Axios, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { FetchGetSinglePostAction, GetSinglePostQueryParams, GetSinglePostReqHeaders, GetSinglePostRes, type FetchGetSinglePostActionPathParameter } from './GetSinglePostAction';
+import { FetchSampleSseAction, SampleSseQueryParams, SampleSseReqHeaders, SampleSseRes } from './SampleSseAction';
 /**
 * Axios bundle service
 */
@@ -37,6 +38,21 @@ export class SampleModuleAxiosClient extends Axios {
 				{
 					url,
 					method: FetchGetSinglePostAction.Method,
+					...(config || {})
+				} as any
+			)
+		}
+		sampleSse(config?: TypedAxiosRequestConfig<
+			unknown,
+			SampleSseQueryParams,
+			SampleSseReqHeaders
+		>) {
+		 	const url = FetchSampleSseAction.NewUrl(
+			)
+			return this.request<SampleSseRes, TypedAxiosResponse<SampleSseRes, unknown, SampleSseReqHeaders>>(
+				{
+					url,
+					method: FetchSampleSseAction.Method,
 					...(config || {})
 				} as any
 			)

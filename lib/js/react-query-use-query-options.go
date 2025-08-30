@@ -31,8 +31,8 @@ export type {{ .className }} = Omit<
 	UseQueryOptions<
 		unknown,
 		unknown,
-		{{ if .responseType }}
-			{{ .responseType }},
+		{{ if .responseClass }}
+			{{ .responseClass.Value }},
 		{{ end }}
 		unknown[]
 	>,
@@ -45,11 +45,11 @@ export type {{ .className }} = Omit<
 	t := template.Must(template.New("jsactionoptions").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"rqoptions":    rqoptions,
-		"ctx":          ctx,
-		"responseType": responseClass.Value,
-		"jsRealms":     rqoptions.JsActionRealms,
-		"className":    className,
+		"rqoptions":     rqoptions,
+		"ctx":           ctx,
+		"responseClass": responseClass,
+		"jsRealms":      rqoptions.JsActionRealms,
+		"className":     className,
 	}); err != nil {
 		return nil, err
 	}

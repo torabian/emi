@@ -31,6 +31,14 @@ func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms,
 		UrlCreatorFunction: fmt.Sprintf("%v.NewUrl", className),
 		UrlMethod:          fmt.Sprintf("%v.Method", className),
 		EndpointUrl:        action.Url,
+
+		// By default, use the classic http call
+		IsClassicHttpCall: true,
+	}
+
+	if action.MethodUpper() == "SSE" {
+		fetchctx.IsClassicHttpCall = false
+		fetchctx.IsSSE = true
 	}
 
 	if realms.RequestHeadersClass != nil {
@@ -102,10 +110,11 @@ export class {{ .className }} {
  
 
   static Method = '{{ .action.Method }}';
+  
+  {{ .fetchStaticFunction }}
 
   {{ .axiosStaticFunction }}
   
-  {{ .fetchStaticFunction }}
 }
 `
 
