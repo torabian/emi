@@ -25,7 +25,7 @@ type MicroGenContext struct {
 	// Output file or directory for generation context
 	Output string
 
-	Flags map[string]interface{}
+	Flags string
 
 	Content string
 }
@@ -260,6 +260,12 @@ func StringToModule3Action(content string) (Module3Action, error) {
 	var action Module3Action
 	err := yaml.Unmarshal([]byte(content), &action)
 	return action, err
+}
+
+func StringToModule3Fields(content string) ([]*Module3Field, error) {
+	var actions []*Module3Field
+	err := yaml.Unmarshal([]byte(content), &actions)
+	return actions, err
 }
 
 func StringToModule3(content string) (Module3, error) {

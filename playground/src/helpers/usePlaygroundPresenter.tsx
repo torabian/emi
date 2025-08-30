@@ -101,7 +101,7 @@ actions:
           type: string
       fields:
         - name: userId
-          type: int64
+          type: int64?
         - name: id
           type: int64
         - name: title

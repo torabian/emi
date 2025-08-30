@@ -22,10 +22,9 @@ function runEmiActionTs(
 ) {
   const resp = globalThis[actionWasmFunctionName](
     toYaml(emiActionDefinition),
-    {}
+    context
   );
-  console.log(resp);
-  return parseGenerated(resp);
+  return { source: parseGenerated(resp), resp };
 }
 
 export { parseGenerated, runEmiActionTs };

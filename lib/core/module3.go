@@ -31,6 +31,7 @@ var FIELD_TYPE_COMPUTED string = "computed"
 var FIELD_TYPE_TEXT string = "text"
 var FIELD_TYPE_STRING string = "string"
 var FIELD_TYPE_ANY string = "any"
+
 var ROUTE_FORMAT_DELETE string = "DELETE_DSL"
 var ROUTE_FORMAT_QUERY string = "QUERY"
 var ROUTE_FORMAT_POST string = "POST_ONE"

@@ -36,6 +36,9 @@ jobs:
         
       - name: Build
         run: cd playground && npm run build
+        
+      - name: Javascript tests
+        run: cd tests/js && npx vitest run
 
       - name: add jekyl
         run: touch playground/dist/.nojekyll

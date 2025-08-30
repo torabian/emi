@@ -66,7 +66,7 @@ export class SampleSseRes implements SampleSseResType {
   * @type {string}
   * @description 
   **/
- message?: string;
+ message: string = "";
 		/**
   * @returns {string}
   * @description 
