@@ -1,6 +1,6 @@
 import { createInstance } from "../../emi-npm/bin/getPublicActions";
 import yaml from "js-yaml";
-import { Project } from "ts-morph";
+import { MethodDeclaration, Project, PropertyDeclaration } from "ts-morph";
 
 function toYaml(obj: unknown): string {
   return yaml.dump(obj, { noRefs: true });
@@ -59,4 +59,12 @@ function runEmiActionTs(
   return { source: parseGenerated(resp), resp };
 }
 
-export { parseGenerated, runEmiActionTs };
+function getJsDoc(node: PropertyDeclaration | MethodDeclaration): string {
+  const jsDocs = node.getJsDocs();
+
+  if (jsDocs.length === 0) return "no jsdoc";
+
+  return jsDocs.map((d) => d.getDescription() || "").join("\n");
+}
+
+export { parseGenerated, runEmiActionTs, getJsDoc };

@@ -4,21 +4,10 @@
  * definition, and default value forced by compiler.
  * We need to test all cases.
  */
-import { describe, it, expect } from "vitest";
-import { runEmiActionTs } from "../../common";
-import { MethodDeclaration, PropertyDeclaration } from "ts-morph";
 import { writeFileSync } from "fs";
 import path from "path";
-
-export function getJsDoc(
-  node: PropertyDeclaration | MethodDeclaration
-): string {
-  const jsDocs = node.getJsDocs();
-
-  if (jsDocs.length === 0) return "no jsdoc";
-
-  return jsDocs.map((d) => d.getDescription() || "").join("\n");
-}
+import { describe, expect, it } from "vitest";
+import { getJsDoc, runEmiActionTs } from "../../common";
 
 describe("Generating different data types from fields need to be working fine.", () => {
   const fieldsMap = {
@@ -62,7 +51,7 @@ describe("Generating different data types from fields need to be working fine.",
     Tags: "react,typescript",
   });
 
-  writeFileSync(path.join(__dirname, "string-data-type.ts"), resp);
+  writeFileSync(path.join(__filename.replace(".test.ts", ".output.ts")), resp);
 
   it("should have generated a class named Anonymouse", () => {
     expect(source.getClasses().map((c) => c.getName())).toContain("Anonymouse");

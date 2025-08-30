@@ -26,7 +26,7 @@ type renderedQsField struct {
 func renderJsTsCommonQsInfo(action *core.Module3Action) ([]renderedQsField, error) {
 	fields := []renderedQsField{}
 	for _, query := range action.Query {
-		queryType, err := normalizeJsHeaderType(query.Type)
+		queryType, err := normalizeJsHeaderType(string(query.Type))
 		if err != nil {
 			return nil, err
 		}

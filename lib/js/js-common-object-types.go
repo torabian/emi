@@ -31,13 +31,13 @@ func tsFieldType(field *core.Module3Field, parentChain string) string {
 
 	fieldName := core.ToUpper(field.Name) + "Type"
 
-	if field.Type == core.FIELD_TYPE_ARRAY {
+	if field.Type == core.FieldTypeArray {
 		if len(field.Fields) > 0 {
 			return fmt.Sprintf("%v[]", core.ToUpper(parentChain)+"."+fieldName)
 		}
 		return "any[]"
 	}
-	if field.Type == core.FIELD_TYPE_OBJECT {
+	if field.Type == core.FieldTypeObject {
 		return core.ToUpper(parentChain) + "." + fieldName
 	}
 	return TsComputedField(field, false)
@@ -96,7 +96,7 @@ func tsRenderTypes(fields []*core.Module3Field, typeName string, treeLocation st
 		if field == nil {
 			continue
 		}
-		if field.Type == core.FIELD_TYPE_OBJECT || field.Type == core.FIELD_TYPE_ARRAY {
+		if field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArray {
 			childName := core.ToUpper(field.Name) + "Type"
 			currentType.SubTypes = append(
 				currentType.SubTypes,

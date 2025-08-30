@@ -38,7 +38,7 @@ func jsFieldTypeOnNestedClasses(field *core.Module3Field, parentChain string) st
 	if field == nil {
 		return ""
 	}
-	if field.Type == core.FIELD_TYPE_ARRAY || field.Type == core.FIELD_TYPE_OBJECT {
+	if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject {
 		return core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
 	}
 
@@ -49,10 +49,10 @@ func tsFieldTypeOnNestedClasses(field *core.Module3Field, parentChain string) st
 	if field == nil {
 		return ""
 	}
-	if field.Type == core.FIELD_TYPE_OBJECT {
+	if field.Type == core.FieldTypeObject {
 		return fmt.Sprintf("InstanceType<typeof %v>", core.ToUpper(parentChain)+"."+core.ToUpper(field.Name))
 	}
-	if field.Type == core.FIELD_TYPE_ARRAY {
+	if field.Type == core.FieldTypeArray {
 		return fmt.Sprintf("InstanceType<typeof %v>[]", core.ToUpper(parentChain)+"."+core.ToUpper(field.Name))
 	}
 
@@ -162,7 +162,7 @@ func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroG
 
 	jsFieldType := jsFieldTypeOnNestedClasses(field, parentChain)
 	tsFieldType := tsFieldTypeOnNestedClasses(field, parentChain)
-	isFieldNullable := strings.Contains(field.Type, "?")
+	isFieldNullable := strings.Contains(string(field.Type), "?")
 
 	jsdoc := NewJsDoc("  ")
 	jsdoc.Add(field.Description)
@@ -209,7 +209,7 @@ func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroG
 
 	return jsRenderedField{
 		Name:                    field.Name,
-		Type:                    field.Type,
+		Type:                    string(field.Type),
 		Output:                  output,
 		SetterFunc:              setterFunc,
 		SetterCallInConstructor: setterCallInConstructor,
@@ -262,7 +262,7 @@ func jsRenderDataClasses(fields []*core.Module3Field, className string, treeLoca
 		if field == nil {
 			continue
 		}
-		if field.Type == core.FIELD_TYPE_OBJECT || field.Type == core.FIELD_TYPE_ARRAY {
+		if field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArray {
 			childName := core.ToUpper(field.Name)
 			currentClass.SubClasses = append(currentClass.SubClasses, jsRenderDataClasses(field.Fields, core.ToUpper(childName), treeLocation+"."+core.ToUpper(childName), false, ctx)...)
 		}
