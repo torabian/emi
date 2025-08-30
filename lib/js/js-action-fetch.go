@@ -25,12 +25,26 @@ func findTokenByName(realms []core.GeneratedScriptToken, name string) *core.Gene
 
 func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
-	className := fmt.Sprintf("Fetch%vAction", core.ToUpper(action.Name))
+	className := fmt.Sprintf("%vAction", core.ToUpper(action.Name))
 	fetchctx := fetchStaticFunctionContext{
 		DefaultUrlVariable: fmt.Sprintf("%v.URL", className),
 		UrlCreatorFunction: fmt.Sprintf("%v.NewUrl", className),
 		UrlMethod:          fmt.Sprintf("%v.Method", className),
 		EndpointUrl:        action.Url,
+
+		// By default, use the classic http call
+		IsClassicHttpCall: true,
+		ActionMethod:      action.Method,
+	}
+
+	if action.MethodUpper() == EMI_METHOD_SSE {
+		fetchctx.IsClassicHttpCall = false
+		fetchctx.IsSSE = true
+		fetchctx.ActionMethod = "get"
+	}
+
+	if action.MethodUpper() == EMI_METHOD_REACTIVE {
+		fetchctx.IsClassicHttpCall = false
 	}
 
 	if realms.RequestHeadersClass != nil {
@@ -69,7 +83,7 @@ func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms,
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"buildUrl", "fetchx"},
+				Objects:  []string{"buildUrl"},
 				Location: INTERNAL_SDK_LOCATION,
 			},
 		},
@@ -101,11 +115,21 @@ export class {{ .className }} {
 	);
  
 
-  static Method = '{{ .action.Method }}';
-
-  {{ .axiosStaticFunction }}
+  static Method = '{{ .fetchctx.ActionMethod }}';
   
-  {{ .fetchStaticFunction }}
+
+  {{ if .fetchStaticFunction }}
+  	{{ b2s .fetchStaticFunction.ActualScript }}
+  {{ end }}
+
+  {{ if .axiosStaticFunction }}
+  	{{ b2s .axiosStaticFunction.ActualScript }}
+  {{ end }}
+
+  {{ if .websocketCreateFunction }}
+  	{{ b2s .websocketCreateFunction.ActualScript }}
+  {{ end }}
+  
 }
 `
 
@@ -121,7 +145,7 @@ export class {{ .className }} {
 
 	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
 		Name:  TOKEN_ACTUAL_METHOD,
-		Value: action.Method,
+		Value: fetchctx.ActionMethod,
 	})
 
 	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
@@ -144,37 +168,55 @@ export class {{ .className }} {
 		}
 	}
 
-	var axiosStaticFunction = ""
-	if isAxiosSupported {
+	var axiosStaticFunction *core.CodeChunkCompiled
 
+	if isAxiosSupported && fetchctx.IsClassicHttpCall {
 		// Add the axios helper function to the response depencencies,
 		fn, err := AxiosStaticHelper(fetchctx, ctx)
 		if err != nil {
 			return nil, err
 		}
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
-		axiosStaticFunction = string(fn.ActualScript)
+		axiosStaticFunction = fn
 	}
 
-	// add the native fetch function to the axios
-	fetchStaticFunction, err := FetchStaticHelper(fetchctx, ctx)
-	if err != nil {
-		return nil, err
+	var fetchStaticFunction *core.CodeChunkCompiled
+
+	if strings.ToUpper(fetchctx.ActionMethod) != EMI_METHOD_REACTIVE {
+		// add the native fetch function to the axios
+		fn, err := FetchStaticHelper(fetchctx, ctx)
+		if err != nil {
+			return nil, err
+		}
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
+		fetchStaticFunction = fn
 	}
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, fetchStaticFunction.CodeChunkDependenies...)
+
+	var websocketCreateFunction *core.CodeChunkCompiled
+	if strings.ToUpper(fetchctx.ActionMethod) == EMI_METHOD_REACTIVE {
+
+		// add the native fetch function to the axios
+		fn, err := CreateWebSocketStaticHelper(fetchctx, ctx)
+		if err != nil {
+			return nil, err
+		}
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
+		websocketCreateFunction = fn
+	}
 
 	t := template.Must(template.New("qsclass").Funcs(core.CommonMap).Parse(tmpl))
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"action":              action,
-		"axiosStaticFunction": axiosStaticFunction,
-		"fetchStaticFunction": string(fetchStaticFunction.ActualScript),
-		"shouldExport":        true,
-		"realms":              realms,
-		"fetchctx":            fetchctx,
-		"className":           className,
-		"queryParams":         core.ExtractPlaceholdersInUrl(action.Url),
+		"action":                  action,
+		"axiosStaticFunction":     axiosStaticFunction,
+		"fetchStaticFunction":     fetchStaticFunction,
+		"websocketCreateFunction": websocketCreateFunction,
+		"shouldExport":            true,
+		"realms":                  realms,
+		"fetchctx":                fetchctx,
+		"className":               className,
+		"queryParams":             core.ExtractPlaceholdersInUrl(action.Url),
 	}); err != nil {
 		return nil, err
 	}
@@ -188,3 +230,6 @@ export class {{ .className }} {
 
 	return res, nil
 }
+
+var EMI_METHOD_REACTIVE = "REACTIVE"
+var EMI_METHOD_SSE = "SSE"

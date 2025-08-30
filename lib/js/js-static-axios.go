@@ -97,7 +97,7 @@ func AxiosStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 	if isTypeScript {
 		res.CodeChunkDependenies = []core.CodeChunkDependency{
 			{
-				Objects:  []string{"AxiosInstance", "AxiosRequestConfig", "AxiosResponse"},
+				Objects:  []string{"type AxiosInstance", "type AxiosRequestConfig", "type AxiosResponse"},
 				Location: "axios",
 			},
 		}

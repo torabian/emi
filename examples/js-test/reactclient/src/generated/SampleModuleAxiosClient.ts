@@ -1,5 +1,5 @@
 import { Axios, type AxiosRequestConfig, type AxiosResponse } from 'axios';
-import { FetchGetSinglePostAction, GetSinglePostQueryParams, GetSinglePostReqHeaders, GetSinglePostRes, type FetchGetSinglePostActionPathParameter } from './GetSinglePostAction';
+import { GetSinglePostAction, GetSinglePostQueryParams, GetSinglePostReqHeaders, GetSinglePostRes, type GetSinglePostActionPathParameter } from './GetSinglePostAction';
 /**
 * Axios bundle service
 */
@@ -25,20 +25,20 @@ export class SampleModuleAxiosClient extends Axios {
   static create(config?: AxiosRequestConfig) {
     return new SampleModuleAxiosClient(config);
   }
-		getSinglePost(params: FetchGetSinglePostActionPathParameter, config?: TypedAxiosRequestConfig<
+		getSinglePost(params: GetSinglePostActionPathParameter, config?: TypedAxiosRequestConfig<
 			unknown,
 			GetSinglePostQueryParams,
 			GetSinglePostReqHeaders
 		>) {
-		 	const url = FetchGetSinglePostAction.NewUrl(
+		 	const url = GetSinglePostAction.NewUrl(
 				params
 			)
 			return this.request<GetSinglePostRes, TypedAxiosResponse<GetSinglePostRes, unknown, GetSinglePostReqHeaders>>(
 				{
 					url,
-					method: FetchGetSinglePostAction.Method,
+					method: GetSinglePostAction.Method,
 					...(config || {})
-				} as any
+				} as never
 			)
 		}
 }

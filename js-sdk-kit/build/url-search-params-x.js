@@ -86,7 +86,9 @@ export class URLSearchParamsX extends URLSearchParams {
         return this.data[name] !== undefined;
     }
     /** Iterate over top-level keys and values */
-    forEach(callbackfn) {
+    forEach(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    callbackfn) {
         for (const key of Object.keys(this.data)) {
             callbackfn(this.data[key], key, this);
         }
@@ -141,9 +143,11 @@ export class URLSearchParamsX extends URLSearchParams {
  */
 export function buildUrl(url, params, qs) {
     // Replace :placeholders
-    Object.entries(params).forEach(([key, value]) => {
-        url = url.replace(new RegExp(`:${key}`, "g"), encodeURIComponent(String(value)));
-    });
+    if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+            url = url.replace(new RegExp(`:${key}`, "g"), encodeURIComponent(String(value)));
+        });
+    }
     if (qs && qs instanceof URLSearchParamsX) {
         url += `?${qs.toString()}`;
     }

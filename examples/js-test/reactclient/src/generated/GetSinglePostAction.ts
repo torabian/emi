@@ -1,12 +1,12 @@
-import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { URLSearchParamsX, buildUrl, fetchx, type TypedRequestInit } from './sdk';
+import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 /**
 * Action to communicate with the action getSinglePost
 */
 export type GetSinglePostActionOptions = {
 	queryKey?: unknown[];
-	params: FetchGetSinglePostActionPathParameter;
+	params: GetSinglePostActionPathParameter;
 	qs?: GetSinglePostQueryParams;
 	headers?: GetSinglePostReqHeaders;
 };
@@ -25,13 +25,13 @@ export const useGetSinglePost = (
 ) => {
 	return useQuery({
 		queryKey: [
-			FetchGetSinglePostAction.NewUrl (
+			GetSinglePostAction.NewUrl (
 				options.params,
 				options.qs
 			)
 		],
 		queryFn: () =>
-		FetchGetSinglePostAction.Fetch(
+		GetSinglePostAction.Fetch(
 				options.params,
 			options.qs,
 			{
@@ -42,25 +42,45 @@ export const useGetSinglePost = (
 	});
 };
 	/**
- * Path parameters for FetchGetSinglePostAction
+ * Path parameters for GetSinglePostAction
  */
-export type FetchGetSinglePostActionPathParameter = {
+export type GetSinglePostActionPathParameter = {
 	id: string | number | boolean;
 }
 	/**
- * FetchGetSinglePostAction
+ * GetSinglePostAction
  */
-export class FetchGetSinglePostAction {
+export class GetSinglePostAction {
   static URL = 'https://jsonplaceholder.typicode.com/posts/:id';
   static NewUrl = (
-	params: FetchGetSinglePostActionPathParameter,
+	params: GetSinglePostActionPathParameter,
 	qs?: GetSinglePostQueryParams
   ) => buildUrl(
-		FetchGetSinglePostAction.URL,
+		GetSinglePostAction.URL,
 		params,
 		qs
 	);
   static Method = 'get';
+	static Fetch = async (
+			params: GetSinglePostActionPathParameter,
+		qs?: GetSinglePostQueryParams,
+		init?: TypedRequestInit<GetSinglePostRes, GetSinglePostReqHeaders>,
+		overrideUrl?: string
+	) => {
+		const res = await fetchx<GetSinglePostRes, unknown, GetSinglePostReqHeaders>(
+			overrideUrl ?? GetSinglePostAction.NewUrl(
+				params,
+				qs
+			),
+			{
+				method: GetSinglePostAction.Method,
+				...(init || {})
+			}
+		)
+			const result = await res.json();
+				res.result = new GetSinglePostRes (result);
+			return res;
+	}
 	static Axios : (
 		clientInstance: AxiosInstance,
 		config: AxiosRequestConfig<unknown>,
@@ -71,7 +91,7 @@ export class FetchGetSinglePostAction {
 		clientInstance
 		.request<unknown, AxiosResponse<unknown>, unknown>(
 			{
-				method: FetchGetSinglePostAction.Method,
+				method: GetSinglePostAction.Method,
 				...(config || {})
 			}
 		)
@@ -82,26 +102,6 @@ export class FetchGetSinglePostAction {
 			data: new GetSinglePostRes(res.data),
 			};
 		});
-	static Fetch = async (
-			params: FetchGetSinglePostActionPathParameter,
-		qs?: GetSinglePostQueryParams,
-		init?: TypedRequestInit<GetSinglePostRes, GetSinglePostReqHeaders>,
-		overrideUrl?: string
-	) => {
-		const res = await fetchx<GetSinglePostRes, unknown, GetSinglePostReqHeaders>(
-			overrideUrl ?? FetchGetSinglePostAction.NewUrl(
-				params,
-				qs
-			),
-			{
-				method: FetchGetSinglePostAction.Method,
-				...(init || {})
-			}
-		)
-		const result = await res.json();
-			res.result = new GetSinglePostRes (result);
-		return res;
-	}
 }
 	/**
   * @description The base type definition for getSinglePostRes
@@ -128,6 +128,7 @@ export class FetchGetSinglePostAction {
   **/
  body?: string;
 	}
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace GetSinglePostResType {
 }
 /**

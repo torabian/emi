@@ -34,7 +34,7 @@ export default function YamlEditor({
         quickSuggestions: true, // show on typing
         suggestOnTriggerCharacters: true, // e.g. after ":" etc.
         wordBasedSuggestions: "allDocuments", // don’t suggest random words
-        fontSize: 16,
+        fontSize: 13,
       }}
       height="calc(100vh - 160px)"
       onChange={(value) => {

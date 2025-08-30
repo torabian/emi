@@ -17,7 +17,7 @@ func JsActionPathParams(action *core.Module3Action) (*core.CodeChunkCompiled, er
 		return nil, nil // nothing to generate
 	}
 
-	className := fmt.Sprintf("Fetch%vAction", core.ToUpper(action.Name))
+	className := fmt.Sprintf("%vAction", core.ToUpper(action.Name))
 	typeName := fmt.Sprintf("%vPathParameter", className)
 
 	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: typeName})

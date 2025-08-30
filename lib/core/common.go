@@ -243,7 +243,8 @@ func FsEmbedToVirtualFile(template *embed.FS, predir string) []VirtualFile {
 }
 
 func ExtractPlaceholdersInUrl(url string) []string {
-	re := regexp.MustCompile(`:([A-Za-z0-9_]+)`)
+	// Match colon only after a slash (/:param)
+	re := regexp.MustCompile(`/+:([A-Za-z0-9_]+)`)
 	matches := re.FindAllStringSubmatch(url, -1)
 
 	var result []string

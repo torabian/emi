@@ -93,6 +93,7 @@ export class URLSearchParamsX extends URLSearchParams {
 
   /** Iterate over top-level keys and values */
   override forEach(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callbackfn: (value: any, key: string, parent: any) => void
   ): void {
     for (const key of Object.keys(this.data)) {
@@ -156,12 +157,14 @@ export function buildUrl(
   qs?: URLSearchParamsX
 ) {
   // Replace :placeholders
-  Object.entries(params as Record<string, string>).forEach(([key, value]) => {
-    url = url.replace(
-      new RegExp(`:${key}`, "g"),
-      encodeURIComponent(String(value))
-    );
-  });
+  if (params) {
+    Object.entries(params as Record<string, string>).forEach(([key, value]) => {
+      url = url.replace(
+        new RegExp(`:${key}`, "g"),
+        encodeURIComponent(String(value))
+      );
+    });
+  }
 
   if (qs && qs instanceof URLSearchParamsX) {
     url += `?${qs.toString()}`;

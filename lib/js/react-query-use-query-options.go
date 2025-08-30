@@ -24,15 +24,19 @@ type reactQueryOptionsType struct {
 func ReactQueryOptionsTypeFunction(rqoptions reactQueryOptionsType, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	className := fmt.Sprintf("%vActionQueryOptions", core.ToUpper(rqoptions.ActionName))
-	responseClass := findTokenByName(rqoptions.JsActionRealms.ResponseClass.Tokens, TOKEN_ROOT_CLASS)
+
+	var responseClass *core.GeneratedScriptToken
+	if rqoptions.JsActionRealms.ResponseClass != nil {
+		responseClass = findTokenByName(rqoptions.JsActionRealms.ResponseClass.Tokens, TOKEN_ROOT_CLASS)
+	}
 
 	const tmpl = `
 export type {{ .className }} = Omit<
 	UseQueryOptions<
 		unknown,
 		unknown,
-		{{ if .responseType }}
-			{{ .responseType }},
+		{{ if .responseClass }}
+			{{ .responseClass.Value }},
 		{{ end }}
 		unknown[]
 	>,
@@ -45,11 +49,11 @@ export type {{ .className }} = Omit<
 	t := template.Must(template.New("jsactionoptions").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"rqoptions":    rqoptions,
-		"ctx":          ctx,
-		"responseType": responseClass.Value,
-		"jsRealms":     rqoptions.JsActionRealms,
-		"className":    className,
+		"rqoptions":     rqoptions,
+		"ctx":           ctx,
+		"responseClass": responseClass,
+		"jsRealms":      rqoptions.JsActionRealms,
+		"className":     className,
 	}); err != nil {
 		return nil, err
 	}

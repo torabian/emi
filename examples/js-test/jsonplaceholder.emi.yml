@@ -15,3 +15,25 @@ actions:
           type: string
         - name: body
           type: string
+  - name: sampleSse
+    url: http://localhost:3000/stream
+    method: sse
+    description: SSE Sample
+    out:
+      fields:
+        - name: message
+          type: string
+  - name: webSocketOrgEcho
+    url: "wss://echo.websocket.org/.ws"
+    method: reactive
+    description: Websocket.org eco server, to send a json and recieve back
+    in:
+      fields:
+        - name: firstName
+          type: string
+        - name: lastName
+          type: string
+    out:
+      fields:
+        - name: lastName
+          type: string

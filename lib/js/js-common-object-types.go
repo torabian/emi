@@ -137,6 +137,7 @@ func TsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenConte
 {{ define "printType" }}
 {{ template "printClassItSelf" .}}
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace {{ .TypeName }} {
 	{{ range .SubTypes }}
 		{{ template "printType" . }}
@@ -146,6 +147,7 @@ export namespace {{ .TypeName }} {
 
 {{ template "printClassItSelf" .mainInterface }}
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace {{ .namespaceName }} {
 	{{ range .renderedTypes }}
 		{{ template "printType" . }}

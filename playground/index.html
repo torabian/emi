@@ -12,6 +12,7 @@
   <meta name="keywords" content="Emi, compiler, playground, Go, WASM, backend, frontend, TypeScript, code generation" />
   <meta name="author" content="Ali Torabian" />
 
+
   <!-- Open Graph / Facebook -->
   <meta property="og:title" content="Emi Compiler Playground" />
   <meta property="og:description" content="Generate backend-for-frontend code online instantly using Go, WASM, and TypeScript." />
@@ -24,6 +25,23 @@
   <meta name="twitter:title" content="Emi Compiler Playground" />
   <meta name="twitter:description" content="Generate backend-for-frontend code online instantly using Go, WASM, and TypeScript." />
   <meta name="twitter:image" content="/emi/logo.svg" />
+
+
+  <script src="./standalone.js"></script>
+  <script src="./babel.js"></script>
+  <script src="./typescript.js"></script>
+  <script src="./estree.js"></script>
+
+
+  <script>
+    window.prettierPlugins = [
+      prettierPlugins.babel,
+      prettierPlugins.typescript,
+      prettierPlugins.estree
+    ];
+    window.prettier = prettier;
+  </script>
+   
 
   <!-- WASM -->
   <script src="./wasm_exec.js"></script>

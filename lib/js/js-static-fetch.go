@@ -15,6 +15,7 @@ import (
 type fetchStaticFunctionContext struct {
 	EndpointUrl string
 
+	ActionMethod     string
 	RequestClass     string
 	ResponseClass    string
 	QueryStringClass string
@@ -31,6 +32,12 @@ type fetchStaticFunctionContext struct {
 	UrlCreatorFunction string
 
 	UrlMethod string
+
+	// by default, we assume it's a classic http call, since there might be non-standard http methods.
+	IsClassicHttpCall bool
+
+	// If it's a server side event endpoint
+	IsSSE bool
 
 	// For certain types, we need to make res.json() cast in fetch, if it's returning a dto,
 	// or entity, or has fields. For text, html, or others, it does not require and makes no sense,
@@ -95,6 +102,11 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			Js:  "params",
 			Ts:  "params: " + fetchctx.PathParameterTypeName,
 		},
+		{
+			Key: "message.callback",
+			Js:  "onMessage",
+			Ts:  "onMessage?: (ev: MessageEvent) => void",
+		},
 	}
 
 	claimsRendered := core.ClaimRender(claims, ctx)
@@ -104,6 +116,11 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		{{ if .hasQueryParams }}
 			|@query.params|,
 		{{ end }}
+
+		{{ if .fetchctx.IsSSE }}
+			|@message.callback|,
+		{{ end }}
+
 		|@fetch.qs|,
 		|@fetch.init|,
 		|@fetch.overrideUrl|
@@ -121,21 +138,25 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			}
 		)
 
-		{{ if .fetchctx.CastToJson }}
-		const result = await res.json();
-		{{ else }}
-		const result = await res.text();
+		{{ if .fetchctx.IsClassicHttpCall }}
+			{{ if .fetchctx.CastToJson }}
+			const result = await res.json();
+			{{ else }}
+			const result = await res.text();
+			{{ end }}
+
+			{{ if .fetchctx.ResponseClass }}
+				res.result = new {{ .fetchctx.ResponseClass }} (result);
+			{{ else }}
+				res.result = result as never;
+			{{ end }}
+
+			return res;
 		{{ end }}
 
-
-	
-		{{ if .fetchctx.ResponseClass }}
-			res.result = new {{ .fetchctx.ResponseClass }} (result);
-		{{ else }}
-			res.result = result as any;
+		{{ if .fetchctx.IsSSE }}
+			return SSEFetch(res, onMessage, init?.signal || undefined);
 		{{ end }}
-
-		return res;
 	}
 	`
 
@@ -164,13 +185,23 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		},
 	}
 
+	if fetchctx.IsSSE {
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
+			{
+				Objects:  []string{"SSEFetch"},
+				Location: INTERNAL_SDK_LOCATION,
+			},
+		}...)
+
+	}
+
 	if isTypeScript {
-		res.CodeChunkDependenies = []core.CodeChunkDependency{
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type TypedRequestInit"},
 				Location: INTERNAL_SDK_LOCATION,
 			},
-		}
+		}...)
 	}
 
 	return res, nil
