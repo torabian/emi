@@ -86,7 +86,9 @@ export class URLSearchParamsX extends URLSearchParams {
         return this.data[name] !== undefined;
     }
     /** Iterate over top-level keys and values */
-    forEach(callbackfn) {
+    forEach(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    callbackfn) {
         for (const key of Object.keys(this.data)) {
             callbackfn(this.data[key], key, this);
         }

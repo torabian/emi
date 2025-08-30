@@ -15,6 +15,7 @@ import (
 type fetchStaticFunctionContext struct {
 	EndpointUrl string
 
+	ActionMethod     string
 	RequestClass     string
 	ResponseClass    string
 	QueryStringClass string
@@ -147,7 +148,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			{{ if .fetchctx.ResponseClass }}
 				res.result = new {{ .fetchctx.ResponseClass }} (result);
 			{{ else }}
-				res.result = result as any;
+				res.result = result as never;
 			{{ end }}
 
 			return res;
@@ -184,23 +185,23 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		},
 	}
 
-	if fetchctx.IsSSE || true {
-		res.CodeChunkDependenies = []core.CodeChunkDependency{
+	if fetchctx.IsSSE {
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
 			{
 				Objects:  []string{"SSEFetch"},
 				Location: INTERNAL_SDK_LOCATION,
 			},
-		}
+		}...)
 
 	}
 
 	if isTypeScript {
-		res.CodeChunkDependenies = []core.CodeChunkDependency{
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type TypedRequestInit"},
 				Location: INTERNAL_SDK_LOCATION,
 			},
-		}
+		}...)
 	}
 
 	return res, nil

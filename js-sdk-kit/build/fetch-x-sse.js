@@ -1,19 +1,19 @@
 export const SSEFetch = (res, onMessage, signal) => {
     if (!res.body)
-        return Promise.reject(new Error("SSE requires readable body"));
+        throw new Error("SSE requires readable body");
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
-    return new Promise((resolve, reject) => {
+    const done = new Promise((resolve, reject) => {
         function readChunk() {
             reader
                 .read()
-                .then(({ done, value }) => {
+                .then(({ done: finished, value }) => {
                 if (signal === null || signal === void 0 ? void 0 : signal.aborted) {
-                    reader.cancel(); // cancel the stream
-                    return resolve(); // resolve instead of rejecting
+                    reader.cancel();
+                    return resolve(); // resolve on abort
                 }
-                if (done)
+                if (finished)
                     return resolve(); // normal end
                 buffer += decoder.decode(value, { stream: true });
                 const parts = buffer.split("\n\n");
@@ -36,7 +36,6 @@ export const SSEFetch = (res, onMessage, signal) => {
                 readChunk();
             })
                 .catch((err) => {
-                // Only reject if it's not an abort
                 if (err.name === "AbortError")
                     resolve();
                 else
@@ -45,4 +44,5 @@ export const SSEFetch = (res, onMessage, signal) => {
         }
         readChunk();
     });
+    return { response: res, done };
 };

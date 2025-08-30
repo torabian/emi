@@ -65,7 +65,7 @@ export class {{ .className }} extends Axios {
 					method: {{ .UrlMethodConst }},
 					{{ end }}
 					...(config || {})
-				} as any
+				} as never
 			)
 				
 			{{ if .ResponseClassGenerator }}
@@ -89,6 +89,9 @@ export class {{ .className }} extends Axios {
 		urlGenerator := findTokenByName(realms.FetchMetaClass.Tokens, TOKEN_NEW_URL_FN)
 		urlMethod := findTokenByName(realms.FetchMetaClass.Tokens, TOKEN_URL_METHOD)
 
+		if realms.HttpMethod == EMI_METHOD_REACTIVE || realms.HttpMethod == EMI_METHOD_SSE {
+			continue
+		}
 		// Import the path paramter type into the class
 		if realms.PathParameter != nil {
 			res.CodeChunkDependenies = append(res.CodeChunkDependenies, core.CodeChunkDependency{

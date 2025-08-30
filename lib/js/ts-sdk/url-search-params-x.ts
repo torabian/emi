@@ -93,6 +93,7 @@ export class URLSearchParamsX extends URLSearchParams {
 
   /** Iterate over top-level keys and values */
   override forEach(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     callbackfn: (value: any, key: string, parent: any) => void
   ): void {
     for (const key of Object.keys(this.data)) {

@@ -1,110 +1,85 @@
-import {
-  SSEFetch,
-  URLSearchParamsX,
-  buildUrl,
-  fetchx,
-  type TypedRequestInit,
-} from "./sdk";
-import {
-  type AxiosInstance,
-  type AxiosRequestConfig,
-  type AxiosResponse,
-} from "axios";
+import { SSEFetch, URLSearchParamsX, buildUrl, fetchx, type TypedRequestInit } from './sdk';
 /**
- * Action to communicate with the action sampleSse
- */
+* Action to communicate with the action sampleSse
+*/
 export type SampleSseActionOptions = {
-  queryKey?: unknown[];
-  qs?: SampleSseQueryParams;
-  headers?: SampleSseReqHeaders;
+	queryKey?: unknown[];
+	qs?: SampleSseQueryParams;
+	headers?: SampleSseReqHeaders;
 };
-/**
- * FetchSampleSseAction
+	/**
+ * SampleSseAction
  */
-export class FetchSampleSseAction {
-  static URL = "http://localhost:3000/stream";
-  static NewUrl = (qs?: SampleSseQueryParams) =>
-    buildUrl(FetchSampleSseAction.URL, undefined, qs);
-  static Method = "get";
-
-  static Fetch = async (
-    qs?: SampleSseQueryParams,
-    init?: TypedRequestInit<SampleSseRes, SampleSseReqHeaders>,
-    overrideUrl?: string,
-    onMessage?: (event: MessageEvent) => void // SSE callback
-  ) => {
-    const res = await fetchx<SampleSseRes, unknown, SampleSseReqHeaders>(
-      overrideUrl ?? FetchSampleSseAction.NewUrl(qs),
-      {
-        method: FetchSampleSseAction.Method,
-        ...(init || {}),
-      }
-    );
-
-    return SSEFetch(res, onMessage, init?.signal || undefined);
-  };
-  static Axios: (
-    clientInstance: AxiosInstance,
-    config: AxiosRequestConfig<unknown>
-  ) => Promise<AxiosResponse<unknown>> = (clientInstance, config) =>
-    clientInstance
-      .request<unknown, AxiosResponse<unknown>, unknown>({
-        method: FetchSampleSseAction.Method,
-        ...(config || {}),
-      })
-      .then((res) => {
-        return {
-          ...res,
-          // if there is a output class, create instance out of it.
-          data: new SampleSseRes(res.data),
-        };
-      });
+export class SampleSseAction {
+  static URL = 'http://localhost:3000/stream';
+  static NewUrl = (
+	qs?: SampleSseQueryParams
+  ) => buildUrl(
+		SampleSseAction.URL,
+		 undefined,
+		qs
+	);
+  static Method = 'get';
+	static Fetch = async (
+			onMessage?: (ev: MessageEvent) => void,
+		qs?: SampleSseQueryParams,
+		init?: TypedRequestInit<SampleSseRes, SampleSseReqHeaders>,
+		overrideUrl?: string
+	) => {
+		const res = await fetchx<SampleSseRes, unknown, SampleSseReqHeaders>(
+			overrideUrl ?? SampleSseAction.NewUrl(
+				qs
+			),
+			{
+				method: SampleSseAction.Method,
+				...(init || {})
+			}
+		)
+			return SSEFetch(res, onMessage, init?.signal || undefined);
+	}
+}
+	/**
+  * @description The base type definition for sampleSseRes
+  **/
+	export type SampleSseResType =  {
+			/**
+  * @type {string}
+  * @description 
+  **/
+ message?: string;
+	}
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace SampleSseResType {
 }
 /**
- * @description The base type definition for sampleSseRes
- **/
-export type SampleSseResType = {
-  /**
-   * @type {string}
-   * @description
-   **/
-  message?: string;
-};
-export namespace SampleSseResType {}
-/**
- * @decription The base class definition for sampleSseRes
- **/
+  * @decription The base class definition for sampleSseRes
+  **/
 export class SampleSseRes implements SampleSseResType {
-  constructor(data: unknown) {
-    // This probably doesn't cover the nested objects
-    const d = data as Partial<SampleSseRes>;
-    if (d[`message`] !== undefined) {
-      this.setMessage(d[`message`]);
-    }
-  }
-  /**
-   * @type {string}
-   * @description
-   **/
-  message?: string;
-  /**
-   * @returns {string}
-   * @description
-   **/
-  getMessage() {
-    return this[`message`];
-  }
-  /**
-   * @param {string}
-   * @description
-   **/
-  setMessage(value: string) {
-    this[`message`] = value;
-    return this;
-  }
+	constructor(data: unknown) {
+		// This probably doesn't cover the nested objects
+		const d = data as Partial<SampleSseRes>;
+			if (d[`message`] !== undefined) { 
+ this.setMessage (d[`message`]) 
+}
+	}
+		/**
+  * @type {string}
+  * @description 
+  **/
+ message?: string;
+		/**
+  * @returns {string}
+  * @description 
+  **/
+getMessage () { return this[`message`] }
+		/**
+  * @param {string}
+  * @description 
+  **/
+setMessage (value: string) { this[`message`] = value; return this; } 
 }
 export abstract class SampleSseResFactory {
-  abstract create(data: unknown): SampleSseRes;
+	abstract create(data: unknown): SampleSseRes;
 }
 /**
  * SampleSseReqHeaders class
@@ -136,4 +111,5 @@ export class SampleSseResHeaders extends Headers {
  * SampleSseQueryParams class
  * Auto-generated from Module3Action
  */
-export class SampleSseQueryParams extends URLSearchParamsX {}
+export class SampleSseQueryParams extends URLSearchParamsX {
+}

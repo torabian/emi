@@ -23,3 +23,17 @@ actions:
       fields:
         - name: message
           type: string
+  - name: webSocketOrgEcho
+    url: "wss://echo.websocket.org/.ws"
+    method: reactive
+    description: Websocket.org eco server, to send a json and recieve back
+    in:
+      fields:
+        - name: firstName
+          type: string
+        - name: lastName
+          type: string
+    out:
+      fields:
+        - name: lastName
+          type: string
