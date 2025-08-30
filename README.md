@@ -5,7 +5,7 @@ Backend for front-end code generation library based on Emi definition files. Def
 Emi generated code aims to be framework agnostic on different targets, but in the same time would provide extra
 helpers based on popularity of a library.
 
-## Live playground: https://torabian.github.io/emi
+## Live playground: https://torabian.github.io/emi 
 
 You can try to compile Emi live here: https://torabian.github.io/emi
 Emi is written in Golang, and wasm file exported to be used in javascript environment (only for generation, no runtime needed.)
