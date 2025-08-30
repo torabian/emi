@@ -6,20 +6,49 @@
  */
 import { describe, it, expect } from "vitest";
 import { runEmiActionTs } from "../../common";
+import { MethodDeclaration, PropertyDeclaration } from "ts-morph";
+import { writeFileSync } from "fs";
+import path from "path";
+
+export function getJsDoc(
+  node: PropertyDeclaration | MethodDeclaration
+): string {
+  const jsDocs = node.getJsDocs();
+
+  if (jsDocs.length === 0) return "no jsdoc";
+
+  return jsDocs.map((d) => d.getDescription() || "").join("\n");
+}
 
 describe("Generating different data types from fields need to be working fine.", () => {
   const fieldsMap = {
-    stringField: { type: "string", name: "stringField" },
+    stringField: {
+      type: "string",
+      name: "stringField",
+      description:
+        "This is a pure string field, there for never can be null, and by default needs to be empty string",
+      default: undefined,
+    },
     stringFieldWithValue: {
       type: "string",
       default: "testvalue",
       name: "stringFieldWithValue",
+      description:
+        "Pure string field, but with an intial string value, and never can be undefined or null",
     },
-    nullableStringField: { type: "string?", name: "nullableStringField" },
+    nullableStringField: {
+      type: "string?",
+      name: "nullableStringField",
+      default: undefined,
+      description:
+        "Nullable string field. Can be undefined, or set to null to indicate intentional emptiness",
+    },
     nullableStringFieldWithValue: {
       type: "string?",
       default: "stringvalue",
       name: "nullableStringFieldWithValue",
+      description:
+        "Nullable string field, can be undefined or null, but with an initial value",
     },
   };
 
@@ -28,10 +57,14 @@ describe("Generating different data types from fields need to be working fine.",
     ...fieldsMap[key],
   }));
 
-  const { source } = runEmiActionTs("jsGenObject", fields, {
+  const { source, resp } = runEmiActionTs("jsGenObject", fields, {
     Flags: "Anonymouse",
     Tags: "react,typescript",
   });
+
+  writeFileSync(path.join(__dirname, "string-data-type.ts"), resp);
+
+  console.log(5, resp);
 
   it("should have generated a class named Anonymouse", () => {
     expect(source.getClasses().map((c) => c.getName())).toContain("Anonymouse");
@@ -90,6 +123,12 @@ describe("Generating different data types from fields need to be working fine.",
       const paramType = setter.getParameters()[0].getType().getText();
       expect(paramType).toBe("string");
     });
+
+    it("should have correct JSDoc", () => {
+      const field = source.getClass("Anonymouse")!.getProperty(fieldName)!;
+      const jsdoc = getJsDoc(field);
+      expect(jsdoc.trim()).toBe(fieldsMap.stringField.description);
+    });
   });
 
   /**
@@ -109,6 +148,12 @@ describe("Generating different data types from fields need to be working fine.",
         `"${fieldsMap.stringFieldWithValue.default}"`
       );
     });
+
+    it("should have correct JSDoc", () => {
+      const field = source.getClass("Anonymouse")!.getProperty(fieldName)!;
+      const jsdoc = getJsDoc(field);
+      expect(jsdoc.trim()).toBe(fieldsMap.stringFieldWithValue.description);
+    });
   });
 
   /**
@@ -124,7 +169,13 @@ describe("Generating different data types from fields need to be working fine.",
 
     it("should initialize to empty string", () => {
       const field = source.getClass("Anonymouse")!.getProperty(fieldName)!;
-      expect(field.getInitializer()?.getText()).toBe(undefined);
+      expect(field.getInitializer()?.getText()).toBe("undefined");
+    });
+
+    it("should have correct JSDoc", () => {
+      const field = source.getClass("Anonymouse")!.getProperty(fieldName)!;
+      const jsdoc = getJsDoc(field);
+      expect(jsdoc.trim()).toBe(fieldsMap.nullableStringField.description);
     });
   });
 
@@ -143,6 +194,14 @@ describe("Generating different data types from fields need to be working fine.",
       const field = source.getClass("Anonymouse")!.getProperty(fieldName)!;
       expect(field.getInitializer()?.getText()).toBe(
         `"${fieldsMap[fieldName].default}"`
+      );
+    });
+
+    it("should have correct JSDoc", () => {
+      const field = source.getClass("Anonymouse")!.getProperty(fieldName)!;
+      const jsdoc = getJsDoc(field);
+      expect(jsdoc.trim()).toBe(
+        fieldsMap.nullableStringFieldWithValue.description
       );
     });
   });

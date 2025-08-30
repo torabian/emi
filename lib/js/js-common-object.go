@@ -83,16 +83,15 @@ set{{.UpperName}}(value{{if .FieldType}}: {{.FieldType}}{{end}}) {
 
 func jsClassSetterFunction(jsFieldType string, field *core.Module3Field) (*JsdocComment, string) {
 	setterjsdoc := NewJsDoc("  ")
+	setterjsdoc.Add(field.Description)
 	setterjsdoc.Add(fmt.Sprintf("@param {%v}", jsFieldType))
-	setterjsdoc.Add(fmt.Sprintf("@description %v", field.Description))
 
 	data := map[string]any{
-		"Jsdoc":      setterjsdoc.String(),
-		"UpperName":  core.ToUpper(field.Name),
-		"Name":       field.Name,
-		"FieldType":  jsFieldType,
-		"Type":       field.Type,
-		"ArrayClass": "GetSinglePostRes.Histories", // maybe dynamic later
+		"Jsdoc":     setterjsdoc.String(),
+		"UpperName": core.ToUpper(field.Name),
+		"Name":      field.Name,
+		"FieldType": jsFieldType,
+		"Type":      field.Type,
 	}
 
 	var buf bytes.Buffer
@@ -116,7 +115,7 @@ func getNullableDefaultValue(field *core.Module3Field) string {
 		}
 	}
 
-	return "null"
+	return "= undefined"
 }
 
 func jsGetSafeFieldValue(field *core.Module3Field) string {
@@ -166,8 +165,8 @@ func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroG
 	isFieldNullable := strings.Contains(field.Type, "?")
 
 	jsdoc := NewJsDoc("  ")
+	jsdoc.Add(field.Description)
 	jsdoc.Add(fmt.Sprintf("@type {%v}", jsFieldType))
-	jsdoc.Add(fmt.Sprintf("@description %v", field.Description))
 
 	// Javascript field definition
 	output := fmt.Sprintf("%v %v;", jsdoc.String(), field.PrivateName())
@@ -194,11 +193,16 @@ func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroG
 	setterCallInConstructor := fmt.Sprintf("if (d[`%v`] !== undefined) { \r\n this.set%v (d[`%v`]) \r\n}", field.Name, core.ToUpper(field.Name), field.Name)
 
 	if isTypeScript {
+		nullableMark := ""
+		if isFieldNullable {
+			nullableMark = " | null"
+		}
 		setterFunc = setterjsdoc.String() +
 			fmt.Sprintf(
-				"set%v (value: %v) { this[`%v`] = value; return this; }",
+				"set%v (value: %v %v) { this[`%v`] = value; return this; }",
 				core.ToUpper(field.Name),
 				tsFieldType,
+				nullableMark,
 				field.Name,
 			)
 	}
@@ -236,7 +240,11 @@ func jsRenderDataClasses(fields []*core.Module3Field, className string, treeLoca
 	var content []jsRenderedDataClass
 
 	jsdoc := NewJsDoc("  ").Add(fmt.Sprintf("@decription The base class definition for %v", core.ToLower(className)))
-	signature := fmt.Sprintf("export class %v implements %vType", core.ToUpper(className), core.ToUpper(className))
+
+	// The type does not going to be implemented, because on the type, we have
+	// no control over if the value is correct.
+	// signature := fmt.Sprintf("export class %v implements %vType", core.ToUpper(className), core.ToUpper(className))
+	signature := fmt.Sprintf("export class %v", core.ToUpper(className))
 
 	// When it's first one, we use class. For children, signature is a bit different since they go inside.
 	if !isFirst {
