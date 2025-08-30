@@ -64,8 +64,6 @@ describe("Generating different data types from fields need to be working fine.",
 
   writeFileSync(path.join(__dirname, "string-data-type.ts"), resp);
 
-  console.log(5, resp);
-
   it("should have generated a class named Anonymouse", () => {
     expect(source.getClasses().map((c) => c.getName())).toContain("Anonymouse");
   });
