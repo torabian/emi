@@ -15,6 +15,30 @@ function parseGenerated(code: string) {
   return sf;
 }
 
+function checkTsCode(code: string) {
+  const project = new Project({
+    useInMemoryFileSystem: true,
+    skipAddingFilesFromTsConfig: true,
+  });
+
+  const sourceFile = project.createSourceFile("temp.ts", code);
+
+  // Get syntax & type errors
+  const diagnostics = sourceFile.getPreEmitDiagnostics();
+
+  if (diagnostics.length === 0) {
+    return { valid: true };
+  }
+
+  const errors = diagnostics.map((d) => ({
+    message: d.getMessageText(),
+    line: d.getLineNumber(),
+    column: d.getStart(),
+  }));
+
+  return { valid: false, errors };
+}
+
 function runEmiActionTs(
   actionWasmFunctionName,
   emiActionDefinition,
@@ -24,6 +48,14 @@ function runEmiActionTs(
     toYaml(emiActionDefinition),
     context
   );
+
+  const validation = checkTsCode(resp);
+  if (!validation.valid) {
+    console.error(validation.errors);
+    console.log(resp);
+    throw validation.errors;
+  }
+
   return { source: parseGenerated(resp), resp };
 }
 

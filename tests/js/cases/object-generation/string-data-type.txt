@@ -1,0 +1,112 @@
+	/**
+  * @description The base type definition for anonymouse
+  **/
+	export type AnonymouseType =  {
+			/**
+  * @type {string}
+  * @description String field description
+  **/
+ stringField?: string;
+			/**
+  * @type {string}
+  * @description stringFieldWithValue description
+  **/
+ stringFieldWithValue?: string;
+			/**
+  * @type {string}
+  * @description nullableStringField description
+  **/
+ nullableStringField?: string;
+			/**
+  * @type {string}
+  * @description nullableStringFieldWithValue description
+  **/
+ nullableStringFieldWithValue?: string;
+	}
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace AnonymouseType {
+}
+/**
+  * @decription The base class definition for anonymouse
+  **/
+export class Anonymouse implements AnonymouseType {
+	constructor(data: unknown) {
+		// This probably doesn't cover the nested objects
+		const d = data as Partial<Anonymouse>;
+			if (d[`stringField`] !== undefined) { 
+ this.setStringField (d[`stringField`]) 
+}
+			if (d[`stringFieldWithValue`] !== undefined) { 
+ this.setStringFieldWithValue (d[`stringFieldWithValue`]) 
+}
+			if (d[`nullableStringField`] !== undefined) { 
+ this.setNullableStringField (d[`nullableStringField`]) 
+}
+			if (d[`nullableStringFieldWithValue`] !== undefined) { 
+ this.setNullableStringFieldWithValue (d[`nullableStringFieldWithValue`]) 
+}
+	}
+		/**
+  * String field description
+  * @type {string}
+  **/
+ stringField: string = ""
+		/**
+  * @returns {string}
+  * @description String field description
+  **/
+getStringField () { return this[`stringField`] }
+		/**
+  * @param {string}
+  * @description String field description
+  **/
+setStringField (value: string) { this[`stringField`] = value; return this; } 
+		/**
+  * stringFieldWithValue description
+  * @type {string}
+  **/
+ stringFieldWithValue: string = "testvalue"
+		/**
+  * @returns {string}
+  * @description stringFieldWithValue description
+  **/
+getStringFieldWithValue () { return this[`stringFieldWithValue`] }
+		/**
+  * @param {string}
+  * @description stringFieldWithValue description
+  **/
+setStringFieldWithValue (value: string) { this[`stringFieldWithValue`] = value; return this; } 
+		/**
+  * nullableStringField description
+  * @type {string}
+  **/
+ nullableStringField?: string | null = undefined
+		/**
+  * @returns {string}
+  * @description nullableStringField description
+  **/
+getNullableStringField () { return this[`nullableStringField`] }
+		/**
+  * @param {string}
+  * @description nullableStringField description
+  **/
+setNullableStringField (value: string) { this[`nullableStringField`] = value; return this; } 
+		/**
+  * nullableStringFieldWithValue description
+  * @type {string}
+  **/
+ nullableStringFieldWithValue?: string | null  = "stringvalue"
+		/**
+  * @returns {string}
+  * @description nullableStringFieldWithValue description
+  **/
+getNullableStringFieldWithValue () { return this[`nullableStringFieldWithValue`] }
+		/**
+  * @param {string}
+  * @description nullableStringFieldWithValue description
+  **/
+setNullableStringFieldWithValue (value: string) { this[`nullableStringFieldWithValue`] = value; return this; } 
+}
+export abstract class AnonymouseFactory {
+	abstract create(data: unknown): Anonymouse;
+}
