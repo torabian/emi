@@ -1,29 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/torabian/fireback/modules/fireback/module3",
+  "$id": "https://github.com/torabian/emi/lib/core/module3",
   "$ref": "#/definitions/Module3",
   "definitions": {
     "ClickHouseReplicaInfo": {
       "properties": {
         "enabled": {
           "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EavMacroParams": {
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the EAV model which will be used for tables and code generated"
-        },
-        "fields": {
-          "items": {
-            "$ref": "#/definitions/Module3Field"
-          },
-          "type": "array",
-          "description": "Some macros such as EAV can benefit from a list of fields. You can define them here or in Params object"
         }
       },
       "additionalProperties": false,
@@ -214,13 +197,6 @@
           "type": "array",
           "description": "Type-safe query parameters for CLI and HTTP requests"
         },
-        "headers": {
-          "items": {
-            "$ref": "#/definitions/Module3Header"
-          },
-          "type": "array",
-          "description": "Typesafe headers."
-        },
         "dataChannels": {
           "items": {
             "$ref": "#/definitions/Module3WebRtcDataChannel"
@@ -264,6 +240,13 @@
     },
     "Module3ActionBody": {
       "properties": {
+        "headers": {
+          "items": {
+            "$ref": "#/definitions/Module3Header"
+          },
+          "type": "array",
+          "description": "Typesafe headers."
+        },
         "fields": {
           "items": {
             "$ref": "#/definitions/Module3Field"

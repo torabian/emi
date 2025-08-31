@@ -4,8 +4,9 @@ build:
 	rm -rf ./lib/js/ts-sdk && cp -R ./js-sdk-kit/src ./lib/js/ts-sdk && \
 	cp ./lib/js/index.go.txt ./lib/js/ts-sdk/index.go && \
 	go build -ldflags "-s -w" -o ./emi ./cmd/emi && \
-	make wasm
-
+	make wasm && \
+	./emi spec --output .vscode/emi-definitions.json && \
+	./emi spec --output ./playground/public/emi-definitions.json
 
 sample:
 	make build && \
