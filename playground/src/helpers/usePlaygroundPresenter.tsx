@@ -12,7 +12,6 @@ export const usePlaygroundPresenter = () => {
     "axios",
     "typescript",
     "axiosbundle",
-    "angular",
     "react",
   ]);
   const [files, setOutput] = useState<VirtualFile[]>([]);

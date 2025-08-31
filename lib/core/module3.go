@@ -1,13 +1,3 @@
-/**
-Current file is set of definitions, to create Module3 yaml files.
-Module3 is a declarative way of creating backend entities, crud actions on them,
-and many complex operation. Fireback would generate those codes for many languages
-both for backend and front-end purposes.
-
-Backend code can be generated in: C and Golang
-Front-end code can be generated in: Angular, React, Pure TypeScript, Android Java, Swift
-*/
-
 package core
 
 import (
@@ -15,22 +5,6 @@ import (
 	"fmt"
 	"strings"
 )
-
-// var FIELD_TYPE_ARRAY string = "array"
-// var FIELD_TYPE_ARRAYP string = "arrayP"
-// var FIELD_TYPE_JSON string = "json"
-// var FIELD_TYPE_ONE string = "one"
-// var FIELD_TYPE_DATE string = "date"
-// var FIELD_TYPE_MANY2MANY string = "many2many"
-// var FIELD_TYPE_OBJECT string = "object"
-// var FIELD_TYPE_EMBED string = "embed"
-// var FIELD_TYPE_MONEY string = "money?"
-// var FIELD_TYPE_XFILE string = "xfile?"
-// var FIELD_TYPE_ENUM string = "enum"
-// var FIELD_TYPE_COMPUTED string = "computed"
-// var FIELD_TYPE_TEXT string = "text"
-// var FIELD_TYPE_STRING string = "string"
-// var FIELD_TYPE_ANY string = "any"
 
 type FieldType string
 

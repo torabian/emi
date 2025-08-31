@@ -18,7 +18,6 @@ via external tools. It would cover:
 
 - Pure vanilla javascript, with classes, and fetch api. (always enabled, not tags needed)
 - Axios helper and Axios Bundle (--tags `axios,axiosbundle`)
-- Angular services (--tags `angular`)
 - Nest.js extra decorators (--tags `nestjs`)
 - React query tools (--tags `react`) generates mutations and useQuery tools.
 
@@ -67,11 +66,9 @@ Here is a list of features which will be generated via js/ts compiler:
 - [x] Generate the object into typescript `type` only
 - [x] Generate Request, and Response classes
 - [x] Generate type-safe query strings (?param=1) and support deep nested
-- [x] Abstract factory to Angular
 - [x] Nest.js decorators to use query, req, and headers directly in actions
 - [x] React.js useQuery
 - [x] React.js useMutation
-- [x] Angular service class
 - [ ] Package.json generation
 - [ ] Playground eslint
 - [ ] Static fields for the common object to access fields via json path

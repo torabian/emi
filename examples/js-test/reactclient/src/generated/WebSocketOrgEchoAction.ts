@@ -53,7 +53,7 @@ export namespace WebSocketOrgEchoReqType {
 /**
   * @decription The base class definition for webSocketOrgEchoReq
   **/
-export class WebSocketOrgEchoReq implements WebSocketOrgEchoReqType {
+export class WebSocketOrgEchoReq {
 	constructor(data: unknown) {
 		// This probably doesn't cover the nested objects
 		const d = data as Partial<WebSocketOrgEchoReq>;
@@ -65,35 +65,35 @@ export class WebSocketOrgEchoReq implements WebSocketOrgEchoReqType {
 }
 	}
 		/**
+  * 
   * @type {string}
-  * @description 
   **/
- firstName: string = "";
+ firstName: string = ""
 		/**
   * @returns {string}
   * @description 
   **/
 getFirstName () { return this[`firstName`] }
 		/**
+  * 
   * @param {string}
-  * @description 
   **/
-setFirstName (value: string) { this[`firstName`] = value; return this; } 
+setFirstName (value: string ) { this[`firstName`] = value; return this; } 
 		/**
+  * 
   * @type {string}
-  * @description 
   **/
- lastName: string = "";
+ lastName: string = ""
 		/**
   * @returns {string}
   * @description 
   **/
 getLastName () { return this[`lastName`] }
 		/**
+  * 
   * @param {string}
-  * @description 
   **/
-setLastName (value: string) { this[`lastName`] = value; return this; } 
+setLastName (value: string ) { this[`lastName`] = value; return this; } 
 }
 export abstract class WebSocketOrgEchoReqFactory {
 	abstract create(data: unknown): WebSocketOrgEchoReq;
@@ -114,7 +114,7 @@ export namespace WebSocketOrgEchoResType {
 /**
   * @decription The base class definition for webSocketOrgEchoRes
   **/
-export class WebSocketOrgEchoRes implements WebSocketOrgEchoResType {
+export class WebSocketOrgEchoRes {
 	constructor(data: unknown) {
 		// This probably doesn't cover the nested objects
 		const d = data as Partial<WebSocketOrgEchoRes>;
@@ -123,20 +123,20 @@ export class WebSocketOrgEchoRes implements WebSocketOrgEchoResType {
 }
 	}
 		/**
+  * 
   * @type {string}
-  * @description 
   **/
- lastName: string = "";
+ lastName: string = ""
 		/**
   * @returns {string}
   * @description 
   **/
 getLastName () { return this[`lastName`] }
 		/**
+  * 
   * @param {string}
-  * @description 
   **/
-setLastName (value: string) { this[`lastName`] = value; return this; } 
+setLastName (value: string ) { this[`lastName`] = value; return this; } 
 }
 export abstract class WebSocketOrgEchoResFactory {
 	abstract create(data: unknown): WebSocketOrgEchoRes;

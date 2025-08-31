@@ -7,8 +7,6 @@ type Option = {
 
 const options: Option[] = [
   { label: "JavaScript (Common)", value: "javascript" },
-  // { label: "Angular", value: "angular" },
-  // easy to add more: { label: "React", value: "react" }
 ];
 
 export default function LanguageSelector({

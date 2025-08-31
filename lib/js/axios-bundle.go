@@ -1,8 +1,5 @@
 package js
 
-// In Angular, on top of the existing pure javascript for each action,
-// We need to create a service which would combine
-
 import (
 	"bytes"
 	"fmt"
@@ -164,7 +161,7 @@ export class {{ .className }} extends Axios {
 			UrlGeneratorFn:         urlGenerator.Value,
 			UrlMethodConst:         urlMethod.Value,
 			ResponseClassGenerator: responseClassGenerator,
-			HttpCallerParams:       angularHttpCallerParams(realms),
+			HttpCallerParams:       axiosHttpCallerParams(realms),
 			AxiosRequestGeneric:    axiosRequestGeneric,
 		})
 
@@ -238,4 +235,18 @@ func axiosBundleItemGetArguments(realms *jsActionRealms) string {
 	)
 
 	return strings.Join(claims, ", ")
+}
+
+func axiosHttpCallerParams(realms *jsActionRealms) string {
+	claims := []string{}
+
+	if realms.PathParameter != nil {
+		claims = append(claims, "params")
+	}
+
+	return strings.Join(claims, ", ")
+}
+
+func importPath(fileName string) string {
+	return "./" + fileName
 }

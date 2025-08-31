@@ -38,7 +38,15 @@ export default function TypescriptEditor({
         onChange(value as string);
       }}
       theme={theme}
-      defaultLanguage="typescript"
+      defaultLanguage={
+        file.Name.includes(".ts")
+          ? "typescript"
+          : file.Name.includes("json")
+            ? "json"
+            : file.Name.includes(".js")
+              ? "javascript"
+              : ""
+      }
       defaultValue={value}
     />
   );

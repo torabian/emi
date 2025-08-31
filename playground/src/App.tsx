@@ -68,7 +68,6 @@ function App() {
             <FeatureSelector
               options={[
                 "nestjs",
-                "angular",
                 "typescript",
                 "axios",
                 "react",

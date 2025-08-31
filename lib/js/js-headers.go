@@ -58,7 +58,6 @@ func renderJsTsCommonHeadersInfo(headerColumns []core.Module3Header) ([]rendered
 
 var GEN_NEST_JS_COMPATIBILITY string = "nestjs"
 var GEN_TYPESCRIPT_COMPATIBILITY string = "typescript"
-var GEN_ANGULAR_COMPATIBILITY string = "angular"
 var GEN_AXIOS_BUNDLE_COMPATIBILITY string = "axiosbundle"
 var GEN_REACT_COMPATIBILITY string = "react"
 var GEN_AXIOS_COMPATIBILITY string = "axios"

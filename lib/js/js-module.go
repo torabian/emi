@@ -35,9 +35,18 @@ func JsModuleFullVirtualFiles(module *core.Module3, ctx core.MicroGenContext) ([
 		actionsRendered = append(actionsRendered, actionRendered)
 	}
 
+	globalPacakges := []string{"qs", "@types/qs"}
 	// Those actions are valid ts or js files, including some helpers for react, axios, fetch
 	// and couple of more, directly can be written on the disk
 	for _, action := range actionsRendered {
+
+		for _, loc := range action.CodeChunkDependenies {
+			if loc.Location == INTERNAL_SDK_LOCATION {
+				continue
+			}
+			globalPacakges = append(globalPacakges, loc.Location)
+		}
+
 		files = append(files, core.VirtualFile{
 			Name:         action.SuggestedFileName,
 			Extension:    action.SuggestedExtension,
@@ -45,25 +54,20 @@ func JsModuleFullVirtualFiles(module *core.Module3, ctx core.MicroGenContext) ([
 		})
 	}
 
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	isAngular := strings.Contains(ctx.Tags, GEN_ANGULAR_COMPATIBILITY)
-	isAxiosBundle := strings.Contains(ctx.Tags, GEN_AXIOS_BUNDLE_COMPATIBILITY)
-
-	// For angular, we use the rendered actions, because generated class will be based on the decisions made
-	// inside that function, since we will import Meta classes and everything else from that file.
-	// On Angular, Typescript is first class citizen, doesn't worth to generate javascript version
-	if isTypeScript && isAngular {
-
-		angularService, err := AngularActionsClass(module, actionsRendered, ctx)
-		if err != nil {
-			return nil, err
-		}
-		files = append(files, core.VirtualFile{
-			Name:         angularService.SuggestedFileName,
-			Extension:    angularService.SuggestedExtension,
-			ActualScript: AsFullDocument(angularService),
-		})
+	// Let's add a package.json :)
+	pkg, err := GeneratePackageJSON("sdk", globalPacakges)
+	if err != nil {
+		return nil, err
 	}
+
+	files = append(files, core.VirtualFile{
+		Name:         "package.json",
+		Extension:    "",
+		ActualScript: string(pkg),
+	})
+
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isAxiosBundle := strings.Contains(ctx.Tags, GEN_AXIOS_BUNDLE_COMPATIBILITY)
 
 	if isAxiosBundle {
 		axiosBundle, err := AxiosBundleClass(module, actionsRendered, ctx)

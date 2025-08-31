@@ -18,6 +18,6 @@ export function applyFlags(cmd, flags) {
   cmd.option("--output <dir>", "Directory to write generated files");
   cmd.option(
     "--tags <tags>",
-    "Comma separated tags (e.g. angular,typescript,react,axios,nestjs)"
+    "Comma separated tags (e.g. typescript,react,axios,nestjs,axiosbundle)"
   );
 }
