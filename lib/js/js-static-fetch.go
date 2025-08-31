@@ -209,4 +209,4 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 
 // On final stage of compiling, this varialble will be replaced with context
 // sdk location on the disk
-var INTERNAL_SDK_LOCATION string = "./sdk"
+var INTERNAL_SDK_LOCATION string = "./sdk/js"

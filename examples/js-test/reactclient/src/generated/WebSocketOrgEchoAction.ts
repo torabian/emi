@@ -1,4 +1,4 @@
-import { URLSearchParamsX, WebSocketX, buildUrl } from './sdk';
+import { URLSearchParamsX, WebSocketX, buildUrl } from './sdk/js';
 /**
 * Action to communicate with the action webSocketOrgEcho
 */
@@ -27,7 +27,7 @@ export class WebSocketOrgEchoAction {
 		const url = overrideUrl ?? WebSocketOrgEchoAction.NewUrl(
 			qs
 		)
-		return new WebSocketX<unknown, WebSocketOrgEchoRes>(
+		return new WebSocketX<WebSocketOrgEchoReq, WebSocketOrgEchoRes>(
 			url
 		);
 	}

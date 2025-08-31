@@ -54,6 +54,13 @@ func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms,
 		}
 	}
 
+	if realms.RequestClass != nil {
+		requestClassToken := findTokenByName(realms.RequestClass.Tokens, TOKEN_ROOT_CLASS)
+		if requestClassToken != nil {
+			fetchctx.RequestClass = requestClassToken.Value
+		}
+	}
+
 	if realms.QueryStringClass != nil {
 		qsClassToken := findTokenByName(realms.QueryStringClass.Tokens, TOKEN_ROOT_CLASS)
 		if qsClassToken != nil {
