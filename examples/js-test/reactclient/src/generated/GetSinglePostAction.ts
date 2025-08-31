@@ -1,4 +1,4 @@
-import { URLSearchParamsX, buildUrl, fetchx, type TypedRequestInit } from './sdk';
+import { URLSearchParamsX, buildUrl, fetchx, type TypedRequestInit } from './sdk/js';
 import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 /**

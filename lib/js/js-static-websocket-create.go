@@ -21,6 +21,10 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 	if fetchctx.ResponseClass != "" {
 		responseType = fetchctx.ResponseClass
 	}
+
+	if fetchctx.RequestClass != "" {
+		requestType = fetchctx.RequestClass
+	}
 	if fetchctx.RequestHeadersClass != "" {
 		requestHeaderType = fetchctx.RequestHeadersClass
 	}

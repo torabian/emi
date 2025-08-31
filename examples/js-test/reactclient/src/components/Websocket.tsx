@@ -1,38 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   WebSocketOrgEchoAction,
   WebSocketOrgEchoReq,
-  WebSocketOrgEchoRes,
 } from "../generated/WebSocketOrgEchoAction";
+import { useWebSocketX } from "../generated/sdk/react";
 
 export function WebSocketEcho() {
-  const [messages, setMessages] = useState<WebSocketOrgEchoRes[]>([]);
+  const { messages, isOpen, send } = useWebSocketX(
+    WebSocketOrgEchoAction.Create
+  );
 
   useEffect(() => {
-    const ws = WebSocketOrgEchoAction.Create();
-
-    // Listen for messages
-    ws.addEventListener("message", (event) => {
-      console.log(1, event.data, typeof event.data);
-      setMessages((prev) => [...prev, event.data]);
-    });
-
-    // Send messages when connected
-    ws.addEventListener("open", () => {
-      ws.send(new WebSocketOrgEchoReq({ firstName: "Hi", lastName: "Torabi" }));
-      ws.send(new WebSocketOrgEchoReq({ firstName: "Hi", lastName: "Sedri" }));
-    });
-
-    // Cleanup on unmount
-    return () => {
-      ws.close();
-    };
-  }, []);
+    if (isOpen) {
+      const x = setInterval(() => {
+        send(new WebSocketOrgEchoReq({}).setLastName("Sara"));
+      }, 1000);
+      return () => clearInterval(x);
+    }
+  }, [isOpen]);
 
   return (
     <div>
-      <h3>WebSocket Echo Messages:</h3>
+      2
       <ul>
+        <span>{isOpen ? "Open" : "Close"}</span>
         {messages.map((msg, i) => (
           <li key={i}>{msg.lastName}</li>
         ))}

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
-	jssdk "github.com/torabian/emi/lib/js/prebuilt-sdk"
+	jssdk "github.com/torabian/emi/lib/js/ts-sdk"
 	tssdk "github.com/torabian/emi/lib/js/ts-sdk"
 )
 

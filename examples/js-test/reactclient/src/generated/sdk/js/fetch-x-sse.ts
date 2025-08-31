@@ -1,4 +1,5 @@
 import { TypedResponse } from "./fetch-x";
+
 export const SSEFetch = <T = string>(
   res: TypedResponse<T>,
   onMessage?: (ev: MessageEvent) => void,

@@ -1,4 +1,4 @@
-import { SSEFetch, URLSearchParamsX, buildUrl, fetchx, type TypedRequestInit } from './sdk';
+import { SSEFetch, URLSearchParamsX, buildUrl, fetchx, type TypedRequestInit } from './sdk/js';
 /**
 * Action to communicate with the action sampleSse
 */
