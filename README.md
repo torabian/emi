@@ -69,17 +69,16 @@ Here is a list of features which will be generated via js/ts compiler:
 - [x] Nest.js decorators to use query, req, and headers directly in actions
 - [x] React.js useQuery
 - [x] React.js useMutation
-- [ ] Package.json generation
-- [ ] Playground eslint
-- [ ] Static fields for the common object to access fields via json path
-- [ ] Constructor for javascript needs to use it’s own functions
-- [ ] Make the partial compiler functions public
+- [x] Package.json generation
+- [x] Playground eslint
+- [x] Constructor for javascript needs to use it’s own functions
+- [x] Make the partial compiler functions public
+- [x] Module3 complete documentation to write.
+- [x] Typesafe reactive methods, for WebSocket access.
 - [ ] Determine on the path selector, so in the options user can select details needed to be generated
-- [ ] Auto-completion for yaml on playground.
-- [ ] Module3 complete documentation to write.
 - [ ] Publish on npm and make available on npx
 - [ ] Publish on brew to install.
-- [ ] Typesafe reactive methods, for WebSocket access.
+- [ ] Static fields for the common object to access fields via json path
 - [ ] Generate the DTO and Entities standalone in emi
 
 
