@@ -217,7 +217,7 @@ export abstract class GetSinglePostResFactory {
 }
 /**
  * GetSinglePostReqHeaders class
- * Auto-generated from Module3Action
+ * Auto-generated from EmiAction
  */
 export class GetSinglePostReqHeaders extends Headers {
   /**
@@ -230,7 +230,7 @@ export class GetSinglePostReqHeaders extends Headers {
 }
 /**
  * GetSinglePostResHeaders class
- * Auto-generated from Module3Action
+ * Auto-generated from EmiAction
  */
 export class GetSinglePostResHeaders extends Headers {
   /**
@@ -243,7 +243,7 @@ export class GetSinglePostResHeaders extends Headers {
 }
 /**
  * GetSinglePostQueryParams class
- * Auto-generated from Module3Action
+ * Auto-generated from EmiAction
  */
 export class GetSinglePostQueryParams extends URLSearchParamsX {
 }

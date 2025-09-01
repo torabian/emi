@@ -15,7 +15,7 @@ func IsNumericDataType(value string) bool {
 	}
 }
 
-func TsComputedField(field *core.Module3Field, isWorkspace bool) string {
+func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 	switch field.Type {
 	case "string", "text":
 		return "string"
@@ -84,7 +84,7 @@ func TsPrimitive(primitive string) string {
 	}
 }
 
-func TsCalcJsonField(field *core.Module3Field) string {
+func TsCalcJsonField(field *core.EmiField) string {
 	t := []string{}
 
 	if len(field.Matches) > 0 {

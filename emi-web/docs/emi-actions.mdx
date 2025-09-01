@@ -1,0 +1,78 @@
+---
+sidebar_position: 4
+---
+
+# Emi Actions
+
+Actions is a crucial part of almost every software. Actions in empty basically functions, which get an input, and return output. They can be correspond to 'controllers'
+in traditional API development, each action is basically an endpoint. Actions also can be called from other contexts than http, for example from cli.
+
+For most cases, actions help you to define 'get', 'post' ... actions, as well as 'reactive' which is a websocket, and 'sse', which stands for server side event.
+
+        
+## Defining actions overview
+As mentioned in the general definitions, actions is a part of module, which is an array, and allows developer to define multiple actions, as items. Each action must have a name, and that's basically enough for it to be compiled by different sub compilers in Emi project.
+```yaml
+name: sampleModule
+actions:
+  - name: getSinglePost
+    url: https://jsonplaceholder.typicode.com/posts/:id
+    cliName: get-single-post
+    method: get
+    description: Get's an specific post from the endpoint
+    out:
+      fields:
+        - name: userId
+          type: int64
+        - name: id
+          type: int64
+        - name: title
+          type: string
+        - name: body
+          type: string
+  - name: sampleSse
+    url: http://localhost:3000/stream
+    method: sse
+    description: SSE Sample
+    out:
+      fields:
+        - name: message
+          type: string
+  - name: webSocketOrgEcho
+    url: "wss://echo.websocket.org/.ws"
+    method: reactive
+    description: Websocket.org eco server, to send a json and recieve back
+    in:
+      fields:
+        - name: firstName
+          type: string
+        - name: lastName
+          type: string
+    out:
+      fields:
+        - name: lastName
+          type: string
+
+```
+## Actions properties
+Each action within a module needs to have a camel case name, and needs to be unique. The other properties are optional. Nevertheless, 'in', 'out', 'method' and 'url' are the most common properties of an action which you'll set as a developer.
+Depending on your use case, you might not need all features, or they might not be used by the sub compilers.
+| Property | Type | Description |
+|----------|------|-------------|
+| `name` | `string` | General name of the action used for generating code and CLI commands |
+| `cliName` | `string` | Overrides the CLI action name if specified otherwise defaults to Name |
+| `actionAliases` | `array` | CLI command aliases for shorter action names |
+| `url` | `string` | HTTP route of the action; if not specified the action is CLI-only |
+| `method` | `string` | HTTP method type including standard and Fireback-specific methods |
+| `binaryType` | `string` | Text by default for websocket |
+| `qs` | `array` | Type-safe query parameters for CLI and HTTP requests |
+| `dataChannels` | `array` | Data channels in a typesafe mode in case of webrtc |
+| `description` | `string` | Action description used in API specs and documentation |
+| `format` | `string` | Higher-level request format such as POST_ONE PATCH_ONE |
+| `in` | `undefined` | Request body definition similar to HTTP request body |
+| `out` | `undefined` | Response body definition similar to HTTP response body |
+| `security` | `undefined` | Defines access control similar to middleware checking permissions |
+| `qsMode` | `string` | undefined |
+## Action methods
+Emi allows for standard http methods, as well as some extra which will be converted to different protocols.
+Currently supported the actions and methods are the following: `post`, `patch`, `put`, `get`, `delete`, `webrtc`, `reactive`, `sse`. Calling for non-existing method, would resolve to http with the non-standard method.

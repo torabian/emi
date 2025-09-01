@@ -1,14 +1,14 @@
 package core
 
-func (x *Module3) PublicName() string {
+func (x *Emi) PublicName() string {
 	return ToUpper(x.Name)
 }
 
-func (x *Module3Field) PublicName() string {
+func (x *EmiField) PublicName() string {
 	return ToUpper(x.Name)
 }
 
-func (x *Module3FieldMatch) PublicName() string {
+func (x *EmiFieldMatch) PublicName() string {
 	if x.Dto == nil {
 		return ""
 	}
@@ -16,10 +16,10 @@ func (x *Module3FieldMatch) PublicName() string {
 	return ToUpper(*x.Dto) + "Dto"
 }
 
-func (x *Module3Field) PrivateName() string {
+func (x *EmiField) PrivateName() string {
 	return x.Name
 }
 
-func (x *Module3Action) Upper() string {
+func (x *EmiAction) Upper() string {
 	return ToUpper(x.Name)
 }

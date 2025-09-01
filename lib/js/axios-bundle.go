@@ -19,7 +19,7 @@ type axiosBundleActionItem struct {
 }
 
 // Creates a axios object out of the actions, by extending the Axios class
-func AxiosBundleClass(module *core.Module3, actionsRendered []*core.CodeChunkCompiled, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+func AxiosBundleClass(module *core.Emi, actionsRendered []*core.CodeChunkCompiled, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	res := &core.CodeChunkCompiled{}
 	const tmpl = `/**
 * Axios bundle service

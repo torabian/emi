@@ -53,7 +53,7 @@ export function useSse<T = string, Q = any, H = any, R = any>(
 
   useEffect(() => {
     return create();
-  }, [fetchFn, props?.qs, props?.overrideUrl]);
+  }, []);
 
   const cancel = () => {
     acRef.current?.abort();

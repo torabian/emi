@@ -1,14 +1,11 @@
 import { useEffect } from "react";
 import {
-  WebSocketOrgEchoAction,
+  useWebSocketOrgEcho,
   WebSocketOrgEchoReq,
 } from "../generated/WebSocketOrgEchoAction";
-import { useWebSocketX } from "../generated/sdk/react";
 
 export function WebSocketEcho() {
-  const { messages, isOpen, send } = useWebSocketX(
-    WebSocketOrgEchoAction.Create
-  );
+  const { messages, isOpen, send } = useWebSocketOrgEcho({});
 
   useEffect(() => {
     if (isOpen) {

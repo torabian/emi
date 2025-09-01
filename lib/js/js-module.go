@@ -1,6 +1,6 @@
 package js
 
-// Combines multiple parts of an Module3Action definition into a single file and generates
+// Combines multiple parts of an EmiAction definition into a single file and generates
 // the webrequestX based class for communication
 
 import (
@@ -20,7 +20,7 @@ func AsFullDocument(x *core.CodeChunkCompiled) string {
 }
 
 // Combines entire features for a module, and creates a virtual map of the files
-func JsModuleFullVirtualFiles(module *core.Module3, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 
 	files := []core.VirtualFile{}
 
@@ -41,7 +41,7 @@ func JsModuleFullVirtualFiles(module *core.Module3, ctx core.MicroGenContext) ([
 	for _, action := range actionsRendered {
 
 		for _, loc := range action.CodeChunkDependenies {
-			if loc.Location == INTERNAL_SDK_LOCATION {
+			if loc.Location == INTERNAL_SDK_JS_LOCATION {
 				continue
 			}
 			globalPacakges = append(globalPacakges, loc.Location)

@@ -8,6 +8,7 @@
     "test": "echo 'test script here'"
   },
   "dependencies": {
+    "./sdk/react": "latest",
     "@tanstack/react-query": "^5.85.5",
     "@types/qs": "^6.14.0",
     "axios": "^1.11.0",

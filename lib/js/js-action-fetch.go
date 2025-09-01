@@ -23,7 +23,7 @@ func findTokenByName(realms []core.GeneratedScriptToken, name string) *core.Gene
 	return nil
 }
 
-func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+func JsActionFetchAndMetaData(action *core.EmiAction, realms jsActionRealms, ctx core.MicroGenContext) (*core.CodeChunkCompiled, fetchStaticFunctionContext, error) {
 
 	className := fmt.Sprintf("%vAction", core.ToUpper(action.Name))
 	fetchctx := fetchStaticFunctionContext{
@@ -91,7 +91,7 @@ func JsActionFetchAndMetaData(action *core.Module3Action, realms jsActionRealms,
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"buildUrl"},
-				Location: INTERNAL_SDK_LOCATION,
+				Location: INTERNAL_SDK_JS_LOCATION,
 			},
 		},
 	}
@@ -181,7 +181,7 @@ export class {{ .className }} {
 		// Add the axios helper function to the response depencencies,
 		fn, err := AxiosStaticHelper(fetchctx, ctx)
 		if err != nil {
-			return nil, err
+			return nil, fetchctx, err
 		}
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
 		axiosStaticFunction = fn
@@ -193,7 +193,7 @@ export class {{ .className }} {
 		// add the native fetch function to the axios
 		fn, err := FetchStaticHelper(fetchctx, ctx)
 		if err != nil {
-			return nil, err
+			return nil, fetchctx, err
 		}
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
 		fetchStaticFunction = fn
@@ -205,7 +205,7 @@ export class {{ .className }} {
 		// add the native fetch function to the axios
 		fn, err := CreateWebSocketStaticHelper(fetchctx, ctx)
 		if err != nil {
-			return nil, err
+			return nil, fetchctx, err
 		}
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
 		websocketCreateFunction = fn
@@ -225,7 +225,7 @@ export class {{ .className }} {
 		"className":               className,
 		"queryParams":             core.ExtractPlaceholdersInUrl(action.Url),
 	}); err != nil {
-		return nil, err
+		return nil, fetchctx, err
 	}
 
 	templateResult := buf.String()
@@ -235,7 +235,7 @@ export class {{ .className }} {
 
 	res.ActualScript = []byte(templateResult)
 
-	return res, nil
+	return res, fetchctx, nil
 }
 
 var EMI_METHOD_REACTIVE = "REACTIVE"

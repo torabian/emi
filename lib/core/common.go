@@ -15,7 +15,7 @@ import (
 
 type H map[string]any
 
-type ActionCodeGenerator = func(action *Module3Action, ctx MicroGenContext) (*CodeChunkCompiled, error)
+type ActionCodeGenerator = func(action *EmiAction, ctx MicroGenContext) (*CodeChunkCompiled, error)
 
 type MicroGenContext struct {
 
@@ -146,7 +146,7 @@ type VirtualFile struct {
 	Extension    string
 }
 
-type CompleteModuleGenerator = func(module *Module3, ctx MicroGenContext) ([]VirtualFile, error)
+type CompleteModuleGenerator = func(module *Emi, ctx MicroGenContext) ([]VirtualFile, error)
 
 func ClaimRender(claims []JsFnArgument, ctx MicroGenContext) map[string]string {
 
@@ -256,27 +256,27 @@ func ExtractPlaceholdersInUrl(url string) []string {
 	return result
 }
 
-func StringToModule3Action(content string) (Module3Action, error) {
-	var action Module3Action
+func StringToEmiAction(content string) (EmiAction, error) {
+	var action EmiAction
 	err := yaml.Unmarshal([]byte(content), &action)
 	return action, err
 }
 
-func StringToModule3Fields(content string) ([]*Module3Field, error) {
-	var actions []*Module3Field
+func StringToEmiFields(content string) ([]*EmiField, error) {
+	var actions []*EmiField
 	err := yaml.Unmarshal([]byte(content), &actions)
 	return actions, err
 }
 
-func StringToModule3(content string) (Module3, error) {
-	var module Module3
+func StringToEmi(content string) (Emi, error) {
+	var module Emi
 	err := yaml.Unmarshal([]byte(content), &module)
 	return module, err
 }
 
-func ReadModule3FromString(content string) (*Module3, error) {
+func ReadEmiFromString(content string) (*Emi, error) {
 
-	var data Module3
+	var data Emi
 	err := yaml.Unmarshal([]byte(content), &data)
 	if err != nil {
 		return nil, err
@@ -285,9 +285,9 @@ func ReadModule3FromString(content string) (*Module3, error) {
 	return &data, nil
 }
 
-func ReadModule3ActionFromString(content string) (*Module3Action, error) {
+func ReadEmiActionFromString(content string) (*EmiAction, error) {
 
-	var data Module3Action
+	var data EmiAction
 	err := yaml.Unmarshal([]byte(content), &data)
 	if err != nil {
 		return nil, err
