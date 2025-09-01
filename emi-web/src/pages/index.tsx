@@ -24,12 +24,9 @@ function HomepageHeader() {
           >
             Learn more
           </Link>
-          <Link
-            className="button button--secondary button--lg"
-            to="/playground"
-          >
+          <a className="button button--secondary button--lg" href="/playground">
             Playground
-          </Link>
+          </a>
         </div>
       </div>
     </header>
