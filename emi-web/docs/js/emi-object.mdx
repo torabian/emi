@@ -2,6 +2,8 @@
 sidebar_position: 3
 ---
 
+import BenchmarkTest from './ObjectBenchmark';
+
 # Javascript object generation
 
 Every request body, request response, message on web socket, entity, dto in Emi are called 'object'. The object is generated based on
@@ -99,55 +101,174 @@ is a hassle, and type checking and other tools might be lost. Now, let's take a 
   type: string
 - name: body
   type: string
+
 ```
 
-And Emi compiler would generate such shopisticated details:
-
-
+And Emi compiler would generate such shopisticated details (content is a bit long but worth to take a look at it.)
+Emi compiler generates ts type and, class, with full getter, setters and validators for each field.
 
         
 ```ts
-	/**
-  * @description The base type definition for anonymouse
-  **/
-	export type AnonymouseType =  {
-			/**
-  * @type {number}
-  * @description 
-  **/
- userId?: number;
-	}
+/**
+ * @description The base type definition for anonymouse
+ **/
+export type AnonymouseType = {
+  /**
+   * @type {number}
+   * @description
+   **/
+  userId?: number;
+  /**
+   * @type {number}
+   * @description
+   **/
+  id?: number;
+  /**
+   * @type {string}
+   * @description
+   **/
+  title?: string;
+  /**
+   * @type {string}
+   * @description
+   **/
+  body?: string;
+};
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace AnonymouseType {
-}
+export namespace AnonymouseType {}
 /**
-  * @decription The base class definition for anonymouse
-  **/
+ * @decription The base class definition for anonymouse
+ **/
 export class Anonymouse {
-	constructor(data) {
-		// This probably doesn't cover the nested objects
-		const d = data as Partial<Anonymouse>;
-			if (d[`userId`] !== undefined) { 
- this.setUserId (d[`userId`]) 
+  constructor(data) {
+    // This probably doesn't cover the nested objects
+    const d = data as Partial<Anonymouse>;
+    if (d[`userId`] !== undefined) {
+      this.setUserId(d[`userId`]);
+    }
+    if (d[`id`] !== undefined) {
+      this.setId(d[`id`]);
+    }
+    if (d[`title`] !== undefined) {
+      this.setTitle(d[`title`]);
+    }
+    if (d[`body`] !== undefined) {
+      this.setBody(d[`body`]);
+    }
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  userId;
+  /**
+   * @returns {number}
+   * @description
+   **/
+  getUserId() {
+    return this[`userId`];
+  }
+  /**
+   *
+   * @param {number}
+   **/
+  setUserId(value: number) {
+    this["userId"] = value;
+    return this;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  id;
+  /**
+   * @returns {number}
+   * @description
+   **/
+  getId() {
+    return this[`id`];
+  }
+  /**
+   *
+   * @param {number}
+   **/
+  setId(value: number) {
+    this["id"] = value;
+    return this;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  title;
+  /**
+   * @returns {string}
+   * @description
+   **/
+  getTitle() {
+    return this[`title`];
+  }
+  /**
+   *
+   * @param {string}
+   **/
+  setTitle(value: string) {
+    this["title"] = value;
+    return this;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  body;
+  /**
+   * @returns {string}
+   * @description
+   **/
+  getBody() {
+    return this[`body`];
+  }
+  /**
+   *
+   * @param {string}
+   **/
+  setBody(value: string) {
+    this["body"] = value;
+    return this;
+  }
 }
-	}
-		/**
-  * 
-  * @type {number}
-  **/
- userId;
-		/**
-  * @returns {number}
-  * @description 
-  **/
-getUserId () { return this[`userId`] }
-/**
-  * 
-  * @param {number}
-  **/
-setUserId(value: number) {
-	this["userId"] = value
-	return this
-}
-}
+
 ```
+As you see, there is a lot of details handled in such object generation, to make sure
+      
+      the data integrity is kept in perfect level both in compile time and run time.
+
+
+## Performance and usage concerns
+
+Generating such classes is very common on most programming languages, but in javascript it might be a bit of concern,
+mainly for following reasons:
+
+* Using getField and setField functions, is slower than directly accessing .field property of an object.
+* Setting value using js path, such as set('field.user.address[0].stree', 'New street') might be compromised
+
+## Comparing the performance
+
+Let's make an interactive comparison, how slower it would be and you'll be suprised getters and setters are
+faster in some environments.
+
+It looks odd at first, but the reason getter/setter sometimes beats direct property access comes down to how modern 
+JavaScript engines optimize. A plain object can change shape at any time, which makes the engine cautious and may 
+cause de-optimizations during tight loops. By contrast, a class with fixed methods has a stable shape, so the JIT 
+compiler can inline and optimize those calls very aggressively. On top of that, microbenchmarks can be misleading: 
+if values aren’t used in a meaningful way, the engine may partially skip or simplify the operations. 
+In practice, the difference is just a few milliseconds across millions of iterations, so for real-world
+code, both approaches are effectively free.
+I prefer this response
+
+
+<BenchmarkTest />
+
+As you might see, the numbers are very close, and in real life, you would not call millions of times
+one after each other a javascript setter. Hence, Emi compiler extra checks make sense to bring the safety
+into the code base.

@@ -1,14 +1,17 @@
-import { describe, it, expect } from "vitest";
+import { writeFileSync } from "fs";
+import prettier from "prettier";
+import { describe, it } from "vitest";
 import { createInstance } from "../../../../emi-npm/bin/getPublicActions";
-import { existsSync, writeFileSync } from "fs";
-import path from "path";
-
-var schema: any = {};
-
-const coreDefinition = "lib/core/definitions.go";
+import yaml from "js-yaml";
 
 describe("Generate the emi object documentation", () => {
   const content: string[] = [];
+  const exampleFields = [
+    { name: "userId", type: "int64" },
+    { name: "id", type: "int64" },
+    { name: "title", type: "string" },
+    { name: "body", type: "string" },
+  ];
 
   it("should init the wasm", () => {
     createInstance();
@@ -19,6 +22,8 @@ describe("Generate the emi object documentation", () => {
 ---
 sidebar_position: 3
 ---
+
+import BenchmarkTest from './ObjectBenchmark';
 
 # Javascript object generation
 
@@ -109,42 +114,64 @@ is a hassle, and type checking and other tools might be lost. Now, let's take a 
 
  
 \`\`\`yaml
-- name: userId
-  type: int64
-- name: id
-  type: int64
-- name: title
-  type: string
-- name: body
-  type: string
+${yaml.dump(exampleFields)}
 \`\`\`
 
-And Emi compiler would generate such shopisticated details:
-
-
+And Emi compiler would generate such shopisticated details (content is a bit long but worth to take a look at it.)
+Emi compiler generates ts type and, class, with full getter, setters and validators for each field.
 
         `);
   });
 
-  it("compile the Emi fields array and show it as json", () => {
-    const classResult = globalThis.jsGenObject(
-      JSON.stringify([
-        {
-          name: "userId",
-          type: "int64",
-        },
-      ]),
-      {
-        Flags: "Anonymouse",
-      }
-    );
+  it("compile the Emi fields array and show it as json", async () => {
+    const classResult = globalThis.jsGenObject(JSON.stringify(exampleFields), {
+      Flags: "Anonymouse",
+    });
 
-    console.log(classResult);
-    content.push("```ts\r\n" + classResult + "\r\n```");
+    const formatted = await prettier.format(classResult, {
+      parser: "typescript",
+    });
+
+    content.push("```ts\r\n" + formatted + "\r\n```");
   });
 
-  it("should generate the schema directly from wasm", () => {
-    schema = JSON.parse(globalThis.genEmiSpec("", {}));
+  it("should add the caveat section", () => {
+    content.push(
+      `As you see, there is a lot of details handled in such object generation, to make sure
+      
+      the data integrity is kept in perfect level both in compile time and run time.
+
+
+## Performance and usage concerns
+
+Generating such classes is very common on most programming languages, but in javascript it might be a bit of concern,
+mainly for following reasons:
+
+* Using getField and setField functions, is slower than directly accessing .field property of an object.
+* Setting value using js path, such as set('field.user.address[0].stree', 'New street') might be compromised
+
+## Comparing the performance
+
+Let's make an interactive comparison, how slower it would be and you'll be suprised getters and setters are
+faster in some environments.
+
+It looks odd at first, but the reason getter/setter sometimes beats direct property access comes down to how modern 
+JavaScript engines optimize. A plain object can change shape at any time, which makes the engine cautious and may 
+cause de-optimizations during tight loops. By contrast, a class with fixed methods has a stable shape, so the JIT 
+compiler can inline and optimize those calls very aggressively. On top of that, microbenchmarks can be misleading: 
+if values aren’t used in a meaningful way, the engine may partially skip or simplify the operations. 
+In practice, the difference is just a few milliseconds across millions of iterations, so for real-world
+code, both approaches are effectively free.
+I prefer this response
+
+
+<BenchmarkTest />
+
+As you might see, the numbers are very close, and in real life, you would not call millions of times
+one after each other a javascript setter. Hence, Emi compiler extra checks make sense to bring the safety
+into the code base.
+      `
+    );
   });
 
   /// Last step is to write the document down

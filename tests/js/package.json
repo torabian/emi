@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
+    "prettier": "^3.6.2",
     "ts-morph": "^26.0.0"
   }
 }
