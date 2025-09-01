@@ -23,3 +23,6 @@ ci:
 	cd playground && npm run build && cd -;
 	make sample;
 	make jstests;
+
+compile-github:
+	rm -rf __webdir && cp -R emi-web/build __webdir && touch __webdir/.nojekyll && cp -R playground/dist __webdir/playground

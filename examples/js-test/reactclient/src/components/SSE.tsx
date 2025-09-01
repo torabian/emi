@@ -1,8 +1,12 @@
-import { SampleSseAction } from "../generated/SampleSseAction";
-import { useSse } from "../generated/sdk/react";
+import {
+  SampleSseQueryParams,
+  useSampleSse,
+} from "../generated/SampleSseAction";
 
 export function SSESample() {
-  const { messages } = useSse(SampleSseAction.Fetch);
+  //   const { messages } = useSse(SampleSseAction.Fetch);
+
+  const { messages } = useSampleSse({ qs: new SampleSseQueryParams() });
 
   return (
     <div>

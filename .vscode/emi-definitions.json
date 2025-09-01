@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/torabian/emi/lib/core/module3",
-  "$ref": "#/definitions/Module3",
+  "$id": "https://github.com/torabian/emi/lib/core/emi",
+  "$ref": "#/definitions/Emi",
   "definitions": {
     "ClickHouseReplicaInfo": {
       "properties": {
@@ -12,42 +12,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "EntitySecurityModel": {
-      "properties": {
-        "writeOnRoot": {
-          "type": "boolean",
-          "description": "Only users which belong to root and actively selected the root workspace can write to this entity from Fireback default functionality. Read mechanism won't be affected."
-        },
-        "readOnRoot": {
-          "type": "boolean",
-          "description": "Only users which belong to root and actively selected the root workspace can read from entity from Fireback default functionality. Write mechanism is not affected."
-        },
-        "resolveStrategy": {
-          "type": "string",
-          "enum": [
-            "workspace",
-            "user"
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "GormOverrideMap": {
-      "properties": {
-        "workspaceId": {
-          "type": "string",
-          "description": "Override the workspace id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Override the user id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "Module3": {
+    "Emi": {
       "properties": {
         "namespace": {
           "type": "string",
@@ -63,7 +28,7 @@
         },
         "meta-workspace": {
           "type": "boolean",
-          "description": "Magic property for Fireback FirebackModule3.yml file. It's gonna be true only in a single file internally in Fireback"
+          "description": "Magic property for Fireback FirebackEmi.yml file. It's gonna be true only in a single file internally in Fireback"
         },
         "name": {
           "type": "string",
@@ -71,83 +36,83 @@
         },
         "entities": {
           "items": {
-            "$ref": "#/definitions/Module3Entity"
+            "$ref": "#/definitions/EmiEntity"
           },
           "type": "array",
           "description": "List of entities that module contains. Entities are basically tables in database with their mapping on golang and general actions generated for them"
         },
         "tasks": {
           "items": {
-            "$ref": "#/definitions/Module3Task"
+            "$ref": "#/definitions/EmiTask"
           },
           "type": "array",
           "description": "Tasks are actions which are triggered by a queue message or a cron job."
         },
         "dtos": {
           "items": {
-            "$ref": "#/definitions/Module3Dto"
+            "$ref": "#/definitions/EmiDto"
           },
           "type": "array",
           "description": "Dtos are basically golang structs with some additional functionality which can be used for request/response actions"
         },
         "actions": {
           "items": {
-            "$ref": "#/definitions/Module3Action"
+            "$ref": "#/definitions/EmiAction"
           },
           "type": "array",
           "description": "Actions are similar to controllers in other frameworks. They are custom functionality available via CLI or Http requests and developer need to implement their logic"
         },
         "macros": {
           "items": {
-            "$ref": "#/definitions/Module3Macro"
+            "$ref": "#/definitions/EmiMacro"
           },
           "type": "array",
           "description": "Macros are extra definition or templates which will modify the module and able to add extra fields or tables before the codegen occures."
         },
         "remotes": {
           "items": {
-            "$ref": "#/definitions/Module3Remote"
+            "$ref": "#/definitions/EmiRemote"
           },
           "type": "array",
           "description": "Remotes are definition of external services which could be contacted via http and Fireback developer can make them typesafe by defining them here."
         },
         "notifications": {
           "items": {
-            "$ref": "#/definitions/Module3Notification"
+            "$ref": "#/definitions/EmiNotification"
           },
           "type": "array",
           "description": "Notifications are end-user messages"
         },
         "events": {
           "items": {
-            "$ref": "#/definitions/Module3Event"
+            "$ref": "#/definitions/EmiEvent"
           },
           "type": "array",
           "description": "Events are internal changes that can be triggered by different sources"
         },
         "queries": {
           "items": {
-            "$ref": "#/definitions/Module3Query"
+            "$ref": "#/definitions/EmiQuery"
           },
           "type": "array",
           "description": "Queries are set of SQL queries that developer writes and Fireback generates tools for fetching them from database to golang code."
         },
         "config": {
           "items": {
-            "$ref": "#/definitions/Module3ConfigField"
+            "$ref": "#/definitions/EmiConfigField"
           },
           "type": "array",
           "description": "An interesting way of defining env variables"
         },
         "messages": {
-          "$ref": "#/definitions/Module3Message",
+          "$ref": "#/definitions/EmiMessage",
           "description": "Messages are translatable strings which will be used as errors and other types of messages and become automatically picked via user locale."
         }
       },
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Action": {
+    "EmiAction": {
       "properties": {
         "name": {
           "type": "string",
@@ -177,7 +142,8 @@
             "get",
             "delete",
             "webrtc",
-            "reactive"
+            "reactive",
+            "sse"
           ],
           "description": "HTTP method type including standard and Fireback-specific methods"
         },
@@ -192,14 +158,14 @@
         },
         "qs": {
           "items": {
-            "$ref": "#/definitions/Module3Field"
+            "$ref": "#/definitions/EmiField"
           },
           "type": "array",
           "description": "Type-safe query parameters for CLI and HTTP requests"
         },
         "dataChannels": {
           "items": {
-            "$ref": "#/definitions/Module3WebRtcDataChannel"
+            "$ref": "#/definitions/EmiWebRtcDataChannel"
           },
           "type": "array",
           "description": "Data channels in a typesafe mode in case of webrtc"
@@ -217,11 +183,11 @@
           "description": "Higher-level request format such as POST_ONE PATCH_ONE"
         },
         "in": {
-          "$ref": "#/definitions/Module3ActionBody",
+          "$ref": "#/definitions/EmiActionBody",
           "description": "Request body definition similar to HTTP request body"
         },
         "out": {
-          "$ref": "#/definitions/Module3ActionBody",
+          "$ref": "#/definitions/EmiActionBody",
           "description": "Response body definition similar to HTTP response body"
         },
         "security": {
@@ -238,18 +204,18 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3ActionBody": {
+    "EmiActionBody": {
       "properties": {
         "headers": {
           "items": {
-            "$ref": "#/definitions/Module3Header"
+            "$ref": "#/definitions/EmiHeader"
           },
           "type": "array",
           "description": "Typesafe headers."
         },
         "fields": {
           "items": {
-            "$ref": "#/definitions/Module3Field"
+            "$ref": "#/definitions/EmiField"
           },
           "type": "array"
         },
@@ -269,18 +235,18 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3ActionConfig": {
+    "EmiActionConfig": {
       "properties": {
         "qs": {
           "items": {
-            "$ref": "#/definitions/Module3Field"
+            "$ref": "#/definitions/EmiField"
           },
           "type": "array",
           "description": "Typesafe query strings."
         },
         "headers": {
           "items": {
-            "$ref": "#/definitions/Module3Field"
+            "$ref": "#/definitions/EmiField"
           },
           "type": "array",
           "description": "Typesafe headers."
@@ -289,7 +255,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3ConfigField": {
+    "EmiConfigField": {
       "anyOf": [
         {
           "if": {
@@ -348,7 +314,7 @@
         },
         "fields": {
           "items": {
-            "$ref": "#/definitions/Module3ConfigField"
+            "$ref": "#/definitions/EmiConfigField"
           },
           "type": "array",
           "description": "Fields defines child configuration fields in case the current field represents an object or an array of subfields. Note that support for nested fields may be limited."
@@ -357,7 +323,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3DataFields": {
+    "EmiDataFields": {
       "properties": {
         "essentials": {
           "type": "boolean",
@@ -383,7 +349,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Dto": {
+    "EmiDto": {
       "properties": {
         "name": {
           "type": "string",
@@ -391,7 +357,7 @@
         },
         "fields": {
           "items": {
-            "$ref": "#/definitions/Module3Field"
+            "$ref": "#/definitions/EmiField"
           },
           "type": "array",
           "description": "List of fields and body definitions of the dto"
@@ -400,42 +366,42 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Entity": {
+    "EmiEntity": {
       "properties": {
         "replicas": {
-          "$ref": "#/definitions/Module3EntityReplicas"
+          "$ref": "#/definitions/EmiEntityReplicas"
         },
         "notifications": {
           "items": {
-            "$ref": "#/definitions/Module3Notification"
+            "$ref": "#/definitions/EmiNotification"
           },
           "type": "array",
           "description": "Notifications are end-user messages"
         },
         "events": {
           "items": {
-            "$ref": "#/definitions/Module3Event"
+            "$ref": "#/definitions/EmiEvent"
           },
           "type": "array",
           "description": "Events are internal changes that can be triggered by different sources"
         },
         "rpc": {
-          "$ref": "#/definitions/Module3EntityActionConfig"
+          "$ref": "#/definitions/EmiEntityActionConfig"
         },
         "permRewrite": {
-          "$ref": "#/definitions/Module3EntityPermissionRewrite",
+          "$ref": "#/definitions/EmiEntityPermissionRewrite",
           "description": "Rewrites the default permission generated value"
         },
         "permissions": {
           "items": {
-            "$ref": "#/definitions/Module3Permission"
+            "$ref": "#/definitions/EmiPermission"
           },
           "type": "array",
           "description": "Extra permissions that an entity might need. You can add extra permissions that you will need in your business logic related to entity in itself to make it easier become as a group and document later"
         },
         "actions": {
           "items": {
-            "$ref": "#/definitions/Module3Action"
+            "$ref": "#/definitions/EmiAction"
           },
           "type": "array",
           "description": "Actions or extra actions (on top of default actions which automatically is generated) these are the same actions that you can define for a module but defining them on entity level make it easier to relate them and group them. Also permission might be added automatically (need to clearify)"
@@ -453,7 +419,7 @@
           "description": "You can ensure there is only one record of the entity per user or workspace using this option for example if you want only one credit card per workspace set distinctBy: workspace and it will do the job"
         },
         "features": {
-          "$ref": "#/definitions/Module3EntityFeatures",
+          "$ref": "#/definitions/EmiEntityFeatures",
           "description": "Customize the features generated for entity"
         },
         "table": {
@@ -461,7 +427,7 @@
           "description": "Changes the default table name based on project prefix and entity name useful for times that you want to connect project to an existing database"
         },
         "useFields": {
-          "$ref": "#/definitions/Module3DataFields",
+          "$ref": "#/definitions/EmiDataFields",
           "description": "Use fields allows you to customize the entity default generated fields."
         },
         "security": {
@@ -473,7 +439,7 @@
           "description": "Adds a golang code to the geenrated code in very top location of the file after imports and before any code."
         },
         "messages": {
-          "$ref": "#/definitions/Module3Message",
+          "$ref": "#/definitions/EmiMessage",
           "description": "Messages are translatable strings which will be used as errors and other types of messages and become automatically picked via user locale."
         },
         "prependCreateScript": {
@@ -509,7 +475,7 @@
         },
         "fields": {
           "items": {
-            "$ref": "#/definitions/Module3Field"
+            "$ref": "#/definitions/EmiField"
           },
           "type": "array",
           "description": "Define the fields that this entity will have both in golang and database columns."
@@ -538,17 +504,17 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3EntityActionConfig": {
+    "EmiEntityActionConfig": {
       "properties": {
         "query": {
-          "$ref": "#/definitions/Module3ActionConfig",
+          "$ref": "#/definitions/EmiActionConfig",
           "description": "Modify the query rpc code."
         }
       },
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3EntityFeatures": {
+    "EmiEntityFeatures": {
       "properties": {
         "mock": {
           "type": "boolean"
@@ -560,7 +526,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3EntityPermissionRewrite": {
+    "EmiEntityPermissionRewrite": {
       "properties": {
         "replace": {
           "type": "string",
@@ -574,7 +540,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3EntityReplicas": {
+    "EmiEntityReplicas": {
       "properties": {
         "clickhouse": {
           "$ref": "#/definitions/ClickHouseReplicaInfo"
@@ -583,7 +549,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Enum": {
+    "EmiEnum": {
       "properties": {
         "k": {
           "type": "string",
@@ -597,7 +563,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Event": {
+    "EmiEvent": {
       "properties": {
         "name": {
           "type": "string",
@@ -608,7 +574,7 @@
           "description": "Description of the event (developer visible only)"
         },
         "payload": {
-          "$ref": "#/definitions/Module3ActionBody",
+          "$ref": "#/definitions/EmiActionBody",
           "description": "Payload of the event"
         },
         "security": {
@@ -623,7 +589,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Field": {
+    "EmiField": {
       "properties": {
         "name": {
           "type": "string",
@@ -725,10 +691,10 @@
         },
         "of": {
           "items": {
-            "$ref": "#/definitions/Module3Enum"
+            "$ref": "#/definitions/EmiEnum"
           },
           "type": "array",
-          "description": "List of enum values in case of enum type for the field. Check Module3Enum for more d"
+          "description": "List of enum values in case of enum type for the field. Check EmiEnum for more d"
         },
         "idFieldGorm": {
           "type": "string",
@@ -740,7 +706,7 @@
         },
         "matches": {
           "items": {
-            "$ref": "#/definitions/Module3FieldMatch"
+            "$ref": "#/definitions/EmiFieldMatch"
           },
           "type": "array",
           "description": "On the json type this field will generate necessary code to cast it into different dtos"
@@ -759,7 +725,7 @@
         },
         "fields": {
           "items": {
-            "$ref": "#/definitions/Module3Field"
+            "$ref": "#/definitions/EmiField"
           },
           "type": "array",
           "description": "For types such as array or object children fields can be defined and will separate struct with name prefixed to parent"
@@ -768,7 +734,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3FieldMatch": {
+    "EmiFieldMatch": {
       "properties": {
         "dto": {
           "type": "string",
@@ -778,7 +744,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Header": {
+    "EmiHeader": {
       "properties": {
         "name": {
           "type": "string",
@@ -802,7 +768,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Macro": {
+    "EmiMacro": {
       "oneOf": [
         {
           "if": {
@@ -836,7 +802,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Message": {
+    "EmiMessage": {
       "additionalProperties": {
         "additionalProperties": {
           "type": "string"
@@ -845,7 +811,7 @@
       },
       "type": "object"
     },
-    "Module3Notification": {
+    "EmiNotification": {
       "properties": {
         "name": {
           "type": "string",
@@ -856,14 +822,14 @@
           "description": "Description of the event (developer visible only)"
         },
         "payload": {
-          "$ref": "#/definitions/Module3ActionBody",
+          "$ref": "#/definitions/EmiActionBody",
           "description": "Payload of the notification"
         }
       },
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Permission": {
+    "EmiPermission": {
       "properties": {
         "name": {
           "type": "string",
@@ -881,7 +847,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Query": {
+    "EmiQuery": {
       "properties": {
         "name": {
           "type": "string",
@@ -892,7 +858,7 @@
           "description": "Description provides a detailed explanation of the query. It helps other developers or API consumers understand what the query does and its purpose."
         },
         "columns": {
-          "$ref": "#/definitions/Module3ActionBody",
+          "$ref": "#/definitions/EmiActionBody",
           "description": "Columns defines the structure of the result set returned by the query. It lists the expected columns in the result when the query is executed."
         },
         "query": {
@@ -903,7 +869,7 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Remote": {
+    "EmiRemote": {
       "properties": {
         "name": {
           "type": "string",
@@ -927,16 +893,16 @@
           "description": "The url which will be requested. You need to add full url here"
         },
         "out": {
-          "$ref": "#/definitions/Module3ActionBody",
-          "description": "Standard Module3ActionBody object. Could have fields"
+          "$ref": "#/definitions/EmiActionBody",
+          "description": "Standard EmiActionBody object. Could have fields"
         },
         "in": {
-          "$ref": "#/definitions/Module3ActionBody",
-          "description": "Standard Module3ActionBody object. Could have fields entity dto as content and you can define the input parameters as struct in Go and fireback will convert it into json."
+          "$ref": "#/definitions/EmiActionBody",
+          "description": "Standard EmiActionBody object. Could have fields entity dto as content and you can define the input parameters as struct in Go and fireback will convert it into json."
         },
         "query": {
           "items": {
-            "$ref": "#/definitions/Module3Field"
+            "$ref": "#/definitions/EmiField"
           },
           "type": "array",
           "description": "Query params for the address if you want to define them in Golang dynamically instead of URL."
@@ -945,11 +911,11 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Task": {
+    "EmiTask": {
       "properties": {
         "triggers": {
           "items": {
-            "$ref": "#/definitions/Module3Trigger"
+            "$ref": "#/definitions/EmiTrigger"
           },
           "type": "array",
           "description": "List of triggers such as cronjobs which can make this task run automatically."
@@ -963,14 +929,14 @@
           "description": "Description of the task useful for developers and generated documentations."
         },
         "in": {
-          "$ref": "#/definitions/Module3ActionBody",
+          "$ref": "#/definitions/EmiActionBody",
           "description": "Parameters that can be sent to this task. Since tasks are runnable in the golang as well they can get parameters in go and cli if necessary. For cronjobs might make no sense."
         }
       },
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3Trigger": {
+    "EmiTrigger": {
       "properties": {
         "cron": {
           "type": "string",
@@ -980,15 +946,50 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "Module3WebRtcDataChannel": {
+    "EmiWebRtcDataChannel": {
       "properties": {
         "name": {
           "type": "string",
           "description": "Name of the data channel in the webrtc"
         },
         "in": {
-          "$ref": "#/definitions/Module3ActionBody",
+          "$ref": "#/definitions/EmiActionBody",
           "description": "Channel data which will be sent to"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EntitySecurityModel": {
+      "properties": {
+        "writeOnRoot": {
+          "type": "boolean",
+          "description": "Only users which belong to root and actively selected the root workspace can write to this entity from Fireback default functionality. Read mechanism won't be affected."
+        },
+        "readOnRoot": {
+          "type": "boolean",
+          "description": "Only users which belong to root and actively selected the root workspace can read from entity from Fireback default functionality. Write mechanism is not affected."
+        },
+        "resolveStrategy": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "user"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "GormOverrideMap": {
+      "properties": {
+        "workspaceId": {
+          "type": "string",
+          "description": "Override the workspace id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Override the user id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
         }
       },
       "additionalProperties": false,

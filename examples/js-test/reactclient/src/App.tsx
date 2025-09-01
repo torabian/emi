@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./App.css";
 import { WebSocketEcho } from "./components/Websocket";
+import { SSESample } from "./components/SSE";
+import { GetPost } from "./components/GetPost";
 
 const queryClient = new QueryClient();
 
@@ -9,8 +11,8 @@ function AppContent() {
     <div>
       Demo
       <WebSocketEcho />
-      {/* <SSESample />
-      <GetPost /> */}
+      <SSESample />
+      <GetPost />
     </div>
   );
 }

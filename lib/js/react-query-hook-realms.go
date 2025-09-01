@@ -10,10 +10,12 @@ type reactQueryHookRealms struct {
 	UseQuery *reactQueryUseQueryHookRealms
 
 	UseMutation *reactQueryUseMutationHookRealms
+
+	UseSSE *core.CodeChunkCompiled
 }
 
 func ReactQueryHooksBasedOnActionRealms(
-	action *core.Module3Action,
+	action *core.EmiAction,
 	ctx core.MicroGenContext,
 	actionRealms jsActionRealms,
 ) (*reactQueryHookRealms, []core.CodeChunkDependency, error) {

@@ -34,7 +34,7 @@ type jsRenderedField struct {
 
 // Some field types such as array and object,
 // need to have the correct generated class to be assigned to them.
-func jsFieldTypeOnNestedClasses(field *core.Module3Field, parentChain string) string {
+func jsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string {
 	if field == nil {
 		return ""
 	}
@@ -45,7 +45,7 @@ func jsFieldTypeOnNestedClasses(field *core.Module3Field, parentChain string) st
 	return TsComputedField(field, false)
 }
 
-func tsFieldTypeOnNestedClasses(field *core.Module3Field, parentChain string) string {
+func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string {
 	if field == nil {
 		return ""
 	}
@@ -81,7 +81,7 @@ set{{.UpperName}}(value{{if .FieldType}}: {{.FieldType}}{{end}}) {
 }
 `))
 
-func jsClassSetterFunction(jsFieldType string, field *core.Module3Field) (*JsdocComment, string) {
+func jsClassSetterFunction(jsFieldType string, field *core.EmiField) (*JsdocComment, string) {
 	setterjsdoc := NewJsDoc("  ")
 	setterjsdoc.Add(field.Description)
 	setterjsdoc.Add(fmt.Sprintf("@param {%v}", jsFieldType))
@@ -101,7 +101,7 @@ func jsClassSetterFunction(jsFieldType string, field *core.Module3Field) (*Jsdoc
 
 	return setterjsdoc, buf.String()
 }
-func getNullableDefaultValue(field *core.Module3Field) string {
+func getNullableDefaultValue(field *core.EmiField) string {
 	// In case the feild has default value, we need to extract it.
 	if field.Default != nil {
 		switch v := field.Default.(type) {
@@ -118,7 +118,7 @@ func getNullableDefaultValue(field *core.Module3Field) string {
 	return "= undefined"
 }
 
-func jsGetSafeFieldValue(field *core.Module3Field) string {
+func jsGetSafeFieldValue(field *core.EmiField) string {
 	if field == nil {
 		return "null"
 	}
@@ -158,7 +158,7 @@ func jsGetSafeFieldValue(field *core.Module3Field) string {
 	}
 }
 
-func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroGenContext) jsRenderedField {
+func jsRenderField(field *core.EmiField, parentChain string, ctx core.MicroGenContext) jsRenderedField {
 
 	jsFieldType := jsFieldTypeOnNestedClasses(field, parentChain)
 	tsFieldType := tsFieldTypeOnNestedClasses(field, parentChain)
@@ -217,7 +217,7 @@ func jsRenderField(field *core.Module3Field, parentChain string, ctx core.MicroG
 	}
 }
 
-func jsRenderFieldsShallow(fields []*core.Module3Field, parentChain string, ctx core.MicroGenContext) []jsRenderedField {
+func jsRenderFieldsShallow(fields []*core.EmiField, parentChain string, ctx core.MicroGenContext) []jsRenderedField {
 
 	output := []jsRenderedField{}
 
@@ -232,7 +232,7 @@ func jsRenderFieldsShallow(fields []*core.Module3Field, parentChain string, ctx 
 	return output
 }
 
-func jsRenderDataClasses(fields []*core.Module3Field, className string, treeLocation string, isFirst bool, ctx core.MicroGenContext) []jsRenderedDataClass {
+func jsRenderDataClasses(fields []*core.EmiField, className string, treeLocation string, isFirst bool, ctx core.MicroGenContext) []jsRenderedDataClass {
 	if len(fields) == 0 {
 		return []jsRenderedDataClass{}
 	}
@@ -282,7 +282,7 @@ type JsCommonObjectContext struct {
 
 // This function can be used in different locations of the code generation,
 // creates dtos, entities for actions or other specs.
-func JsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error) {
+func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{}
 

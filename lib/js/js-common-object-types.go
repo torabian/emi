@@ -24,7 +24,7 @@ type tsRenderedField struct {
 	Output string
 }
 
-func tsFieldType(field *core.Module3Field, parentChain string) string {
+func tsFieldType(field *core.EmiField, parentChain string) string {
 	if field == nil {
 		return ""
 	}
@@ -43,7 +43,7 @@ func tsFieldType(field *core.Module3Field, parentChain string) string {
 	return TsComputedField(field, false)
 }
 
-func tsRenderField(field *core.Module3Field, parentChain string) tsRenderedField {
+func tsRenderField(field *core.EmiField, parentChain string) tsRenderedField {
 	tsFieldTypeStr := tsFieldType(field, parentChain)
 
 	jsdoc := NewJsDoc("  ")
@@ -59,7 +59,7 @@ func tsRenderField(field *core.Module3Field, parentChain string) tsRenderedField
 	}
 }
 
-func tsRenderFields(fields []*core.Module3Field, parentChain string) []tsRenderedField {
+func tsRenderFields(fields []*core.EmiField, parentChain string) []tsRenderedField {
 	output := []tsRenderedField{}
 	for _, field := range fields {
 		if field == nil {
@@ -70,7 +70,7 @@ func tsRenderFields(fields []*core.Module3Field, parentChain string) []tsRendere
 	return output
 }
 
-func tsRenderTypes(fields []*core.Module3Field, typeName string, treeLocation string, isFirst bool) []tsRenderedType {
+func tsRenderTypes(fields []*core.EmiField, typeName string, treeLocation string, isFirst bool) []tsRenderedType {
 	if len(fields) == 0 {
 		return []tsRenderedType{}
 	}
@@ -112,7 +112,7 @@ type TsCommonObjectContext struct {
 	RootTypeName string
 }
 
-func TsCommonObjectGenerator(fields []*core.Module3Field, ctx core.MicroGenContext, tsctx TsCommonObjectContext) (*core.CodeChunkCompiled, error) {
+func TsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, tsctx TsCommonObjectContext) (*core.CodeChunkCompiled, error) {
 	res := &core.CodeChunkCompiled{}
 
 	renderedTypes := tsRenderTypes(fields, tsctx.RootTypeName, tsctx.RootTypeName+"Type", true)

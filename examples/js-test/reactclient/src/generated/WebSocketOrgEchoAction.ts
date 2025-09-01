@@ -1,4 +1,5 @@
 import { URLSearchParamsX, WebSocketX, buildUrl } from './sdk/js';
+import { useWebSocketX } from './sdk/react';
 /**
 * Action to communicate with the action webSocketOrgEcho
 */
@@ -6,6 +7,14 @@ export type WebSocketOrgEchoActionOptions = {
 	queryKey?: unknown[];
 	qs?: WebSocketOrgEchoQueryParams;
 	headers?: WebSocketOrgEchoReqHeaders;
+};
+export const useWebSocketOrgEcho = (options?: {
+	qs?: WebSocketOrgEchoQueryParams,
+	overrideUrl?: string
+}) => {
+	return useWebSocketX(
+		() => WebSocketOrgEchoAction.Create(options?.overrideUrl, options?.qs)
+	);
 };
 	/**
  * WebSocketOrgEchoAction
@@ -143,7 +152,7 @@ export abstract class WebSocketOrgEchoResFactory {
 }
 /**
  * WebSocketOrgEchoReqHeaders class
- * Auto-generated from Module3Action
+ * Auto-generated from EmiAction
  */
 export class WebSocketOrgEchoReqHeaders extends Headers {
   /**
@@ -156,7 +165,7 @@ export class WebSocketOrgEchoReqHeaders extends Headers {
 }
 /**
  * WebSocketOrgEchoResHeaders class
- * Auto-generated from Module3Action
+ * Auto-generated from EmiAction
  */
 export class WebSocketOrgEchoResHeaders extends Headers {
   /**
@@ -169,7 +178,7 @@ export class WebSocketOrgEchoResHeaders extends Headers {
 }
 /**
  * WebSocketOrgEchoQueryParams class
- * Auto-generated from Module3Action
+ * Auto-generated from EmiAction
  */
 export class WebSocketOrgEchoQueryParams extends URLSearchParamsX {
 }

@@ -2,3 +2,4 @@ node_modules
 emi
 .DS_Store
 *.wasm
+__webdir

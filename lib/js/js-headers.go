@@ -20,7 +20,7 @@ type renderedJsHeader struct {
 
 type jsHeaderClassContext struct {
 	ClassName string
-	Columns   []core.Module3Header
+	Columns   []core.EmiHeader
 }
 
 func normalizeJsHeaderType(value string) (string, error) {
@@ -37,7 +37,7 @@ func normalizeJsHeaderType(value string) (string, error) {
 	return "any", nil
 }
 
-func renderJsTsCommonHeadersInfo(headerColumns []core.Module3Header) ([]renderedJsHeader, error) {
+func renderJsTsCommonHeadersInfo(headerColumns []core.EmiHeader) ([]renderedJsHeader, error) {
 	headers := []renderedJsHeader{}
 	for _, header := range headerColumns {
 		headerType, err := normalizeJsHeaderType(header.Type)
@@ -69,7 +69,7 @@ func JsHeaderClass(
 
 	const tmpl = `/**
  * {{.className}} class
- * Auto-generated from Module3Action
+ * Auto-generated from EmiAction
  */
 {{ if .shouldExport -}} export {{- end }} class {{.className}} extends Headers {
 

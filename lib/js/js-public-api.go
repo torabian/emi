@@ -14,6 +14,16 @@ func GetJsPublicActions() core.PublicAPIActions {
 				return commonJsObjectStringCompiler(ctx, JsCommonObjectGenerator)
 			},
 		},
+		{
+			BaseAction: core.BaseAction{
+				Name:             "emi:spec",
+				Description:      "Generate the emi specs",
+				WasmFunctionName: "genEmiSpec",
+			},
+			Run: func(ctx core.MicroGenContext) (string, error) {
+				return core.GenerateJsonSpecForEmi(), nil
+			},
+		},
 	}
 
 	fileActions := []core.ActionFile{

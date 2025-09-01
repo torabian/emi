@@ -34,17 +34,22 @@ jobs:
       - name: Make wasm
         run: make wasm
         
-      - name: Build
+      - name: Build Playground
         run: cd playground && npm run build
         
       - name: Javascript tests
         run: cd tests/js && npm i -f && npx vitest run
+      
+      - name: Compile the web veresion (docs, and only after running tests because they create document)
+        run: cd emi-web && npm i -f && npm run build
 
-      - name: add jekyl
-        run: touch playground/dist/.nojekyll
+
+      - name: Add web version and playground into same
+        run: make compile-github
+
 
       - name: Deploy pages 🚀
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: ./playground/dist
+          folder: ./__webdir

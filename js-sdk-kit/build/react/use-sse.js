@@ -20,7 +20,7 @@ export function useSse(fetchFn, props) {
     };
     useEffect(() => {
         return create();
-    }, [fetchFn, props === null || props === void 0 ? void 0 : props.qs, props === null || props === void 0 ? void 0 : props.overrideUrl]);
+    }, []);
     const cancel = () => {
         var _a;
         (_a = acRef.current) === null || _a === void 0 ? void 0 : _a.abort();

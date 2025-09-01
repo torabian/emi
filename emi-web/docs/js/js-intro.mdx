@@ -1,0 +1,23 @@
+---
+sidebar_position: 1
+---
+
+# Javascript(Type?) Compiler
+
+Javascript, and typescript, are the most wide used langauges in every platform and use case these days. Most of the code written in different
+backend languages, in the end, almost always is going to be used somehow by a javascript envrionment.
+Therefor Emi compiler, provides a built-in javascript/typescript compiler for the definitions. The generated content aimed to be used in many applications,
+which is basically Vanilla javascript/typescript, React, Nest.js, and since it's being compiled to bare minimum javascript, in any other
+framework which might be needed.
+
+**Every action in Emi js compiler will be convereted to typescript with very high coverage with --tags typescript flag**, and the typescript support
+is one of the highest quality within the competing tools.
+
+JS Compiler, is mainly generating type-safe objects out of the Emi definition, and targets to make the content super portable. Due to highly usage of
+`nest.js` and `react`, and `axios`, there is an added flags called for each of them to modify or append extra features.
+
+* `--tags axios,axiosbundle` would generate the axios helpers.
+* `--tags react` would generate the react hooks for each action, using tanstack react-query for http, an internal useSse and useWebSocketX hooks for SSE and websockets.
+* `--tags nestjs` would generate decorators which would make the req, headers, qs, portable directly into nest.js without extra code written by the developer.
+
+For typescript support, just append `typescript` to the tags, for example `--tags axios,axiosbundle,react,nestjs,typescript` would generate them all, in typescript.

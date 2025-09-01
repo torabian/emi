@@ -9,7 +9,7 @@ import (
 )
 
 // JsActionPathParams generates a TypeScript type with the path parameters only
-func JsActionPathParams(action *core.Module3Action) (*core.CodeChunkCompiled, error) {
+func JsActionPathParams(action *core.EmiAction) (*core.CodeChunkCompiled, error) {
 	res := &core.CodeChunkCompiled{}
 
 	placeholders := core.ExtractPlaceholdersInUrl(action.Url)

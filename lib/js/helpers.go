@@ -102,10 +102,10 @@ func CombineImportsJsWorld(chunk core.CodeChunkCompiled) string {
 
 func commonJsActionStringCompiler(
 	ctx core.MicroGenContext,
-	callback func(action *core.Module3Action, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error),
+	callback func(action *core.EmiAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error),
 ) (string, error) {
 
-	action, err := core.StringToModule3Action(ctx.Content)
+	action, err := core.StringToEmiAction(ctx.Content)
 	if err != nil {
 		return "", err
 	}
@@ -120,10 +120,10 @@ func commonJsActionStringCompiler(
 
 func commonJsObjectStringCompiler(
 	ctx core.MicroGenContext,
-	callback func(fields []*core.Module3Field, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error),
+	callback func(fields []*core.EmiField, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error),
 ) (string, error) {
 
-	fields, err := core.StringToModule3Fields(ctx.Content)
+	fields, err := core.StringToEmiFields(ctx.Content)
 	if err != nil {
 		return "", err
 	}
@@ -139,10 +139,10 @@ func commonJsObjectStringCompiler(
 
 func commonJsModuleFileCompiler(
 	ctx core.MicroGenContext,
-	callback func(module *core.Module3, ctx core.MicroGenContext) ([]core.VirtualFile, error),
+	callback func(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error),
 ) ([]core.VirtualFile, error) {
 
-	action, err := core.StringToModule3(ctx.Content)
+	action, err := core.StringToEmi(ctx.Content)
 	if err != nil {
 		return nil, err
 	}

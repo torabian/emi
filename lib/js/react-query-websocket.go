@@ -1,0 +1,75 @@
+// file: react-query-use-query-func.go
+// A type generated for type script, which holds all information
+// which we can modify for an action
+
+package js
+
+import (
+	"bytes"
+	"fmt"
+	"strings"
+	"text/template"
+
+	"github.com/torabian/emi/lib/core"
+)
+
+type reactWebsocketOptions struct {
+	ActionName        string
+	MetaDataClassName string
+	Fetchctx          fetchStaticFunctionContext
+}
+
+// generates a static function, to developers prefer to make calls via axios
+func ReactWebsocketQueryHook(options reactWebsocketOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+	className := fmt.Sprintf("use%v", core.ToUpper(options.ActionName))
+
+	claims := getCommonFetchArguments(options.Fetchctx)
+
+	const tmpl = `
+		
+export const {{ .className }} = (options?: {
+	|@fetch.qs|,
+	|@fetch.overrideUrl|
+}) => {
+	return useWebSocketX(
+		() => {{ .options.MetaDataClassName }}.Create(options?.overrideUrl, options?.qs)
+	);
+};
+
+
+	`
+
+	t := template.Must(template.New("reactwebsockethook").Funcs(core.CommonMap).Parse(tmpl))
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, core.H{
+		"options":   options,
+		"ctx":       ctx,
+		"className": className,
+	}); err != nil {
+		return nil, err
+	}
+
+	templateResult := buf.String()
+	claimsRendered := core.ClaimRender(claims, ctx)
+	for key, value := range claimsRendered {
+		templateResult = strings.ReplaceAll(templateResult, fmt.Sprintf("|@%v|", key), value)
+	}
+
+	res := &core.CodeChunkCompiled{
+		ActualScript: []byte(templateResult),
+		CodeChunkDependenies: []core.CodeChunkDependency{
+			{
+				Location: INTERNAL_SDK_REACT_LOCATION,
+				Objects:  []string{"useWebSocketX"},
+			},
+		},
+		Tokens: []core.GeneratedScriptToken{
+			{
+				Name:  TOKEN_ROOT_CLASS,
+				Value: className,
+			},
+		},
+	}
+
+	return res, nil
+}

@@ -60,12 +60,10 @@ func GenerateTSParams(placeholders []string) string {
 	return builder.String()
 }
 
-// generates a static function, to developers prefer to make calls via axios
-func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
-
-	requestType := "unknown"
+func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArgument {
 	responseType := "unknown"
 	requestHeaderType := "unknown"
+	requestType := "unknown"
 
 	if fetchctx.ResponseClass != "" {
 		responseType = fetchctx.ResponseClass
@@ -74,8 +72,6 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		requestHeaderType = fetchctx.RequestHeadersClass
 	}
 
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	queryParams := core.ExtractPlaceholdersInUrl(fetchctx.EndpointUrl)
 	claims := []core.JsFnArgument{
 		{
 			Key: "fetch.init",
@@ -92,6 +88,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			Ts:  "overrideUrl?: string",
 			Js:  "overrideUrl",
 		},
+
 		{
 			Key: "fetch.generic",
 			Ts:  fmt.Sprintf("<%v, %v, %v>", responseType, requestType, requestHeaderType),
@@ -108,6 +105,18 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			Ts:  "onMessage?: (ev: MessageEvent) => void",
 		},
 	}
+
+	return claims
+}
+
+// generates a static function, to developers prefer to make calls via axios
+func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	queryParams := core.ExtractPlaceholdersInUrl(fetchctx.EndpointUrl)
+	claims := []core.JsFnArgument{}
+
+	claims = append(claims, getCommonFetchArguments(fetchctx)...)
 
 	claimsRendered := core.ClaimRender(claims, ctx)
 
@@ -180,7 +189,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"fetchx"},
-				Location: INTERNAL_SDK_LOCATION,
+				Location: INTERNAL_SDK_JS_LOCATION,
 			},
 		},
 	}
@@ -189,7 +198,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
 			{
 				Objects:  []string{"SSEFetch"},
-				Location: INTERNAL_SDK_LOCATION,
+				Location: INTERNAL_SDK_JS_LOCATION,
 			},
 		}...)
 
@@ -199,7 +208,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type TypedRequestInit"},
-				Location: INTERNAL_SDK_LOCATION,
+				Location: INTERNAL_SDK_JS_LOCATION,
 			},
 		}...)
 	}
@@ -209,4 +218,5 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 
 // On final stage of compiling, this varialble will be replaced with context
 // sdk location on the disk
-var INTERNAL_SDK_LOCATION string = "./sdk/js"
+var INTERNAL_SDK_JS_LOCATION string = "./sdk/js"
+var INTERNAL_SDK_REACT_LOCATION string = "./sdk/react"

@@ -17,7 +17,7 @@ func AppendEavCustomParams(schema *jsonschema.Schema) {
 	})
 
 	for key := range schema.Definitions {
-		if key == "Module3Macro" {
+		if key == "EmiMacro" {
 
 			jsonStr := `{
 				"oneOf": [
@@ -49,7 +49,7 @@ func AppendEavCustomParams(schema *jsonschema.Schema) {
 
 			schema.Definitions[key].OneOf = schemaP.OneOf
 		}
-		if key == "Module3ConfigField" {
+		if key == "EmiConfigField" {
 
 			jsonStr := `{
 				"anyOf": [
@@ -113,10 +113,10 @@ func AppendEavCustomParams(schema *jsonschema.Schema) {
 
 }
 
-func GenerateJsonSpecForModule3() string {
+func GenerateJsonSpecForEmi() string {
 	// Create a reflector
 	reflector := jsonschema.Reflector{}
-	schema := reflector.Reflect(&Module3{})
+	schema := reflector.Reflect(&Emi{})
 
 	AppendEavCustomParams(schema)
 

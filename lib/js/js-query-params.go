@@ -23,7 +23,7 @@ type renderedQsField struct {
 	SetterFunc   string
 }
 
-func renderJsTsCommonQsInfo(action *core.Module3Action) ([]renderedQsField, error) {
+func renderJsTsCommonQsInfo(action *core.EmiAction) ([]renderedQsField, error) {
 	fields := []renderedQsField{}
 	for _, query := range action.Query {
 		queryType, err := normalizeJsHeaderType(string(query.Type))
@@ -44,7 +44,7 @@ func renderJsTsCommonQsInfo(action *core.Module3Action) ([]renderedQsField, erro
 }
 
 // generic renderer
-func renderTsJsQsClass(ctx core.MicroGenContext, action *core.Module3Action, fields []renderedQsField, tmpl string) (*core.CodeChunkCompiled, error) {
+func renderTsJsQsClass(ctx core.MicroGenContext, action *core.EmiAction, fields []renderedQsField, tmpl string) (*core.CodeChunkCompiled, error) {
 	res := &core.CodeChunkCompiled{}
 
 	t := template.Must(template.New("qsclass").Funcs(core.CommonMap).Parse(tmpl))
@@ -89,7 +89,7 @@ func renderTsJsQsClass(ctx core.MicroGenContext, action *core.Module3Action, fie
 		Objects: []string{
 			"URLSearchParamsX",
 		},
-		Location: INTERNAL_SDK_LOCATION,
+		Location: INTERNAL_SDK_JS_LOCATION,
 	})
 
 	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
@@ -100,10 +100,10 @@ func renderTsJsQsClass(ctx core.MicroGenContext, action *core.Module3Action, fie
 	return res, nil
 }
 
-func JsActionQsClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+func JsActionQsClass(action *core.EmiAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	const tmpl = `/**
  * {{.className}} class
- * Auto-generated from Module3Action
+ * Auto-generated from EmiAction
  */
 {{ if .shouldExport -}} export {{- end }} class {{.className}} extends URLSearchParamsX {
 

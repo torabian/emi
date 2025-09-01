@@ -1,6 +1,6 @@
 package js
 
-// Combines multiple parts of an Module3Action definition into a single file and generates
+// Combines multiple parts of an EmiAction definition into a single file and generates
 // the webrequestX based class for communication
 
 import (
@@ -12,7 +12,7 @@ import (
 	"github.com/torabian/emi/lib/core"
 )
 
-func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+func JsActionClass(action *core.EmiAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	isReact := strings.Contains(ctx.Tags, GEN_REACT_COMPATIBILITY)
 
@@ -39,6 +39,33 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 		}
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, reactQuerydeps...)
 		reactQuery = reactQueryRealms
+
+		if action.MethodUpper() == "SSE" {
+			if useSSEHook, err := ReactUseSSEHook(reactUseSSEOptions{
+				ActionName:        fmt.Sprintf("%v", actionRealms.ActionName),
+				MetaDataClassName: findTokenByName(actionRealms.FetchMetaClass.Tokens, TOKEN_ROOT_CLASS).Value,
+				Fetchctx:          actionRealms.Fetchctx,
+			}, ctx); err != nil {
+				return nil, err
+			} else {
+				reactQuery.UseSSE = useSSEHook
+				res.CodeChunkDependenies = append(res.CodeChunkDependenies, useSSEHook.CodeChunkDependenies...)
+			}
+		}
+
+		if action.MethodUpper() == "REACTIVE" {
+			if useSSEHook, err := ReactWebsocketQueryHook(reactWebsocketOptions{
+				ActionName:        fmt.Sprintf("%v", actionRealms.ActionName),
+				MetaDataClassName: findTokenByName(actionRealms.FetchMetaClass.Tokens, TOKEN_ROOT_CLASS).Value,
+				Fetchctx:          actionRealms.Fetchctx,
+			}, ctx); err != nil {
+				return nil, err
+			} else {
+				reactQuery.UseSSE = useSSEHook
+				res.CodeChunkDependenies = append(res.CodeChunkDependenies, useSSEHook.CodeChunkDependenies...)
+			}
+		}
+
 	}
 
 	const tmpl = `/**
@@ -68,6 +95,10 @@ func JsActionClass(action *core.Module3Action, ctx core.MicroGenContext) (*core.
 		{{ if .reactQuery.UseMutation.UseMutationFunction }}
 			{{ b2s .reactQuery.UseMutation.UseMutationFunction.ActualScript }}
 		{{ end }}
+	{{ end }}
+
+	{{ if .reactQuery.UseSSE }}
+		{{ b2s .reactQuery.UseSSE.ActualScript }}
 	{{ end }}
 {{ end }}
 

@@ -1,6 +1,6 @@
 package js
 
-// Combines multiple parts of an Module3Action definition into a single file and generates
+// Combines multiple parts of an EmiAction definition into a single file and generates
 // the webrequestX based class for communication
 
 import (
@@ -23,10 +23,11 @@ type jsActionRealms struct {
 	QueryStringClass     *core.CodeChunkCompiled
 	RequestHeadersClass  *core.CodeChunkCompiled
 	ResponseHeadersClass *core.CodeChunkCompiled
+	Fetchctx             fetchStaticFunctionContext
 }
 
 func JsActionClassRealms(
-	action *core.Module3Action,
+	action *core.EmiAction,
 	ctx core.MicroGenContext,
 ) (*jsActionRealms, []core.CodeChunkDependency, error) {
 	deps := []core.CodeChunkDependency{}
@@ -166,12 +167,13 @@ func JsActionClassRealms(
 
 	}
 
-	fetch, err := JsActionFetchAndMetaData(action, actionRealms, ctx)
+	fetch, fetchctx, err := JsActionFetchAndMetaData(action, actionRealms, ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	deps = append(deps, fetch.CodeChunkDependenies...)
 	actionRealms.FetchMetaClass = fetch
+	actionRealms.Fetchctx = fetchctx
 
 	return &actionRealms, deps, nil
 }
