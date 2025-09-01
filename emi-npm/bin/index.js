@@ -3,6 +3,8 @@ import { Command } from "commander";
 const program = new Command();
 import { applyFlags } from "./cliutils.js";
 import { FileActions, TextActions } from "./getPublicActions.js";
+import { readFileSync, mkdirSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 
 for (const a of TextActions) {
   const cmd = program
@@ -14,7 +16,7 @@ for (const a of TextActions) {
         path: options.path,
         output: options.output || "",
         tags: options.tags || "",
-        content: fs.readFileSync(options.path, "utf8"),
+        content: readFileSync(options.path, "utf8"),
       };
 
       if (!globalThis[a.WasmFunctionName]) {
@@ -22,14 +24,14 @@ for (const a of TextActions) {
       }
 
       const result = await globalThis[a.WasmFunctionName](
-        fs.readFileSync(options.path, "utf8"),
+        readFileSync(options.path, "utf8"),
         ctx
       );
 
       if (!ctx.output) {
         console.log(result);
       } else {
-        fs.writeFileSync(ctx.output, result, "utf8");
+        writeFileSync(ctx.output, result, "utf8");
       }
     });
   applyFlags(cmd, a.Flags);
@@ -45,7 +47,7 @@ for (const a of FileActions) {
         path: options.path,
         output: options.output || "",
         Tags: options.tags || "",
-        content: fs.readFileSync(options.path, "utf8"),
+        content: readFileSync(options.path, "utf8"),
       };
 
       if (!globalThis[a.WasmFunctionName]) {
@@ -53,7 +55,7 @@ for (const a of FileActions) {
       }
 
       const files = await globalThis[a.WasmFunctionName](
-        fs.readFileSync(options.path, "utf8"),
+        readFileSync(options.path, "utf8"),
         ctx
       );
 
@@ -61,13 +63,9 @@ for (const a of FileActions) {
         console.log(JSON.stringify(files, null, 2));
       } else {
         for (const f of files) {
-          const dir = path.join(ctx.output, f.Location);
-          fs.mkdirSync(dir, { recursive: true });
-          fs.writeFileSync(
-            path.join(dir, f.Name + f.Extension),
-            f.ActualScript,
-            "utf8"
-          );
+          const fullPath = join(ctx.output, f.Location, f.Name + f.Extension);
+          mkdirSync(dirname(fullPath), { recursive: true });
+          writeFileSync(fullPath, f.ActualScript, "utf8");
         }
       }
     });

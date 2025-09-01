@@ -10,3 +10,13 @@ There is playground as well, which allows you to write and download the files al
 There is a `wasm` file, which can be used on javascript environments, in case you need to install it in your javascript project.
 
 
+## Via Npm (npx)
+
+The compiler for all targets is also available as npm package, just type:
+
+```bash
+npx emicc
+```
+
+and it would show the compiler options, you should be able to compile all the targets via npm as well.
+(means it's not limited only to javascript/typescript)
