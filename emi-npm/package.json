@@ -2,7 +2,7 @@
   "name": "emicc",
   "version": "1.0.3",
   "bin": {
-    "emi2": "./bin/index.js"
+    "emicc": "./bin/index.js"
   },
   "type": "module",
   "dependencies": {
