@@ -4,11 +4,10 @@ sidebar_position: 1
 
 # Motivation
 
-Syncing backend and front-end projects is often a difficult work. From writing manually api calls for different front-facing part of an application,
-such as JavaScript, C++, Swift, and almost any other language.
+Syncing backend and front-end projects is often a difficult and error-prone task. Developers spend a lot of time writing API calls manually for each client platform—JavaScript, C++, Swift, and virtually any other language—just to keep the interfaces consistent.
 
-In years I have seen different tools, from OpenAPI generators and GRPC to solve this issue, but yet none of them is providing the
-actual solution.
+Over the years, I’ve explored many tools—from OpenAPI generators to gRPC—but none truly solve the problem. They either require extensive boilerplate, lack flexibility, or fail to integrate seamlessly with the way developers actually write and maintain code.
 
-Emi compiler generates tools to create backend, and uses standard elements in target languages to just document details more.
+That’s why we created the Emi compiler. Emi doesn’t just generate API clients; it generates the backend itself, while leveraging standard, idiomatic constructs in each target language. It allows developers to define their application logic once, and automatically produce synchronized backend and frontend layers, reducing errors and saving countless hours. With Emi, the focus shifts from repetitive manual work to building features, while documentation and type safety come naturally, embedded in the code rather than maintained separately.
 
+Emi is more than a code generator—it’s a bridge that unifies the backend and all client platforms, making development faster, safer, and more maintainable.

@@ -89,6 +89,11 @@ const config: Config = {
           label: "GitHub",
           position: "right",
         },
+        {
+          href: "https://torabian.github.io/emi/playground",
+          label: "Playground",
+          position: "left",
+        },
       ],
     },
     footer: {
