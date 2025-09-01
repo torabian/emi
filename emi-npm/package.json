@@ -1,5 +1,5 @@
 {
-  "name": "emi2",
+  "name": "emicc",
   "version": "1.0.0",
   "bin": {
     "emi2": "./bin/index.js"
