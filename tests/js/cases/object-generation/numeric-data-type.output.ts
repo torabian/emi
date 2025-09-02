@@ -1,125 +1,125 @@
 	/**
-  * @description The base type definition for anonymouse
+  * The base type definition for anonymouse
   **/
 	export type AnonymouseType =  {
 			/**
+  * bool field, non-nullable
   * @type {boolean}
-  * @description bool field, non-nullable
   **/
  boolField?: boolean;
 			/**
+  * bool field with default
   * @type {boolean}
-  * @description bool field with default
   **/
  boolFieldWithValue?: boolean;
 			/**
+  * nullable bool
   * @type {boolean}
-  * @description nullable bool
   **/
  nullableboolField?: boolean;
 			/**
+  * nullable bool with default
   * @type {boolean}
-  * @description nullable bool with default
   **/
  nullableboolFieldWithValue?: boolean;
 			/**
+  * int field, non-nullable
   * @type {number}
-  * @description int field, non-nullable
   **/
  intField?: number;
 			/**
+  * int field with default
   * @type {number}
-  * @description int field with default
   **/
  intFieldWithValue?: number;
 			/**
+  * nullable int
   * @type {number}
-  * @description nullable int
   **/
  nullableIntField?: number;
 			/**
+  * nullable int with default
   * @type {number}
-  * @description nullable int with default
   **/
  nullableIntFieldWithValue?: number;
 			/**
+  * int32 field, non-nullable
   * @type {number}
-  * @description int32 field, non-nullable
   **/
  int32Field?: number;
 			/**
+  * int32 with default
   * @type {number}
-  * @description int32 with default
   **/
  int32FieldWithValue?: number;
 			/**
+  * nullable int32
   * @type {number}
-  * @description nullable int32
   **/
  nullableInt32Field?: number;
 			/**
+  * nullable int32 with default
   * @type {number}
-  * @description nullable int32 with default
   **/
  nullableInt32FieldWithValue?: number;
 			/**
+  * int64 field
   * @type {number}
-  * @description int64 field
   **/
  int64Field?: number;
 			/**
+  * int64 with default
   * @type {number}
-  * @description int64 with default
   **/
  int64FieldWithValue?: number;
 			/**
+  * nullable int64
   * @type {number}
-  * @description nullable int64
   **/
  nullableInt64Field?: number;
 			/**
+  * nullable int64 with default
   * @type {number}
-  * @description nullable int64 with default
   **/
  nullableInt64FieldWithValue?: number;
 			/**
+  * float32 field
   * @type {number}
-  * @description float32 field
   **/
  float32Field?: number;
 			/**
+  * float32 with default
   * @type {number}
-  * @description float32 with default
   **/
  float32FieldWithValue?: number;
 			/**
+  * nullable float32
   * @type {number}
-  * @description nullable float32
   **/
  nullableFloat32Field?: number;
 			/**
+  * nullable float32 with default
   * @type {number}
-  * @description nullable float32 with default
   **/
  nullableFloat32FieldWithValue?: number;
 			/**
+  * float64 field
   * @type {number}
-  * @description float64 field
   **/
  float64Field?: number;
 			/**
+  * float64 with default
   * @type {number}
-  * @description float64 with default
   **/
  float64FieldWithValue?: number;
 			/**
+  * nullable float64
   * @type {number}
-  * @description nullable float64
   **/
  nullableFloat64Field?: number;
 			/**
+  * nullable float64 with default
   * @type {number}
-  * @description nullable float64 with default
   **/
  nullableFloat64FieldWithValue?: number;
 	}
@@ -127,7 +127,7 @@
 export namespace AnonymouseType {
 }
 /**
-  * @decription The base class definition for anonymouse
+  * The base class definition for anonymouse
   **/
 export class Anonymouse {
 	constructor(data: unknown) {
@@ -212,360 +212,576 @@ export class Anonymouse {
   **/
  boolField: boolean = null
 		/**
+  * bool field, non-nullable
   * @returns {boolean}
-  * @description bool field, non-nullable
   **/
 getBoolField () { return this[`boolField`] }
 		/**
   * bool field, non-nullable
   * @param {boolean}
   **/
-setBoolField (value: boolean ) { this[`boolField`] = value; return this; } 
+/**
+  * bool field, non-nullable
+  * @param {boolean}
+  **/
+/// XXX
+setBoolField(value: boolean) {
+	// Only accept array types
+	this["boolField"] = value
+	return this
+}
 		/**
   * bool field with default
   * @type {boolean}
   **/
  boolFieldWithValue: boolean = true
 		/**
+  * bool field with default
   * @returns {boolean}
-  * @description bool field with default
   **/
 getBoolFieldWithValue () { return this[`boolFieldWithValue`] }
 		/**
   * bool field with default
   * @param {boolean}
   **/
-setBoolFieldWithValue (value: boolean ) { this[`boolFieldWithValue`] = value; return this; } 
+/**
+  * bool field with default
+  * @param {boolean}
+  **/
+/// XXX
+setBoolFieldWithValue(value: boolean) {
+	// Only accept array types
+	this["boolFieldWithValue"] = value
+	return this
+}
 		/**
   * nullable bool
   * @type {boolean}
   **/
  nullableboolField?: boolean | null = undefined
 		/**
+  * nullable bool
   * @returns {boolean}
-  * @description nullable bool
   **/
 getNullableboolField () { return this[`nullableboolField`] }
 		/**
   * nullable bool
   * @param {boolean}
   **/
-setNullableboolField (value: boolean  | null) { this[`nullableboolField`] = value; return this; } 
+/**
+  * nullable bool
+  * @param {boolean}
+  **/
+/// XXX
+setNullableboolField(value: boolean) {
+	// Only accept array types
+	this["nullableboolField"] = value
+	return this
+}
 		/**
   * nullable bool with default
   * @type {boolean}
   **/
  nullableboolFieldWithValue?: boolean | null  = true
 		/**
+  * nullable bool with default
   * @returns {boolean}
-  * @description nullable bool with default
   **/
 getNullableboolFieldWithValue () { return this[`nullableboolFieldWithValue`] }
 		/**
   * nullable bool with default
   * @param {boolean}
   **/
-setNullableboolFieldWithValue (value: boolean  | null) { this[`nullableboolFieldWithValue`] = value; return this; } 
+/**
+  * nullable bool with default
+  * @param {boolean}
+  **/
+/// XXX
+setNullableboolFieldWithValue(value: boolean) {
+	// Only accept array types
+	this["nullableboolFieldWithValue"] = value
+	return this
+}
 		/**
   * int field, non-nullable
   * @type {number}
   **/
  intField: number = 0
 		/**
+  * int field, non-nullable
   * @returns {number}
-  * @description int field, non-nullable
   **/
 getIntField () { return this[`intField`] }
 		/**
   * int field, non-nullable
   * @param {number}
   **/
-setIntField (value: number ) { this[`intField`] = value; return this; } 
+/**
+  * int field, non-nullable
+  * @param {number}
+  **/
+/// XXX
+setIntField(value: number) {
+	// Only accept array types
+	this["intField"] = value
+	return this
+}
 		/**
   * int field with default
   * @type {number}
   **/
  intFieldWithValue: number = 42
 		/**
+  * int field with default
   * @returns {number}
-  * @description int field with default
   **/
 getIntFieldWithValue () { return this[`intFieldWithValue`] }
 		/**
   * int field with default
   * @param {number}
   **/
-setIntFieldWithValue (value: number ) { this[`intFieldWithValue`] = value; return this; } 
+/**
+  * int field with default
+  * @param {number}
+  **/
+/// XXX
+setIntFieldWithValue(value: number) {
+	// Only accept array types
+	this["intFieldWithValue"] = value
+	return this
+}
 		/**
   * nullable int
   * @type {number}
   **/
  nullableIntField?: number | null = undefined
 		/**
+  * nullable int
   * @returns {number}
-  * @description nullable int
   **/
 getNullableIntField () { return this[`nullableIntField`] }
 		/**
   * nullable int
   * @param {number}
   **/
-setNullableIntField (value: number  | null) { this[`nullableIntField`] = value; return this; } 
+/**
+  * nullable int
+  * @param {number}
+  **/
+/// XXX
+setNullableIntField(value: number) {
+	// Only accept array types
+	this["nullableIntField"] = value
+	return this
+}
 		/**
   * nullable int with default
   * @type {number}
   **/
  nullableIntFieldWithValue?: number | null  = 7
 		/**
+  * nullable int with default
   * @returns {number}
-  * @description nullable int with default
   **/
 getNullableIntFieldWithValue () { return this[`nullableIntFieldWithValue`] }
 		/**
   * nullable int with default
   * @param {number}
   **/
-setNullableIntFieldWithValue (value: number  | null) { this[`nullableIntFieldWithValue`] = value; return this; } 
+/**
+  * nullable int with default
+  * @param {number}
+  **/
+/// XXX
+setNullableIntFieldWithValue(value: number) {
+	// Only accept array types
+	this["nullableIntFieldWithValue"] = value
+	return this
+}
 		/**
   * int32 field, non-nullable
   * @type {number}
   **/
  int32Field: number = 0
 		/**
+  * int32 field, non-nullable
   * @returns {number}
-  * @description int32 field, non-nullable
   **/
 getInt32Field () { return this[`int32Field`] }
 		/**
   * int32 field, non-nullable
   * @param {number}
   **/
-setInt32Field (value: number ) { this[`int32Field`] = value; return this; } 
+/**
+  * int32 field, non-nullable
+  * @param {number}
+  **/
+/// XXX
+setInt32Field(value: number) {
+	// Only accept array types
+	this["int32Field"] = value
+	return this
+}
 		/**
   * int32 with default
   * @type {number}
   **/
  int32FieldWithValue: number = 100
 		/**
+  * int32 with default
   * @returns {number}
-  * @description int32 with default
   **/
 getInt32FieldWithValue () { return this[`int32FieldWithValue`] }
 		/**
   * int32 with default
   * @param {number}
   **/
-setInt32FieldWithValue (value: number ) { this[`int32FieldWithValue`] = value; return this; } 
+/**
+  * int32 with default
+  * @param {number}
+  **/
+/// XXX
+setInt32FieldWithValue(value: number) {
+	// Only accept array types
+	this["int32FieldWithValue"] = value
+	return this
+}
 		/**
   * nullable int32
   * @type {number}
   **/
  nullableInt32Field?: number | null = undefined
 		/**
+  * nullable int32
   * @returns {number}
-  * @description nullable int32
   **/
 getNullableInt32Field () { return this[`nullableInt32Field`] }
 		/**
   * nullable int32
   * @param {number}
   **/
-setNullableInt32Field (value: number  | null) { this[`nullableInt32Field`] = value; return this; } 
+/**
+  * nullable int32
+  * @param {number}
+  **/
+/// XXX
+setNullableInt32Field(value: number) {
+	// Only accept array types
+	this["nullableInt32Field"] = value
+	return this
+}
 		/**
   * nullable int32 with default
   * @type {number}
   **/
  nullableInt32FieldWithValue?: number | null  = 200
 		/**
+  * nullable int32 with default
   * @returns {number}
-  * @description nullable int32 with default
   **/
 getNullableInt32FieldWithValue () { return this[`nullableInt32FieldWithValue`] }
 		/**
   * nullable int32 with default
   * @param {number}
   **/
-setNullableInt32FieldWithValue (value: number  | null) { this[`nullableInt32FieldWithValue`] = value; return this; } 
+/**
+  * nullable int32 with default
+  * @param {number}
+  **/
+/// XXX
+setNullableInt32FieldWithValue(value: number) {
+	// Only accept array types
+	this["nullableInt32FieldWithValue"] = value
+	return this
+}
 		/**
   * int64 field
   * @type {number}
   **/
  int64Field: number = 0
 		/**
+  * int64 field
   * @returns {number}
-  * @description int64 field
   **/
 getInt64Field () { return this[`int64Field`] }
 		/**
   * int64 field
   * @param {number}
   **/
-setInt64Field (value: number ) { this[`int64Field`] = value; return this; } 
+/**
+  * int64 field
+  * @param {number}
+  **/
+/// XXX
+setInt64Field(value: number) {
+	// Only accept array types
+	this["int64Field"] = value
+	return this
+}
 		/**
   * int64 with default
   * @type {number}
   **/
  int64FieldWithValue?: number | null  = 123
 		/**
+  * int64 with default
   * @returns {number}
-  * @description int64 with default
   **/
 getInt64FieldWithValue () { return this[`int64FieldWithValue`] }
 		/**
   * int64 with default
   * @param {number}
   **/
-setInt64FieldWithValue (value: number  | null) { this[`int64FieldWithValue`] = value; return this; } 
+/**
+  * int64 with default
+  * @param {number}
+  **/
+/// XXX
+setInt64FieldWithValue(value: number) {
+	// Only accept array types
+	this["int64FieldWithValue"] = value
+	return this
+}
 		/**
   * nullable int64
   * @type {number}
   **/
  nullableInt64Field?: number | null = undefined
 		/**
+  * nullable int64
   * @returns {number}
-  * @description nullable int64
   **/
 getNullableInt64Field () { return this[`nullableInt64Field`] }
 		/**
   * nullable int64
   * @param {number}
   **/
-setNullableInt64Field (value: number  | null) { this[`nullableInt64Field`] = value; return this; } 
+/**
+  * nullable int64
+  * @param {number}
+  **/
+/// XXX
+setNullableInt64Field(value: number) {
+	// Only accept array types
+	this["nullableInt64Field"] = value
+	return this
+}
 		/**
   * nullable int64 with default
   * @type {number}
   **/
  nullableInt64FieldWithValue?: number | null  = 456
 		/**
+  * nullable int64 with default
   * @returns {number}
-  * @description nullable int64 with default
   **/
 getNullableInt64FieldWithValue () { return this[`nullableInt64FieldWithValue`] }
 		/**
   * nullable int64 with default
   * @param {number}
   **/
-setNullableInt64FieldWithValue (value: number  | null) { this[`nullableInt64FieldWithValue`] = value; return this; } 
+/**
+  * nullable int64 with default
+  * @param {number}
+  **/
+/// XXX
+setNullableInt64FieldWithValue(value: number) {
+	// Only accept array types
+	this["nullableInt64FieldWithValue"] = value
+	return this
+}
 		/**
   * float32 field
   * @type {number}
   **/
  float32Field: number = 0.0
 		/**
+  * float32 field
   * @returns {number}
-  * @description float32 field
   **/
 getFloat32Field () { return this[`float32Field`] }
 		/**
   * float32 field
   * @param {number}
   **/
-setFloat32Field (value: number ) { this[`float32Field`] = value; return this; } 
+/**
+  * float32 field
+  * @param {number}
+  **/
+/// XXX
+setFloat32Field(value: number) {
+	// Only accept array types
+	this["float32Field"] = value
+	return this
+}
 		/**
   * float32 with default
   * @type {number}
   **/
  float32FieldWithValue: number = 1.23
 		/**
+  * float32 with default
   * @returns {number}
-  * @description float32 with default
   **/
 getFloat32FieldWithValue () { return this[`float32FieldWithValue`] }
 		/**
   * float32 with default
   * @param {number}
   **/
-setFloat32FieldWithValue (value: number ) { this[`float32FieldWithValue`] = value; return this; } 
+/**
+  * float32 with default
+  * @param {number}
+  **/
+/// XXX
+setFloat32FieldWithValue(value: number) {
+	// Only accept array types
+	this["float32FieldWithValue"] = value
+	return this
+}
 		/**
   * nullable float32
   * @type {number}
   **/
  nullableFloat32Field?: number | null = undefined
 		/**
+  * nullable float32
   * @returns {number}
-  * @description nullable float32
   **/
 getNullableFloat32Field () { return this[`nullableFloat32Field`] }
 		/**
   * nullable float32
   * @param {number}
   **/
-setNullableFloat32Field (value: number  | null) { this[`nullableFloat32Field`] = value; return this; } 
+/**
+  * nullable float32
+  * @param {number}
+  **/
+/// XXX
+setNullableFloat32Field(value: number) {
+	// Only accept array types
+	this["nullableFloat32Field"] = value
+	return this
+}
 		/**
   * nullable float32 with default
   * @type {number}
   **/
  nullableFloat32FieldWithValue?: number | null  = 4.56
 		/**
+  * nullable float32 with default
   * @returns {number}
-  * @description nullable float32 with default
   **/
 getNullableFloat32FieldWithValue () { return this[`nullableFloat32FieldWithValue`] }
 		/**
   * nullable float32 with default
   * @param {number}
   **/
-setNullableFloat32FieldWithValue (value: number  | null) { this[`nullableFloat32FieldWithValue`] = value; return this; } 
+/**
+  * nullable float32 with default
+  * @param {number}
+  **/
+/// XXX
+setNullableFloat32FieldWithValue(value: number) {
+	// Only accept array types
+	this["nullableFloat32FieldWithValue"] = value
+	return this
+}
 		/**
   * float64 field
   * @type {number}
   **/
  float64Field: number = 0.0
 		/**
+  * float64 field
   * @returns {number}
-  * @description float64 field
   **/
 getFloat64Field () { return this[`float64Field`] }
 		/**
   * float64 field
   * @param {number}
   **/
-setFloat64Field (value: number ) { this[`float64Field`] = value; return this; } 
+/**
+  * float64 field
+  * @param {number}
+  **/
+/// XXX
+setFloat64Field(value: number) {
+	// Only accept array types
+	this["float64Field"] = value
+	return this
+}
 		/**
   * float64 with default
   * @type {number}
   **/
  float64FieldWithValue: number = 7.89
 		/**
+  * float64 with default
   * @returns {number}
-  * @description float64 with default
   **/
 getFloat64FieldWithValue () { return this[`float64FieldWithValue`] }
 		/**
   * float64 with default
   * @param {number}
   **/
-setFloat64FieldWithValue (value: number ) { this[`float64FieldWithValue`] = value; return this; } 
+/**
+  * float64 with default
+  * @param {number}
+  **/
+/// XXX
+setFloat64FieldWithValue(value: number) {
+	// Only accept array types
+	this["float64FieldWithValue"] = value
+	return this
+}
 		/**
   * nullable float64
   * @type {number}
   **/
  nullableFloat64Field?: number | null = undefined
 		/**
+  * nullable float64
   * @returns {number}
-  * @description nullable float64
   **/
 getNullableFloat64Field () { return this[`nullableFloat64Field`] }
 		/**
   * nullable float64
   * @param {number}
   **/
-setNullableFloat64Field (value: number  | null) { this[`nullableFloat64Field`] = value; return this; } 
+/**
+  * nullable float64
+  * @param {number}
+  **/
+/// XXX
+setNullableFloat64Field(value: number) {
+	// Only accept array types
+	this["nullableFloat64Field"] = value
+	return this
+}
 		/**
   * nullable float64 with default
   * @type {number}
   **/
  nullableFloat64FieldWithValue?: number | null  = 0.12
 		/**
+  * nullable float64 with default
   * @returns {number}
-  * @description nullable float64 with default
   **/
 getNullableFloat64FieldWithValue () { return this[`nullableFloat64FieldWithValue`] }
 		/**
   * nullable float64 with default
   * @param {number}
   **/
-setNullableFloat64FieldWithValue (value: number  | null) { this[`nullableFloat64FieldWithValue`] = value; return this; } 
+/**
+  * nullable float64 with default
+  * @param {number}
+  **/
+/// XXX
+setNullableFloat64FieldWithValue(value: number) {
+	// Only accept array types
+	this["nullableFloat64FieldWithValue"] = value
+	return this
+}
 }
 export abstract class AnonymouseFactory {
 	abstract create(data: unknown): Anonymouse;

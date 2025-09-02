@@ -23,18 +23,18 @@ func findTokenByName(realms []core.GeneratedScriptToken, name string) *core.Gene
 	return nil
 }
 
-func JsActionFetchAndMetaData(action *core.EmiAction, realms jsActionRealms, ctx core.MicroGenContext) (*core.CodeChunkCompiled, fetchStaticFunctionContext, error) {
+func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, ctx core.MicroGenContext) (*core.CodeChunkCompiled, fetchStaticFunctionContext, error) {
 
-	className := fmt.Sprintf("%vAction", core.ToUpper(action.Name))
+	className := action.GetName()
 	fetchctx := fetchStaticFunctionContext{
 		DefaultUrlVariable: fmt.Sprintf("%v.URL", className),
 		UrlCreatorFunction: fmt.Sprintf("%v.NewUrl", className),
 		UrlMethod:          fmt.Sprintf("%v.Method", className),
-		EndpointUrl:        action.Url,
+		EndpointUrl:        action.GetUrl(),
 
 		// By default, use the classic http call
 		IsClassicHttpCall: true,
-		ActionMethod:      action.Method,
+		ActionMethod:      action.GetMethod(),
 	}
 
 	if action.MethodUpper() == EMI_METHOD_SSE {
@@ -160,7 +160,7 @@ export class {{ .className }} {
 		Value: className,
 	})
 
-	if len(core.ExtractPlaceholdersInUrl(action.Url)) > 0 {
+	if len(core.ExtractPlaceholdersInUrl(action.GetUrl())) > 0 {
 		fetchctx.PathParameterTypeName = fmt.Sprintf("%vPathParameter", className)
 	}
 
@@ -223,7 +223,7 @@ export class {{ .className }} {
 		"realms":                  realms,
 		"fetchctx":                fetchctx,
 		"className":               className,
-		"queryParams":             core.ExtractPlaceholdersInUrl(action.Url),
+		"queryParams":             core.ExtractPlaceholdersInUrl(action.GetUrl()),
 	}); err != nil {
 		return nil, fetchctx, err
 	}

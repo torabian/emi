@@ -21,7 +21,7 @@ type jsActionOptionsContext struct {
 
 func TsActionOptionsTypeHelper(optionsctx jsActionOptionsContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
-	className := fmt.Sprintf("%vActionOptions", core.ToUpper(optionsctx.ActionName))
+	className := fmt.Sprintf("%vOptions", core.ToUpper(optionsctx.ActionName))
 	const tmpl = `
 export type {{ .className }} = {
 	queryKey?: unknown[];

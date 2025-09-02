@@ -8,6 +8,8 @@ build:
 	./emi spec --output .vscode/emi-definitions.json && \
 	./emi spec --output ./playground/public/emi-definitions.json
 
+all: 
+	make build && make jstests
 sample:
 	make build && \
 	./emi js:module --path ./examples/js-test/jsonplaceholder.emi.yml --output ./examples/js-test/backend/src/generated --tags typescript,nestjs
@@ -17,7 +19,7 @@ wasm:
 	cp ./playground/public/emi-compiler.wasm  ./emi-npm/bin/emi-compiler.wasm
 
 jstests:
-	cd tests/js && npm i && npm test
+	cd tests/js && npm i && npx vitest run
 ci:
 	make build;
 	cd playground && npm run build && cd -;

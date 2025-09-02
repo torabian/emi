@@ -47,8 +47,8 @@ func tsRenderField(field *core.EmiField, parentChain string) tsRenderedField {
 	tsFieldTypeStr := tsFieldType(field, parentChain)
 
 	jsdoc := NewJsDoc("  ")
+	jsdoc.Add(field.Description)
 	jsdoc.Add(fmt.Sprintf("@type {%v}", tsFieldTypeStr))
-	jsdoc.Add(fmt.Sprintf("@description %v", field.Description))
 
 	output := fmt.Sprintf("%v %v?: %v;", jsdoc.String(), field.PrivateName(), tsFieldTypeStr)
 
@@ -77,7 +77,7 @@ func tsRenderTypes(fields []*core.EmiField, typeName string, treeLocation string
 
 	typeNameUpper := core.ToUpper(typeName)
 
-	jsdoc := NewJsDoc("  ").Add(fmt.Sprintf("@description The base type definition for %v", core.ToLower(typeName)))
+	jsdoc := NewJsDoc("  ").Add(fmt.Sprintf("The base type definition for %v", core.ToLower(typeName)))
 	typeNameFirst := typeNameUpper
 	if isFirst {
 		typeNameFirst = typeNameUpper + "Type"
@@ -116,12 +116,17 @@ func TsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	res := &core.CodeChunkCompiled{}
 
 	renderedTypes := tsRenderTypes(fields, tsctx.RootTypeName, tsctx.RootTypeName+"Type", true)
+	var mainInterface *tsRenderedType
+	var renderedSubTypes []tsRenderedType = []tsRenderedType{}
 
 	if len(renderedTypes) > 0 {
+		mainInterface = &renderedTypes[0]
 		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
 			Name:  TOKEN_ROOT_CLASS,
 			Value: renderedTypes[0].TypeName,
 		})
+
+		renderedSubTypes = renderedTypes[0].SubTypes
 	}
 
 	const tmpl = `
@@ -157,16 +162,19 @@ export namespace {{ .namespaceName }} {
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
 
-	var buf bytes.Buffer
-	if err := t.Execute(&buf, core.H{
-		"renderedTypes": renderedTypes[0].SubTypes,
-		"mainInterface": renderedTypes[0],
-		"namespaceName": renderedTypes[0].TypeName + "Type",
-		"fields":        fields,
-	}); err != nil {
-		return nil, err
-	}
+	if mainInterface != nil {
 
-	res.ActualScript = buf.Bytes()
+		var buf bytes.Buffer
+		if err := t.Execute(&buf, core.H{
+			"renderedTypes": renderedSubTypes,
+			"mainInterface": mainInterface,
+			"namespaceName": renderedTypes[0].TypeName + "Type",
+			"fields":        fields,
+		}); err != nil {
+			return nil, err
+		}
+
+		res.ActualScript = buf.Bytes()
+	}
 	return res, nil
 }

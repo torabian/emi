@@ -18,7 +18,7 @@ type reactMutationOptionsType struct {
 // generates a TS type for mutation options
 func ReactMutationOptionsTypeFunction(rmoptions reactMutationOptionsType, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	className := fmt.Sprintf("%vActionMutationOptions", core.ToUpper(rmoptions.ActionName))
+	className := fmt.Sprintf("%vMutationOptions", core.ToUpper(rmoptions.ActionName))
 
 	const tmpl = `
 export type {{ .className }} = Omit<

@@ -140,7 +140,7 @@ func jsGetSafeFieldValue(field *core.EmiField) string {
 	case "array", "arrayP", "many2many":
 		return "[]"
 	case "json", "object", "embed":
-		return "{}"
+		return "null"
 	case "string", "text":
 		return "\"\""
 	case "float", "float32", "float64", "float?", "float32?", "float64?":
@@ -184,8 +184,8 @@ func jsRenderField(field *core.EmiField, parentChain string, ctx core.MicroGenCo
 	}
 
 	getterjsdoc := NewJsDoc("  ")
+	getterjsdoc.Add(field.Description)
 	getterjsdoc.Add(fmt.Sprintf("@returns {%v}", jsFieldType))
-	getterjsdoc.Add(fmt.Sprintf("@description %v", field.Description))
 	getterFunc := getterjsdoc.String() + fmt.Sprintf("get%v () { return this[`%v`] }", core.ToUpper(field.Name), field.Name)
 
 	setterjsdoc, setterFunc := jsClassSetterFunction(jsFieldType, field)
@@ -239,7 +239,7 @@ func jsRenderDataClasses(fields []*core.EmiField, className string, treeLocation
 
 	var content []jsRenderedDataClass
 
-	jsdoc := NewJsDoc("  ").Add(fmt.Sprintf("@decription The base class definition for %v", core.ToLower(className)))
+	jsdoc := NewJsDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 
 	// The type does not going to be implemented, because on the type, we have
 	// no control over if the value is correct.
@@ -407,6 +407,13 @@ export abstract class %vFactory {
 
 	if isTypeScript {
 		res.ActualScript = []byte(strings.ReplaceAll(string(res.ActualScript), "constructor(data)", "constructor(data: unknown)"))
+	}
+
+	res.SuggestedFileName = jsctx.RootClassName
+	res.SuggestedExtension = ".js"
+
+	if isTypeScript {
+		res.SuggestedExtension = ".ts"
 	}
 
 	return res, nil

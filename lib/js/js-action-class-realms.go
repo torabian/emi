@@ -26,23 +26,23 @@ type jsActionRealms struct {
 	Fetchctx             fetchStaticFunctionContext
 }
 
-func JsActionClassRealms(
-	action *core.EmiAction,
+func JsActionManifestRealms(
+	action core.EmiRpcAction,
 	ctx core.MicroGenContext,
 ) (*jsActionRealms, []core.CodeChunkDependency, error) {
 	deps := []core.CodeChunkDependency{}
 	actionRealms := jsActionRealms{
-		ActionName: action.Name,
+		ActionName: action.GetName(),
 		HttpMethod: action.MethodUpper(),
 	}
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 
 	reqheaderctx := jsHeaderClassContext{
-		ClassName: fmt.Sprintf("%vReqHeaders", core.ToUpper(action.Name)),
+		ClassName: fmt.Sprintf("%vReqHeaders", core.ToUpper(action.GetName())),
 	}
 
-	if action.In != nil && len(action.In.Headers) > 0 {
-		reqheaderctx.Columns = action.In.Headers
+	if action.HasRequestHeaders() {
+		reqheaderctx.Columns = action.GetRequestHeaders()
 	}
 	requestHeader, err := JsHeaderClass(reqheaderctx, ctx)
 	if err != nil {
@@ -55,11 +55,11 @@ func JsActionClassRealms(
 	}
 
 	resheaderctx := jsHeaderClassContext{
-		ClassName: fmt.Sprintf("%vResHeaders", core.ToUpper(action.Name)),
+		ClassName: fmt.Sprintf("%vResHeaders", core.ToUpper(action.GetName())),
 	}
 
-	if action.Out != nil && len(action.Out.Headers) > 0 {
-		resheaderctx.Columns = action.Out.Headers
+	if action.HasResponseHeaders() {
+		resheaderctx.Columns = action.GetResponseHeaders()
 	}
 	responseHeader, err := JsHeaderClass(resheaderctx, ctx)
 	if err != nil {
@@ -96,7 +96,7 @@ func JsActionClassRealms(
 	// Options type, the type which defines how many different things can go
 	// into this request.
 	optionsctx := jsActionOptionsContext{
-		ActionName: action.Name,
+		ActionName: action.GetName(),
 	}
 	if qs != nil {
 		token := findTokenByName(qs.Tokens, TOKEN_ROOT_CLASS)
@@ -137,9 +137,9 @@ func JsActionClassRealms(
 	}
 
 	// Action request (in)
-	if action.In != nil && len(action.In.Fields) > 0 {
-		fields, err := JsCommonObjectGenerator(action.In.Fields, ctx, JsCommonObjectContext{
-			RootClassName: action.Name + "Req",
+	if action.HasRequestFields() {
+		fields, err := JsCommonObjectGenerator(action.GetRequestFields(), ctx, JsCommonObjectContext{
+			RootClassName: action.GetName() + "Req",
 		})
 
 		if err != nil {
@@ -151,10 +151,10 @@ func JsActionClassRealms(
 	}
 
 	// Action response (out)
-	if action.Out != nil && len(action.Out.Fields) > 0 {
+	if action.HasResponseFields() {
 
-		outClassName := action.Name + "Res"
-		fields, err := JsCommonObjectGenerator(action.Out.Fields, ctx, JsCommonObjectContext{
+		outClassName := action.GetName() + "Res"
+		fields, err := JsCommonObjectGenerator(action.GetResponseFields(), ctx, JsCommonObjectContext{
 			RootClassName: outClassName,
 		})
 
@@ -165,6 +165,8 @@ func JsActionClassRealms(
 		deps = append(deps, fields.CodeChunkDependenies...)
 		actionRealms.ResponseClass = fields
 
+	} else {
+		fmt.Println("No response field for ", action.GetName())
 	}
 
 	fetch, fetchctx, err := JsActionFetchAndMetaData(action, actionRealms, ctx)

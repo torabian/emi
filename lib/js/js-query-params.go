@@ -23,9 +23,9 @@ type renderedQsField struct {
 	SetterFunc   string
 }
 
-func renderJsTsCommonQsInfo(action *core.EmiAction) ([]renderedQsField, error) {
+func renderJsTsCommonQsInfo(action core.EmiRpcAction) ([]renderedQsField, error) {
 	fields := []renderedQsField{}
-	for _, query := range action.Query {
+	for _, query := range action.GetQuery() {
 		queryType, err := normalizeJsHeaderType(string(query.Type))
 		if err != nil {
 			return nil, err
@@ -44,12 +44,12 @@ func renderJsTsCommonQsInfo(action *core.EmiAction) ([]renderedQsField, error) {
 }
 
 // generic renderer
-func renderTsJsQsClass(ctx core.MicroGenContext, action *core.EmiAction, fields []renderedQsField, tmpl string) (*core.CodeChunkCompiled, error) {
+func renderTsJsQsClass(ctx core.MicroGenContext, action core.EmiRpcAction, fields []renderedQsField, tmpl string) (*core.CodeChunkCompiled, error) {
 	res := &core.CodeChunkCompiled{}
 
 	t := template.Must(template.New("qsclass").Funcs(core.CommonMap).Parse(tmpl))
 	nestJsDecorator := strings.Contains(ctx.Tags, GEN_NEST_JS_COMPATIBILITY)
-	className := fmt.Sprintf("%vQueryParams", core.ToUpper(action.Name))
+	className := fmt.Sprintf("%vQueryParams", core.ToUpper(action.GetName()))
 
 	var nestJsDecoratorRendered = ""
 
@@ -100,7 +100,7 @@ func renderTsJsQsClass(ctx core.MicroGenContext, action *core.EmiAction, fields 
 	return res, nil
 }
 
-func JsActionQsClass(action *core.EmiAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+func JsActionQsClass(action core.EmiRpcAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	const tmpl = `/**
  * {{.className}} class
  * Auto-generated from EmiAction
@@ -109,15 +109,15 @@ func JsActionQsClass(action *core.EmiAction, ctx core.MicroGenContext) (*core.Co
 
   {{- range .fields }}
   /**
+   * {{ .Description }}
    * @returns { {{.Type}} }
-   * @description {{ .Description }}
    */
   {{.GetterFunc}} () {
     return this.getTyped('{{.PropertyName}}' , '{{.Type}}');
   }
   /**
+   * {{ .Description }}
    * @param { {{.Type}} } value
-   * @description {{ .Description }}
    */
   {{.SetterFunc}} (value) {
     this.set('{{.PropertyName}}', value);

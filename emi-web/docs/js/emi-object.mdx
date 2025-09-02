@@ -110,34 +110,34 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
         
 ```ts
 /**
- * @description The base type definition for anonymouse
+ * The base type definition for anonymouse
  **/
 export type AnonymouseType = {
   /**
+   *
    * @type {number}
-   * @description
    **/
   userId?: number;
   /**
+   *
    * @type {number}
-   * @description
    **/
   id?: number;
   /**
+   *
    * @type {string}
-   * @description
    **/
   title?: string;
   /**
+   *
    * @type {string}
-   * @description
    **/
   body?: string;
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace AnonymouseType {}
 /**
- * @decription The base class definition for anonymouse
+ * The base class definition for anonymouse
  **/
 export class Anonymouse {
   constructor(data) {
@@ -162,8 +162,8 @@ export class Anonymouse {
    **/
   userId;
   /**
+   *
    * @returns {number}
-   * @description
    **/
   getUserId() {
     return this[`userId`];
@@ -172,7 +172,13 @@ export class Anonymouse {
    *
    * @param {number}
    **/
+  /**
+   *
+   * @param {number}
+   **/
+  /// XXX
   setUserId(value: number) {
+    // Only accept array types
     this["userId"] = value;
     return this;
   }
@@ -182,8 +188,8 @@ export class Anonymouse {
    **/
   id;
   /**
+   *
    * @returns {number}
-   * @description
    **/
   getId() {
     return this[`id`];
@@ -192,7 +198,13 @@ export class Anonymouse {
    *
    * @param {number}
    **/
+  /**
+   *
+   * @param {number}
+   **/
+  /// XXX
   setId(value: number) {
+    // Only accept array types
     this["id"] = value;
     return this;
   }
@@ -202,8 +214,8 @@ export class Anonymouse {
    **/
   title;
   /**
+   *
    * @returns {string}
-   * @description
    **/
   getTitle() {
     return this[`title`];
@@ -212,7 +224,13 @@ export class Anonymouse {
    *
    * @param {string}
    **/
+  /**
+   *
+   * @param {string}
+   **/
+  /// XXX
   setTitle(value: string) {
+    // Only accept array types
     this["title"] = value;
     return this;
   }
@@ -222,8 +240,8 @@ export class Anonymouse {
    **/
   body;
   /**
+   *
    * @returns {string}
-   * @description
    **/
   getBody() {
     return this[`body`];
@@ -232,7 +250,13 @@ export class Anonymouse {
    *
    * @param {string}
    **/
+  /**
+   *
+   * @param {string}
+   **/
+  /// XXX
   setBody(value: string) {
+    // Only accept array types
     this["body"] = value;
     return this;
   }

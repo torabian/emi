@@ -15,7 +15,7 @@ type reactQueryHookRealms struct {
 }
 
 func ReactQueryHooksBasedOnActionRealms(
-	action *core.EmiAction,
+	action core.EmiRpcAction,
 	ctx core.MicroGenContext,
 	actionRealms jsActionRealms,
 ) (*reactQueryHookRealms, []core.CodeChunkDependency, error) {

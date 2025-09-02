@@ -9,15 +9,15 @@ import (
 )
 
 // JsActionPathParams generates a TypeScript type with the path parameters only
-func JsActionPathParams(action *core.EmiAction) (*core.CodeChunkCompiled, error) {
+func JsActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error) {
 	res := &core.CodeChunkCompiled{}
 
-	placeholders := core.ExtractPlaceholdersInUrl(action.Url)
+	placeholders := core.ExtractPlaceholdersInUrl(action.GetUrl())
 	if len(placeholders) == 0 {
 		return nil, nil // nothing to generate
 	}
 
-	className := fmt.Sprintf("%vAction", core.ToUpper(action.Name))
+	className := action.GetName()
 	typeName := fmt.Sprintf("%vPathParameter", className)
 
 	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: typeName})

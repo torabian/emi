@@ -1,25 +1,25 @@
 	/**
-  * @description The base type definition for anonymouse
+  * The base type definition for anonymouse
   **/
 	export type AnonymouseType =  {
 			/**
+  * This is a pure string field, there for never can be null, and by default needs to be empty string
   * @type {string}
-  * @description This is a pure string field, there for never can be null, and by default needs to be empty string
   **/
  stringField?: string;
 			/**
+  * Pure string field, but with an intial string value, and never can be undefined or null
   * @type {string}
-  * @description Pure string field, but with an intial string value, and never can be undefined or null
   **/
  stringFieldWithValue?: string;
 			/**
+  * Nullable string field. Can be undefined, or set to null to indicate intentional emptiness
   * @type {string}
-  * @description Nullable string field. Can be undefined, or set to null to indicate intentional emptiness
   **/
  nullableStringField?: string;
 			/**
+  * Nullable string field, can be undefined or null, but with an initial value
   * @type {string}
-  * @description Nullable string field, can be undefined or null, but with an initial value
   **/
  nullableStringFieldWithValue?: string;
 	}
@@ -27,7 +27,7 @@
 export namespace AnonymouseType {
 }
 /**
-  * @decription The base class definition for anonymouse
+  * The base class definition for anonymouse
   **/
 export class Anonymouse {
 	constructor(data: unknown) {
@@ -52,60 +52,96 @@ export class Anonymouse {
   **/
  stringField: string = ""
 		/**
+  * This is a pure string field, there for never can be null, and by default needs to be empty string
   * @returns {string}
-  * @description This is a pure string field, there for never can be null, and by default needs to be empty string
   **/
 getStringField () { return this[`stringField`] }
 		/**
   * This is a pure string field, there for never can be null, and by default needs to be empty string
   * @param {string}
   **/
-setStringField (value: string ) { this[`stringField`] = value; return this; } 
+/**
+  * This is a pure string field, there for never can be null, and by default needs to be empty string
+  * @param {string}
+  **/
+/// XXX
+setStringField(value: string) {
+	// Only accept array types
+	this["stringField"] = value
+	return this
+}
 		/**
   * Pure string field, but with an intial string value, and never can be undefined or null
   * @type {string}
   **/
  stringFieldWithValue: string = "testvalue"
 		/**
+  * Pure string field, but with an intial string value, and never can be undefined or null
   * @returns {string}
-  * @description Pure string field, but with an intial string value, and never can be undefined or null
   **/
 getStringFieldWithValue () { return this[`stringFieldWithValue`] }
 		/**
   * Pure string field, but with an intial string value, and never can be undefined or null
   * @param {string}
   **/
-setStringFieldWithValue (value: string ) { this[`stringFieldWithValue`] = value; return this; } 
+/**
+  * Pure string field, but with an intial string value, and never can be undefined or null
+  * @param {string}
+  **/
+/// XXX
+setStringFieldWithValue(value: string) {
+	// Only accept array types
+	this["stringFieldWithValue"] = value
+	return this
+}
 		/**
   * Nullable string field. Can be undefined, or set to null to indicate intentional emptiness
   * @type {string}
   **/
  nullableStringField?: string | null = undefined
 		/**
+  * Nullable string field. Can be undefined, or set to null to indicate intentional emptiness
   * @returns {string}
-  * @description Nullable string field. Can be undefined, or set to null to indicate intentional emptiness
   **/
 getNullableStringField () { return this[`nullableStringField`] }
 		/**
   * Nullable string field. Can be undefined, or set to null to indicate intentional emptiness
   * @param {string}
   **/
-setNullableStringField (value: string  | null) { this[`nullableStringField`] = value; return this; } 
+/**
+  * Nullable string field. Can be undefined, or set to null to indicate intentional emptiness
+  * @param {string}
+  **/
+/// XXX
+setNullableStringField(value: string) {
+	// Only accept array types
+	this["nullableStringField"] = value
+	return this
+}
 		/**
   * Nullable string field, can be undefined or null, but with an initial value
   * @type {string}
   **/
  nullableStringFieldWithValue?: string | null  = "stringvalue"
 		/**
+  * Nullable string field, can be undefined or null, but with an initial value
   * @returns {string}
-  * @description Nullable string field, can be undefined or null, but with an initial value
   **/
 getNullableStringFieldWithValue () { return this[`nullableStringFieldWithValue`] }
 		/**
   * Nullable string field, can be undefined or null, but with an initial value
   * @param {string}
   **/
-setNullableStringFieldWithValue (value: string  | null) { this[`nullableStringFieldWithValue`] = value; return this; } 
+/**
+  * Nullable string field, can be undefined or null, but with an initial value
+  * @param {string}
+  **/
+/// XXX
+setNullableStringFieldWithValue(value: string) {
+	// Only accept array types
+	this["nullableStringFieldWithValue"] = value
+	return this
+}
 }
 export abstract class AnonymouseFactory {
 	abstract create(data: unknown): Anonymouse;

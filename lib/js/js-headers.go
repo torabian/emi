@@ -75,15 +75,15 @@ func JsHeaderClass(
 
   {{- range .headers }}
   /**
+   * {{ .Description }}
    * @returns { {{.Type}} }
-   * @description {{ .Description }}
    */
   {{.GetterFunc}} () {
     return this.#getTyped('{{.PropertyName}}', '{{.Type}}');
   }
   /**
+   * {{ .Description }}
    * @param { {{.Type}} } value
-   * @description {{ .Description }}
    */
   {{.SetterFunc}} (value) {
     this.set('{{.PropertyName}}', value);

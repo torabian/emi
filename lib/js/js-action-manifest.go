@@ -12,7 +12,11 @@ import (
 	"github.com/torabian/emi/lib/core"
 )
 
-func JsActionClass(action *core.EmiAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+// Could be used for both actions and remotes
+
+// Bundles all of the different classes, imports, types,
+// and so on required to create an action into a single code chunk.
+func JsActionManifest(action core.EmiRpcAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	isReact := strings.Contains(ctx.Tags, GEN_REACT_COMPATIBILITY)
 
@@ -20,12 +24,12 @@ func JsActionClass(action *core.EmiAction, ctx core.MicroGenContext) (*core.Code
 		Tokens: []core.GeneratedScriptToken{
 			{
 				Name:  TOKEN_ORIGINAL_NAME,
-				Value: action.Name,
+				Value: action.GetName(),
 			},
 		},
 	}
 
-	actionRealms, jsDependencies, err := JsActionClassRealms(action, ctx)
+	actionRealms, jsDependencies, err := JsActionManifestRealms(action, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -148,13 +152,13 @@ func JsActionClass(action *core.EmiAction, ctx core.MicroGenContext) (*core.Code
 		"nestjsDecorator":        nestJsDecorator,
 		"fetch":                  string(actionRealms.FetchMetaClass.ActualScript),
 		"realms":                 actionRealms,
-		"className":              fmt.Sprintf("%vAction", action.Upper()),
+		"className":              action.GetName(),
 	}); err != nil {
 		return nil, err
 	}
 
 	res.ActualScript = buf.Bytes()
-	res.SuggestedFileName = core.ToUpper(action.Name) + "Action"
+	res.SuggestedFileName = action.GetName()
 	res.SuggestedExtension = ".js"
 
 	if isTypeScript {

@@ -75,11 +75,11 @@ Here is a list of features which will be generated via js/ts compiler:
 - [x] Make the partial compiler functions public
 - [x] Module3 complete documentation to write.
 - [x] Typesafe reactive methods, for WebSocket access.
+- [x] Publish on npm and make available on npx
 - [ ] Determine on the path selector, so in the options user can select details needed to be generated
-- [ ] Publish on npm and make available on npx
 - [ ] Publish on brew to install.
 - [ ] Static fields for the common object to access fields via json path
-- [ ] Generate the DTO and Entities standalone in emi
+- [ ] Generate the DTO and Entities standalone in emi, as well as remotes
 
 
 ## Emi Golang
