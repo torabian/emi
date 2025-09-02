@@ -14,6 +14,9 @@ func IsNumericDataType(value string) bool {
 		return false
 	}
 }
+func IsNullable(value string) bool {
+	return strings.Contains(value, "?")
+}
 
 func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 	switch field.Type {

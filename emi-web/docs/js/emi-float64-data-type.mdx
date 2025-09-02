@@ -1,0 +1,242 @@
+---
+sidebar_position: 7
+---
+
+# Emi float64 data type
+    
+
+      Example schema:
+```yaml
+name: MyFloatClass
+fields:
+  - name: floatWithDefault
+    default: 3.14
+    type: float64
+  - name: plainFloat
+    type: float64
+
+```
+      
+- `float64` maps to JavaScript `number` with double precision.  
+- Default is `0.0` if not specified.  
+- `float64?` allows `null` and `undefined`, defaulting to `undefined`.  
+    
+```ts
+/**
+ * The base class definition for myFloatClassDto
+ **/
+
+export class MyFloatClassDto {
+  /**
+   *
+   * @type {number}
+   **/
+  #floatWithDefault: number = 3.14;
+  /**
+   *
+   * @returns {number}
+   **/
+  get floatWithDefault() {
+    return this[`#floatWithDefault`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set floatWithDefault(value: number) {}
+
+  setFloatWithDefault(value: number) {
+    this["floatWithDefault"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+  #plainFloat: number = 0.0;
+  /**
+   *
+   * @returns {number}
+   **/
+  get plainFloat() {
+    return this[`#plainFloat`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set plainFloat(value: number) {}
+
+  setPlainFloat(value: number) {
+    this["plainFloat"] = value;
+
+    return this;
+  }
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyFloatClassDto>;
+
+    if (d[`floatWithDefault`] !== undefined) {
+      this.floatWithDefault = d[`#floatWithDefault`];
+    }
+
+    if (d[`plainFloat`] !== undefined) {
+      this.plainFloat = d[`#plainFloat`];
+    }
+  }
+}
+
+export abstract class MyFloatClassDtoFactory {
+  abstract create(data: unknown): MyFloatClassDto;
+}
+
+/**
+ * The base type definition for myFloatClassDto
+ **/
+
+export type MyFloatClassDtoType = {
+  /**
+   *
+   * @type {number}
+   **/
+  floatWithDefault?: number;
+
+  /**
+   *
+   * @type {number}
+   **/
+  plainFloat?: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyFloatClassDtoType {}
+
+```
+
+      Nullable version:
+```yaml
+name: MyFloatClass
+fields:
+  - name: nullableFloatWithDefault
+    default: 1.23
+    type: float64?
+  - name: nullableFloatWithoutDefault
+    type: float64?
+
+```
+
+Defaults to `undefined`, but you can assign any float value or `null`.
+    
+```ts
+/**
+ * The base class definition for myFloatClassDto
+ **/
+
+export class MyFloatClassDto {
+  /**
+   *
+   * @type {number}
+   **/
+  #nullableFloatWithDefault?: number | null = 1.23;
+  /**
+   *
+   * @returns {number}
+   **/
+  get nullableFloatWithDefault() {
+    return this[`#nullableFloatWithDefault`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set nullableFloatWithDefault(value: number) {
+    const correctType =
+      typeof value === "number" || value === undefined || value === null;
+    this["#nullableFloatWithDefault"] = correctType ? value : Number(value);
+  }
+
+  setNullableFloatWithDefault(value: number) {
+    this["nullableFloatWithDefault"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+  #nullableFloatWithoutDefault?: number | null = undefined;
+  /**
+   *
+   * @returns {number}
+   **/
+  get nullableFloatWithoutDefault() {
+    return this[`#nullableFloatWithoutDefault`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set nullableFloatWithoutDefault(value: number) {
+    const correctType =
+      typeof value === "number" || value === undefined || value === null;
+    this["#nullableFloatWithoutDefault"] = correctType ? value : Number(value);
+  }
+
+  setNullableFloatWithoutDefault(value: number) {
+    this["nullableFloatWithoutDefault"] = value;
+
+    return this;
+  }
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyFloatClassDto>;
+
+    if (d[`nullableFloatWithDefault`] !== undefined) {
+      this.nullableFloatWithDefault = d[`#nullableFloatWithDefault`];
+    }
+
+    if (d[`nullableFloatWithoutDefault`] !== undefined) {
+      this.nullableFloatWithoutDefault = d[`#nullableFloatWithoutDefault`];
+    }
+  }
+}
+
+export abstract class MyFloatClassDtoFactory {
+  abstract create(data: unknown): MyFloatClassDto;
+}
+
+/**
+ * The base type definition for myFloatClassDto
+ **/
+
+export type MyFloatClassDtoType = {
+  /**
+   *
+   * @type {number}
+   **/
+  nullableFloatWithDefault?: number;
+
+  /**
+   *
+   * @type {number}
+   **/
+  nullableFloatWithoutDefault?: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyFloatClassDtoType {}
+
+```
+
+> Emi also supports `float32`, but `float64` is the default for decimals.

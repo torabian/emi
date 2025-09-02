@@ -5,6 +5,38 @@ import { writeFileSync } from "fs";
 
 describe("Generating numeric data types", () => {
   const fieldsMap = {
+    stringField: {
+      type: "string",
+      name: "stringField",
+      description: "string field, non-nullable",
+      $jstype: "string",
+      $initializerKind: "StringLiteral",
+    },
+    stringFieldWithValue: {
+      type: "string",
+      name: "stringFieldWithValue",
+      description: "string field with default",
+      default: "defaultstring",
+      $jstype: "string",
+      $initializerKind: "StringLiteral",
+    },
+    nullablestringField: {
+      type: "string?",
+      name: "nullablestringField",
+      description: "nullable string",
+      default: undefined,
+      $jstype: "string",
+      $initializerKind: "StringLiteral",
+    },
+    nullablestringFieldWithValue: {
+      type: "string?",
+      name: "nullablestringFieldWithValue",
+      description: "nullable string with default",
+      default: "defaultstring",
+      $jstype: "string",
+      $initializerKind: "StringLiteral",
+    },
+
     boolField: {
       type: "bool",
       name: "boolField",
@@ -223,21 +255,21 @@ describe("Generating numeric data types", () => {
   Object.keys(fieldsMap).forEach((fieldKey) => {
     const f = fieldsMap[fieldKey];
     describe(`data type: ${fieldKey}`, () => {
-      it("should have correct TypeScript type (everything needs to be number in this test)", () => {
-        const field = source.getClass("Anonymouse")!.getProperty(f.name)!;
+      it("should have correct TypeScript on the private field", () => {
+        const field = source.getClass("Anonymouse")!.getProperty("#" + f.name)!;
         expect(field.getType().getText()).toBe(f.$jstype);
       });
 
       if (f.default) {
         it(`should initialize to ${f.default}`, () => {
-          const field = source.getClass("Anonymouse")!.getProperty(f.name)!;
+          const field = source
+            .getClass("Anonymouse")!
+            .getProperty("#" + f.name)!;
           const initializer = field.getInitializer()?.getText() ?? "undefined";
-
           // Important test for number.
           expect(field.getInitializer()?.getKindName()).toBe(
             f.$initializerKind
           );
-
           if (f.$initializerKind == "NumericLiteral") {
             expect(+initializer).toBe(f.default);
           } else if (f.$initializerKind == "TrueKeyword") {
@@ -245,22 +277,20 @@ describe("Generating numeric data types", () => {
           }
         });
       }
-
       it(`${f.name}: should ${
         f.type.endsWith("?") ? "be optional" : "not be optional"
       }`, () => {
-        const field = source.getClass("Anonymouse")!.getProperty(f.name)!;
+        const field = source.getClass("Anonymouse")!.getProperty("#" + f.name)!;
         expect(field.hasQuestionToken()).toBe(f.type.endsWith("?"));
       });
-
       it("should have correct JSDoc", () => {
-        const field = source.getClass("Anonymouse")!.getProperty(f.name)!;
+        const field = source.getClass("Anonymouse")!.getProperty("#" + f.name)!;
         expect(getJsDoc(field).trim()).toBe(f.description);
       });
       it("setter should take single argument of correct type", () => {
         const setter = source
           .getClass("Anonymouse")!
-          .getMethod(`set${f.name.charAt(0).toUpperCase()}${f.name.slice(1)}`)!;
+          .getSetAccessor(`${f.name}`)!;
         expect(setter).toBeDefined();
         const paramType = setter.getParameters()[0].getType().getText();
         expect(paramType).toBe(f.$jstype);

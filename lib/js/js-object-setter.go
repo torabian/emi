@@ -3,6 +3,7 @@ package js
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -10,19 +11,19 @@ import (
 
 var setterTemplateNew = template.Must(template.New("setter").Parse(`
 {{.Jsdoc}}
-/// XXX
+/// XXX {{ .FieldType}} - {{ .Type }} - {{ .isFieldNullable }}
 set{{.UpperName}}(value{{if .FieldType}}: {{.FieldType}}{{end}}) {
-	// Only accept array types
+	
 	{{if eq .Type "array"}}
 	if (!Array.isArray(value) && value !== null && value !== undefined) {
 		return this
 	}
 
 	// If the value is array, we need to check first item, if is instance of the class
-	if (value.length > 0 && value[0] instanceof {{.ArrayClass}}) {
+	if (value.length > 0 && value[0] instanceof {{.FieldType}}) {
 		this["{{.Name}}"] = value
 	} else {
-		this["{{.Name}}"] = value.map(item => new {{.ArrayClass}}(item))
+		this["{{.Name}}"] = value.map(item => new {{.FieldType}}(item))
 	}
 	{{else}}
 	this["{{.Name}}"] = value
@@ -36,7 +37,7 @@ func JsTsFieldSetterGenerator(jsFieldType string, field *core.EmiField, isTypeSc
 	setterjsdoc := NewJsDoc("  ")
 	setterjsdoc.Add(field.Description)
 	setterjsdoc.Add(fmt.Sprintf("@param {%v}", jsFieldType))
-	// isFieldNullable := strings.Contains(string(field.Type), "?")
+	isFieldNullable := strings.Contains(string(field.Type), "?")
 
 	// if isTypeScript {
 	// 	nullableMark := ""
@@ -54,11 +55,13 @@ func JsTsFieldSetterGenerator(jsFieldType string, field *core.EmiField, isTypeSc
 	// }
 
 	data := map[string]any{
-		"Jsdoc":     setterjsdoc.String(),
-		"UpperName": core.ToUpper(field.Name),
-		"Name":      field.Name,
-		"FieldType": jsFieldType,
-		"Type":      field.Type,
+		"Jsdoc":           setterjsdoc.String(),
+		"UpperName":       core.ToUpper(field.Name),
+		"Name":            field.Name,
+		"FieldType":       jsFieldType,
+		"isFieldNullable": isFieldNullable,
+		"JsType":          jsFieldType,
+		"Type":            field.Type,
 	}
 
 	var buf bytes.Buffer
