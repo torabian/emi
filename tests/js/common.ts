@@ -1,6 +1,6 @@
 import { createInstance } from "../../emi-npm/bin/getPublicActions";
 import yaml from "js-yaml";
-import { MethodDeclaration, Project, PropertyDeclaration } from "ts-morph";
+import { MethodDeclaration, Project, PropertyDeclaration, ts } from "ts-morph";
 
 function toYaml(obj: unknown): string {
   return yaml.dump(obj, { noRefs: true });
@@ -19,6 +19,9 @@ function checkTsCode(code: string) {
   const project = new Project({
     useInMemoryFileSystem: true,
     skipAddingFilesFromTsConfig: true,
+    compilerOptions: {
+      target: ts.ScriptTarget.ES2015, // or higher, e.g. ES2020
+    },
   });
 
   const sourceFile = project.createSourceFile("temp.ts", code);

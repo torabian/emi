@@ -16,6 +16,26 @@ func GetJsPublicActions() core.PublicAPIActions {
 		},
 		{
 			BaseAction: core.BaseAction{
+				Name:             "js:dto:class",
+				Description:      "Generates a dto class based on the dto signature, (name, fields)",
+				WasmFunctionName: "jsGenDtoClass",
+			},
+			Run: func(ctx core.MicroGenContext) (string, error) {
+				return commonJsDtoStringCompiler(ctx,
+					func(
+						dto core.EmiDto,
+						ctx core.MicroGenContext,
+						jsctx JsCommonObjectContext,
+					) (*core.CodeChunkCompiled, error) {
+						return JsCommonObjectGenerator(dto.Fields, ctx, JsCommonObjectContext{
+							RootClassName: dto.GetClassName(),
+						})
+					},
+				)
+			},
+		},
+		{
+			BaseAction: core.BaseAction{
 				Name:             "emi:spec",
 				Description:      "Generate the emi specs",
 				WasmFunctionName: "genEmiSpec",

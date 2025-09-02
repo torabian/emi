@@ -124,13 +124,17 @@ export class {{ .className }} extends Axios {
 
 		responseClassType := "unknown"
 		if realms.ResponseClass != nil {
-			responseClassType = findTokenByName(realms.ResponseClass.Tokens, TOKEN_ROOT_CLASS).Value
-			res.CodeChunkDependenies = append(res.CodeChunkDependenies, core.CodeChunkDependency{
-				Objects: []string{
-					responseClassType,
-				},
-				Location: importPath(action.SuggestedFileName),
-			})
+			responseClass := findTokenByName(realms.ResponseClass.Tokens, TOKEN_ROOT_CLASS)
+
+			if responseClass != nil {
+				responseClassType = responseClass.Value
+				res.CodeChunkDependenies = append(res.CodeChunkDependenies, core.CodeChunkDependency{
+					Objects: []string{
+						responseClassType,
+					},
+					Location: importPath(action.SuggestedFileName),
+				})
+			}
 
 		}
 

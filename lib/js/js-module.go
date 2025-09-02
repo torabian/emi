@@ -25,14 +25,44 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	files := []core.VirtualFile{}
 
 	var actionsRendered []*core.CodeChunkCompiled
+	var entitiesAndDtos []*core.CodeChunkCompiled
 
 	// First, compile the actions, and we might need to use their tokens on the next steps.
 	for _, action := range module.Actions {
-		actionRendered, err := JsActionClass(action, ctx)
+		actionRendered, err := JsActionManifest(action, ctx)
 		if err != nil {
 			return nil, err
 		}
 		actionsRendered = append(actionsRendered, actionRendered)
+	}
+
+	// Now we can also render the remotes.
+	for _, remote := range module.Remotes {
+		actionRendered, err := JsActionManifest(remote, ctx)
+		if err != nil {
+			return nil, err
+		}
+		actionsRendered = append(actionsRendered, actionRendered)
+	}
+
+	for _, entity := range module.Entities {
+		actionRendered, err := JsCommonObjectGenerator(entity.Fields, ctx, JsCommonObjectContext{
+			RootClassName: entity.GetClassName(),
+		})
+		if err != nil {
+			return nil, err
+		}
+		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
+	}
+
+	for _, dto := range module.Dto {
+		actionRendered, err := JsCommonObjectGenerator(dto.Fields, ctx, JsCommonObjectContext{
+			RootClassName: dto.GetClassName(),
+		})
+		if err != nil {
+			return nil, err
+		}
+		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
 	}
 
 	globalPacakges := []string{"qs", "@types/qs"}
@@ -51,6 +81,22 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 			Name:         action.SuggestedFileName,
 			Extension:    action.SuggestedExtension,
 			ActualScript: AsFullDocument(action),
+		})
+	}
+
+	for _, dtoItem := range entitiesAndDtos {
+
+		for _, loc := range dtoItem.CodeChunkDependenies {
+			if loc.Location == INTERNAL_SDK_JS_LOCATION {
+				continue
+			}
+			globalPacakges = append(globalPacakges, loc.Location)
+		}
+
+		files = append(files, core.VirtualFile{
+			Name:         dtoItem.SuggestedFileName,
+			Extension:    dtoItem.SuggestedExtension,
+			ActualScript: AsFullDocument(dtoItem),
 		})
 	}
 

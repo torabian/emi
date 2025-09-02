@@ -23,7 +23,7 @@ type reactQueryOptionsType struct {
 // generates a static function, to developers prefer to make calls via axios
 func ReactQueryOptionsTypeFunction(rqoptions reactQueryOptionsType, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	className := fmt.Sprintf("%vActionQueryOptions", core.ToUpper(rqoptions.ActionName))
+	className := fmt.Sprintf("%vQueryOptions", core.ToUpper(rqoptions.ActionName))
 
 	var responseClass *core.GeneratedScriptToken
 	if rqoptions.JsActionRealms.ResponseClass != nil {

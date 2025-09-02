@@ -1,0 +1,267 @@
+---
+sidebar_position: 8
+---
+
+# Emi object data type
+    
+
+Example schema:
+```yaml
+name: MyObjectClass
+fields:
+  - name: profile
+    type: object
+    fields:
+      - name: firstName
+        type: string
+      - name: age
+        type: int
+
+```
+
+- `object` lets you embed nested fields inside your class.  
+- Works like inline type definition in TypeScript.  
+- Defaults to an empty object `{}` if not specified.  
+- `object?` allows `null`/ `undefined`.  
+    
+```ts
+/**
+ * The base class definition for myObjectClassDto
+ **/
+
+export class MyObjectClassDto {
+  /**
+   *
+   * @type {MyObjectClassDto.Profile}
+   **/
+  #profile: InstanceType<typeof MyObjectClassDto.Profile> = null;
+  /**
+   *
+   * @returns {MyObjectClassDto.Profile}
+   **/
+  get profile() {
+    return this[`#profile`];
+  }
+
+  /**
+   *
+   * @type {MyObjectClassDto.Profile}
+   **/
+
+  set profile(value: InstanceType<typeof MyObjectClassDto.Profile>) {
+    // For objects, the sub type needs to always be instance of the sub class.
+    if (value instanceof MyObjectClassDto.Profile) {
+      this["#profile"] = value;
+    } else {
+      this["#profile"] = new MyObjectClassDto.Profile(value);
+    }
+  }
+
+  setProfile(value: InstanceType<typeof MyObjectClassDto.Profile>) {
+    this["profile"] = value;
+
+    return this;
+  }
+
+  /**
+   * The base class definition for profile
+   **/
+
+  static Profile = class Profile {
+    /**
+     *
+     * @type {string}
+     **/
+    #firstName: string = "";
+    /**
+     *
+     * @returns {string}
+     **/
+    get firstName() {
+      return this[`#firstName`];
+    }
+
+    /**
+     *
+     * @type {string}
+     **/
+
+    set firstName(value: string) {
+      const correctType = typeof value === "string";
+      this["#firstName"] = correctType ? value : "" + value;
+    }
+
+    setFirstName(value: string) {
+      this["firstName"] = value;
+
+      return this;
+    }
+
+    /**
+     *
+     * @type {number}
+     **/
+    #age: number = 0;
+    /**
+     *
+     * @returns {number}
+     **/
+    get age() {
+      return this[`#age`];
+    }
+
+    /**
+     *
+     * @type {number}
+     **/
+
+    set age(value: number) {
+      const correctType = typeof value === "number";
+      this["#age"] = correctType ? value : Number(value);
+    }
+
+    setAge(value: number) {
+      this["age"] = value;
+
+      return this;
+    }
+
+    constructor(data: unknown) {
+      const d = data as Partial<Profile>;
+
+      if (d[`firstName`] !== undefined) {
+        this.firstName = d[`#firstName`];
+      }
+
+      if (d[`age`] !== undefined) {
+        this.age = d[`#age`];
+      }
+    }
+  };
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyObjectClassDto>;
+
+    if (d[`profile`] !== undefined) {
+      this.profile = d[`#profile`];
+    }
+  }
+}
+
+export abstract class MyObjectClassDtoFactory {
+  abstract create(data: unknown): MyObjectClassDto;
+}
+
+/**
+ * The base type definition for myObjectClassDto
+ **/
+
+export type MyObjectClassDtoType = {
+  /**
+   *
+   * @type {MyObjectClassDtoType.ProfileType}
+   **/
+  profile?: MyObjectClassDtoType.ProfileType;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyObjectClassDtoType {
+  /**
+   * The base type definition for profileType
+   **/
+
+  export type ProfileType = {
+    /**
+     *
+     * @type {string}
+     **/
+    firstName?: string;
+
+    /**
+     *
+     * @type {number}
+     **/
+    age?: number;
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  export namespace ProfileType {}
+}
+
+```
+
+Nullable version:
+```yaml
+name: MyObjectClass
+fields:
+  - name: optionalProfile
+    type: object?
+    fields:
+      - name: lastName
+        type: string
+
+```
+
+Defaults to `undefined`, but you can assign an object with required child fields or `null`.
+    
+```ts
+/**
+ * The base class definition for myObjectClassDto
+ **/
+
+export class MyObjectClassDto {
+  /**
+   *
+   * @type {string}
+   **/
+  #optionalProfile?: string | null = undefined;
+  /**
+   *
+   * @returns {string}
+   **/
+  get optionalProfile() {
+    return this[`#optionalProfile`];
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+
+  set optionalProfile(value: string) {}
+
+  setOptionalProfile(value: string) {
+    this["optionalProfile"] = value;
+
+    return this;
+  }
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyObjectClassDto>;
+
+    if (d[`optionalProfile`] !== undefined) {
+      this.optionalProfile = d[`#optionalProfile`];
+    }
+  }
+}
+
+export abstract class MyObjectClassDtoFactory {
+  abstract create(data: unknown): MyObjectClassDto;
+}
+
+/**
+ * The base type definition for myObjectClassDto
+ **/
+
+export type MyObjectClassDtoType = {
+  /**
+   *
+   * @type {string}
+   **/
+  optionalProfile?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyObjectClassDtoType {}
+
+```

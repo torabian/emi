@@ -110,133 +110,179 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
         
 ```ts
 /**
- * @description The base type definition for anonymouse
+ * The base class definition for anonymouse
  **/
+
+export class Anonymouse {
+  /**
+   *
+   * @type {number}
+   **/
+  #userId = 0;
+  /**
+   *
+   * @returns {number}
+   **/
+  get userId() {
+    return this[`#userId`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set userId(value) {
+    const correctType = typeof value === "number";
+    this["#userId"] = correctType ? value : Number(value);
+  }
+
+  setUserId(value) {
+    this["userId"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+  #id = 0;
+  /**
+   *
+   * @returns {number}
+   **/
+  get id() {
+    return this[`#id`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set id(value) {
+    const correctType = typeof value === "number";
+    this["#id"] = correctType ? value : Number(value);
+  }
+
+  setId(value) {
+    this["id"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+  #title = "";
+  /**
+   *
+   * @returns {string}
+   **/
+  get title() {
+    return this[`#title`];
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+
+  set title(value) {
+    const correctType = typeof value === "string";
+    this["#title"] = correctType ? value : "" + value;
+  }
+
+  setTitle(value) {
+    this["title"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+  #body = "";
+  /**
+   *
+   * @returns {string}
+   **/
+  get body() {
+    return this[`#body`];
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+
+  set body(value) {
+    const correctType = typeof value === "string";
+    this["#body"] = correctType ? value : "" + value;
+  }
+
+  setBody(value) {
+    this["body"] = value;
+
+    return this;
+  }
+
+  constructor(data) {
+    const d = data as Partial<Anonymouse>;
+
+    if (d[`userId`] !== undefined) {
+      this.userId = d[`#userId`];
+    }
+
+    if (d[`id`] !== undefined) {
+      this.id = d[`#id`];
+    }
+
+    if (d[`title`] !== undefined) {
+      this.title = d[`#title`];
+    }
+
+    if (d[`body`] !== undefined) {
+      this.body = d[`#body`];
+    }
+  }
+}
+
+/**
+ * The base type definition for anonymouse
+ **/
+
 export type AnonymouseType = {
   /**
+   *
    * @type {number}
-   * @description
    **/
   userId?: number;
+
   /**
+   *
    * @type {number}
-   * @description
    **/
   id?: number;
+
   /**
+   *
    * @type {string}
-   * @description
    **/
   title?: string;
+
   /**
+   *
    * @type {string}
-   * @description
    **/
   body?: string;
 };
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace AnonymouseType {}
-/**
- * @decription The base class definition for anonymouse
- **/
-export class Anonymouse {
-  constructor(data) {
-    // This probably doesn't cover the nested objects
-    const d = data as Partial<Anonymouse>;
-    if (d[`userId`] !== undefined) {
-      this.setUserId(d[`userId`]);
-    }
-    if (d[`id`] !== undefined) {
-      this.setId(d[`id`]);
-    }
-    if (d[`title`] !== undefined) {
-      this.setTitle(d[`title`]);
-    }
-    if (d[`body`] !== undefined) {
-      this.setBody(d[`body`]);
-    }
-  }
-  /**
-   *
-   * @type {number}
-   **/
-  userId;
-  /**
-   * @returns {number}
-   * @description
-   **/
-  getUserId() {
-    return this[`userId`];
-  }
-  /**
-   *
-   * @param {number}
-   **/
-  setUserId(value: number) {
-    this["userId"] = value;
-    return this;
-  }
-  /**
-   *
-   * @type {number}
-   **/
-  id;
-  /**
-   * @returns {number}
-   * @description
-   **/
-  getId() {
-    return this[`id`];
-  }
-  /**
-   *
-   * @param {number}
-   **/
-  setId(value: number) {
-    this["id"] = value;
-    return this;
-  }
-  /**
-   *
-   * @type {string}
-   **/
-  title;
-  /**
-   * @returns {string}
-   * @description
-   **/
-  getTitle() {
-    return this[`title`];
-  }
-  /**
-   *
-   * @param {string}
-   **/
-  setTitle(value: string) {
-    this["title"] = value;
-    return this;
-  }
-  /**
-   *
-   * @type {string}
-   **/
-  body;
-  /**
-   * @returns {string}
-   * @description
-   **/
-  getBody() {
-    return this[`body`];
-  }
-  /**
-   *
-   * @param {string}
-   **/
-  setBody(value: string) {
-    this["body"] = value;
-    return this;
-  }
-}
 
 ```
 As you see, there is a lot of details handled in such object generation, to make sure

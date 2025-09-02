@@ -268,6 +268,12 @@ func StringToEmiFields(content string) ([]*EmiField, error) {
 	return actions, err
 }
 
+func StringToEmiDto(content string) (EmiDto, error) {
+	var data EmiDto
+	err := yaml.Unmarshal([]byte(content), &data)
+	return data, err
+}
+
 func StringToEmi(content string) (Emi, error) {
 	var module Emi
 	err := yaml.Unmarshal([]byte(content), &module)

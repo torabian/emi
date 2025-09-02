@@ -1,0 +1,265 @@
+---
+sidebar_position: 5
+---
+
+# Emi boolean data type
+
+        
+
+      Given the following example:
+```yaml
+name: MyBoolClass
+fields:
+  - name: boolWithDefault
+    default: true
+    type: bool
+  - name: plainBool
+    type: bool
+
+```
+      
+      
+
+      `bool` and `bool?` map directly to JavaScript's `boolean` type.
+      - `bool` fields are always required and default to `false` unless another default is provided.
+      - `bool?` fields allow both `null` and `undefined`, with `undefined` being the default if not specified.
+
+      Just like with strings, Emi generates a private backing field (`#field`) and a pair of getters and setters.
+      This ensures type safety and avoids accidental runtime errors.
+      
+      Example with a non-nullable `bool`:
+      
+```ts
+/**
+ * The base class definition for myBoolClassDto
+ **/
+
+export class MyBoolClassDto {
+  /**
+   *
+   * @type {boolean}
+   **/
+  #boolWithDefault: boolean = true;
+  /**
+   *
+   * @returns {boolean}
+   **/
+  get boolWithDefault() {
+    return this[`#boolWithDefault`];
+  }
+
+  /**
+   *
+   * @type {boolean}
+   **/
+
+  set boolWithDefault(value: boolean) {
+    const correctType = value === true || value === false;
+    this["#boolWithDefault"] = correctType ? value : Boolean(value);
+  }
+
+  setBoolWithDefault(value: boolean) {
+    this["boolWithDefault"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {boolean}
+   **/
+  #plainBool: boolean = null;
+  /**
+   *
+   * @returns {boolean}
+   **/
+  get plainBool() {
+    return this[`#plainBool`];
+  }
+
+  /**
+   *
+   * @type {boolean}
+   **/
+
+  set plainBool(value: boolean) {
+    const correctType = value === true || value === false;
+    this["#plainBool"] = correctType ? value : Boolean(value);
+  }
+
+  setPlainBool(value: boolean) {
+    this["plainBool"] = value;
+
+    return this;
+  }
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyBoolClassDto>;
+
+    if (d[`boolWithDefault`] !== undefined) {
+      this.boolWithDefault = d[`#boolWithDefault`];
+    }
+
+    if (d[`plainBool`] !== undefined) {
+      this.plainBool = d[`#plainBool`];
+    }
+  }
+}
+
+export abstract class MyBoolClassDtoFactory {
+  abstract create(data: unknown): MyBoolClassDto;
+}
+
+/**
+ * The base type definition for myBoolClassDto
+ **/
+
+export type MyBoolClassDtoType = {
+  /**
+   *
+   * @type {boolean}
+   **/
+  boolWithDefault?: boolean;
+
+  /**
+   *
+   * @type {boolean}
+   **/
+  plainBool?: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyBoolClassDtoType {}
+
+```
+
+      Given the following example:
+```yaml
+name: MyBoolClass
+fields:
+  - name: nullableBoolWithDefault
+    default: true
+    type: bool?
+  - name: nullableBoolWithoutDefault
+    type: bool?
+
+```
+      
+      
+
+      With `bool?`, the backing field is initialised with `undefined`.
+      You can explicitly set it to `true`, `false`, or `null`.
+      If a default is provided, it will be respected.
+
+      
+```ts
+/**
+ * The base class definition for myBoolClassDto
+ **/
+
+export class MyBoolClassDto {
+  /**
+   *
+   * @type {boolean}
+   **/
+  #nullableBoolWithDefault?: boolean | null = true;
+  /**
+   *
+   * @returns {boolean}
+   **/
+  get nullableBoolWithDefault() {
+    return this[`#nullableBoolWithDefault`];
+  }
+
+  /**
+   *
+   * @type {boolean}
+   **/
+
+  set nullableBoolWithDefault(value: boolean) {
+    const correctType =
+      value === true ||
+      value === false ||
+      value === undefined ||
+      value === null;
+    this["#nullableBoolWithDefault"] = correctType ? value : Boolean(value);
+  }
+
+  setNullableBoolWithDefault(value: boolean) {
+    this["nullableBoolWithDefault"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {boolean}
+   **/
+  #nullableBoolWithoutDefault?: boolean | null = undefined;
+  /**
+   *
+   * @returns {boolean}
+   **/
+  get nullableBoolWithoutDefault() {
+    return this[`#nullableBoolWithoutDefault`];
+  }
+
+  /**
+   *
+   * @type {boolean}
+   **/
+
+  set nullableBoolWithoutDefault(value: boolean) {
+    const correctType =
+      value === true ||
+      value === false ||
+      value === undefined ||
+      value === null;
+    this["#nullableBoolWithoutDefault"] = correctType ? value : Boolean(value);
+  }
+
+  setNullableBoolWithoutDefault(value: boolean) {
+    this["nullableBoolWithoutDefault"] = value;
+
+    return this;
+  }
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyBoolClassDto>;
+
+    if (d[`nullableBoolWithDefault`] !== undefined) {
+      this.nullableBoolWithDefault = d[`#nullableBoolWithDefault`];
+    }
+
+    if (d[`nullableBoolWithoutDefault`] !== undefined) {
+      this.nullableBoolWithoutDefault = d[`#nullableBoolWithoutDefault`];
+    }
+  }
+}
+
+export abstract class MyBoolClassDtoFactory {
+  abstract create(data: unknown): MyBoolClassDto;
+}
+
+/**
+ * The base type definition for myBoolClassDto
+ **/
+
+export type MyBoolClassDtoType = {
+  /**
+   *
+   * @type {boolean}
+   **/
+  nullableBoolWithDefault?: boolean;
+
+  /**
+   *
+   * @type {boolean}
+   **/
+  nullableBoolWithoutDefault?: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyBoolClassDtoType {}
+
+```

@@ -1,0 +1,255 @@
+---
+sidebar_position: 4
+---
+
+# Emi string data type
+ 
+        
+
+      Given the following example:
+```yaml
+name: MyStringClass
+fields:
+  - name: stringWithDefault
+    default: With default value
+    type: string
+  - name: emptyString
+    type: string
+
+```
+      
+      
+
+      `string` and `string?` types will be converted into the javascript counter part with a difference that ? allows the null value, and by default is `undefined`.
+      As a general pattern the field private value (#field) would be created, and based on that, there will be getters and setters.
+
+      First let's take a look on the `string`, and see how it would prevent the crashes by generating the typesafe code:
+
+      
+```ts
+/**
+ * The base class definition for myStringClassDto
+ **/
+
+export class MyStringClassDto {
+  /**
+   *
+   * @type {string}
+   **/
+  #stringWithDefault: string = "With default value";
+  /**
+   *
+   * @returns {string}
+   **/
+  get stringWithDefault() {
+    return this[`#stringWithDefault`];
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+
+  set stringWithDefault(value: string) {
+    const correctType = typeof value === "string";
+    this["#stringWithDefault"] = correctType ? value : "" + value;
+  }
+
+  setStringWithDefault(value: string) {
+    this["stringWithDefault"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+  #emptyString: string = "";
+  /**
+   *
+   * @returns {string}
+   **/
+  get emptyString() {
+    return this[`#emptyString`];
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+
+  set emptyString(value: string) {
+    const correctType = typeof value === "string";
+    this["#emptyString"] = correctType ? value : "" + value;
+  }
+
+  setEmptyString(value: string) {
+    this["emptyString"] = value;
+
+    return this;
+  }
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyStringClassDto>;
+
+    if (d[`stringWithDefault`] !== undefined) {
+      this.stringWithDefault = d[`#stringWithDefault`];
+    }
+
+    if (d[`emptyString`] !== undefined) {
+      this.emptyString = d[`#emptyString`];
+    }
+  }
+}
+
+export abstract class MyStringClassDtoFactory {
+  abstract create(data: unknown): MyStringClassDto;
+}
+
+/**
+ * The base type definition for myStringClassDto
+ **/
+
+export type MyStringClassDtoType = {
+  /**
+   *
+   * @type {string}
+   **/
+  stringWithDefault?: string;
+
+  /**
+   *
+   * @type {string}
+   **/
+  emptyString?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyStringClassDtoType {}
+
+```
+
+      Given the following example:
+```yaml
+name: MyStringClass
+fields:
+  - name: nullableStringWithDefault
+    default: With default value
+    type: string?
+  - name: nullableWithoutDefault
+    type: string?
+
+```
+      
+      
+
+      In nullable scenario, the field is initialised with 'undefined' and allows null value as well.
+      If default provided, the default value will be placed.
+
+      
+```ts
+/**
+ * The base class definition for myStringClassDto
+ **/
+
+export class MyStringClassDto {
+  /**
+   *
+   * @type {string}
+   **/
+  #nullableStringWithDefault?: string | null = "With default value";
+  /**
+   *
+   * @returns {string}
+   **/
+  get nullableStringWithDefault() {
+    return this[`#nullableStringWithDefault`];
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+
+  set nullableStringWithDefault(value: string) {
+    const correctType =
+      typeof value === "string" || value === undefined || value === null;
+    this["#nullableStringWithDefault"] = correctType ? value : "" + value;
+  }
+
+  setNullableStringWithDefault(value: string) {
+    this["nullableStringWithDefault"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+  #nullableWithoutDefault?: string | null = undefined;
+  /**
+   *
+   * @returns {string}
+   **/
+  get nullableWithoutDefault() {
+    return this[`#nullableWithoutDefault`];
+  }
+
+  /**
+   *
+   * @type {string}
+   **/
+
+  set nullableWithoutDefault(value: string) {
+    const correctType =
+      typeof value === "string" || value === undefined || value === null;
+    this["#nullableWithoutDefault"] = correctType ? value : "" + value;
+  }
+
+  setNullableWithoutDefault(value: string) {
+    this["nullableWithoutDefault"] = value;
+
+    return this;
+  }
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyStringClassDto>;
+
+    if (d[`nullableStringWithDefault`] !== undefined) {
+      this.nullableStringWithDefault = d[`#nullableStringWithDefault`];
+    }
+
+    if (d[`nullableWithoutDefault`] !== undefined) {
+      this.nullableWithoutDefault = d[`#nullableWithoutDefault`];
+    }
+  }
+}
+
+export abstract class MyStringClassDtoFactory {
+  abstract create(data: unknown): MyStringClassDto;
+}
+
+/**
+ * The base type definition for myStringClassDto
+ **/
+
+export type MyStringClassDtoType = {
+  /**
+   *
+   * @type {string}
+   **/
+  nullableStringWithDefault?: string;
+
+  /**
+   *
+   * @type {string}
+   **/
+  nullableWithoutDefault?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyStringClassDtoType {}
+
+```

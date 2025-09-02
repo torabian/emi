@@ -1,0 +1,248 @@
+---
+sidebar_position: 6
+---
+
+# Emi integer data type
+    
+
+      Example schema:
+```yaml
+name: MyIntClass
+fields:
+  - name: intWithDefault
+    default: 42
+    type: int
+  - name: plainInt
+    type: int
+
+```
+      
+- `int` maps to JavaScript `number`, limited to safe 32-bit values.  
+- If no default provided, it defaults to `0`.  
+- `int?` allows `null` and `undefined`, with `undefined` as default.  
+    
+```ts
+/**
+ * The base class definition for myIntClassDto
+ **/
+
+export class MyIntClassDto {
+  /**
+   *
+   * @type {number}
+   **/
+  #intWithDefault: number = 42;
+  /**
+   *
+   * @returns {number}
+   **/
+  get intWithDefault() {
+    return this[`#intWithDefault`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set intWithDefault(value: number) {
+    const correctType = typeof value === "number";
+    this["#intWithDefault"] = correctType ? value : Number(value);
+  }
+
+  setIntWithDefault(value: number) {
+    this["intWithDefault"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+  #plainInt: number = 0;
+  /**
+   *
+   * @returns {number}
+   **/
+  get plainInt() {
+    return this[`#plainInt`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set plainInt(value: number) {
+    const correctType = typeof value === "number";
+    this["#plainInt"] = correctType ? value : Number(value);
+  }
+
+  setPlainInt(value: number) {
+    this["plainInt"] = value;
+
+    return this;
+  }
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyIntClassDto>;
+
+    if (d[`intWithDefault`] !== undefined) {
+      this.intWithDefault = d[`#intWithDefault`];
+    }
+
+    if (d[`plainInt`] !== undefined) {
+      this.plainInt = d[`#plainInt`];
+    }
+  }
+}
+
+export abstract class MyIntClassDtoFactory {
+  abstract create(data: unknown): MyIntClassDto;
+}
+
+/**
+ * The base type definition for myIntClassDto
+ **/
+
+export type MyIntClassDtoType = {
+  /**
+   *
+   * @type {number}
+   **/
+  intWithDefault?: number;
+
+  /**
+   *
+   * @type {number}
+   **/
+  plainInt?: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyIntClassDtoType {}
+
+```
+
+      Nullable version:
+```yaml
+name: MyIntClass
+fields:
+  - name: nullableIntWithDefault
+    default: 7
+    type: int?
+  - name: nullableIntWithoutDefault
+    type: int?
+
+```
+
+Defaults to `undefined`, but you can assign `0`, any number, or `null`.
+    
+```ts
+/**
+ * The base class definition for myIntClassDto
+ **/
+
+export class MyIntClassDto {
+  /**
+   *
+   * @type {number}
+   **/
+  #nullableIntWithDefault?: number | null = 7;
+  /**
+   *
+   * @returns {number}
+   **/
+  get nullableIntWithDefault() {
+    return this[`#nullableIntWithDefault`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set nullableIntWithDefault(value: number) {
+    const correctType =
+      typeof value === "number" || value === undefined || value === null;
+    this["#nullableIntWithDefault"] = correctType ? value : Number(value);
+  }
+
+  setNullableIntWithDefault(value: number) {
+    this["nullableIntWithDefault"] = value;
+
+    return this;
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+  #nullableIntWithoutDefault?: number | null = undefined;
+  /**
+   *
+   * @returns {number}
+   **/
+  get nullableIntWithoutDefault() {
+    return this[`#nullableIntWithoutDefault`];
+  }
+
+  /**
+   *
+   * @type {number}
+   **/
+
+  set nullableIntWithoutDefault(value: number) {
+    const correctType =
+      typeof value === "number" || value === undefined || value === null;
+    this["#nullableIntWithoutDefault"] = correctType ? value : Number(value);
+  }
+
+  setNullableIntWithoutDefault(value: number) {
+    this["nullableIntWithoutDefault"] = value;
+
+    return this;
+  }
+
+  constructor(data: unknown) {
+    const d = data as Partial<MyIntClassDto>;
+
+    if (d[`nullableIntWithDefault`] !== undefined) {
+      this.nullableIntWithDefault = d[`#nullableIntWithDefault`];
+    }
+
+    if (d[`nullableIntWithoutDefault`] !== undefined) {
+      this.nullableIntWithoutDefault = d[`#nullableIntWithoutDefault`];
+    }
+  }
+}
+
+export abstract class MyIntClassDtoFactory {
+  abstract create(data: unknown): MyIntClassDto;
+}
+
+/**
+ * The base type definition for myIntClassDto
+ **/
+
+export type MyIntClassDtoType = {
+  /**
+   *
+   * @type {number}
+   **/
+  nullableIntWithDefault?: number;
+
+  /**
+   *
+   * @type {number}
+   **/
+  nullableIntWithoutDefault?: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyIntClassDtoType {}
+
+```
+
+> Besides `int` and `int?`, Emi also supports `int32`, `int32?`, `int64`, and `int64?` types.
