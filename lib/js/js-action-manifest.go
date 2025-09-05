@@ -112,8 +112,8 @@ func JsActionManifest(action core.EmiRpcAction, ctx core.MicroGenContext) (*core
 {{ end }}
  
 
-{{ if .fetch }}
-	{{ .fetch }}
+{{ if .realms.FetchMetaClass }}
+	{{ b2s .realms.FetchMetaClass.ActualScript }}
 {{ end }}
 
 {{ if .realms.RequestClass }}
@@ -124,16 +124,16 @@ func JsActionManifest(action core.EmiRpcAction, ctx core.MicroGenContext) (*core
 {{ b2s .realms.ResponseClass.ActualScript }}
 {{ end }}
 
-{{ if .actionRealms.RequestHeadersClass }}
-{{ b2s .actionRealms.RequestHeadersClass.ActualScript }}
+{{ if .realms.RequestHeadersClass }}
+{{ b2s .realms.RequestHeadersClass.ActualScript }}
 {{ end }}
 
-{{ if .actionRealms.ResponseHeadersClass }}
-{{ b2s .actionRealms.ResponseHeadersClass.ActualScript }}
+{{ if .realms.ResponseHeadersClass }}
+{{ b2s .realms.ResponseHeadersClass.ActualScript }}
 {{ end }}
 
-{{ if .actionRealms.QueryStringClass }}
-{{ b2s .actionRealms.QueryStringClass.ActualScript }}
+{{ if .realms.QueryStringClass }}
+{{ b2s .realms.QueryStringClass.ActualScript }}
 {{ end }}
 
 `
@@ -147,7 +147,6 @@ func JsActionManifest(action core.EmiRpcAction, ctx core.MicroGenContext) (*core
 		"shouldExport":    true,
 		"reactQuery":      reactQuery,
 		"nestjsDecorator": nestJsDecorator,
-		"fetch":           string(actionRealms.FetchMetaClass.ActualScript),
 		"realms":          actionRealms,
 		"className":       action.GetName(),
 	}); err != nil {

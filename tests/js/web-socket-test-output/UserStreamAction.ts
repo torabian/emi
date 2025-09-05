@@ -1,10 +1,10 @@
-import { URLSearchParamsX, WebSocketX, buildUrl, isPlausibleObject, withPrefix } from './sdk/js';
+import { WebSocketX, buildUrl, isPlausibleObject, withPrefix } from './sdk/js';
 /**
 * Action to communicate with the action userStream
 */
 export type UserStreamActionOptions = {
 	queryKey?: unknown[];
-	qs?: UserStreamActionQueryParams;
+	qs?: URLSearchParams;
 };
 	/**
  * UserStreamAction
@@ -12,7 +12,7 @@ export type UserStreamActionOptions = {
 export class UserStreamAction {
   static URL = 'ws://localhost:8081';
   static NewUrl = (
-	qs?: UserStreamActionQueryParams
+	qs?: URLSearchParams
   ) => buildUrl(
 		UserStreamAction.URL,
 		 undefined,
@@ -21,7 +21,7 @@ export class UserStreamAction {
   static Method = 'reactive';
 	static Create = (
 		overrideUrl?: string,
-		qs?: UserStreamActionQueryParams,
+		qs?: URLSearchParams,
 	) => {
 		const url = overrideUrl ?? UserStreamAction.NewUrl(
 			qs
