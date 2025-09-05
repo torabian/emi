@@ -5,7 +5,6 @@ import { URLSearchParamsX, WebSocketX, buildUrl, isPlausibleObject, withPrefix }
 export type UserStreamActionOptions = {
 	queryKey?: unknown[];
 	qs?: UserStreamActionQueryParams;
-	headers?: UserStreamActionReqHeaders;
 };
 	/**
  * UserStreamAction
@@ -253,36 +252,4 @@ export abstract class UserStreamActionResFactory {
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace UserStreamActionResType {
-}
-/**
- * UserStreamActionReqHeaders class
- * Auto-generated from EmiAction
- */
-export class UserStreamActionReqHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * UserStreamActionResHeaders class
- * Auto-generated from EmiAction
- */
-export class UserStreamActionResHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * UserStreamActionQueryParams class
- * Auto-generated from EmiAction
- */
-export class UserStreamActionQueryParams extends URLSearchParamsX {
 }

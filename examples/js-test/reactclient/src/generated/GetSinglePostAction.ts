@@ -8,7 +8,6 @@ export type GetSinglePostActionOptions = {
 	queryKey?: unknown[];
 	params: GetSinglePostActionPathParameter;
 	qs?: GetSinglePostActionQueryParams;
-	headers?: GetSinglePostActionReqHeaders;
 };
 export type GetSinglePostActionQueryOptions = Omit<
 	UseQueryOptions<
@@ -64,10 +63,10 @@ export class GetSinglePostAction {
 	static Fetch = async (
 			params: GetSinglePostActionPathParameter,
 		qs?: GetSinglePostActionQueryParams,
-		init?: TypedRequestInit<GetSinglePostActionRes, GetSinglePostActionReqHeaders>,
+		init?: TypedRequestInit<GetSinglePostActionRes, unknown>,
 		overrideUrl?: string
 	) => {
-		const res = await fetchx<GetSinglePostActionRes, unknown, GetSinglePostActionReqHeaders>(
+		const res = await fetchx<GetSinglePostActionRes, unknown, unknown>(
 			overrideUrl ?? GetSinglePostAction.NewUrl(
 				params,
 				qs
@@ -271,36 +270,4 @@ export abstract class GetSinglePostActionResFactory {
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace GetSinglePostActionResType {
-}
-/**
- * GetSinglePostActionReqHeaders class
- * Auto-generated from EmiAction
- */
-export class GetSinglePostActionReqHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * GetSinglePostActionResHeaders class
- * Auto-generated from EmiAction
- */
-export class GetSinglePostActionResHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * GetSinglePostActionQueryParams class
- * Auto-generated from EmiAction
- */
-export class GetSinglePostActionQueryParams extends URLSearchParamsX {
 }

@@ -1,5 +1,5 @@
 import { Axios, type AxiosRequestConfig, type AxiosResponse } from 'axios';
-import { GetSinglePostAction, GetSinglePostActionQueryParams, GetSinglePostActionReqHeaders, GetSinglePostActionRes, type GetSinglePostActionPathParameter } from './GetSinglePostAction';
+import { GetSinglePostAction, GetSinglePostActionQueryParams, GetSinglePostActionRes, type GetSinglePostActionPathParameter } from './GetSinglePostAction';
 /**
 * Axios bundle service
 */
@@ -28,12 +28,12 @@ export class SampleModuleAxiosClient extends Axios {
 		GetSinglePostAction(params: GetSinglePostActionPathParameter, config?: TypedAxiosRequestConfig<
 			unknown,
 			GetSinglePostActionQueryParams,
-			GetSinglePostActionReqHeaders
+			unknown
 		>) {
 		 	const url = GetSinglePostAction.NewUrl(
 				params
 			)
-			return this.request<GetSinglePostActionRes, TypedAxiosResponse<GetSinglePostActionRes, unknown, GetSinglePostActionReqHeaders>>(
+			return this.request<GetSinglePostActionRes, TypedAxiosResponse<GetSinglePostActionRes, unknown, unknown>>(
 				{
 					url,
 					method: GetSinglePostAction.Method,

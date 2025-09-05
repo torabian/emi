@@ -6,11 +6,10 @@ import { useSse } from './sdk/react';
 export type SampleSseActionOptions = {
 	queryKey?: unknown[];
 	qs?: SampleSseActionQueryParams;
-	headers?: SampleSseActionReqHeaders;
 };
 export const useSampleSseAction = (options: {
 	qs?: SampleSseActionQueryParams,
-	init?: TypedRequestInit<SampleSseActionRes, SampleSseActionReqHeaders>,
+	init?: TypedRequestInit<SampleSseActionRes, unknown>,
 	overrideUrl?: string
 }) => {
 	return useSse(SampleSseAction.Fetch, options);
@@ -31,10 +30,10 @@ export class SampleSseAction {
 	static Fetch = async (
 			onMessage?: (ev: MessageEvent) => void,
 		qs?: SampleSseActionQueryParams,
-		init?: TypedRequestInit<SampleSseActionRes, SampleSseActionReqHeaders>,
+		init?: TypedRequestInit<SampleSseActionRes, unknown>,
 		overrideUrl?: string
 	) => {
-		const res = await fetchx<SampleSseActionRes, unknown, SampleSseActionReqHeaders>(
+		const res = await fetchx<SampleSseActionRes, unknown, unknown>(
 			overrideUrl ?? SampleSseAction.NewUrl(
 				qs
 			),
@@ -124,36 +123,4 @@ export abstract class SampleSseActionResFactory {
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace SampleSseActionResType {
-}
-/**
- * SampleSseActionReqHeaders class
- * Auto-generated from EmiAction
- */
-export class SampleSseActionReqHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * SampleSseActionResHeaders class
- * Auto-generated from EmiAction
- */
-export class SampleSseActionResHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * SampleSseActionQueryParams class
- * Auto-generated from EmiAction
- */
-export class SampleSseActionQueryParams extends URLSearchParamsX {
 }

@@ -6,7 +6,6 @@ import { useWebSocketX } from './sdk/react';
 export type WebSocketOrgEchoActionOptions = {
 	queryKey?: unknown[];
 	qs?: WebSocketOrgEchoActionQueryParams;
-	headers?: WebSocketOrgEchoActionReqHeaders;
 };
 export const useWebSocketOrgEchoAction = (options?: {
 	qs?: WebSocketOrgEchoActionQueryParams,
@@ -497,36 +496,4 @@ export abstract class WebSocketOrgEchoActionResFactory {
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace WebSocketOrgEchoActionResType {
-}
-/**
- * WebSocketOrgEchoActionReqHeaders class
- * Auto-generated from EmiAction
- */
-export class WebSocketOrgEchoActionReqHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * WebSocketOrgEchoActionResHeaders class
- * Auto-generated from EmiAction
- */
-export class WebSocketOrgEchoActionResHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * WebSocketOrgEchoActionQueryParams class
- * Auto-generated from EmiAction
- */
-export class WebSocketOrgEchoActionQueryParams extends URLSearchParamsX {
 }

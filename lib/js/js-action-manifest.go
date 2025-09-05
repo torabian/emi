@@ -124,16 +124,16 @@ func JsActionManifest(action core.EmiRpcAction, ctx core.MicroGenContext) (*core
 {{ b2s .realms.ResponseClass.ActualScript }}
 {{ end }}
 
-{{ if .reqHeaderCompiledClass }}
-{{ .reqHeaderCompiledClass }}
+{{ if .actionRealms.RequestHeadersClass }}
+{{ b2s .actionRealms.RequestHeadersClass.ActualScript }}
 {{ end }}
 
-{{ if .resHeaderCompiledClass }}
-{{ .resHeaderCompiledClass }}
+{{ if .actionRealms.ResponseHeadersClass }}
+{{ b2s .actionRealms.ResponseHeadersClass.ActualScript }}
 {{ end }}
 
-{{ if .qsCompiledClass }}
-{{ .qsCompiledClass }}
+{{ if .actionRealms.QueryStringClass }}
+{{ b2s .actionRealms.QueryStringClass.ActualScript }}
 {{ end }}
 
 `
@@ -143,16 +143,13 @@ func JsActionManifest(action core.EmiRpcAction, ctx core.MicroGenContext) (*core
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"action":                 action,
-		"reqHeaderCompiledClass": string(actionRealms.RequestHeadersClass.ActualScript),
-		"resHeaderCompiledClass": string(actionRealms.ResponseHeadersClass.ActualScript),
-		"qsCompiledClass":        string(actionRealms.QueryStringClass.ActualScript),
-		"shouldExport":           true,
-		"reactQuery":             reactQuery,
-		"nestjsDecorator":        nestJsDecorator,
-		"fetch":                  string(actionRealms.FetchMetaClass.ActualScript),
-		"realms":                 actionRealms,
-		"className":              action.GetName(),
+		"action":          action,
+		"shouldExport":    true,
+		"reactQuery":      reactQuery,
+		"nestjsDecorator": nestJsDecorator,
+		"fetch":           string(actionRealms.FetchMetaClass.ActualScript),
+		"realms":          actionRealms,
+		"className":       action.GetName(),
 	}); err != nil {
 		return nil, err
 	}

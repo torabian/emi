@@ -37,21 +37,23 @@ func JsActionManifestRealms(
 	}
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 
-	reqheaderctx := jsHeaderClassContext{
-		ClassName: fmt.Sprintf("%vReqHeaders", core.ToUpper(action.GetName())),
-	}
-
 	if action.HasRequestHeaders() {
-		reqheaderctx.Columns = action.GetRequestHeaders()
-	}
-	requestHeader, err := JsHeaderClass(reqheaderctx, ctx)
-	if err != nil {
-		return nil, nil, err
-	}
+		reqheaderctx := jsHeaderClassContext{
+			ClassName: fmt.Sprintf("%vReqHeaders", core.ToUpper(action.GetName())),
+		}
 
-	if requestHeader != nil {
-		deps = append(deps, requestHeader.CodeChunkDependenies...)
-		actionRealms.RequestHeadersClass = requestHeader
+		reqheaderctx.Columns = action.GetRequestHeaders()
+
+		requestHeader, err := JsHeaderClass(reqheaderctx, ctx)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if requestHeader != nil {
+			deps = append(deps, requestHeader.CodeChunkDependenies...)
+			actionRealms.RequestHeadersClass = requestHeader
+		}
+
 	}
 
 	resheaderctx := jsHeaderClassContext{
@@ -115,8 +117,8 @@ func JsActionManifestRealms(
 		}
 	}
 
-	if requestHeader != nil {
-		token := findTokenByName(requestHeader.Tokens, TOKEN_ROOT_CLASS)
+	if actionRealms.RequestHeadersClass != nil {
+		token := findTokenByName(actionRealms.RequestHeadersClass.Tokens, TOKEN_ROOT_CLASS)
 		if token != nil {
 			optionsctx.RequestHeadersClassName = token.Value
 		}
