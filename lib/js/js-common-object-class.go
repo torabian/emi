@@ -19,6 +19,9 @@ type jsRenderedDataClass struct {
 	JsDoc                string
 	SubClasses           []jsRenderedDataClass
 	ClassStaticFunctions []string
+
+	// For typescript, it has the Partial types.
+	DataSourceStatement string
 }
 
 type jsRenderedField struct {
@@ -28,6 +31,7 @@ type jsRenderedField struct {
 	PrivateField            string
 	GetterFunc              string
 	SetterCallInConstructor string
+	StaticFieldItem         string
 	SetterFunc              string
 }
 
@@ -113,32 +117,32 @@ func (x jsFieldVariable) CreateSetterFunction(ctx core.MicroGenContext) string {
 set {{ .ctx.Name }} (|@arg.value|) {
 	{{ if or (eq .ctx.Type "string") }}
 	 	const correctType = typeof value === 'string';
-		this["#{{.ctx.Name}}"] = correctType ? value : ('' + value);
+		this.#{{.ctx.Name}} = correctType ? value : ('' + value);
 	{{ end }}
 
 	{{ if or (eq .ctx.Type "string?") }}
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this["#{{.ctx.Name}}"] = correctType ? value : ('' + value);
+		this.#{{.ctx.Name}} = correctType ? value : ('' + value);
 	{{ end }}
 
 	{{ if and (eq .ctx.IsNumeric true) (eq .ctx.IsNullable true) }}
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
-		this["#{{.ctx.Name}}"] = correctType ? value : Number(value);
+		this.#{{.ctx.Name}} = correctType ? value : Number(value);
 	{{ end }}
 	
 	{{ if and (eq .ctx.IsNumeric true) (eq .ctx.IsNullable false) }}
 	 	const correctType = typeof value === 'number'
-		this["#{{.ctx.Name}}"] = correctType ? value : Number(value);
+		this.#{{.ctx.Name}} = correctType ? value : Number(value);
 	{{ end }}
 	
 	{{ if and (eq .ctx.Type "bool")}}
 	 	const correctType = value === true || value === false
-		this["#{{.ctx.Name}}"] = correctType ? value : Boolean(value);
+		this.#{{.ctx.Name}} = correctType ? value : Boolean(value);
 	{{ end }}
 	
 	{{ if and (eq .ctx.Type "bool?")}}
 	 	const correctType = value === true || value === false || value === undefined || value === null
-		this["#{{.ctx.Name}}"] = correctType ? value : Boolean(value);
+		this.#{{.ctx.Name}} = correctType ? value : Boolean(value);
 	{{ end }}
 	
 	{{ if and (eq .ctx.Type "array")}}
@@ -147,24 +151,24 @@ set {{ .ctx.Name }} (|@arg.value|) {
 			return;
 		}
 		if (value.length > 0 && value[0] instanceof {{.ctx.ConstructorClass}}) {
-			this["#{{.ctx.Name}}"] = value
+			this.#{{.ctx.Name}} = value
 		} else {
-			this["#{{.ctx.Name}}"] = value.map(item => new {{.ctx.ConstructorClass}}(item))
+			this.#{{.ctx.Name}} = value.map(item => new {{.ctx.ConstructorClass}}(item))
 		}
  	{{ end }}
 
 	{{ if and (eq .ctx.Type "object")}}
 	 	// For objects, the sub type needs to always be instance of the sub class.
 	 	if (value instanceof {{.ctx.ConstructorClass}}) {
-			this["#{{.ctx.Name}}"] = value
+			this.#{{.ctx.Name}} = value
 		} else {
-			this["#{{.ctx.Name}}"] = new {{.ctx.ConstructorClass}}(value)
+			this.#{{.ctx.Name}} = new {{.ctx.ConstructorClass}}(value)
 		}
  	{{ end }}
 }
 
 set{{ .ctx.Upper }} (|@arg.value|) {
-	this["{{.ctx.Name}}"] = value
+	this.{{.ctx.Name}} = value
 
 	return this
 }
@@ -239,7 +243,7 @@ func (x jsFieldVariable) Compile(isTypeScript bool) string {
 	return strings.Join(sequence, " ")
 }
 
-func jsRenderField(field *core.EmiField, parentChain string, ctx core.MicroGenContext) jsRenderedField {
+func jsRenderField(field *core.EmiField, parentChain string, fieldDepth string, ctx core.MicroGenContext) jsRenderedField {
 	jsFieldType := jsFieldTypeOnNestedClasses(field, parentChain)
 	tsFieldType := tsFieldTypeOnNestedClasses(field, parentChain)
 	isFieldNullable := IsNullable(string(field.Type))
@@ -267,9 +271,46 @@ func jsRenderField(field *core.EmiField, parentChain string, ctx core.MicroGenCo
 	getterjsdoc := NewJsDoc("  ")
 	getterjsdoc.Add(field.Description)
 	getterjsdoc.Add(fmt.Sprintf("@returns {%v}", jsFieldType))
-	getterFunc := getterjsdoc.String() + fmt.Sprintf("get %v () { return this[`#%v`] }", field.Name, field.Name)
+	getterFunc := getterjsdoc.String() + fmt.Sprintf("get %v () { return this.#%v }", field.Name, field.Name)
 
-	setterCallInConstructor := fmt.Sprintf("if (d[`%v`] !== undefined) { this.%v = d[`#%v`] }", field.Name, field.Name, field.Name)
+	setterCallInConstructor := fmt.Sprintf("if (d.%v !== undefined) { this.%v = d.%v }", field.Name, field.Name, field.Name)
+
+	staticVariables := []string{}
+
+	if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many || field.Type == core.FieldTypeEmbed || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne {
+		staticVariables = append(
+			staticVariables,
+			fmt.Sprintf("%v$: '%v',", field.Name, field.Name),
+		)
+
+		withArrayIndex := ""
+
+		if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many {
+			withArrayIndex = "[:i]"
+		}
+
+		newDepth := fieldDepth + "." + field.Name
+		if fieldDepth == "" {
+			newDepth = field.Name
+		}
+		staticVariables = append(
+			staticVariables,
+			fmt.Sprintf(`get %v() {
+				return withPrefix(
+					"%v%v",
+					%v.Fields
+				);
+			},`, field.Name, newDepth, withArrayIndex, core.ToUpper(parentChain)+"."+core.ToUpper(field.Name)),
+		)
+	} else {
+		// For default types the string name is enough.
+		staticVariables = append(
+			staticVariables,
+			fmt.Sprintf("%v: '%v',", field.Name, field.Name),
+		)
+	}
+
+	staticFieldItem := strings.Join(staticVariables, "\r\n")
 	setterFunc := privateFieldToken.CreateSetterFunction(ctx)
 
 	return jsRenderedField{
@@ -278,21 +319,23 @@ func jsRenderField(field *core.EmiField, parentChain string, ctx core.MicroGenCo
 		PrivateField:            privateField,
 		SetterFunc:              setterFunc,
 		SetterCallInConstructor: setterCallInConstructor,
+		StaticFieldItem:         staticFieldItem,
 		GetterFunc:              getterFunc,
 	}
 }
 
-func jsRenderFieldsShallow(fields []*core.EmiField, parentChain string, ctx core.MicroGenContext) []jsRenderedField {
+func jsRenderFieldsShallow(fields []*core.EmiField, parentChain string, fieldDepth string, ctx core.MicroGenContext) []jsRenderedField {
 	out := make([]jsRenderedField, 0, len(fields))
 	for _, f := range fields {
 		if f != nil {
-			out = append(out, jsRenderField(f, parentChain, ctx))
+			out = append(out, jsRenderField(f, parentChain, fieldDepth, ctx))
 		}
 	}
 	return out
 }
 
-func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string, isFirst bool, ctx core.MicroGenContext) []jsRenderedDataClass {
+func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, isFirst bool, ctx core.MicroGenContext) []jsRenderedDataClass {
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	if len(fields) == 0 {
 		return nil
 	}
@@ -304,16 +347,25 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 	}
 
 	currentClass := jsRenderedDataClass{
-		ClassName: core.ToUpper(className),
-		Fields:    jsRenderFieldsShallow(fields, treeLocation, ctx),
-		JsDoc:     jsdoc.String(),
-		Signature: signature,
+		ClassName:           core.ToUpper(className),
+		Fields:              jsRenderFieldsShallow(fields, treeLocation, fieldDepth, ctx),
+		JsDoc:               jsdoc.String(),
+		Signature:           signature,
+		DataSourceStatement: "const d = data;",
+	}
+
+	if isTypeScript {
+		currentClass.DataSourceStatement = fmt.Sprintf("const d = data as Partial<%v>;", currentClass.ClassName)
 	}
 
 	for _, f := range fields {
 		if f != nil && (f.Type == core.FieldTypeObject || f.Type == core.FieldTypeArray) {
 			childName := core.ToUpper(f.Name)
-			currentClass.SubClasses = append(currentClass.SubClasses, jsRenderDataClasses(f.Fields, childName, treeLocation+"."+childName, false, ctx)...)
+			newDepth := fieldDepth + "." + f.Name
+			if fieldDepth == "" {
+				newDepth = f.Name
+			}
+			currentClass.SubClasses = append(currentClass.SubClasses, jsRenderDataClasses(f.Fields, childName, treeLocation+"."+childName, newDepth, false, ctx)...)
 		}
 	}
 
@@ -325,9 +377,10 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	isTS := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{}
 
-	renderedClasses := jsRenderDataClasses(fields, jsctx.RootClassName, jsctx.RootClassName, true, ctx)
+	renderedClasses := jsRenderDataClasses(fields, jsctx.RootClassName, jsctx.RootClassName, "", true, ctx)
 	if len(renderedClasses) > 0 {
 		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: renderedClasses[0].ClassName})
+		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_OBJ_CLASS, Value: renderedClasses[0].ClassName})
 	}
 
 	var abstractFactoryClass string
@@ -357,10 +410,51 @@ export abstract class %vFactory {
 	{{ end }}
 
 	constructor(data) {
-		const d = data as Partial<{{ .ClassName }}>;
+		if (data === null || data === undefined) {
+			return;
+		}
+		if (typeof data === "string") {
+			this.applyFromObject(JSON.parse(data));
+		} else if (isPlausibleObject(data)) {
+			this.applyFromObject(data);
+		} else {
+			throw new Error("Instance is not implemented.");
+		}
+	}
+
+
+	/**
+	* casts the fields of a javascript object into the class properties one by one
+	**/
+	applyFromObject(data = {}) {
+		{{ .DataSourceStatement }}
 		{{ range .Fields }}
 			{{ .SetterCallInConstructor }}
 		{{ end }}
+	}
+
+	/**
+	*	Special toJSON override, since the field are private,
+	*	Json stringify won't see them unless we mention it explicitly.
+	**/
+	toJSON() {
+    	return { 
+			{{ range .Fields }}
+				{{ .Name }}: this.#{{ .Name }},
+			{{ end }}
+		};
+  	}
+
+	toString() {
+		return JSON.stringify(this);
+	}
+
+	static get Fields() {
+      return {
+		{{ range .Fields }}
+			{{ .StaticFieldItem }}
+		{{ end }}
+	  }
 	}
 }
 {{ end }}
@@ -372,6 +466,7 @@ export abstract class %vFactory {
 {{ if .abstractFactoryClass }}
 	{{ .abstractFactoryClass }}
 {{ end }}
+ 
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
@@ -386,7 +481,7 @@ export abstract class %vFactory {
 
 	res.ActualScript = buf.Bytes()
 	if isTS {
-		res.ActualScript = []byte(strings.ReplaceAll(string(res.ActualScript), "constructor(data)", "constructor(data: unknown)"))
+		res.ActualScript = []byte(strings.ReplaceAll(string(res.ActualScript), "constructor(data = {})", "constructor(data: unknown = {})"))
 		res.SuggestedExtension = ".ts"
 	} else {
 		res.SuggestedExtension = ".js"

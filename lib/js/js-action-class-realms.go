@@ -71,15 +71,18 @@ func JsActionManifestRealms(
 		actionRealms.ResponseHeadersClass = responseHeader
 	}
 
-	// Header is the http headers, extending the Headers class from standard javascript
-	pathParameter, err := JsActionPathParams(action)
-	if err != nil {
-		return nil, nil, err
-	}
+	if isTypeScript {
 
-	if pathParameter != nil {
-		deps = append(deps, pathParameter.CodeChunkDependenies...)
-		actionRealms.PathParameter = pathParameter
+		// Header is the http headers, extending the Headers class from standard javascript
+		pathParameter, err := JsActionPathParams(action)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if pathParameter != nil {
+			deps = append(deps, pathParameter.CodeChunkDependenies...)
+			actionRealms.PathParameter = pathParameter
+		}
 	}
 
 	// Query strings for the request builder
@@ -105,8 +108,8 @@ func JsActionManifestRealms(
 		}
 	}
 
-	if pathParameter != nil {
-		token := findTokenByName(pathParameter.Tokens, TOKEN_ROOT_CLASS)
+	if actionRealms.PathParameter != nil {
+		token := findTokenByName(actionRealms.PathParameter.Tokens, TOKEN_ROOT_CLASS)
 		if token != nil {
 			optionsctx.ParamsTypeName = token.Value
 		}
@@ -148,6 +151,7 @@ func JsActionManifestRealms(
 
 		deps = append(deps, fields.CodeChunkDependenies...)
 		actionRealms.RequestClass = fields
+
 	}
 
 	// Action response (out)

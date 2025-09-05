@@ -35,6 +35,10 @@ func ToSnakeUpper(str string) string {
 }
 
 func EscapeLines(data []byte) []byte {
-	re := regexp.MustCompile(`(\r?\n){3,}`)
-	return re.ReplaceAll(data, []byte("\n\n"))
+	d := string(data)
+
+	re := regexp.MustCompile(`(?m)^\s*$[\r\n]*|[\r\n]+\s+\z`)
+
+	return []byte(re.ReplaceAllString(d, ""))
+
 }

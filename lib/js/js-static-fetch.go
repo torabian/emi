@@ -157,7 +157,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			{{ if .fetchctx.ResponseClass }}
 				res.result = new {{ .fetchctx.ResponseClass }} (result);
 			{{ else }}
-				res.result = result as never;
+				res.result = result;
 			{{ end }}
 
 			return res;

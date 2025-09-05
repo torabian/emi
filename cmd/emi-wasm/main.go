@@ -33,6 +33,7 @@ func VirtualFilesFactory(
 		ctx := core.MicroGenContext{
 			Tags:    args[1].Get("Tags").String(),
 			Content: content,
+			Flags:   args[1].Get("Flags").String(),
 		}
 
 		files, err := callback(ctx)

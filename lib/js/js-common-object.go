@@ -21,29 +21,51 @@ type JsCommonObjectContext struct {
 // creates dtos, entities for actions or other specs.
 func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	res := &core.CodeChunkCompiled{}
-
-	tsTypes, tsTypeError := TsCommonObjectGenerator(fields, ctx, TsCommonObjectContext{
-		RootTypeName: jsctx.RootClassName,
-	})
-	if tsTypeError != nil {
-		return nil, tsTypeError
+	res := &core.CodeChunkCompiled{
+		CodeChunkDependenies: []core.CodeChunkDependency{
+			{
+				Location: INTERNAL_SDK_JS_LOCATION,
+				Objects:  []string{"isPlausibleObject"},
+			},
+		},
 	}
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, tsTypes.CodeChunkDependenies...)
+	var tsTypes *core.CodeChunkCompiled
+
+	if isTypeScript {
+		chunk, tsTypeError := TsCommonObjectGenerator(fields, ctx, TsCommonObjectContext{
+			RootTypeName: jsctx.RootClassName,
+		})
+		if tsTypeError != nil {
+			return nil, tsTypeError
+		}
+
+		res.Tokens = append(res.Tokens, chunk.Tokens...)
+
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, chunk.CodeChunkDependenies...)
+		tsTypes = chunk
+	}
 
 	tsClass, tsClassError := JsCommonObjectClassGenerator(
 		fields,
 		ctx,
 		JsCommonObjectContext{RootClassName: jsctx.RootClassName},
 	)
+
 	if tsClassError != nil {
 		return nil, tsClassError
 	}
+
+	res.Tokens = append(res.Tokens, tsClass.Tokens...)
 	res.CodeChunkDependenies = append(res.CodeChunkDependenies, tsClass.CodeChunkDependenies...)
 
 	const tmpl = `
-{{ .tsClass }}
-{{ .tsInterface }}
+{{ if .tsClass }}
+	{{ b2s .tsClass.ActualScript }}
+{{ end }}
+
+{{ if .tsInterface }}
+	{{ b2s .tsInterface.ActualScript }}
+{{ end }}
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
@@ -51,8 +73,8 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"shouldExport": true,
-		"tsInterface":  string(tsTypes.ActualScript),
-		"tsClass":      string(tsClass.ActualScript),
+		"tsInterface":  tsTypes,
+		"tsClass":      tsClass,
 		"fields":       fields,
 	}); err != nil {
 		return nil, err

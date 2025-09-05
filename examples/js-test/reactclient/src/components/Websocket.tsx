@@ -1,16 +1,16 @@
 import { useEffect } from "react";
 import {
-  useWebSocketOrgEcho,
-  WebSocketOrgEchoReq,
+  useWebSocketOrgEchoAction,
+  WebSocketOrgEchoActionReq,
 } from "../generated/WebSocketOrgEchoAction";
 
 export function WebSocketEcho() {
-  const { messages, isOpen, send } = useWebSocketOrgEcho({});
+  const { messages, isOpen, send } = useWebSocketOrgEchoAction({});
 
   useEffect(() => {
     if (isOpen) {
       const x = setInterval(() => {
-        send(new WebSocketOrgEchoReq({}).setLastName("Sara"));
+        send(new WebSocketOrgEchoActionReq({}).setLastName("Sara"));
       }, 1000);
       return () => clearInterval(x);
     }

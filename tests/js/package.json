@@ -10,6 +10,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "jsdom": "^26.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
@@ -17,6 +18,7 @@
   "dependencies": {
     "js-yaml": "^4.1.0",
     "prettier": "^3.6.2",
-    "ts-morph": "^26.0.0"
+    "ts-morph": "^26.0.0",
+    "ws": "^8.18.3"
   }
 }

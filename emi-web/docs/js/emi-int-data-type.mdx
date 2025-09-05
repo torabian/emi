@@ -22,10 +22,10 @@ fields:
 - `int?` allows `null` and `undefined`, with `undefined` as default.  
     
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myIntClassDto
  **/
-
 export class MyIntClassDto {
   /**
    *
@@ -37,25 +37,20 @@ export class MyIntClassDto {
    * @returns {number}
    **/
   get intWithDefault() {
-    return this[`#intWithDefault`];
+    return this.#intWithDefault;
   }
-
   /**
    *
    * @type {number}
    **/
-
   set intWithDefault(value: number) {
     const correctType = typeof value === "number";
-    this["#intWithDefault"] = correctType ? value : Number(value);
+    this.#intWithDefault = correctType ? value : Number(value);
   }
-
   setIntWithDefault(value: number) {
-    this["intWithDefault"] = value;
-
+    this.intWithDefault = value;
     return this;
   }
-
   /**
    *
    * @type {number}
@@ -66,60 +61,82 @@ export class MyIntClassDto {
    * @returns {number}
    **/
   get plainInt() {
-    return this[`#plainInt`];
+    return this.#plainInt;
   }
-
   /**
    *
    * @type {number}
    **/
-
   set plainInt(value: number) {
     const correctType = typeof value === "number";
-    this["#plainInt"] = correctType ? value : Number(value);
+    this.#plainInt = correctType ? value : Number(value);
   }
-
   setPlainInt(value: number) {
-    this["plainInt"] = value;
-
+    this.plainInt = value;
     return this;
   }
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyIntClassDto>;
-
-    if (d[`intWithDefault`] !== undefined) {
-      this.intWithDefault = d[`#intWithDefault`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
     }
-
-    if (d[`plainInt`] !== undefined) {
-      this.plainInt = d[`#plainInt`];
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyIntClassDto>;
+    if (d.intWithDefault !== undefined) {
+      this.intWithDefault = d.intWithDefault;
+    }
+    if (d.plainInt !== undefined) {
+      this.plainInt = d.plainInt;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      intWithDefault: this.#intWithDefault,
+      plainInt: this.#plainInt,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      intWithDefault: "intWithDefault",
+      plainInt: "plainInt",
+    };
+  }
 }
-
 export abstract class MyIntClassDtoFactory {
   abstract create(data: unknown): MyIntClassDto;
 }
-
 /**
  * The base type definition for myIntClassDto
  **/
-
 export type MyIntClassDtoType = {
   /**
    *
    * @type {number}
    **/
   intWithDefault?: number;
-
   /**
    *
    * @type {number}
    **/
   plainInt?: number;
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyIntClassDtoType {}
 
@@ -140,10 +157,10 @@ fields:
 Defaults to `undefined`, but you can assign `0`, any number, or `null`.
     
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myIntClassDto
  **/
-
 export class MyIntClassDto {
   /**
    *
@@ -155,26 +172,21 @@ export class MyIntClassDto {
    * @returns {number}
    **/
   get nullableIntWithDefault() {
-    return this[`#nullableIntWithDefault`];
+    return this.#nullableIntWithDefault;
   }
-
   /**
    *
    * @type {number}
    **/
-
   set nullableIntWithDefault(value: number) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
-    this["#nullableIntWithDefault"] = correctType ? value : Number(value);
+    this.#nullableIntWithDefault = correctType ? value : Number(value);
   }
-
   setNullableIntWithDefault(value: number) {
-    this["nullableIntWithDefault"] = value;
-
+    this.nullableIntWithDefault = value;
     return this;
   }
-
   /**
    *
    * @type {number}
@@ -185,61 +197,83 @@ export class MyIntClassDto {
    * @returns {number}
    **/
   get nullableIntWithoutDefault() {
-    return this[`#nullableIntWithoutDefault`];
+    return this.#nullableIntWithoutDefault;
   }
-
   /**
    *
    * @type {number}
    **/
-
   set nullableIntWithoutDefault(value: number) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
-    this["#nullableIntWithoutDefault"] = correctType ? value : Number(value);
+    this.#nullableIntWithoutDefault = correctType ? value : Number(value);
   }
-
   setNullableIntWithoutDefault(value: number) {
-    this["nullableIntWithoutDefault"] = value;
-
+    this.nullableIntWithoutDefault = value;
     return this;
   }
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyIntClassDto>;
-
-    if (d[`nullableIntWithDefault`] !== undefined) {
-      this.nullableIntWithDefault = d[`#nullableIntWithDefault`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
     }
-
-    if (d[`nullableIntWithoutDefault`] !== undefined) {
-      this.nullableIntWithoutDefault = d[`#nullableIntWithoutDefault`];
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyIntClassDto>;
+    if (d.nullableIntWithDefault !== undefined) {
+      this.nullableIntWithDefault = d.nullableIntWithDefault;
+    }
+    if (d.nullableIntWithoutDefault !== undefined) {
+      this.nullableIntWithoutDefault = d.nullableIntWithoutDefault;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      nullableIntWithDefault: this.#nullableIntWithDefault,
+      nullableIntWithoutDefault: this.#nullableIntWithoutDefault,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      nullableIntWithDefault: "nullableIntWithDefault",
+      nullableIntWithoutDefault: "nullableIntWithoutDefault",
+    };
+  }
 }
-
 export abstract class MyIntClassDtoFactory {
   abstract create(data: unknown): MyIntClassDto;
 }
-
 /**
  * The base type definition for myIntClassDto
  **/
-
 export type MyIntClassDtoType = {
   /**
    *
    * @type {number}
    **/
   nullableIntWithDefault?: number;
-
   /**
    *
    * @type {number}
    **/
   nullableIntWithoutDefault?: number;
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyIntClassDtoType {}
 

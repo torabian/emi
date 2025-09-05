@@ -1,12 +1,12 @@
 import {
-  GetSinglePostQueryParams,
-  useGetSinglePost,
+  GetSinglePostActionQueryParams,
+  useGetSinglePostAction,
 } from "../generated/GetSinglePostAction";
 
 export function GetPost() {
-  const { data, isLoading, error } = useGetSinglePost({
+  const { data, isLoading, error } = useGetSinglePostAction({
     params: { id: 10 },
-    qs: new GetSinglePostQueryParams().set("pageSize", 100),
+    qs: new GetSinglePostActionQueryParams().set("pageSize", 100),
   });
 
   if (isLoading) return <div>Loading...</div>;

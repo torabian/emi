@@ -76,11 +76,19 @@ Here is a list of features which will be generated via js/ts compiler:
 - [x] Module3 complete documentation to write.
 - [x] Typesafe reactive methods, for WebSocket access.
 - [x] Publish on npm and make available on npx
-- [ ] Determine on the path selector, so in the options user can select details needed to be generated
+- [x] Generate the DTO and Entities standalone in emi, as well as remotes
+- [x] Determine on the path selector, so in the options user can select details needed to be generated
+- [x] Static fields for the common object to access fields via json path
+- [x] Document static fields
 - [ ] Publish on brew to install.
-- [ ] Static fields for the common object to access fields via json path
-- [ ] Generate the DTO and Entities standalone in emi, as well as remotes
-
+- [ ] Fetching option using fetch
+- [ ] Fetching using axios
+- [ ] Axios bundle
+- [ ] Connecting to a socket
+- [ ] Connecting to a SSE
+- [ ] Demo the code generated for react
+- [ ] Document react wrappers and the functionality they provide.
+- [ ] Fully test the code with pure javascript (jsdocs or object definitions might be missing)
 
 ## Emi Golang
 
@@ -100,4 +108,3 @@ Emi is a yaml file, and here you can find the complete schema:
 - https://github.com/torabian/emi/blob/main/playground/public/emi-definitions.json
 
 You can use the definition with Redhat yaml plugin in the vscode.
-

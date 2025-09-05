@@ -55,7 +55,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 	}
 
 	if realms.RequestClass != nil {
-		requestClassToken := findTokenByName(realms.RequestClass.Tokens, TOKEN_ROOT_CLASS)
+		requestClassToken := findTokenByName(realms.RequestClass.Tokens, TOKEN_OBJ_CLASS)
 		if requestClassToken != nil {
 			fetchctx.RequestClass = requestClassToken.Value
 		}
@@ -90,7 +90,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"buildUrl"},
+				Objects:  []string{"buildUrl", "withPrefix", "isPlausibleObject"},
 				Location: INTERNAL_SDK_JS_LOCATION,
 			},
 		},
@@ -165,7 +165,7 @@ export class {{ .className }} {
 	}
 
 	if realms.ResponseClass != nil {
-		responseClassToken := findTokenByName(realms.ResponseClass.Tokens, TOKEN_ROOT_CLASS)
+		responseClassToken := findTokenByName(realms.ResponseClass.Tokens, TOKEN_OBJ_CLASS)
 		if responseClassToken != nil {
 
 			// Not sure about this yet. Primitives also can be a class, right?

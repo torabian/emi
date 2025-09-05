@@ -22,10 +22,10 @@ fields:
 - `float64?` allows `null` and `undefined`, defaulting to `undefined`.  
     
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myFloatClassDto
  **/
-
 export class MyFloatClassDto {
   /**
    *
@@ -37,22 +37,17 @@ export class MyFloatClassDto {
    * @returns {number}
    **/
   get floatWithDefault() {
-    return this[`#floatWithDefault`];
+    return this.#floatWithDefault;
   }
-
   /**
    *
    * @type {number}
    **/
-
   set floatWithDefault(value: number) {}
-
   setFloatWithDefault(value: number) {
-    this["floatWithDefault"] = value;
-
+    this.floatWithDefault = value;
     return this;
   }
-
   /**
    *
    * @type {number}
@@ -63,57 +58,79 @@ export class MyFloatClassDto {
    * @returns {number}
    **/
   get plainFloat() {
-    return this[`#plainFloat`];
+    return this.#plainFloat;
   }
-
   /**
    *
    * @type {number}
    **/
-
   set plainFloat(value: number) {}
-
   setPlainFloat(value: number) {
-    this["plainFloat"] = value;
-
+    this.plainFloat = value;
     return this;
   }
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyFloatClassDto>;
-
-    if (d[`floatWithDefault`] !== undefined) {
-      this.floatWithDefault = d[`#floatWithDefault`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
     }
-
-    if (d[`plainFloat`] !== undefined) {
-      this.plainFloat = d[`#plainFloat`];
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyFloatClassDto>;
+    if (d.floatWithDefault !== undefined) {
+      this.floatWithDefault = d.floatWithDefault;
+    }
+    if (d.plainFloat !== undefined) {
+      this.plainFloat = d.plainFloat;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      floatWithDefault: this.#floatWithDefault,
+      plainFloat: this.#plainFloat,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      floatWithDefault: "floatWithDefault",
+      plainFloat: "plainFloat",
+    };
+  }
 }
-
 export abstract class MyFloatClassDtoFactory {
   abstract create(data: unknown): MyFloatClassDto;
 }
-
 /**
  * The base type definition for myFloatClassDto
  **/
-
 export type MyFloatClassDtoType = {
   /**
    *
    * @type {number}
    **/
   floatWithDefault?: number;
-
   /**
    *
    * @type {number}
    **/
   plainFloat?: number;
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyFloatClassDtoType {}
 
@@ -134,10 +151,10 @@ fields:
 Defaults to `undefined`, but you can assign any float value or `null`.
     
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myFloatClassDto
  **/
-
 export class MyFloatClassDto {
   /**
    *
@@ -149,26 +166,21 @@ export class MyFloatClassDto {
    * @returns {number}
    **/
   get nullableFloatWithDefault() {
-    return this[`#nullableFloatWithDefault`];
+    return this.#nullableFloatWithDefault;
   }
-
   /**
    *
    * @type {number}
    **/
-
   set nullableFloatWithDefault(value: number) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
-    this["#nullableFloatWithDefault"] = correctType ? value : Number(value);
+    this.#nullableFloatWithDefault = correctType ? value : Number(value);
   }
-
   setNullableFloatWithDefault(value: number) {
-    this["nullableFloatWithDefault"] = value;
-
+    this.nullableFloatWithDefault = value;
     return this;
   }
-
   /**
    *
    * @type {number}
@@ -179,61 +191,83 @@ export class MyFloatClassDto {
    * @returns {number}
    **/
   get nullableFloatWithoutDefault() {
-    return this[`#nullableFloatWithoutDefault`];
+    return this.#nullableFloatWithoutDefault;
   }
-
   /**
    *
    * @type {number}
    **/
-
   set nullableFloatWithoutDefault(value: number) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
-    this["#nullableFloatWithoutDefault"] = correctType ? value : Number(value);
+    this.#nullableFloatWithoutDefault = correctType ? value : Number(value);
   }
-
   setNullableFloatWithoutDefault(value: number) {
-    this["nullableFloatWithoutDefault"] = value;
-
+    this.nullableFloatWithoutDefault = value;
     return this;
   }
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyFloatClassDto>;
-
-    if (d[`nullableFloatWithDefault`] !== undefined) {
-      this.nullableFloatWithDefault = d[`#nullableFloatWithDefault`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
     }
-
-    if (d[`nullableFloatWithoutDefault`] !== undefined) {
-      this.nullableFloatWithoutDefault = d[`#nullableFloatWithoutDefault`];
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyFloatClassDto>;
+    if (d.nullableFloatWithDefault !== undefined) {
+      this.nullableFloatWithDefault = d.nullableFloatWithDefault;
+    }
+    if (d.nullableFloatWithoutDefault !== undefined) {
+      this.nullableFloatWithoutDefault = d.nullableFloatWithoutDefault;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      nullableFloatWithDefault: this.#nullableFloatWithDefault,
+      nullableFloatWithoutDefault: this.#nullableFloatWithoutDefault,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      nullableFloatWithDefault: "nullableFloatWithDefault",
+      nullableFloatWithoutDefault: "nullableFloatWithoutDefault",
+    };
+  }
 }
-
 export abstract class MyFloatClassDtoFactory {
   abstract create(data: unknown): MyFloatClassDto;
 }
-
 /**
  * The base type definition for myFloatClassDto
  **/
-
 export type MyFloatClassDtoType = {
   /**
    *
    * @type {number}
    **/
   nullableFloatWithDefault?: number;
-
   /**
    *
    * @type {number}
    **/
   nullableFloatWithoutDefault?: number;
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyFloatClassDtoType {}
 

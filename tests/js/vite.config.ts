@@ -1,11 +1,15 @@
 /// vite.config.ts
-import { defineConfig } from 'vite'
-import { defineConfig as defineVitestConfig } from 'vitest/config'
+import path from "path";
+
+import WebSocket from "ws";
+
+(globalThis as any).WebSocket = WebSocket;
+
+import { defineConfig as defineVitestConfig } from "vitest/config";
 
 export default defineVitestConfig({
   test: {
-    globals: true,   // so you can use "describe", "it", etc. without imports
-    environment: 'node', // or 'jsdom' if testing browser code
+    globals: true, // so you can use "describe", "it", etc. without imports
+    environment: "jsdom", // or 'jsdom' if testing browser code
   },
-})
-
+});

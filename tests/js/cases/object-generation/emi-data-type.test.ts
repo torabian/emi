@@ -36,7 +36,6 @@ describe("Generating numeric data types", () => {
       $jstype: "string",
       $initializerKind: "StringLiteral",
     },
-
     boolField: {
       type: "bool",
       name: "boolField",
@@ -68,7 +67,6 @@ describe("Generating numeric data types", () => {
       $jstype: "boolean",
       $initializerKind: "TrueKeyword",
     },
-
     intField: {
       type: "int",
       name: "intField",
@@ -100,7 +98,6 @@ describe("Generating numeric data types", () => {
       $initializerKind: "NumericLiteral",
       default: 7,
     },
-
     int32Field: {
       type: "int32",
       name: "int32Field",
@@ -133,7 +130,6 @@ describe("Generating numeric data types", () => {
       $initializerKind: "NumericLiteral",
       default: 200,
     },
-
     int64Field: {
       type: "int64",
       name: "int64Field",
@@ -166,7 +162,6 @@ describe("Generating numeric data types", () => {
       $initializerKind: "NumericLiteral",
       default: 456,
     },
-
     float32Field: {
       type: "float32",
       name: "float32Field",
@@ -199,7 +194,6 @@ describe("Generating numeric data types", () => {
       $initializerKind: "NumericLiteral",
       default: 4.56,
     },
-
     float64Field: {
       type: "float64",
       name: "float64Field",
@@ -233,7 +227,6 @@ describe("Generating numeric data types", () => {
       default: 0.12,
     },
   };
-
   const fields = Object.keys(fieldsMap).map((key) => ({
     name: key,
     ...fieldsMap[key],
@@ -242,16 +235,14 @@ describe("Generating numeric data types", () => {
     Flags: "Anonymouse",
     Tags: "react,typescript",
   });
-
   writeFileSync(path.join(__filename.replace(".test.ts", ".output.ts")), resp);
-
   it("should generate class and type", () => {
+    expect(1).toBe(1);
     expect(source.getClasses().map((c) => c.getName())).toContain("Anonymouse");
     expect(source.getTypeAliases().map((t) => t.getName())).toContain(
       "AnonymouseType"
     );
   });
-
   Object.keys(fieldsMap).forEach((fieldKey) => {
     const f = fieldsMap[fieldKey];
     describe(`data type: ${fieldKey}`, () => {
@@ -259,7 +250,6 @@ describe("Generating numeric data types", () => {
         const field = source.getClass("Anonymouse")!.getProperty("#" + f.name)!;
         expect(field.getType().getText()).toBe(f.$jstype);
       });
-
       if (f.default) {
         it(`should initialize to ${f.default}`, () => {
           const field = source

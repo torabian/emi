@@ -4,7 +4,7 @@ import { writeFileSync } from "fs";
 
 var schema: any = {};
 
-describe("Generate the emi introduction documentation", () => {
+describe("Emi generate the web socket (reactive) hooks", () => {
   const content: string[] = [];
 
   it("should init the wasm", () => {

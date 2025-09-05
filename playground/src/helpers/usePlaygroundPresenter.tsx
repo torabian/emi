@@ -6,7 +6,7 @@ import type { VirtualFile } from "../definitions";
 export const usePlaygroundPresenter = () => {
   const { ready } = useGoWasm({ wasmPath: "emi-compiler.wasm" });
   const [value, setValue$] = useState(sampleDocument);
-  const [assemblyFunction, setAssemblyFunction] = useState("jsGenAction");
+  const [assemblyFunction, setAssemblyFunction] = useState("jsGenModule");
   const [features, setFeatures] = useState<string[]>([
     "nestjs",
     "axios",

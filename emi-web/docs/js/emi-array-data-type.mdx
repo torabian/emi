@@ -25,10 +25,10 @@ fields:
 - `array?` allows `null`/ `undefined`.  
     
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myArrayClassDto
  **/
-
 export class MyArrayClassDto {
   /**
    *
@@ -40,38 +40,30 @@ export class MyArrayClassDto {
    * @returns {MyArrayClassDto.Contacts}
    **/
   get contacts() {
-    return this[`#contacts`];
+    return this.#contacts;
   }
-
   /**
    *
    * @type {MyArrayClassDto.Contacts}
    **/
-
   set contacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
     // For arrays, you only can pass arrays to the object
     if (!Array.isArray(value)) {
       return;
     }
     if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
-      this["#contacts"] = value;
+      this.#contacts = value;
     } else {
-      this["#contacts"] = value.map(
-        (item) => new MyArrayClassDto.Contacts(item),
-      );
+      this.#contacts = value.map((item) => new MyArrayClassDto.Contacts(item));
     }
   }
-
   setContacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
-    this["contacts"] = value;
-
+    this.contacts = value;
     return this;
   }
-
   /**
    * The base class definition for contacts
    **/
-
   static Contacts = class Contacts {
     /**
      *
@@ -83,25 +75,20 @@ export class MyArrayClassDto {
      * @returns {string}
      **/
     get email() {
-      return this[`#email`];
+      return this.#email;
     }
-
     /**
      *
      * @type {string}
      **/
-
     set email(value: string) {
       const correctType = typeof value === "string";
-      this["#email"] = correctType ? value : "" + value;
+      this.#email = correctType ? value : "" + value;
     }
-
     setEmail(value: string) {
-      this["email"] = value;
-
+      this.email = value;
       return this;
     }
-
     /**
      *
      * @type {string}
@@ -112,56 +99,113 @@ export class MyArrayClassDto {
      * @returns {string}
      **/
     get phone() {
-      return this[`#phone`];
+      return this.#phone;
     }
-
     /**
      *
      * @type {string}
      **/
-
     set phone(value: string) {
       const correctType =
         typeof value === "string" || value === undefined || value === null;
-      this["#phone"] = correctType ? value : "" + value;
+      this.#phone = correctType ? value : "" + value;
     }
-
     setPhone(value: string) {
-      this["phone"] = value;
-
+      this.phone = value;
       return this;
     }
-
-    constructor(data: unknown) {
+    constructor(data) {
+      if (data === null || data === undefined) {
+        return;
+      }
+      if (typeof data === "string") {
+        this.applyFromObject(JSON.parse(data));
+      } else if (isPlausibleObject(data)) {
+        this.applyFromObject(data);
+      } else {
+        throw new Error("Instance is not implemented.");
+      }
+    }
+    /**
+     * casts the fields of a javascript object into the class properties one by one
+     **/
+    applyFromObject(data = {}) {
       const d = data as Partial<Contacts>;
-
-      if (d[`email`] !== undefined) {
-        this.email = d[`#email`];
+      if (d.email !== undefined) {
+        this.email = d.email;
       }
-
-      if (d[`phone`] !== undefined) {
-        this.phone = d[`#phone`];
+      if (d.phone !== undefined) {
+        this.phone = d.phone;
       }
+    }
+    /**
+     *	Special toJSON override, since the field are private,
+     *	Json stringify won't see them unless we mention it explicitly.
+     **/
+    toJSON() {
+      return {
+        email: this.#email,
+        phone: this.#phone,
+      };
+    }
+    toString() {
+      return JSON.stringify(this);
+    }
+    static get Fields() {
+      return {
+        email: "email",
+        phone: "phone",
+      };
     }
   };
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyArrayClassDto>;
-
-    if (d[`contacts`] !== undefined) {
-      this.contacts = d[`#contacts`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyArrayClassDto>;
+    if (d.contacts !== undefined) {
+      this.contacts = d.contacts;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      contacts: this.#contacts,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      contacts$: "contacts",
+      get contacts() {
+        return withPrefix("contacts[:i]", MyArrayClassDto.Contacts.Fields);
+      },
+    };
+  }
 }
-
 export abstract class MyArrayClassDtoFactory {
   abstract create(data: unknown): MyArrayClassDto;
 }
-
 /**
  * The base type definition for myArrayClassDto
  **/
-
 export type MyArrayClassDtoType = {
   /**
    *
@@ -169,27 +213,23 @@ export type MyArrayClassDtoType = {
    **/
   contacts?: MyArrayClassDtoType.ContactsType[];
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyArrayClassDtoType {
   /**
    * The base type definition for contactsType
    **/
-
   export type ContactsType = {
     /**
      *
      * @type {string}
      **/
     email?: string;
-
     /**
      *
      * @type {string}
      **/
     phone?: string;
   };
-
   // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace ContactsType {}
 }
@@ -213,10 +253,10 @@ fields:
 Arrays can hold primitive types or nested objects.
     
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myArrayClassDto
  **/
-
 export class MyArrayClassDto {
   /**
    *
@@ -228,38 +268,30 @@ export class MyArrayClassDto {
    * @returns {MyArrayClassDto.Contacts}
    **/
   get contacts() {
-    return this[`#contacts`];
+    return this.#contacts;
   }
-
   /**
    *
    * @type {MyArrayClassDto.Contacts}
    **/
-
   set contacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
     // For arrays, you only can pass arrays to the object
     if (!Array.isArray(value)) {
       return;
     }
     if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
-      this["#contacts"] = value;
+      this.#contacts = value;
     } else {
-      this["#contacts"] = value.map(
-        (item) => new MyArrayClassDto.Contacts(item),
-      );
+      this.#contacts = value.map((item) => new MyArrayClassDto.Contacts(item));
     }
   }
-
   setContacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
-    this["contacts"] = value;
-
+    this.contacts = value;
     return this;
   }
-
   /**
    * The base class definition for contacts
    **/
-
   static Contacts = class Contacts {
     /**
      *
@@ -271,25 +303,20 @@ export class MyArrayClassDto {
      * @returns {string}
      **/
     get email() {
-      return this[`#email`];
+      return this.#email;
     }
-
     /**
      *
      * @type {string}
      **/
-
     set email(value: string) {
       const correctType = typeof value === "string";
-      this["#email"] = correctType ? value : "" + value;
+      this.#email = correctType ? value : "" + value;
     }
-
     setEmail(value: string) {
-      this["email"] = value;
-
+      this.email = value;
       return this;
     }
-
     /**
      *
      * @type {string}
@@ -300,56 +327,113 @@ export class MyArrayClassDto {
      * @returns {string}
      **/
     get phone() {
-      return this[`#phone`];
+      return this.#phone;
     }
-
     /**
      *
      * @type {string}
      **/
-
     set phone(value: string) {
       const correctType =
         typeof value === "string" || value === undefined || value === null;
-      this["#phone"] = correctType ? value : "" + value;
+      this.#phone = correctType ? value : "" + value;
     }
-
     setPhone(value: string) {
-      this["phone"] = value;
-
+      this.phone = value;
       return this;
     }
-
-    constructor(data: unknown) {
+    constructor(data) {
+      if (data === null || data === undefined) {
+        return;
+      }
+      if (typeof data === "string") {
+        this.applyFromObject(JSON.parse(data));
+      } else if (isPlausibleObject(data)) {
+        this.applyFromObject(data);
+      } else {
+        throw new Error("Instance is not implemented.");
+      }
+    }
+    /**
+     * casts the fields of a javascript object into the class properties one by one
+     **/
+    applyFromObject(data = {}) {
       const d = data as Partial<Contacts>;
-
-      if (d[`email`] !== undefined) {
-        this.email = d[`#email`];
+      if (d.email !== undefined) {
+        this.email = d.email;
       }
-
-      if (d[`phone`] !== undefined) {
-        this.phone = d[`#phone`];
+      if (d.phone !== undefined) {
+        this.phone = d.phone;
       }
+    }
+    /**
+     *	Special toJSON override, since the field are private,
+     *	Json stringify won't see them unless we mention it explicitly.
+     **/
+    toJSON() {
+      return {
+        email: this.#email,
+        phone: this.#phone,
+      };
+    }
+    toString() {
+      return JSON.stringify(this);
+    }
+    static get Fields() {
+      return {
+        email: "email",
+        phone: "phone",
+      };
     }
   };
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyArrayClassDto>;
-
-    if (d[`contacts`] !== undefined) {
-      this.contacts = d[`#contacts`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyArrayClassDto>;
+    if (d.contacts !== undefined) {
+      this.contacts = d.contacts;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      contacts: this.#contacts,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      contacts$: "contacts",
+      get contacts() {
+        return withPrefix("contacts[:i]", MyArrayClassDto.Contacts.Fields);
+      },
+    };
+  }
 }
-
 export abstract class MyArrayClassDtoFactory {
   abstract create(data: unknown): MyArrayClassDto;
 }
-
 /**
  * The base type definition for myArrayClassDto
  **/
-
 export type MyArrayClassDtoType = {
   /**
    *
@@ -357,27 +441,23 @@ export type MyArrayClassDtoType = {
    **/
   contacts?: MyArrayClassDtoType.ContactsType[];
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyArrayClassDtoType {
   /**
    * The base type definition for contactsType
    **/
-
   export type ContactsType = {
     /**
      *
      * @type {string}
      **/
     email?: string;
-
     /**
      *
      * @type {string}
      **/
     phone?: string;
   };
-
   // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace ContactsType {}
 }
@@ -396,10 +476,10 @@ fields:
 Defaults to `undefined`, but you can assign an array or `null`.
     
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myArrayClassDto
  **/
-
 export class MyArrayClassDto {
   /**
    *
@@ -411,39 +491,62 @@ export class MyArrayClassDto {
    * @returns {string}
    **/
   get nullableTags() {
-    return this[`#nullableTags`];
+    return this.#nullableTags;
   }
-
   /**
    *
    * @type {string}
    **/
-
   set nullableTags(value: string) {}
-
   setNullableTags(value: string) {
-    this["nullableTags"] = value;
-
+    this.nullableTags = value;
     return this;
   }
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyArrayClassDto>;
-
-    if (d[`nullableTags`] !== undefined) {
-      this.nullableTags = d[`#nullableTags`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyArrayClassDto>;
+    if (d.nullableTags !== undefined) {
+      this.nullableTags = d.nullableTags;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      nullableTags: this.#nullableTags,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      nullableTags: "nullableTags",
+    };
+  }
 }
-
 export abstract class MyArrayClassDtoFactory {
   abstract create(data: unknown): MyArrayClassDto;
 }
-
 /**
  * The base type definition for myArrayClassDto
  **/
-
 export type MyArrayClassDtoType = {
   /**
    *
@@ -451,7 +554,6 @@ export type MyArrayClassDtoType = {
    **/
   nullableTags?: string;
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyArrayClassDtoType {}
 

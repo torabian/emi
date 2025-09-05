@@ -1,16 +1,51 @@
 import { describe, it, expect } from "vitest";
-import { runEmiActionTs } from "../common";
-describe("Action headers class needs to be generated correctly.", () => {
-  const action = {
-    name: "sample",
-    headers: [
-      { name: "accept-language", type: "string" },
-      { name: "authroization", type: "string" },
-      { name: "cache-time", type: "int64" },
-    ],
-  };
+import { runEmiActionTs } from "../../common";
+import { writeFileSync } from "fs";
+import yaml from "js-yaml";
 
-  const source = runEmiActionTs("jsGenActionHeaders", action, {});
+describe("Action headers class needs to be generated correctly.", () => {
+  const content: string[] = [];
+
+  const action = [
+    { name: "accept-language", type: "string" },
+    { name: "authroization", type: "string" },
+    { name: "cache-time", type: "int64" },
+  ];
+
+  const { source, resp } = runEmiActionTs("jsGenActionHeaders", action, {
+    Flags: "SampleHeaders",
+  });
+
+  it("generate int doc", async () => {
+    content.push(`
+---
+sidebar_position: 3
+---
+
+# Emi Headers class generator
+
+In the context of http requests, there is always request and response headers, which is a key pair
+definition. Modern javascript standard is using Headers class, and Emi generates the header classes,
+by extending that class, and adding extra functions.
+
+    `);
+  });
+
+  it("should document the initial yaml", () => {
+    content.push(`
+          Example schema:
+\`\`\`yaml
+${yaml.dump(action)}
+\`\`\`
+
+Would generate the following code:
+
+\`\`\`ts
+${resp}
+\`\`\`
+
+          `);
+  });
 
   it("should have created only a single class representing the header", () => {
     expect(source.getClasses()).toHaveLength(1);
@@ -67,5 +102,12 @@ describe("Action headers class needs to be generated correctly.", () => {
     const members = cls.getMembers().map((m) => (m as any).getName());
     expect(members).toContain("#getTyped");
     expect(cls.getMethod("toObject")).toBeDefined();
+  });
+
+  it("should write the documentation", () => {
+    writeFileSync(
+      "../../emi-web/docs/js/emi-headers-class.mdx",
+      content.join("\r\n").trim()
+    );
   });
 });
