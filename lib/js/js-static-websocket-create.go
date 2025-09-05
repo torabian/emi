@@ -17,9 +17,11 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 	requestType := "unknown"
 	responseType := "unknown"
 	requestHeaderType := "unknown"
+	MessageFactoryClass := "undefined"
 
 	if fetchctx.ResponseClass != "" {
 		responseType = fetchctx.ResponseClass
+		MessageFactoryClass = fetchctx.ResponseClass
 	}
 
 	if fetchctx.RequestClass != "" {
@@ -56,6 +58,11 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 			Js:  "Headers",
 			Ts:  requestHeaderType,
 		},
+		{
+			Key: "MessageFactoryClass",
+			Js:  MessageFactoryClass,
+			Ts:  MessageFactoryClass,
+		},
 	}
 
 	claimsRendered := core.ClaimRender(claims, ctx)
@@ -76,7 +83,11 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 		)
 			
 		return new WebSocketX|@generic|(
-			url
+			url,
+			undefined,
+			{
+				MessageFactoryClass: |@MessageFactoryClass|,
+			}
 		);
 
 	}

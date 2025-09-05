@@ -25,10 +25,10 @@ fields:
 - `object?` allows `null`/ `undefined`.  
     
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myObjectClassDto
  **/
-
 export class MyObjectClassDto {
   /**
    *
@@ -40,33 +40,27 @@ export class MyObjectClassDto {
    * @returns {MyObjectClassDto.Profile}
    **/
   get profile() {
-    return this[`#profile`];
+    return this.#profile;
   }
-
   /**
    *
    * @type {MyObjectClassDto.Profile}
    **/
-
   set profile(value: InstanceType<typeof MyObjectClassDto.Profile>) {
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof MyObjectClassDto.Profile) {
-      this["#profile"] = value;
+      this.#profile = value;
     } else {
-      this["#profile"] = new MyObjectClassDto.Profile(value);
+      this.#profile = new MyObjectClassDto.Profile(value);
     }
   }
-
   setProfile(value: InstanceType<typeof MyObjectClassDto.Profile>) {
-    this["profile"] = value;
-
+    this.profile = value;
     return this;
   }
-
   /**
    * The base class definition for profile
    **/
-
   static Profile = class Profile {
     /**
      *
@@ -78,25 +72,20 @@ export class MyObjectClassDto {
      * @returns {string}
      **/
     get firstName() {
-      return this[`#firstName`];
+      return this.#firstName;
     }
-
     /**
      *
      * @type {string}
      **/
-
     set firstName(value: string) {
       const correctType = typeof value === "string";
-      this["#firstName"] = correctType ? value : "" + value;
+      this.#firstName = correctType ? value : "" + value;
     }
-
     setFirstName(value: string) {
-      this["firstName"] = value;
-
+      this.firstName = value;
       return this;
     }
-
     /**
      *
      * @type {number}
@@ -107,55 +96,112 @@ export class MyObjectClassDto {
      * @returns {number}
      **/
     get age() {
-      return this[`#age`];
+      return this.#age;
     }
-
     /**
      *
      * @type {number}
      **/
-
     set age(value: number) {
       const correctType = typeof value === "number";
-      this["#age"] = correctType ? value : Number(value);
+      this.#age = correctType ? value : Number(value);
     }
-
     setAge(value: number) {
-      this["age"] = value;
-
+      this.age = value;
       return this;
     }
-
-    constructor(data: unknown) {
+    constructor(data) {
+      if (data === null || data === undefined) {
+        return;
+      }
+      if (typeof data === "string") {
+        this.applyFromObject(JSON.parse(data));
+      } else if (isPlausibleObject(data)) {
+        this.applyFromObject(data);
+      } else {
+        throw new Error("Instance is not implemented.");
+      }
+    }
+    /**
+     * casts the fields of a javascript object into the class properties one by one
+     **/
+    applyFromObject(data = {}) {
       const d = data as Partial<Profile>;
-
-      if (d[`firstName`] !== undefined) {
-        this.firstName = d[`#firstName`];
+      if (d.firstName !== undefined) {
+        this.firstName = d.firstName;
       }
-
-      if (d[`age`] !== undefined) {
-        this.age = d[`#age`];
+      if (d.age !== undefined) {
+        this.age = d.age;
       }
+    }
+    /**
+     *	Special toJSON override, since the field are private,
+     *	Json stringify won't see them unless we mention it explicitly.
+     **/
+    toJSON() {
+      return {
+        firstName: this.#firstName,
+        age: this.#age,
+      };
+    }
+    toString() {
+      return JSON.stringify(this);
+    }
+    static get Fields() {
+      return {
+        firstName: "firstName",
+        age: "age",
+      };
     }
   };
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyObjectClassDto>;
-
-    if (d[`profile`] !== undefined) {
-      this.profile = d[`#profile`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyObjectClassDto>;
+    if (d.profile !== undefined) {
+      this.profile = d.profile;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      profile: this.#profile,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      profile$: "profile",
+      get profile() {
+        return withPrefix("profile", MyObjectClassDto.Profile.Fields);
+      },
+    };
+  }
 }
-
 export abstract class MyObjectClassDtoFactory {
   abstract create(data: unknown): MyObjectClassDto;
 }
-
 /**
  * The base type definition for myObjectClassDto
  **/
-
 export type MyObjectClassDtoType = {
   /**
    *
@@ -163,27 +209,23 @@ export type MyObjectClassDtoType = {
    **/
   profile?: MyObjectClassDtoType.ProfileType;
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyObjectClassDtoType {
   /**
    * The base type definition for profileType
    **/
-
   export type ProfileType = {
     /**
      *
      * @type {string}
      **/
     firstName?: string;
-
     /**
      *
      * @type {number}
      **/
     age?: number;
   };
-
   // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace ProfileType {}
 }
@@ -205,10 +247,10 @@ fields:
 Defaults to `undefined`, but you can assign an object with required child fields or `null`.
     
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myObjectClassDto
  **/
-
 export class MyObjectClassDto {
   /**
    *
@@ -220,39 +262,62 @@ export class MyObjectClassDto {
    * @returns {string}
    **/
   get optionalProfile() {
-    return this[`#optionalProfile`];
+    return this.#optionalProfile;
   }
-
   /**
    *
    * @type {string}
    **/
-
   set optionalProfile(value: string) {}
-
   setOptionalProfile(value: string) {
-    this["optionalProfile"] = value;
-
+    this.optionalProfile = value;
     return this;
   }
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyObjectClassDto>;
-
-    if (d[`optionalProfile`] !== undefined) {
-      this.optionalProfile = d[`#optionalProfile`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyObjectClassDto>;
+    if (d.optionalProfile !== undefined) {
+      this.optionalProfile = d.optionalProfile;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      optionalProfile: this.#optionalProfile,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      optionalProfile: "optionalProfile",
+    };
+  }
 }
-
 export abstract class MyObjectClassDtoFactory {
   abstract create(data: unknown): MyObjectClassDto;
 }
-
 /**
  * The base type definition for myObjectClassDto
  **/
-
 export type MyObjectClassDtoType = {
   /**
    *
@@ -260,7 +325,6 @@ export type MyObjectClassDtoType = {
    **/
   optionalProfile?: string;
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyObjectClassDtoType {}
 

@@ -102,7 +102,7 @@ func CombineImportsJsWorld(chunk core.CodeChunkCompiled) string {
 
 func commonJsActionStringCompiler(
 	ctx core.MicroGenContext,
-	callback func(action *core.EmiAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error),
+	callback func(action core.EmiRpcAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error),
 ) (string, error) {
 
 	action, err := core.StringToEmiAction(ctx.Content)
@@ -136,6 +136,7 @@ func commonJsObjectStringCompiler(
 
 	return AsFullDocument(result), nil
 }
+
 func commonJsDtoStringCompiler(
 	ctx core.MicroGenContext,
 	callback func(dto core.EmiDto, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error),

@@ -8,7 +8,6 @@ import (
 	"github.com/torabian/emi/lib/core"
 )
 
-// JsActionPathParams generates a TypeScript type with the path parameters only
 func JsActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error) {
 	res := &core.CodeChunkCompiled{}
 

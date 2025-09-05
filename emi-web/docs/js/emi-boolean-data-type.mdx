@@ -30,10 +30,10 @@ fields:
       Example with a non-nullable `bool`:
       
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myBoolClassDto
  **/
-
 export class MyBoolClassDto {
   /**
    *
@@ -45,25 +45,20 @@ export class MyBoolClassDto {
    * @returns {boolean}
    **/
   get boolWithDefault() {
-    return this[`#boolWithDefault`];
+    return this.#boolWithDefault;
   }
-
   /**
    *
    * @type {boolean}
    **/
-
   set boolWithDefault(value: boolean) {
     const correctType = value === true || value === false;
-    this["#boolWithDefault"] = correctType ? value : Boolean(value);
+    this.#boolWithDefault = correctType ? value : Boolean(value);
   }
-
   setBoolWithDefault(value: boolean) {
-    this["boolWithDefault"] = value;
-
+    this.boolWithDefault = value;
     return this;
   }
-
   /**
    *
    * @type {boolean}
@@ -74,60 +69,82 @@ export class MyBoolClassDto {
    * @returns {boolean}
    **/
   get plainBool() {
-    return this[`#plainBool`];
+    return this.#plainBool;
   }
-
   /**
    *
    * @type {boolean}
    **/
-
   set plainBool(value: boolean) {
     const correctType = value === true || value === false;
-    this["#plainBool"] = correctType ? value : Boolean(value);
+    this.#plainBool = correctType ? value : Boolean(value);
   }
-
   setPlainBool(value: boolean) {
-    this["plainBool"] = value;
-
+    this.plainBool = value;
     return this;
   }
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyBoolClassDto>;
-
-    if (d[`boolWithDefault`] !== undefined) {
-      this.boolWithDefault = d[`#boolWithDefault`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
     }
-
-    if (d[`plainBool`] !== undefined) {
-      this.plainBool = d[`#plainBool`];
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyBoolClassDto>;
+    if (d.boolWithDefault !== undefined) {
+      this.boolWithDefault = d.boolWithDefault;
+    }
+    if (d.plainBool !== undefined) {
+      this.plainBool = d.plainBool;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      boolWithDefault: this.#boolWithDefault,
+      plainBool: this.#plainBool,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      boolWithDefault: "boolWithDefault",
+      plainBool: "plainBool",
+    };
+  }
 }
-
 export abstract class MyBoolClassDtoFactory {
   abstract create(data: unknown): MyBoolClassDto;
 }
-
 /**
  * The base type definition for myBoolClassDto
  **/
-
 export type MyBoolClassDtoType = {
   /**
    *
    * @type {boolean}
    **/
   boolWithDefault?: boolean;
-
   /**
    *
    * @type {boolean}
    **/
   plainBool?: boolean;
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyBoolClassDtoType {}
 
@@ -153,10 +170,10 @@ fields:
 
       
 ```ts
+import { isPlausibleObject } from "./sdk/js";
 /**
  * The base class definition for myBoolClassDto
  **/
-
 export class MyBoolClassDto {
   /**
    *
@@ -168,29 +185,24 @@ export class MyBoolClassDto {
    * @returns {boolean}
    **/
   get nullableBoolWithDefault() {
-    return this[`#nullableBoolWithDefault`];
+    return this.#nullableBoolWithDefault;
   }
-
   /**
    *
    * @type {boolean}
    **/
-
   set nullableBoolWithDefault(value: boolean) {
     const correctType =
       value === true ||
       value === false ||
       value === undefined ||
       value === null;
-    this["#nullableBoolWithDefault"] = correctType ? value : Boolean(value);
+    this.#nullableBoolWithDefault = correctType ? value : Boolean(value);
   }
-
   setNullableBoolWithDefault(value: boolean) {
-    this["nullableBoolWithDefault"] = value;
-
+    this.nullableBoolWithDefault = value;
     return this;
   }
-
   /**
    *
    * @type {boolean}
@@ -201,64 +213,86 @@ export class MyBoolClassDto {
    * @returns {boolean}
    **/
   get nullableBoolWithoutDefault() {
-    return this[`#nullableBoolWithoutDefault`];
+    return this.#nullableBoolWithoutDefault;
   }
-
   /**
    *
    * @type {boolean}
    **/
-
   set nullableBoolWithoutDefault(value: boolean) {
     const correctType =
       value === true ||
       value === false ||
       value === undefined ||
       value === null;
-    this["#nullableBoolWithoutDefault"] = correctType ? value : Boolean(value);
+    this.#nullableBoolWithoutDefault = correctType ? value : Boolean(value);
   }
-
   setNullableBoolWithoutDefault(value: boolean) {
-    this["nullableBoolWithoutDefault"] = value;
-
+    this.nullableBoolWithoutDefault = value;
     return this;
   }
-
-  constructor(data: unknown) {
-    const d = data as Partial<MyBoolClassDto>;
-
-    if (d[`nullableBoolWithDefault`] !== undefined) {
-      this.nullableBoolWithDefault = d[`#nullableBoolWithDefault`];
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
     }
-
-    if (d[`nullableBoolWithoutDefault`] !== undefined) {
-      this.nullableBoolWithoutDefault = d[`#nullableBoolWithoutDefault`];
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
     }
   }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyBoolClassDto>;
+    if (d.nullableBoolWithDefault !== undefined) {
+      this.nullableBoolWithDefault = d.nullableBoolWithDefault;
+    }
+    if (d.nullableBoolWithoutDefault !== undefined) {
+      this.nullableBoolWithoutDefault = d.nullableBoolWithoutDefault;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      nullableBoolWithDefault: this.#nullableBoolWithDefault,
+      nullableBoolWithoutDefault: this.#nullableBoolWithoutDefault,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      nullableBoolWithDefault: "nullableBoolWithDefault",
+      nullableBoolWithoutDefault: "nullableBoolWithoutDefault",
+    };
+  }
 }
-
 export abstract class MyBoolClassDtoFactory {
   abstract create(data: unknown): MyBoolClassDto;
 }
-
 /**
  * The base type definition for myBoolClassDto
  **/
-
 export type MyBoolClassDtoType = {
   /**
    *
    * @type {boolean}
    **/
   nullableBoolWithDefault?: boolean;
-
   /**
    *
    * @type {boolean}
    **/
   nullableBoolWithoutDefault?: boolean;
 };
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyBoolClassDtoType {}
 

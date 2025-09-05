@@ -2,7 +2,7 @@
 import { Command } from "commander";
 const program = new Command();
 import { applyFlags } from "./cliutils.js";
-import { FileActions, TextActions } from "./getPublicActions.js";
+import { FileActions, fileWriter, TextActions } from "./getPublicActions.js";
 import { readFileSync, mkdirSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 
@@ -48,6 +48,7 @@ for (const a of FileActions) {
         output: options.output || "",
         Tags: options.tags || "",
         content: readFileSync(options.path, "utf8"),
+        Flags: JSON.stringify(options),
       };
 
       if (!globalThis[a.WasmFunctionName]) {
@@ -62,11 +63,7 @@ for (const a of FileActions) {
       if (!ctx.output) {
         console.log(JSON.stringify(files, null, 2));
       } else {
-        for (const f of files) {
-          const fullPath = join(ctx.output, f.Location, f.Name + f.Extension);
-          mkdirSync(dirname(fullPath), { recursive: true });
-          writeFileSync(fullPath, f.ActualScript, "utf8");
-        }
+        fileWriter(files, ctx.output);
       }
     });
 

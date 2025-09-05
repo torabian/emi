@@ -1,16 +1,16 @@
-import { SSEFetch, URLSearchParamsX, buildUrl, fetchx, type TypedRequestInit } from './sdk/js';
+import { SSEFetch, URLSearchParamsX, buildUrl, fetchx, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
 import { useSse } from './sdk/react';
 /**
 * Action to communicate with the action sampleSse
 */
 export type SampleSseActionOptions = {
 	queryKey?: unknown[];
-	qs?: SampleSseQueryParams;
-	headers?: SampleSseReqHeaders;
+	qs?: SampleSseActionQueryParams;
+	headers?: SampleSseActionReqHeaders;
 };
-export const useSampleSse = (options: {
-	qs?: SampleSseQueryParams,
-	init?: TypedRequestInit<SampleSseRes, SampleSseReqHeaders>,
+export const useSampleSseAction = (options: {
+	qs?: SampleSseActionQueryParams,
+	init?: TypedRequestInit<SampleSseActionRes, SampleSseActionReqHeaders>,
 	overrideUrl?: string
 }) => {
 	return useSse(SampleSseAction.Fetch, options);
@@ -21,7 +21,7 @@ export const useSampleSse = (options: {
 export class SampleSseAction {
   static URL = 'http://localhost:3000/stream';
   static NewUrl = (
-	qs?: SampleSseQueryParams
+	qs?: SampleSseActionQueryParams
   ) => buildUrl(
 		SampleSseAction.URL,
 		 undefined,
@@ -30,11 +30,11 @@ export class SampleSseAction {
   static Method = 'get';
 	static Fetch = async (
 			onMessage?: (ev: MessageEvent) => void,
-		qs?: SampleSseQueryParams,
-		init?: TypedRequestInit<SampleSseRes, SampleSseReqHeaders>,
+		qs?: SampleSseActionQueryParams,
+		init?: TypedRequestInit<SampleSseActionRes, SampleSseActionReqHeaders>,
 		overrideUrl?: string
 	) => {
-		const res = await fetchx<SampleSseRes, unknown, SampleSseReqHeaders>(
+		const res = await fetchx<SampleSseActionRes, unknown, SampleSseActionReqHeaders>(
 			overrideUrl ?? SampleSseAction.NewUrl(
 				qs
 			),
@@ -46,54 +46,90 @@ export class SampleSseAction {
 			return SSEFetch(res, onMessage, init?.signal || undefined);
 	}
 }
-	/**
-  * @description The base type definition for sampleSseRes
+/**
+  * The base class definition for sampleSseActionRes
   **/
-	export type SampleSseResType =  {
-			/**
+export class SampleSseActionRes {
+		/**
+  * 
   * @type {string}
-  * @description 
+  **/
+ #message : string  =  ""
+		/**
+  * 
+  * @returns {string}
+  **/
+get message () { return this.#message }
+/**
+  * 
+  * @type {string}
+  **/
+set message (value: string) {
+	 	const correctType = typeof value === 'string';
+		this.#message = correctType ? value : ('' + value);
+}
+setMessage (value: string) {
+	this.message = value
+	return this
+}
+	constructor(data) {
+		if (data === null || data === undefined) {
+			return;
+		}
+		if (typeof data === "string") {
+			this.applyFromObject(JSON.parse(data));
+		} else if (isPlausibleObject(data)) {
+			this.applyFromObject(data);
+		} else {
+			throw new Error("Instance is not implemented.");
+		}
+	}
+	/**
+	* casts the fields of a javascript object into the class properties one by one
+	**/
+	applyFromObject(data = {}) {
+		const d = data as Partial<SampleSseActionRes>;
+			if (d.message !== undefined) { this.message = d.message }
+	}
+	/**
+	*	Special toJSON override, since the field are private,
+	*	Json stringify won't see them unless we mention it explicitly.
+	**/
+	toJSON() {
+    	return { 
+				message: this.#message,
+		};
+  	}
+	toString() {
+		return JSON.stringify(this);
+	}
+	static get Fields() {
+      return {
+			message: 'message',
+	  }
+	}
+}
+export abstract class SampleSseActionResFactory {
+	abstract create(data: unknown): SampleSseActionRes;
+}
+	/**
+  * The base type definition for sampleSseActionRes
+  **/
+	export type SampleSseActionResType =  {
+			/**
+  * 
+  * @type {string}
   **/
  message?: string;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace SampleSseResType {
+export namespace SampleSseActionResType {
 }
 /**
-  * @decription The base class definition for sampleSseRes
-  **/
-export class SampleSseRes {
-	constructor(data: unknown) {
-		// This probably doesn't cover the nested objects
-		const d = data as Partial<SampleSseRes>;
-			if (d[`message`] !== undefined) { 
- this.setMessage (d[`message`]) 
-}
-	}
-		/**
-  * 
-  * @type {string}
-  **/
- message: string = ""
-		/**
-  * @returns {string}
-  * @description 
-  **/
-getMessage () { return this[`message`] }
-		/**
-  * 
-  * @param {string}
-  **/
-setMessage (value: string ) { this[`message`] = value; return this; } 
-}
-export abstract class SampleSseResFactory {
-	abstract create(data: unknown): SampleSseRes;
-}
-/**
- * SampleSseReqHeaders class
+ * SampleSseActionReqHeaders class
  * Auto-generated from EmiAction
  */
-export class SampleSseReqHeaders extends Headers {
+export class SampleSseActionReqHeaders extends Headers {
   /**
    * @returns {Record<string, string>}
    * Converts Headers to plain object
@@ -103,10 +139,10 @@ export class SampleSseReqHeaders extends Headers {
   }
 }
 /**
- * SampleSseResHeaders class
+ * SampleSseActionResHeaders class
  * Auto-generated from EmiAction
  */
-export class SampleSseResHeaders extends Headers {
+export class SampleSseActionResHeaders extends Headers {
   /**
    * @returns {Record<string, string>}
    * Converts Headers to plain object
@@ -116,8 +152,8 @@ export class SampleSseResHeaders extends Headers {
   }
 }
 /**
- * SampleSseQueryParams class
+ * SampleSseActionQueryParams class
  * Auto-generated from EmiAction
  */
-export class SampleSseQueryParams extends URLSearchParamsX {
+export class SampleSseActionQueryParams extends URLSearchParamsX {
 }

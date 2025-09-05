@@ -9,10 +9,9 @@ build:
 	./emi spec --output ./playground/public/emi-definitions.json
 
 all: 
-	make build && make jstests
+	make build && make jstests && make sample
 sample:
-	make build && \
-	./emi js:module --path ./examples/js-test/jsonplaceholder.emi.yml --output ./examples/js-test/backend/src/generated --tags typescript,nestjs
+	cd examples/js-test/reactclient && make && cd -
 
 wasm:
 	GOOS=js GOARCH=wasm go build -o ./playground/public/emi-compiler.wasm ./cmd/emi-wasm/main.go && \

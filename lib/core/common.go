@@ -268,6 +268,12 @@ func StringToEmiFields(content string) ([]*EmiField, error) {
 	return actions, err
 }
 
+func StringToEmiHeaders(content string) ([]EmiHeader, error) {
+	var actions []EmiHeader
+	err := yaml.Unmarshal([]byte(content), &actions)
+	return actions, err
+}
+
 func StringToEmiDto(content string) (EmiDto, error) {
 	var data EmiDto
 	err := yaml.Unmarshal([]byte(content), &data)

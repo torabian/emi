@@ -125,6 +125,10 @@ func TsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 			Name:  TOKEN_ROOT_CLASS,
 			Value: renderedTypes[0].TypeName,
 		})
+		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+			Name:  TOKEN_OBJ_TYPE,
+			Value: renderedTypes[0].TypeName,
+		})
 
 		renderedSubTypes = renderedTypes[0].SubTypes
 	}

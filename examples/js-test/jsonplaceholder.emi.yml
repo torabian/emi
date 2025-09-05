@@ -33,6 +33,18 @@ actions:
           type: string
         - name: lastName
           type: string
+        - name: user
+          type: object
+          fields:
+          - name: item1
+            type: string
+          - name: item2array
+            type: array
+            fields:
+            - name: subItem1
+              type: int64
+            - name: subItem2
+              type: int64
     out:
       fields:
         - name: lastName

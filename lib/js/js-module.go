@@ -4,6 +4,8 @@ package js
 // the webrequestX based class for communication
 
 import (
+	"encoding/json"
+	"slices"
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
@@ -19,16 +21,51 @@ func AsFullDocument(x *core.CodeChunkCompiled) string {
 	return finalContent
 }
 
-// Combines entire features for a module, and creates a virtual map of the files
-func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+type JsModuleGenerationConfig struct {
+	Actions []string
+	Remotes []string
+}
 
+type JsModuleGenerationFlags struct {
+	Actions  *string `json:"actions"`
+	Remotes  *string `json:"remotes"`
+	Dtos     *string `json:"dtos"`
+	Entities *string `json:"entities"`
+}
+
+func (x JsModuleGenerationFlags) GetActions() []string {
+	return strings.Split(*x.Actions, ",")
+}
+
+func (x JsModuleGenerationFlags) GetRemotes() []string {
+	return strings.Split(*x.Remotes, ",")
+}
+
+func (x JsModuleGenerationFlags) GetDtos() []string {
+	return strings.Split(*x.Dtos, ",")
+}
+
+func (x JsModuleGenerationFlags) GetEntities() []string {
+	return strings.Split(*x.Entities, ",")
+}
+
+// Combines entire features for a module, and creates a virtual map of the files
+// which is necessary to run entire modules
+func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+	globalPacakges := []string{"qs", "@types/qs"}
 	files := []core.VirtualFile{}
 
-	var actionsRendered []*core.CodeChunkCompiled
-	var entitiesAndDtos []*core.CodeChunkCompiled
+	config := JsModuleGenerationFlags{}
+	json.Unmarshal([]byte(ctx.Flags), &config)
 
-	// First, compile the actions, and we might need to use their tokens on the next steps.
+	var actionsRendered []*core.CodeChunkCompiled
+
 	for _, action := range module.Actions {
+		// Filter the actions.
+		if config.Actions != nil && len(*config.Actions) > 0 && !slices.Contains(config.GetActions(), action.Name) {
+			continue
+		}
+
 		actionRendered, err := JsActionManifest(action, ctx)
 		if err != nil {
 			return nil, err
@@ -36,8 +73,11 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		actionsRendered = append(actionsRendered, actionRendered)
 	}
 
-	// Now we can also render the remotes.
 	for _, remote := range module.Remotes {
+		if config.Remotes != nil && len(*config.Remotes) > 0 && !slices.Contains(config.GetRemotes(), remote.Name) {
+			continue
+		}
+
 		actionRendered, err := JsActionManifest(remote, ctx)
 		if err != nil {
 			return nil, err
@@ -45,7 +85,12 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		actionsRendered = append(actionsRendered, actionRendered)
 	}
 
+	var entitiesAndDtos []*core.CodeChunkCompiled
 	for _, entity := range module.Entities {
+		if config.Entities != nil && len(*config.Entities) > 0 && !slices.Contains(config.GetEntities(), entity.Name) {
+			continue
+		}
+
 		actionRendered, err := JsCommonObjectGenerator(entity.Fields, ctx, JsCommonObjectContext{
 			RootClassName: entity.GetClassName(),
 		})
@@ -56,6 +101,10 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	}
 
 	for _, dto := range module.Dto {
+		if config.Dtos != nil && len(*config.Dtos) > 0 && !slices.Contains(config.GetDtos(), dto.Name) {
+			continue
+		}
+
 		actionRendered, err := JsCommonObjectGenerator(dto.Fields, ctx, JsCommonObjectContext{
 			RootClassName: dto.GetClassName(),
 		})
@@ -65,7 +114,6 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
 	}
 
-	globalPacakges := []string{"qs", "@types/qs"}
 	// Those actions are valid ts or js files, including some helpers for react, axios, fetch
 	// and couple of more, directly can be written on the disk
 	for _, action := range actionsRendered {
@@ -85,7 +133,6 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	}
 
 	for _, dtoItem := range entitiesAndDtos {
-
 		for _, loc := range dtoItem.CodeChunkDependenies {
 			if loc.Location == INTERNAL_SDK_JS_LOCATION {
 				continue
@@ -128,12 +175,9 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	}
 
 	if isTypeScript {
-		// step2, write the js library which is needed by the generated code.
 		files = append(files, core.FsEmbedToVirtualFile(&tssdk.Content, "sdk")...)
-
 	} else {
 		files = append(files, core.FsEmbedToVirtualFile(&jssdk.Content, "sdk")...)
-
 	}
 
 	return files, nil
