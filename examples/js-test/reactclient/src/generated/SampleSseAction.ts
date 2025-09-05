@@ -1,16 +1,16 @@
-import { SSEFetch, URLSearchParamsX, buildUrl, fetchx, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
+import { SSEFetch, buildUrl, fetchx, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
+import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { useSse } from './sdk/react';
 /**
 * Action to communicate with the action sampleSse
 */
 export type SampleSseActionOptions = {
 	queryKey?: unknown[];
-	qs?: SampleSseActionQueryParams;
-	headers?: SampleSseActionReqHeaders;
+	qs?: URLSearchParams;
 };
 export const useSampleSseAction = (options: {
-	qs?: SampleSseActionQueryParams,
-	init?: TypedRequestInit<SampleSseActionRes, SampleSseActionReqHeaders>,
+	qs?: URLSearchParams,
+	init?: TypedRequestInit<SampleSseActionRes, unknown>,
 	overrideUrl?: string
 }) => {
 	return useSse(SampleSseAction.Fetch, options);
@@ -21,20 +21,20 @@ export const useSampleSseAction = (options: {
 export class SampleSseAction {
   static URL = 'http://localhost:3000/stream';
   static NewUrl = (
-	qs?: SampleSseActionQueryParams
+	qs?: URLSearchParams
   ) => buildUrl(
 		SampleSseAction.URL,
 		 undefined,
 		qs
 	);
-  static Method = 'get';
+  static Method = 'sse';
 	static Fetch = async (
-			onMessage?: (ev: MessageEvent) => void,
-		qs?: SampleSseActionQueryParams,
-		init?: TypedRequestInit<SampleSseActionRes, SampleSseActionReqHeaders>,
-		overrideUrl?: string
+		qs?: URLSearchParams,
+		init?: TypedRequestInit<SampleSseActionRes, unknown>,
+		onMessage?: (ev: MessageEvent) => void,
+		overrideUrl?: string,
 	) => {
-		const res = await fetchx<SampleSseActionRes, unknown, SampleSseActionReqHeaders>(
+		const res = await fetchx<SampleSseActionRes, unknown, unknown>(
 			overrideUrl ?? SampleSseAction.NewUrl(
 				qs
 			),
@@ -43,8 +43,46 @@ export class SampleSseAction {
 				...(init || {})
 			}
 		)
-			return SSEFetch(res, onMessage, init?.signal || undefined);
+			const ct = res.headers.get("content-type") || "";
+			const cd = res.headers.get("content-disposition") || "";
+			if (ct.includes("text/event-stream")) {
+				// delegate to SSEFetch
+				return SSEFetch(res, onMessage, init?.signal);
+			}
+			if (cd.includes("attachment") || (!ct.includes("json") && !ct.startsWith("text/"))) {
+				res.result = res.body;
+				return res;
+			}
+			if (ct.includes("application/json")) {
+				const json = await res.json();
+				res.result = new SampleSseActionRes (result);
+				return res;
+			}
+			// plain text or fallback
+			res.result = await res.text();
+			return res;
 	}
+	static Axios : (
+		clientInstance: AxiosInstance,
+		config: AxiosRequestConfig<unknown>,
+	)  => Promise<AxiosResponse<unknown>> = (
+		clientInstance,
+		config,
+	) => 
+		clientInstance
+		.request<unknown, AxiosResponse<unknown>, unknown>(
+			{
+				method: SampleSseAction.Method,
+				...(config || {})
+			}
+		)
+		.then((res) => {
+			return {
+			...res,
+			// if there is a output class, create instance out of it.
+			data: new SampleSseActionRes(res.data),
+			};
+		});
 }
 /**
   * The base class definition for sampleSseActionRes
@@ -124,36 +162,4 @@ export abstract class SampleSseActionResFactory {
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace SampleSseActionResType {
-}
-/**
- * SampleSseActionReqHeaders class
- * Auto-generated from EmiAction
- */
-export class SampleSseActionReqHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * SampleSseActionResHeaders class
- * Auto-generated from EmiAction
- */
-export class SampleSseActionResHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * SampleSseActionQueryParams class
- * Auto-generated from EmiAction
- */
-export class SampleSseActionQueryParams extends URLSearchParamsX {
 }

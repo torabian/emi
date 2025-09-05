@@ -1,11 +1,10 @@
-import { URLSearchParamsX, WebSocketX, buildUrl, isPlausibleObject, withPrefix } from './sdk/js';
+import { WebSocketX, buildUrl, isPlausibleObject, withPrefix } from './sdk/js';
 /**
 * Action to communicate with the action userStream
 */
 export type UserStreamActionOptions = {
 	queryKey?: unknown[];
-	qs?: UserStreamActionQueryParams;
-	headers?: UserStreamActionReqHeaders;
+	qs?: URLSearchParams;
 };
 	/**
  * UserStreamAction
@@ -13,7 +12,7 @@ export type UserStreamActionOptions = {
 export class UserStreamAction {
   static URL = 'ws://localhost:8081';
   static NewUrl = (
-	qs?: UserStreamActionQueryParams
+	qs?: URLSearchParams
   ) => buildUrl(
 		UserStreamAction.URL,
 		 undefined,
@@ -22,7 +21,7 @@ export class UserStreamAction {
   static Method = 'reactive';
 	static Create = (
 		overrideUrl?: string,
-		qs?: UserStreamActionQueryParams,
+		qs?: URLSearchParams,
 	) => {
 		const url = overrideUrl ?? UserStreamAction.NewUrl(
 			qs
@@ -253,36 +252,4 @@ export abstract class UserStreamActionResFactory {
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace UserStreamActionResType {
-}
-/**
- * UserStreamActionReqHeaders class
- * Auto-generated from EmiAction
- */
-export class UserStreamActionReqHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * UserStreamActionResHeaders class
- * Auto-generated from EmiAction
- */
-export class UserStreamActionResHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * UserStreamActionQueryParams class
- * Auto-generated from EmiAction
- */
-export class UserStreamActionQueryParams extends URLSearchParamsX {
 }

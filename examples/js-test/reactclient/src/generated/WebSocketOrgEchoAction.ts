@@ -1,15 +1,14 @@
-import { URLSearchParamsX, WebSocketX, buildUrl, isPlausibleObject, withPrefix } from './sdk/js';
+import { WebSocketX, buildUrl, isPlausibleObject, withPrefix } from './sdk/js';
 import { useWebSocketX } from './sdk/react';
 /**
 * Action to communicate with the action webSocketOrgEcho
 */
 export type WebSocketOrgEchoActionOptions = {
 	queryKey?: unknown[];
-	qs?: WebSocketOrgEchoActionQueryParams;
-	headers?: WebSocketOrgEchoActionReqHeaders;
+	qs?: URLSearchParams;
 };
 export const useWebSocketOrgEchoAction = (options?: {
-	qs?: WebSocketOrgEchoActionQueryParams,
+	qs?: URLSearchParams,
 	overrideUrl?: string
 }) => {
 	return useWebSocketX(
@@ -22,7 +21,7 @@ export const useWebSocketOrgEchoAction = (options?: {
 export class WebSocketOrgEchoAction {
   static URL = 'wss://echo.websocket.org/.ws';
   static NewUrl = (
-	qs?: WebSocketOrgEchoActionQueryParams
+	qs?: URLSearchParams
   ) => buildUrl(
 		WebSocketOrgEchoAction.URL,
 		 undefined,
@@ -31,7 +30,7 @@ export class WebSocketOrgEchoAction {
   static Method = 'reactive';
 	static Create = (
 		overrideUrl?: string,
-		qs?: WebSocketOrgEchoActionQueryParams,
+		qs?: URLSearchParams,
 	) => {
 		const url = overrideUrl ?? WebSocketOrgEchoAction.NewUrl(
 			qs
@@ -497,36 +496,4 @@ export abstract class WebSocketOrgEchoActionResFactory {
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace WebSocketOrgEchoActionResType {
-}
-/**
- * WebSocketOrgEchoActionReqHeaders class
- * Auto-generated from EmiAction
- */
-export class WebSocketOrgEchoActionReqHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * WebSocketOrgEchoActionResHeaders class
- * Auto-generated from EmiAction
- */
-export class WebSocketOrgEchoActionResHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * WebSocketOrgEchoActionQueryParams class
- * Auto-generated from EmiAction
- */
-export class WebSocketOrgEchoActionQueryParams extends URLSearchParamsX {
 }

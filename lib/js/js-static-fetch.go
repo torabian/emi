@@ -125,14 +125,10 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		{{ if .hasQueryParams }}
 			|@query.params|,
 		{{ end }}
-
-		{{ if .fetchctx.IsSSE }}
-			|@message.callback|,
-		{{ end }}
-
 		|@fetch.qs|,
 		|@fetch.init|,
-		|@fetch.overrideUrl|
+		|@message.callback|,
+		|@fetch.overrideUrl|,
 	) => {
 		const res = await fetchx|@fetch.generic|(
 			overrideUrl ?? {{  .fetchctx.UrlCreatorFunction -}}(
@@ -148,23 +144,32 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		)
 
 		{{ if .fetchctx.IsClassicHttpCall }}
-			{{ if .fetchctx.CastToJson }}
-			const result = await res.json();
-			{{ else }}
-			const result = await res.text();
-			{{ end }}
+			const ct = res.headers.get("content-type") || "";
+			const cd = res.headers.get("content-disposition") || "";
 
-			{{ if .fetchctx.ResponseClass }}
+			if (ct.includes("text/event-stream")) {
+				// delegate to SSEFetch
+				return SSEFetch(res, onMessage, init?.signal);
+			}
+
+			if (cd.includes("attachment") || (!ct.includes("json") && !ct.startsWith("text/"))) {
+				res.result = res.body;
+				return res;
+			}
+
+			if (ct.includes("application/json")) {
+				const json = await res.json();
+				{{ if .fetchctx.ResponseClass }}
 				res.result = new {{ .fetchctx.ResponseClass }} (result);
-			{{ else }}
-				res.result = result;
-			{{ end }}
+				{{ else }}
+				res.result = json;
+				{{ end }}
+				return res;
+			}
 
+			// plain text or fallback
+			res.result = await res.text();
 			return res;
-		{{ end }}
-
-		{{ if .fetchctx.IsSSE }}
-			return SSEFetch(res, onMessage, init?.signal || undefined);
 		{{ end }}
 	}
 	`
@@ -194,15 +199,12 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		},
 	}
 
-	if fetchctx.IsSSE {
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
-			{
-				Objects:  []string{"SSEFetch"},
-				Location: INTERNAL_SDK_JS_LOCATION,
-			},
-		}...)
-
-	}
+	res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
+		{
+			Objects:  []string{"SSEFetch"},
+			Location: INTERNAL_SDK_JS_LOCATION,
+		},
+	}...)
 
 	if isTypeScript {
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{

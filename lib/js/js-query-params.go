@@ -1,6 +1,6 @@
 // Contains code to generate type-safe query class for javascript, and typescript definitions
 // Basically, it would extend the queries class from native javascript, and add the keys there.
-// It's a direct drop in for UrlSearchParams, and works as expected with all libraries.
+// It's a direct drop in for URLSearchParams, and works as expected with all libraries.
 
 // When modifiying this file, test both js and ts definition are in sync.
 

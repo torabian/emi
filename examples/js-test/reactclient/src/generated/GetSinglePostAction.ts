@@ -1,4 +1,4 @@
-import { URLSearchParamsX, buildUrl, fetchx, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
+import { SSEFetch, buildUrl, fetchx, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
 import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 /**
@@ -7,8 +7,7 @@ import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 export type GetSinglePostActionOptions = {
 	queryKey?: unknown[];
 	params: GetSinglePostActionPathParameter;
-	qs?: GetSinglePostActionQueryParams;
-	headers?: GetSinglePostActionReqHeaders;
+	qs?: URLSearchParams;
 };
 export type GetSinglePostActionQueryOptions = Omit<
 	UseQueryOptions<
@@ -54,7 +53,7 @@ export class GetSinglePostAction {
   static URL = 'https://jsonplaceholder.typicode.com/posts/:id';
   static NewUrl = (
 	params: GetSinglePostActionPathParameter,
-	qs?: GetSinglePostActionQueryParams
+	qs?: URLSearchParams
   ) => buildUrl(
 		GetSinglePostAction.URL,
 		params,
@@ -63,11 +62,12 @@ export class GetSinglePostAction {
   static Method = 'get';
 	static Fetch = async (
 			params: GetSinglePostActionPathParameter,
-		qs?: GetSinglePostActionQueryParams,
-		init?: TypedRequestInit<GetSinglePostActionRes, GetSinglePostActionReqHeaders>,
-		overrideUrl?: string
+		qs?: URLSearchParams,
+		init?: TypedRequestInit<GetSinglePostActionRes, unknown>,
+		onMessage?: (ev: MessageEvent) => void,
+		overrideUrl?: string,
 	) => {
-		const res = await fetchx<GetSinglePostActionRes, unknown, GetSinglePostActionReqHeaders>(
+		const res = await fetchx<GetSinglePostActionRes, unknown, unknown>(
 			overrideUrl ?? GetSinglePostAction.NewUrl(
 				params,
 				qs
@@ -77,8 +77,23 @@ export class GetSinglePostAction {
 				...(init || {})
 			}
 		)
-			const result = await res.json();
+			const ct = res.headers.get("content-type") || "";
+			const cd = res.headers.get("content-disposition") || "";
+			if (ct.includes("text/event-stream")) {
+				// delegate to SSEFetch
+				return SSEFetch(res, onMessage, init?.signal);
+			}
+			if (cd.includes("attachment") || (!ct.includes("json") && !ct.startsWith("text/"))) {
+				res.result = res.body;
+				return res;
+			}
+			if (ct.includes("application/json")) {
+				const json = await res.json();
 				res.result = new GetSinglePostActionRes (result);
+				return res;
+			}
+			// plain text or fallback
+			res.result = await res.text();
 			return res;
 	}
 	static Axios : (
@@ -271,36 +286,4 @@ export abstract class GetSinglePostActionResFactory {
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace GetSinglePostActionResType {
-}
-/**
- * GetSinglePostActionReqHeaders class
- * Auto-generated from EmiAction
- */
-export class GetSinglePostActionReqHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * GetSinglePostActionResHeaders class
- * Auto-generated from EmiAction
- */
-export class GetSinglePostActionResHeaders extends Headers {
-  /**
-   * @returns {Record<string, string>}
-   * Converts Headers to plain object
-   */
-  toObject() {
-    return Object.fromEntries(this.entries());
-  }
-}
-/**
- * GetSinglePostActionQueryParams class
- * Auto-generated from EmiAction
- */
-export class GetSinglePostActionQueryParams extends URLSearchParamsX {
 }

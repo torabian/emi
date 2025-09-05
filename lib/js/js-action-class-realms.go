@@ -37,38 +37,43 @@ func JsActionManifestRealms(
 	}
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 
-	reqheaderctx := jsHeaderClassContext{
-		ClassName: fmt.Sprintf("%vReqHeaders", core.ToUpper(action.GetName())),
-	}
-
 	if action.HasRequestHeaders() {
+		reqheaderctx := jsHeaderClassContext{
+			ClassName: fmt.Sprintf("%vReqHeaders", core.ToUpper(action.GetName())),
+		}
+
 		reqheaderctx.Columns = action.GetRequestHeaders()
-	}
-	requestHeader, err := JsHeaderClass(reqheaderctx, ctx)
-	if err != nil {
-		return nil, nil, err
-	}
 
-	if requestHeader != nil {
-		deps = append(deps, requestHeader.CodeChunkDependenies...)
-		actionRealms.RequestHeadersClass = requestHeader
-	}
+		requestHeader, err := JsHeaderClass(reqheaderctx, ctx)
+		if err != nil {
+			return nil, nil, err
+		}
 
-	resheaderctx := jsHeaderClassContext{
-		ClassName: fmt.Sprintf("%vResHeaders", core.ToUpper(action.GetName())),
+		if requestHeader != nil {
+			deps = append(deps, requestHeader.CodeChunkDependenies...)
+			actionRealms.RequestHeadersClass = requestHeader
+		}
+
 	}
 
 	if action.HasResponseHeaders() {
-		resheaderctx.Columns = action.GetResponseHeaders()
-	}
-	responseHeader, err := JsHeaderClass(resheaderctx, ctx)
-	if err != nil {
-		return nil, nil, err
-	}
 
-	if responseHeader != nil {
-		deps = append(deps, responseHeader.CodeChunkDependenies...)
-		actionRealms.ResponseHeadersClass = responseHeader
+		resheaderctx := jsHeaderClassContext{
+			ClassName: fmt.Sprintf("%vResHeaders", core.ToUpper(action.GetName())),
+		}
+
+		if action.HasResponseHeaders() {
+			resheaderctx.Columns = action.GetResponseHeaders()
+		}
+		responseHeader, err := JsHeaderClass(resheaderctx, ctx)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if responseHeader != nil {
+			deps = append(deps, responseHeader.CodeChunkDependenies...)
+			actionRealms.ResponseHeadersClass = responseHeader
+		}
 	}
 
 	if isTypeScript {
@@ -85,26 +90,27 @@ func JsActionManifestRealms(
 		}
 	}
 
-	// Query strings for the request builder
-	qs, err := JsActionQsClass(action, ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if qs != nil {
-		deps = append(deps, qs.CodeChunkDependenies...)
-		actionRealms.QueryStringClass = qs
-	}
-
 	// Options type, the type which defines how many different things can go
 	// into this request.
 	optionsctx := jsActionOptionsContext{
-		ActionName: action.GetName(),
+		ActionName:  action.GetName(),
+		QsClassName: "URLSearchParams",
 	}
-	if qs != nil {
-		token := findTokenByName(qs.Tokens, TOKEN_ROOT_CLASS)
-		if token != nil {
-			optionsctx.QsClassName = token.Value
+
+	if len(action.GetQuery()) > 0 {
+
+		qs, err := JsActionQsClass(action, ctx)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if qs != nil {
+			deps = append(deps, qs.CodeChunkDependenies...)
+			actionRealms.QueryStringClass = qs
+			token := findTokenByName(qs.Tokens, TOKEN_ROOT_CLASS)
+			if token != nil {
+				optionsctx.QsClassName = token.Value
+			}
 		}
 	}
 
@@ -115,15 +121,15 @@ func JsActionManifestRealms(
 		}
 	}
 
-	if requestHeader != nil {
-		token := findTokenByName(requestHeader.Tokens, TOKEN_ROOT_CLASS)
+	if actionRealms.RequestHeadersClass != nil {
+		token := findTokenByName(actionRealms.RequestHeadersClass.Tokens, TOKEN_ROOT_CLASS)
 		if token != nil {
 			optionsctx.RequestHeadersClassName = token.Value
 		}
 	}
 
-	if responseHeader != nil {
-		token := findTokenByName(responseHeader.Tokens, TOKEN_ROOT_CLASS)
+	if actionRealms.ResponseHeadersClass != nil {
+		token := findTokenByName(actionRealms.ResponseHeadersClass.Tokens, TOKEN_ROOT_CLASS)
 		if token != nil {
 			optionsctx.ResponseHeadersClassName = token.Value
 		}

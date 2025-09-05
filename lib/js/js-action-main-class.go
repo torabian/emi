@@ -31,17 +31,17 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 		UrlCreatorFunction: fmt.Sprintf("%v.NewUrl", className),
 		UrlMethod:          fmt.Sprintf("%v.Method", className),
 		EndpointUrl:        action.GetUrl(),
-
+		QueryStringClass:   "URLSearchParams",
 		// By default, use the classic http call
 		IsClassicHttpCall: true,
 		ActionMethod:      action.GetMethod(),
 	}
 
-	if action.MethodUpper() == EMI_METHOD_SSE {
-		fetchctx.IsClassicHttpCall = false
-		fetchctx.IsSSE = true
-		fetchctx.ActionMethod = "get"
-	}
+	// if action.MethodUpper() == EMI_METHOD_SSE {
+	// 	fetchctx.IsClassicHttpCall = false
+	// 	fetchctx.IsSSE = true
+	// 	fetchctx.ActionMethod = "get"
+	// }
 
 	if action.MethodUpper() == EMI_METHOD_REACTIVE {
 		fetchctx.IsClassicHttpCall = false
