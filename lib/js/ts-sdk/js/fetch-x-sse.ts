@@ -3,7 +3,7 @@ import { TypedResponse } from "./fetch-x";
 export const SSEFetch = <T = string>(
   res: TypedResponse<T>,
   onMessage?: (ev: MessageEvent) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal | null
 ): { response: TypedResponse<T>; done: Promise<void> } => {
   if (!res.body) throw new Error("SSE requires readable body");
 

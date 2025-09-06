@@ -51,8 +51,8 @@ type Emi struct {
 	// Version of the module. Helpful for different code generation phases but it's not necessary.
 	Version string `yaml:"version,omitempty" json:"version,omitempty" jsonschema:"description=Version of the module. Helpful for different code generation phases but it's not necessary."`
 
-	// Magic property for Fireback FirebackEmi.yml file. It's gonna be true only in a single file internally in Fireback
-	MetaWorkspace bool `yaml:"meta-workspace,omitempty" json:"meta-workspace,omitempty" jsonschema:"description=Magic property for Fireback FirebackEmi.yml file. It's gonna be true only in a single file internally in Fireback"`
+	// Magic property for Emi EmiEmi.yml file. It's gonna be true only in a single file internally in Emi
+	MetaWorkspace bool `yaml:"meta-workspace,omitempty" json:"meta-workspace,omitempty" jsonschema:"description=Magic property for Emi EmiEmi.yml file. It's gonna be true only in a single file internally in Emi"`
 
 	// Name of the module. Needs to be lower camel case and Module.go and Module.dyno.go will be generated based on this name.
 	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description=Name of the module. Needs to be lower camel case and Module.go and Module.dyno.go will be generated based on this name."`
@@ -72,8 +72,8 @@ type Emi struct {
 	// Macros are extra definition or templates which will modify the module and able to add extra fields or tables before the codegen occures.
 	Macros []EmiMacro `yaml:"macros,omitempty" json:"macros,omitempty" jsonschema:"description=Macros are extra definition or templates which will modify the module and able to add extra fields or tables before the codegen occures."`
 
-	// Remotes are definition of external services which could be contacted via http and Fireback developer can make them typesafe by defining them here.
-	Remotes []*EmiRemote `yaml:"remotes,omitempty" json:"remotes,omitempty" jsonschema:"description=Remotes are definition of external services which could be contacted via http and Fireback developer can make them typesafe by defining them here."`
+	// Remotes are definition of external services which could be contacted via http and Emi developer can make them typesafe by defining them here.
+	Remotes []*EmiRemote `yaml:"remotes,omitempty" json:"remotes,omitempty" jsonschema:"description=Remotes are definition of external services which could be contacted via http and Emi developer can make them typesafe by defining them here."`
 
 	// Notifications are end-user messages, such as push notification, socket notification, and could be sent to user via different channels
 	Notifications []*EmiNotification `yaml:"notifications,omitempty" json:"notifications,omitempty" jsonschema:"description=Notifications are end-user messages, such as push notification, socket notification, and could be sent to user via different channels"`
@@ -81,8 +81,8 @@ type Emi struct {
 	// Events are internal changes that can be triggered by different sources
 	Events []*EmiEvent `yaml:"events,omitempty" json:"events,omitempty" jsonschema:"description=Events are internal changes that can be triggered by different sources"`
 
-	// Queries are set of SQL queries that developer writes and Fireback generates tools for fetching them from database to golang code.
-	Queries []*EmiQuery `yaml:"queries,omitempty" json:"queries,omitempty" jsonschema:"description=Queries are set of SQL queries that developer writes and Fireback generates tools for fetching them from database to golang code."`
+	// Queries are set of SQL queries that developer writes and Emi generates tools for fetching them from database to golang code.
+	Queries []*EmiQuery `yaml:"queries,omitempty" json:"queries,omitempty" jsonschema:"description=Queries are set of SQL queries that developer writes and Emi generates tools for fetching them from database to golang code."`
 
 	// An interesting way of defining env variables
 	Config []*EmiConfigField `yaml:"config,omitempty" json:"config,omitempty" jsonschema:"description=An interesting way of defining env variables"`
@@ -99,9 +99,9 @@ type EmiTrigger struct {
 	Cron string `yaml:"cron,omitempty" json:"cron,omitempty" jsonschema:"description=The 5-6 star standard cronjob described in https://en.wikipedia.org/wiki/Cron"`
 }
 
-// Task is a general function or similarly Fireback Action, which has no results
+// Task is a general function or similarly Emi Action, which has no results
 // and could be run via Queue services or cronjobs
-// Developer needs to implement the functionality manually, Fireback only generates the func signature
+// Developer needs to implement the functionality manually, Emi only generates the func signature
 // Tasks are only available internally and not exported via http or client sdks
 type EmiTask struct {
 
@@ -128,7 +128,7 @@ type EmiEnum struct {
 	Descrtipion string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description of the enum for developers. It's not translated or meant to be shown to end users."`
 }
 
-// Macros is a pre-compile mechanism in Fireback, and it will modify the module definition
+// Macros is a pre-compile mechanism in Emi, and it will modify the module definition
 // before it's given to the compiler. The idea is for example, you can add extra entities
 // on some modules with it.
 // Until version 1.2.1, there is a single macro for EAV database model, which would create
@@ -137,8 +137,8 @@ type EmiEnum struct {
 // the parameters are interface{}
 type EmiMacro struct {
 
-	// The macro name which you are using. Fireback developers need to add the macros name here as reference.
-	Using string `yaml:"using,omitempty" json:"using,omitempty" jsonschema:"enum=eav,description=The macro name which you are using. Fireback developers need to add the macros name here as reference."`
+	// The macro name which you are using. Emi developers need to add the macros name here as reference.
+	Using string `yaml:"using,omitempty" json:"using,omitempty" jsonschema:"enum=eav,description=The macro name which you are using. Emi developers need to add the macros name here as reference."`
 
 	// Params are the macro configuration which are dynamically set based on each macro itself.
 	// They will be passed as interface{} to macro and function itself will decide what to do next.
@@ -183,11 +183,11 @@ func EmiMacroCastParams[T any](m *EmiMacro) (*T, error) {
 
 type EmiFieldMatch struct {
 
-	// The dto name from Fireback which will be matched. Might be also work with any other go struct but check the generated code.
-	Dto *string `yaml:"dto,omitempty" json:"dto,omitempty" jsonschema:"description=The dto name from Fireback which will be matched. Might be also work with any other go struct but check the generated code."`
+	// The dto name from Emi which will be matched. Might be also work with any other go struct but check the generated code.
+	Dto *string `yaml:"dto,omitempty" json:"dto,omitempty" jsonschema:"description=The dto name from Emi which will be matched. Might be also work with any other go struct but check the generated code."`
 }
 
-// Used in Module code generation to customized the generated code for gorm tags on Fireback
+// Used in Module code generation to customized the generated code for gorm tags on Emi
 // Data management fields such as workspace or user id. For example, you can add extra indexes on these
 // fields.
 type GormOverrideMap struct {
@@ -215,8 +215,8 @@ type EmiMessage map[string]map[string]string
 
 type EmiDataFields struct {
 
-	// Essential is a set of the fields which fireback uses to give userId and workspaceId
-	Essentials bool `yaml:"essentials,omitempty" json:"essentials,omitempty" jsonschema:"default=true,description=Essential is a set of the fields which fireback uses to give userId and workspaceId"`
+	// Essential is a set of the fields which Emi uses to give userId and workspaceId
+	Essentials bool `yaml:"essentials,omitempty" json:"essentials,omitempty" jsonschema:"default=true,description=Essential is a set of the fields which Emi uses to give userId and workspaceId"`
 
 	// Adds a int primary key auto increment
 	PrimaryId bool `yaml:"primaryId,omitempty" json:"primaryId,omitempty" jsonschema:"default=true,description=Adds a int primary key auto increment"`
@@ -272,7 +272,7 @@ type EmiActionConfig struct {
 	Headers []EmiField `yaml:"headers,omitempty" json:"headers,omitempty" jsonschema:"description=Typesafe headers."`
 }
 
-// Contains extra configuration for each rpc which will be generated on fireback
+// Contains extra configuration for each rpc which will be generated on Emi
 // this is an attempt to reduce the need for custom actions, by giving you some control over
 // the code might be generated.
 type EmiEntityActionConfig struct {
@@ -288,7 +288,7 @@ type EmiEntityReplicas struct {
 	Clickhouse *ClickHouseReplicaInfo `yaml:"clickhouse,omitempty" json:"clickhouse,omitempty" jsonschema:"Clickhouse replica features."`
 }
 
-// Represents Entities in Fireback. An entity in Fireback is a table in database, with addition general
+// Represents Entities in Emi. An entity in Emi is a table in database, with addition general
 // features such as permissions, actions, security, and common actions which might be created or extra
 // queries based on the type
 type EmiEntity struct {
@@ -318,8 +318,8 @@ type EmiEntity struct {
 	// to relate them and group them. Also permission might be added automatically (need to clearify)
 	Actions []*EmiAction `yaml:"actions,omitempty" json:"actions,omitempty" jsonschema:"description=Actions or extra actions (on top of default actions which automatically is generated) these are the same actions that you can define for a module but defining them on entity level make it easier to relate them and group them. Also permission might be added automatically (need to clearify)"`
 
-	// The entity name is crucial as it determines database table names and is used by Fireback's Go and code generation tools; note that changing an entity name does not delete previously created entities requiring manual file deletion and only camelCase naming is supported.
-	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description=The entity name is crucial as it determines database table names and is used by Fireback's Go and code generation tools; note that changing an entity name does not delete previously created entities requiring manual file deletion and only camelCase naming is supported."`
+	// The entity name is crucial as it determines database table names and is used by Emi's Go and code generation tools; note that changing an entity name does not delete previously created entities requiring manual file deletion and only camelCase naming is supported.
+	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description=The entity name is crucial as it determines database table names and is used by Emi's Go and code generation tools; note that changing an entity name does not delete previously created entities requiring manual file deletion and only camelCase naming is supported."`
 
 	// You can make sure there is only one record of the entity per user or workspace using this option.
 	// for example, if you want only one credit card per workspace, you can set distinctBy: workspace
@@ -358,11 +358,11 @@ type EmiEntity struct {
 	// For entities, if the query scope is public the query action will become automatically public and without authentication
 	QueryScope string `yaml:"queryScope,omitempty" json:"queryScope,omitempty" jsonschema:"enum=public,enum=specific,description=For entities, if the query scope is public the query action will become automatically public and without authentication"`
 
-	// A list of extra queries that Fireback can generate for the the entity. Fireback might offer some extra queries to be generated so they will be listed here.
-	Queries []string `yaml:"queries,omitempty" json:"queries,omitempty" jsonschema:"description=A list of extra queries that Fireback can generate for the the entity. Fireback might offer some extra queries to be generated so they will be listed here."`
+	// A list of extra queries that Emi can generate for the the entity. Emi might offer some extra queries to be generated so they will be listed here.
+	Queries []string `yaml:"queries,omitempty" json:"queries,omitempty" jsonschema:"description=A list of extra queries that Emi can generate for the the entity. Emi might offer some extra queries to be generated so they will be listed here."`
 
-	// Override the some default Fireback generated fields gorm configuration.
-	GormMap GormOverrideMap `yaml:"gormMap,omitempty" json:"gormMap,omitempty" jsonschema:"description=Override the some default Fireback generated fields gorm configuration."`
+	// Override the some default Emi generated fields gorm configuration.
+	GormMap GormOverrideMap `yaml:"gormMap,omitempty" json:"gormMap,omitempty" jsonschema:"description=Override the some default Emi generated fields gorm configuration."`
 
 	// Define the fields that this entity will have both in golang and database columns.
 	Fields []*EmiField `yaml:"fields,omitempty" json:"fields,omitempty" jsonschema:"description=Define the fields that this entity will have both in golang and database columns."`
@@ -422,7 +422,7 @@ type EmiNotification struct {
 }
 
 // Represents a dto in an application. Can be used for variety of reasons,
-// request response of an action, or even internally. Fireback generates bunch of
+// request response of an action, or even internally. Emi generates bunch of
 // helpers for each dto, so it might make sense to define them in Emi instead
 // of pure struct in golang.
 type EmiDto struct {
@@ -449,7 +449,7 @@ type EmiActionBody struct {
 	// It can also be a pure Go struct, but those do not compile.
 	Dto string `yaml:"dto,omitempty" json:"dto,omitempty" jsonschema:"Selects the DTO existing in the module from Golang It can also be a pure Go struct but those do not compile"`
 
-	// Use a entity which is generated by Fireback instead.
+	// Use a entity which is generated by Emi instead.
 	Entity string `yaml:"entity,omitempty" json:"entity,omitempty" jsonschema:"Generates the entity name in the module"`
 
 	// Uses a primitive type instead, such as a string or int64.
@@ -511,8 +511,8 @@ func (x *EmiEntity) DataFields() EmiDataFields {
 	return data
 }
 
-// EmiQuery represents an SQL query configuration used by Fireback.
-// Fireback will generate Golang functions to run the queries and will
+// EmiQuery represents an SQL query configuration used by Emi.
+// Emi will generate Golang functions to run the queries and will
 // replace placeholders such as the current user and workspaces in the SQL query.
 type EmiQuery struct {
 
@@ -546,9 +546,9 @@ type EmiConfigField struct {
 	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description=Name is the identifier for the configuration field used both in Go code and the environment file. By default the name will be converted to uppercase with underscores to reference the environment variable unless overridden by the 'env' field."`
 
 	// Type defines the data type for the environment variable. It supports standard Go types
-	// such as string, bool, int64, and others, along with custom Fireback types.
+	// such as string, bool, int64, and others, along with custom Emi types.
 	// Ensure that the chosen type is supported.
-	Type string `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"description=Type defines the data type for the environment variable. It supports standard Go types such as string - bool - int64 - and others - along with custom Fireback types. Ensure that the chosen type is supported."`
+	Type string `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"description=Type defines the data type for the environment variable. It supports standard Go types such as string - bool - int64 - and others - along with custom Emi types. Ensure that the chosen type is supported."`
 
 	// Description explains the purpose of the configuration field. It can be helpful for developers
 	// and also used in CLI for interactive configuration.
@@ -588,8 +588,8 @@ type EmiField struct {
 	// Description about the field for developers and generated documents.
 	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description about the field for developers and generated documents."`
 
-	// Type of the field based on Fireback types.
-	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=string?,enum=int?,enum=float64?,enum=money?,enum=xfile?,enum=float32?,enum=bool?,enum=int32?,enum=int64?,enum=int,enum=datetime,enum=json,enum=embed,enum=datenano,enum=html,enum=text,enum=date,enum=daterange,enum=many2many,enum=arrayP,enum=enum,enum=bool,enum=one,enum=int64,enum=float64,enum=duration?,enum=object,enum=array,enum=string,description=Type of the field based on Fireback types."`
+	// Type of the field based on Emi types.
+	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=string?,enum=int?,enum=float64?,enum=money?,enum=xfile?,enum=float32?,enum=bool?,enum=int32?,enum=int64?,enum=int,enum=datetime,enum=json,enum=embed,enum=datenano,enum=html,enum=text,enum=date,enum=daterange,enum=many2many,enum=arrayP,enum=enum,enum=bool,enum=one,enum=int64,enum=float64,enum=duration?,enum=object,enum=array,enum=string,description=Type of the field based on Emi types."`
 
 	// Primitive type in golang when type: arrayP is set
 	Primitive string `yaml:"primitive,omitempty" json:"primitive,omitempty" jsonschema:"description=Primitive type in golang when type: arrayP is set"`
@@ -645,13 +645,13 @@ type EmiField struct {
 	// Override the gorm meta tag generated for golang, to add custom types or anything else.
 	Gorm string `yaml:"gorm,omitempty" json:"gorm,omitempty" jsonschema:"description=Override the gorm meta tag generated for golang, to add custom types or anything else."`
 
-	// Override the Fireback default fields gorm tags for extra constraint or other configuration.
-	GormMap GormOverrideMap `yaml:"gormMap,omitempty" json:"gormMap,omitempty" jsonschema:"description=Used in Module code generation to customized the generated code for gorm tags on Fireback Data management fields such as workspace or user id. For example, you can add extra indexes on these fields."`
+	// Override the Emi default fields gorm tags for extra constraint or other configuration.
+	GormMap GormOverrideMap `yaml:"gormMap,omitempty" json:"gormMap,omitempty" jsonschema:"description=Used in Module code generation to customized the generated code for gorm tags on Emi Data management fields such as workspace or user id. For example, you can add extra indexes on these fields."`
 
 	// Direct manipulation of the sql meta tag on the field.
 	Sql string `yaml:"sql,omitempty" json:"sql,omitempty" jsonschema:"description=Direct manipulation of the sql meta tag on the field."`
 
-	// This is the name of field considering how deep it is. Used internally for fireback codegen, not available on definition
+	// This is the name of field considering how deep it is. Used internally for Emi codegen, not available on definition
 	FullName string `yaml:"-,omitempty" json:"-,omitempty" jsonschema:"-"`
 
 	// For types such as array or object children fields can be defined and will separate struct with name prefixed to parent
@@ -668,11 +668,11 @@ type EmiField struct {
 
 // Used for defining the entity overall action permissions
 type EntitySecurityModel struct {
-	// Only users which belong to root and actively selected the root workspace can write to this entity from Fireback default functionality. Read mechanism won't be affected.
-	WriteOnRoot *bool `json:"writeOnRoot,omitempty" yaml:"writeOnRoot,omitempty" jsonschema:"description=Only users which belong to root and actively selected the root workspace can write to this entity from Fireback default functionality. Read mechanism won't be affected."`
+	// Only users which belong to root and actively selected the root workspace can write to this entity from Emi default functionality. Read mechanism won't be affected.
+	WriteOnRoot *bool `json:"writeOnRoot,omitempty" yaml:"writeOnRoot,omitempty" jsonschema:"description=Only users which belong to root and actively selected the root workspace can write to this entity from Emi default functionality. Read mechanism won't be affected."`
 
-	// Only users which belong to root and actively selected the root workspace can read from entity from Fireback default functionality. Write mechanism is not affected.
-	ReadOnRoot *bool `json:"readOnRoot,omitempty" yaml:"readOnRoot,omitempty" jsonschema:"description=Only users which belong to root and actively selected the root workspace can read from entity from Fireback default functionality. Write mechanism is not affected."`
+	// Only users which belong to root and actively selected the root workspace can read from entity from Emi default functionality. Write mechanism is not affected.
+	ReadOnRoot *bool `json:"readOnRoot,omitempty" yaml:"readOnRoot,omitempty" jsonschema:"description=Only users which belong to root and actively selected the root workspace can read from entity from Emi default functionality. Write mechanism is not affected."`
 
 	// Resolve strategy means that the content belongs either to workspace or user. It affects the query.
 	ResolveStrategy *string `json:"resolveStrategy,omitempty" yaml:"resolveStrategy,omitempty" jsonschema:"enum=workspace,enum=user, description=Resolve strategy means that the content belongs either to workspace or user. It affects the query."`
@@ -681,7 +681,7 @@ type EntitySecurityModel struct {
 // Used for actions generally
 type SecurityModel struct {
 	// Only users which belong to root and actively selected the root workspace can
-	// write to this entity from Fireback default functionality
+	// write to this entity from Emi default functionality
 	AllowOnRoot bool `json:"allowOnRoot,omitempty" yaml:"allowOnRoot,omitempty"`
 
 	// Set of permissions which are required for this service.

@@ -154,22 +154,19 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 
 			if (cd.includes("attachment") || (!ct.includes("json") && !ct.startsWith("text/"))) {
 				res.result = res.body;
-				return res;
-			}
-
-			if (ct.includes("application/json")) {
+			} else if (ct.includes("application/json")) {
 				const json = await res.json();
 				{{ if .fetchctx.ResponseClass }}
-				res.result = new {{ .fetchctx.ResponseClass }} (result);
+				res.result = new {{ .fetchctx.ResponseClass }} (json);
 				{{ else }}
 				res.result = json;
 				{{ end }}
-				return res;
+			} else {
+				// plain text or fallback
+				res.result = await res.text();
 			}
 
-			// plain text or fallback
-			res.result = await res.text();
-			return res;
+			return { done: Promise.resolve(), response: res };
 		{{ end }}
 	}
 	`
