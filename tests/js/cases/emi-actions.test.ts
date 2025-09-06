@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createInstance } from "../../../../emi-npm/bin/getPublicActions";
+import { createInstance } from "../../../emi-npm/bin/getPublicActions";
 import { writeFileSync } from "fs";
 
 var schema: any = {};

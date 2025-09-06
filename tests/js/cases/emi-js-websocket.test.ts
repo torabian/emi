@@ -5,16 +5,16 @@ import prettier from "prettier";
 import {
   createInstance,
   fileWriter,
-} from "../../../../emi-npm/bin/getPublicActions";
+} from "../../../emi-npm/bin/getPublicActions";
 
 import { execSync } from "child_process";
 import { afterAll, test } from "vitest";
-import { createSocketServer, randomBetween } from "../../common";
+import { createSocketServer, randomBetween } from "../common";
 import {
   UserStreamAction,
   UserStreamActionReq,
   UserStreamActionRes,
-} from "../../web-socket-test-output/UserStreamAction";
+} from "../test-artifacts/web-socket-test-output/UserStreamAction";
 
 let wss;
 let port = 8081;
@@ -62,7 +62,7 @@ const sample1 = {
 
 describe("Generate the emi javascript web socket", () => {
   const content: string[] = [];
-  const genOutput = "./web-socket-test-output";
+  const genOutput = "./test-artifacts/web-socket-test-output";
   let files = [];
   afterAll(() => wss?.close());
 

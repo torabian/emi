@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { runEmiActionTs } from "../../common";
+import { runEmiActionTs } from "../common";
 import { writeFileSync } from "fs";
 import yaml from "js-yaml";
 

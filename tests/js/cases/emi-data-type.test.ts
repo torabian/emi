@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getJsDoc, runEmiActionTs } from "../../common";
+import { getJsDoc, runEmiActionTs } from "../common";
 import path from "path";
 import { writeFileSync } from "fs";
 

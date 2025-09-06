@@ -1,11 +1,11 @@
 // GetSinglePostAction.test.ts
 import http from "http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { fileWriter } from "../../../../emi-npm/bin/getPublicActions";
+import { fileWriter } from "../../../emi-npm/bin/getPublicActions";
 import {
   HttpActionAction,
   HttpActionActionRes,
-} from "../../http-action-test-output/HttpActionAction";
+} from "../test-artifacts/http-action-test-output/HttpActionAction";
 import { execSync } from "child_process";
 
 const sample1 = {
@@ -95,7 +95,7 @@ afterAll(async () => {
 
 describe("Generates the http action codes and classes", () => {
   const content: string[] = [];
-  const genOutput = "./http-action-test-output";
+  const genOutput = "./test-artifacts/http-action-test-output";
   let files = [];
 
   it("should generate and write the Emi JS module", async () => {

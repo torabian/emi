@@ -2,7 +2,7 @@ import { writeFileSync } from "fs";
 import yaml from "js-yaml";
 import prettier from "prettier";
 import { describe, it } from "vitest";
-import { createInstance } from "../../../../emi-npm/bin/getPublicActions";
+import { createInstance } from "../../../emi-npm/bin/getPublicActions";
 var schema: any = {};
 
 describe("Generate the Emi static fields generation", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createInstance } from "../../../../emi-npm/bin/getPublicActions";
+import { createInstance } from "../../../emi-npm/bin/getPublicActions";
 import { existsSync, writeFileSync } from "fs";
 import path from "path";
 

@@ -1,7 +1,7 @@
 import { writeFileSync } from "fs";
 import prettier from "prettier";
 import { describe, it } from "vitest";
-import { createInstance } from "../../../../emi-npm/bin/getPublicActions";
+import { createInstance } from "../../../emi-npm/bin/getPublicActions";
 import yaml from "js-yaml";
 
 describe("Generate documents for array type", () => {
