@@ -127,12 +127,20 @@ set {{ .ctx.Name }} (|@arg.value|) {
 
 	{{ if and (eq .ctx.IsNumeric true) (eq .ctx.IsNullable true) }}
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
-		this.#{{.ctx.Name}} = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+
+		if (!Number.isNaN(parsedValue)) {
+			this.#{{.ctx.Name}} = parsedValue;
+		}
 	{{ end }}
 	
 	{{ if and (eq .ctx.IsNumeric true) (eq .ctx.IsNullable false) }}
 	 	const correctType = typeof value === 'number'
-		this.#{{.ctx.Name}} = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+
+		if (!Number.isNaN(parsedValue)) {
+			this.#{{.ctx.Name}} = parsedValue;
+		}
 	{{ end }}
 	
 	{{ if and (eq .ctx.Type "bool")}}

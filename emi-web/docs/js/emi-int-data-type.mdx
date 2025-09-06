@@ -45,7 +45,10 @@ export class MyIntClassDto {
    **/
   set intWithDefault(value: number) {
     const correctType = typeof value === "number";
-    this.#intWithDefault = correctType ? value : Number(value);
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#intWithDefault = parsedValue;
+    }
   }
   setIntWithDefault(value: number) {
     this.intWithDefault = value;
@@ -69,7 +72,10 @@ export class MyIntClassDto {
    **/
   set plainInt(value: number) {
     const correctType = typeof value === "number";
-    this.#plainInt = correctType ? value : Number(value);
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#plainInt = parsedValue;
+    }
   }
   setPlainInt(value: number) {
     this.plainInt = value;
@@ -181,7 +187,10 @@ export class MyIntClassDto {
   set nullableIntWithDefault(value: number) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
-    this.#nullableIntWithDefault = correctType ? value : Number(value);
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#nullableIntWithDefault = parsedValue;
+    }
   }
   setNullableIntWithDefault(value: number) {
     this.nullableIntWithDefault = value;
@@ -206,7 +215,10 @@ export class MyIntClassDto {
   set nullableIntWithoutDefault(value: number) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
-    this.#nullableIntWithoutDefault = correctType ? value : Number(value);
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#nullableIntWithoutDefault = parsedValue;
+    }
   }
   setNullableIntWithoutDefault(value: number) {
     this.nullableIntWithoutDefault = value;

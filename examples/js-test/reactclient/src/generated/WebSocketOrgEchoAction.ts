@@ -193,7 +193,10 @@ get subItem1 () { return this.#subItem1 }
   **/
 set subItem1 (value: number) {
 	 	const correctType = typeof value === 'number'
-		this.#subItem1 = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+		if (!Number.isNaN(parsedValue)) {
+			this.#subItem1 = parsedValue;
+		}
 }
 setSubItem1 (value: number) {
 	this.subItem1 = value
@@ -215,7 +218,10 @@ get subItem2 () { return this.#subItem2 }
   **/
 set subItem2 (value: number) {
 	 	const correctType = typeof value === 'number'
-		this.#subItem2 = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+		if (!Number.isNaN(parsedValue)) {
+			this.#subItem2 = parsedValue;
+		}
 }
 setSubItem2 (value: number) {
 	this.subItem2 = value

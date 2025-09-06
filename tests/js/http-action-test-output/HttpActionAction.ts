@@ -72,7 +72,10 @@ get min () { return this.#min }
   **/
 set min (value: number) {
 	 	const correctType = typeof value === 'number'
-		this.#min = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+		if (!Number.isNaN(parsedValue)) {
+			this.#min = parsedValue;
+		}
 }
 setMin (value: number) {
 	this.min = value
@@ -94,7 +97,10 @@ get max () { return this.#max }
   **/
 set max (value: number) {
 	 	const correctType = typeof value === 'number'
-		this.#max = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+		if (!Number.isNaN(parsedValue)) {
+			this.#max = parsedValue;
+		}
 }
 setMax (value: number) {
 	this.max = value
@@ -116,7 +122,10 @@ get count () { return this.#count }
   **/
 set count (value: number) {
 	 	const correctType = typeof value === 'number'
-		this.#count = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+		if (!Number.isNaN(parsedValue)) {
+			this.#count = parsedValue;
+		}
 }
 setCount (value: number) {
 	this.count = value
@@ -211,7 +220,10 @@ get number () { return this.#number }
   **/
 set number (value: number) {
 	 	const correctType = typeof value === 'number'
-		this.#number = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+		if (!Number.isNaN(parsedValue)) {
+			this.#number = parsedValue;
+		}
 }
 setNumber (value: number) {
 	this.number = value

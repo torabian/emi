@@ -175,7 +175,10 @@ export class MyFloatClassDto {
   set nullableFloatWithDefault(value: number) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
-    this.#nullableFloatWithDefault = correctType ? value : Number(value);
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#nullableFloatWithDefault = parsedValue;
+    }
   }
   setNullableFloatWithDefault(value: number) {
     this.nullableFloatWithDefault = value;
@@ -200,7 +203,10 @@ export class MyFloatClassDto {
   set nullableFloatWithoutDefault(value: number) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
-    this.#nullableFloatWithoutDefault = correctType ? value : Number(value);
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#nullableFloatWithoutDefault = parsedValue;
+    }
   }
   setNullableFloatWithoutDefault(value: number) {
     this.nullableFloatWithoutDefault = value;

@@ -136,7 +136,10 @@ get userId () { return this.#userId }
   **/
 set userId (value: number) {
 	 	const correctType = typeof value === 'number'
-		this.#userId = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+		if (!Number.isNaN(parsedValue)) {
+			this.#userId = parsedValue;
+		}
 }
 setUserId (value: number) {
 	this.userId = value
@@ -158,7 +161,10 @@ get id () { return this.#id }
   **/
 set id (value: number) {
 	 	const correctType = typeof value === 'number'
-		this.#id = correctType ? value : Number(value);
+		const parsedValue = correctType ? value : Number(value)
+		if (!Number.isNaN(parsedValue)) {
+			this.#id = parsedValue;
+		}
 }
 setId (value: number) {
 	this.id = value

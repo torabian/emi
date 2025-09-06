@@ -132,7 +132,10 @@ export class Anonymouse {
    **/
   set userId(value) {
     const correctType = typeof value === "number";
-    this.#userId = correctType ? value : Number(value);
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#userId = parsedValue;
+    }
   }
   setUserId(value) {
     this.userId = value;
@@ -156,7 +159,10 @@ export class Anonymouse {
    **/
   set id(value) {
     const correctType = typeof value === "number";
-    this.#id = correctType ? value : Number(value);
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#id = parsedValue;
+    }
   }
   setId(value) {
     this.id = value;

@@ -104,7 +104,10 @@ export class MyObjectClassDto {
      **/
     set age(value: number) {
       const correctType = typeof value === "number";
-      this.#age = correctType ? value : Number(value);
+      const parsedValue = correctType ? value : Number(value);
+      if (!Number.isNaN(parsedValue)) {
+        this.#age = parsedValue;
+      }
     }
     setAge(value: number) {
       this.age = value;
