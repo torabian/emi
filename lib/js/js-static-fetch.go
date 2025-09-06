@@ -29,7 +29,8 @@ type fetchStaticFunctionContext struct {
 	// The variable which will be used as default url
 	DefaultUrlVariable string
 
-	UrlCreatorFunction string
+	UrlCreatorFunction  string
+	NativeFetchFunction string
 
 	UrlMethod string
 
@@ -60,22 +61,23 @@ func GenerateTSParams(placeholders []string) string {
 	return builder.String()
 }
 
-func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArgument {
-	responseType := "unknown"
-	requestHeaderType := "unknown"
-	requestType := "unknown"
+func GetClassOrUnknown(value string) string {
+	if value != "" {
+		return value
+	}
 
-	if fetchctx.ResponseClass != "" {
-		responseType = fetchctx.ResponseClass
-	}
-	if fetchctx.RequestHeadersClass != "" {
-		requestHeaderType = fetchctx.RequestHeadersClass
-	}
+	return "unknown"
+}
+
+func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArgument {
+	responseType := GetClassOrUnknown(fetchctx.ResponseClass)
+	requestHeaderType := GetClassOrUnknown(fetchctx.RequestHeadersClass)
+	requestType := GetClassOrUnknown(fetchctx.RequestClass)
 
 	claims := []core.JsFnArgument{
 		{
 			Key: "fetch.init",
-			Ts:  fmt.Sprintf("init?: TypedRequestInit<%v, %v>", responseType, requestHeaderType),
+			Ts:  fmt.Sprintf("init?: TypedRequestInit<%v, %v>", requestType, requestHeaderType),
 			Js:  "init",
 		},
 		{
@@ -121,16 +123,16 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 	claimsRendered := core.ClaimRender(claims, ctx)
 
 	const tmpl = `
-	static Fetch = async (
+  
+	static Fetch$ = async (
 		{{ if .hasQueryParams }}
 			|@query.params|,
 		{{ end }}
 		|@fetch.qs|,
 		|@fetch.init|,
-		|@message.callback|,
 		|@fetch.overrideUrl|,
 	) => {
-		const res = await fetchx|@fetch.generic|(
+		return fetchx|@fetch.generic|(
 			overrideUrl ?? {{  .fetchctx.UrlCreatorFunction -}}(
 				{{ if .hasQueryParams }}
 				params,
@@ -142,31 +144,42 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 				...(init || {})
 			}
 		)
+	}
+
+	static Fetch = async (
+		{{ if .hasQueryParams }}
+			|@query.params|,
+		{{ end }}
+		|@fetch.qs|,
+		|@fetch.init|,
+		|@message.callback|,
+		|@fetch.overrideUrl|,
+	) => {
+	 
+
+		const res = await {{ .fetchctx.NativeFetchFunction }}(
+			{{ if .hasQueryParams }}
+			params,
+			{{ end }}
+			qs,
+			init,
+			overrideUrl,
+		);
 
 		{{ if .fetchctx.IsClassicHttpCall }}
-			const ct = res.headers.get("content-type") || "";
-			const cd = res.headers.get("content-disposition") || "";
 
-			if (ct.includes("text/event-stream")) {
-				// delegate to SSEFetch
-				return SSEFetch(res, onMessage, init?.signal);
-			}
-
-			if (cd.includes("attachment") || (!ct.includes("json") && !ct.startsWith("text/"))) {
-				res.result = res.body;
-			} else if (ct.includes("application/json")) {
-				const json = await res.json();
+			return handleFetchResponse(
+				res, 
 				{{ if .fetchctx.ResponseClass }}
-				res.result = new {{ .fetchctx.ResponseClass }} (json);
+				{{ .fetchctx.ResponseClass }},
 				{{ else }}
-				res.result = json;
+				undefined,
 				{{ end }}
-			} else {
-				// plain text or fallback
-				res.result = await res.text();
-			}
-
-			return { done: Promise.resolve(), response: res };
+				onMessage,
+				init?.signal,
+			);
+		{{ else }}
+		 	return res
 		{{ end }}
 	}
 	`
@@ -198,7 +211,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 
 	res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
 		{
-			Objects:  []string{"SSEFetch"},
+			Objects:  []string{"SSEFetch", "handleFetchResponse"},
 			Location: INTERNAL_SDK_JS_LOCATION,
 		},
 	}...)

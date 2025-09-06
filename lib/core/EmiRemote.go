@@ -88,6 +88,21 @@ func (x EmiRemote) GetResponseHeaders() []EmiHeader {
 	return []EmiHeader{}
 }
 
+func (x EmiRemote) HasResponseDto() bool {
+	return x.HasResponse() && x.Out.Dto != ""
+}
+
+func (x EmiRemote) GetResponseDto() string {
+	return x.Out.Dto
+}
+func (x EmiRemote) HasRequestDto() bool {
+	return x.HasRequest() && x.In.Dto != ""
+}
+
+func (x EmiRemote) GetRequestDto() string {
+	return x.In.Dto
+}
+
 func (x EmiRemote) HasResponseFields() bool {
 	return x.HasResponse() && len(x.Out.Fields) > 0
 }

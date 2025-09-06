@@ -5,6 +5,7 @@ package js
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
@@ -157,6 +158,9 @@ func JsActionManifestRealms(
 
 		deps = append(deps, fields.CodeChunkDependenies...)
 		actionRealms.RequestClass = fields
+	} else if action.HasRequestDto() {
+		actionRealms.RequestClass = castDtoNameToCodeChunk(action.GetRequestDto())
+		deps = append(deps, actionRealms.RequestClass.CodeChunkDependenies...)
 	}
 
 	// Action response (out)
@@ -170,6 +174,9 @@ func JsActionManifestRealms(
 		}
 		deps = append(deps, fields.CodeChunkDependenies...)
 		actionRealms.ResponseClass = fields
+	} else if action.HasResponseDto() {
+		actionRealms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
+		deps = append(deps, actionRealms.ResponseClass.CodeChunkDependenies...)
 	}
 
 	fetch, fetchctx, err := JsActionFetchAndMetaData(action, actionRealms, ctx)
@@ -181,4 +188,52 @@ func JsActionManifestRealms(
 	actionRealms.Fetchctx = fetchctx
 
 	return &actionRealms, deps, nil
+}
+
+func parseDtoPath(input string) (path string, className string) {
+	if input == "" {
+		return "./", ""
+	}
+
+	// normalize slashes
+	input = filepath.ToSlash(input)
+
+	dir := filepath.Dir(input)
+	base := filepath.Base(input)
+
+	if dir == "." {
+		path = "./" + base
+	} else {
+		path = filepath.ToSlash(filepath.Join(dir, base))
+	}
+
+	className = base
+	return
+}
+
+func castDtoNameToCodeChunk(dtoName string) *core.CodeChunkCompiled {
+	directory, className := parseDtoPath(dtoName)
+
+	return &core.CodeChunkCompiled{
+		ActualScript: []byte(""),
+		Tokens: []core.GeneratedScriptToken{
+			{
+				Name:  TOKEN_OBJ_CLASS,
+				Value: className,
+			},
+			{
+				Name:  TOKEN_ROOT_CLASS,
+				Value: className,
+			},
+		},
+		CodeChunkDependenies: []core.CodeChunkDependency{
+			{
+				Objects: []string{className},
+
+				// @todo This doesn't handle external files unfortunately
+
+				Location: directory,
+			},
+		},
+	}
 }

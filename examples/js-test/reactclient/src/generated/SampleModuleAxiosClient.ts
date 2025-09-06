@@ -1,3 +1,4 @@
+import { AverageDto, ComputeAverageAction } from './ComputeAverageAction';
 import { Axios, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { GetSinglePostAction, GetSinglePostActionRes, type GetSinglePostActionPathParameter } from './GetSinglePostAction';
 /**
@@ -25,6 +26,21 @@ export class SampleModuleAxiosClient extends Axios {
   static create(config?: AxiosRequestConfig) {
     return new SampleModuleAxiosClient(config);
   }
+		ComputeAverageAction(config?: TypedAxiosRequestConfig<
+			ComputeDto,
+			unknown,
+			unknown
+		>) {
+		 	const url = ComputeAverageAction.NewUrl(
+			)
+			return this.request<AverageDto, TypedAxiosResponse<AverageDto, unknown, unknown>>(
+				{
+					url,
+					method: ComputeAverageAction.Method,
+					...(config || {})
+				} as never
+			)
+		}
 		GetSinglePostAction(params: GetSinglePostActionPathParameter, config?: TypedAxiosRequestConfig<
 			unknown,
 			unknown,

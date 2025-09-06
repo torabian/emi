@@ -134,6 +134,22 @@ func (x EmiAction) HasResponse() bool {
 	return x.Out != nil
 }
 
+func (x EmiAction) HasResponseDto() bool {
+	return x.HasResponse() && x.Out.Dto != ""
+}
+
+func (x EmiAction) GetResponseDto() string {
+	return x.Out.Dto
+}
+
+func (x EmiAction) HasRequestDto() bool {
+	return x.HasRequest() && x.In.Dto != ""
+}
+
+func (x EmiAction) GetRequestDto() string {
+	return x.In.Dto
+}
+
 func (x EmiAction) HasResponseHeaders() bool {
 	return x.HasResponse() && len(x.Out.Headers) > 0
 }

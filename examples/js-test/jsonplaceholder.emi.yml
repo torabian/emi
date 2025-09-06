@@ -1,5 +1,30 @@
 name: sampleModule
+dtos:
+  - name: compute
+    fields:
+      - name: min
+        type: int
+        description: Minimum number which can be generated
+      - name: max
+        type: int
+        description: Maximum number which can be generated
+      - name: count
+        type: int
+        description: >-
+          How many numbers you want to be generated based on maximum and
+          minimum
+  - name: average
+    fields:
+      - name: number
+        type: int
+
 actions:
+  - name: computeAverage
+    in:
+      dto: ComputeDto
+    out:
+      dto: AverageDto
+      
   - name: getSinglePost
     url: https://jsonplaceholder.typicode.com/posts/:id
     cliName: get-single-post

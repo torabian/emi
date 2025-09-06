@@ -55,3 +55,31 @@ export const SSEFetch = <T = string>(
 
   return { response: res, done };
 };
+
+export async function handleFetchResponse<T>(
+  res: TypedResponse<T>,
+  dto?: new (data: any) => T,
+  onMessage?: (msg: any) => void,
+  signal?: AbortSignal | null
+): Promise<{ done: Promise<void>; response: Response & { result?: any } }> {
+  const ct = res.headers.get("content-type") || "";
+  const cd = res.headers.get("content-disposition") || "";
+
+  if (ct.includes("text/event-stream")) {
+    return SSEFetch(res, onMessage, signal);
+  }
+
+  if (
+    cd.includes("attachment") ||
+    (!ct.includes("json") && !ct.startsWith("text/"))
+  ) {
+    (res as any).result = res.body;
+  } else if (ct.includes("application/json")) {
+    const json = await res.json();
+    (res as any).result = dto ? new dto(json) : json;
+  } else {
+    (res as any).result = await res.text();
+  }
+
+  return { done: Promise.resolve(), response: res as any };
+}

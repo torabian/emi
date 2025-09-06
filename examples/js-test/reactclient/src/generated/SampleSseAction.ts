@@ -1,4 +1,4 @@
-import { SSEFetch, buildUrl, fetchx, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
+import { SSEFetch, buildUrl, fetchx, handleFetchResponse, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
 import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { useSse } from './sdk/react';
 /**
@@ -10,7 +10,7 @@ export type SampleSseActionOptions = {
 };
 export const useSampleSseAction = (options: {
 	qs?: URLSearchParams,
-	init?: TypedRequestInit<SampleSseActionRes, unknown>,
+	init?: TypedRequestInit<unknown, unknown>,
 	overrideUrl?: string
 }) => {
 	return useSse(SampleSseAction.Fetch, options);
@@ -28,13 +28,12 @@ export class SampleSseAction {
 		qs
 	);
   static Method = 'sse';
-	static Fetch = async (
+	static Fetch$ = async (
 		qs?: URLSearchParams,
-		init?: TypedRequestInit<SampleSseActionRes, unknown>,
-		onMessage?: (ev: MessageEvent) => void,
+		init?: TypedRequestInit<unknown, unknown>,
 		overrideUrl?: string,
 	) => {
-		const res = await fetchx<SampleSseActionRes, unknown, unknown>(
+		return fetchx<SampleSseActionRes, unknown, unknown>(
 			overrideUrl ?? SampleSseAction.NewUrl(
 				qs
 			),
@@ -43,22 +42,24 @@ export class SampleSseAction {
 				...(init || {})
 			}
 		)
-			const ct = res.headers.get("content-type") || "";
-			const cd = res.headers.get("content-disposition") || "";
-			if (ct.includes("text/event-stream")) {
-				// delegate to SSEFetch
-				return SSEFetch(res, onMessage, init?.signal);
-			}
-			if (cd.includes("attachment") || (!ct.includes("json") && !ct.startsWith("text/"))) {
-				res.result = res.body;
-			} else if (ct.includes("application/json")) {
-				const json = await res.json();
-				res.result = new SampleSseActionRes (json);
-			} else {
-				// plain text or fallback
-				res.result = await res.text();
-			}
-			return { done: Promise.resolve(), response: res };
+	}
+	static Fetch = async (
+		qs?: URLSearchParams,
+		init?: TypedRequestInit<unknown, unknown>,
+		onMessage?: (ev: MessageEvent) => void,
+		overrideUrl?: string,
+	) => {
+		const res = await SampleSseAction.Fetch$(
+			qs,
+			init,
+			overrideUrl,
+		);
+			return handleFetchResponse(
+				res, 
+				SampleSseActionRes,
+				onMessage,
+				init?.signal,
+			);
 	}
 	static Axios : (
 		clientInstance: AxiosInstance,

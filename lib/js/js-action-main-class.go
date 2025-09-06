@@ -27,11 +27,12 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 
 	className := action.GetName()
 	fetchctx := fetchStaticFunctionContext{
-		DefaultUrlVariable: fmt.Sprintf("%v.URL", className),
-		UrlCreatorFunction: fmt.Sprintf("%v.NewUrl", className),
-		UrlMethod:          fmt.Sprintf("%v.Method", className),
-		EndpointUrl:        action.GetUrl(),
-		QueryStringClass:   "URLSearchParams",
+		DefaultUrlVariable:  fmt.Sprintf("%v.URL", className),
+		UrlCreatorFunction:  fmt.Sprintf("%v.NewUrl", className),
+		NativeFetchFunction: fmt.Sprintf("%v.Fetch$", className),
+		UrlMethod:           fmt.Sprintf("%v.Method", className),
+		EndpointUrl:         action.GetUrl(),
+		QueryStringClass:    "URLSearchParams",
 		// By default, use the classic http call, which covers files, json, sse, etc...
 		IsClassicHttpCall: true,
 		ActionMethod:      action.GetMethod(),

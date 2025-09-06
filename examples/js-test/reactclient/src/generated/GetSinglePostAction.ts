@@ -1,4 +1,4 @@
-import { SSEFetch, buildUrl, fetchx, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
+import { SSEFetch, buildUrl, fetchx, handleFetchResponse, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
 import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
 /**
@@ -60,14 +60,13 @@ export class GetSinglePostAction {
 		qs
 	);
   static Method = 'get';
-	static Fetch = async (
+	static Fetch$ = async (
 			params: GetSinglePostActionPathParameter,
 		qs?: URLSearchParams,
-		init?: TypedRequestInit<GetSinglePostActionRes, unknown>,
-		onMessage?: (ev: MessageEvent) => void,
+		init?: TypedRequestInit<unknown, unknown>,
 		overrideUrl?: string,
 	) => {
-		const res = await fetchx<GetSinglePostActionRes, unknown, unknown>(
+		return fetchx<GetSinglePostActionRes, unknown, unknown>(
 			overrideUrl ?? GetSinglePostAction.NewUrl(
 				params,
 				qs
@@ -77,22 +76,26 @@ export class GetSinglePostAction {
 				...(init || {})
 			}
 		)
-			const ct = res.headers.get("content-type") || "";
-			const cd = res.headers.get("content-disposition") || "";
-			if (ct.includes("text/event-stream")) {
-				// delegate to SSEFetch
-				return SSEFetch(res, onMessage, init?.signal);
-			}
-			if (cd.includes("attachment") || (!ct.includes("json") && !ct.startsWith("text/"))) {
-				res.result = res.body;
-			} else if (ct.includes("application/json")) {
-				const json = await res.json();
-				res.result = new GetSinglePostActionRes (json);
-			} else {
-				// plain text or fallback
-				res.result = await res.text();
-			}
-			return { done: Promise.resolve(), response: res };
+	}
+	static Fetch = async (
+			params: GetSinglePostActionPathParameter,
+		qs?: URLSearchParams,
+		init?: TypedRequestInit<unknown, unknown>,
+		onMessage?: (ev: MessageEvent) => void,
+		overrideUrl?: string,
+	) => {
+		const res = await GetSinglePostAction.Fetch$(
+			params,
+			qs,
+			init,
+			overrideUrl,
+		);
+			return handleFetchResponse(
+				res, 
+				GetSinglePostActionRes,
+				onMessage,
+				init?.signal,
+			);
 	}
 	static Axios : (
 		clientInstance: AxiosInstance,

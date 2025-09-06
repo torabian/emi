@@ -46,3 +46,22 @@ export const SSEFetch = (res, onMessage, signal) => {
     });
     return { response: res, done };
 };
+export async function handleFetchResponse(res, dto, onMessage, signal) {
+    const ct = res.headers.get("content-type") || "";
+    const cd = res.headers.get("content-disposition") || "";
+    if (ct.includes("text/event-stream")) {
+        return SSEFetch(res, onMessage, signal);
+    }
+    if (cd.includes("attachment") ||
+        (!ct.includes("json") && !ct.startsWith("text/"))) {
+        res.result = res.body;
+    }
+    else if (ct.includes("application/json")) {
+        const json = await res.json();
+        res.result = dto ? new dto(json) : json;
+    }
+    else {
+        res.result = await res.text();
+    }
+    return { done: Promise.resolve(), response: res };
+}

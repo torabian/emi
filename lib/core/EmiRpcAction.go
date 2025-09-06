@@ -19,6 +19,10 @@ type EmiRpcAction interface {
 	GetRequestFields() []*EmiField
 
 	HasResponse() bool
+	HasRequestDto() bool
+	GetRequestDto() string
+	HasResponseDto() bool
+	GetResponseDto() string
 	HasResponseHeaders() bool
 	GetResponseHeaders() []EmiHeader
 
