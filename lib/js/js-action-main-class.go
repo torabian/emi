@@ -32,16 +32,10 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 		UrlMethod:          fmt.Sprintf("%v.Method", className),
 		EndpointUrl:        action.GetUrl(),
 		QueryStringClass:   "URLSearchParams",
-		// By default, use the classic http call
+		// By default, use the classic http call, which covers files, json, sse, etc...
 		IsClassicHttpCall: true,
 		ActionMethod:      action.GetMethod(),
 	}
-
-	// if action.MethodUpper() == EMI_METHOD_SSE {
-	// 	fetchctx.IsClassicHttpCall = false
-	// 	fetchctx.IsSSE = true
-	// 	fetchctx.ActionMethod = "get"
-	// }
 
 	if action.MethodUpper() == EMI_METHOD_REACTIVE {
 		fetchctx.IsClassicHttpCall = false
