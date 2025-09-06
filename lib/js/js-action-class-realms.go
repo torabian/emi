@@ -157,26 +157,19 @@ func JsActionManifestRealms(
 
 		deps = append(deps, fields.CodeChunkDependenies...)
 		actionRealms.RequestClass = fields
-
 	}
 
 	// Action response (out)
 	if action.HasResponseFields() {
-
 		outClassName := action.GetName() + "Res"
 		fields, err := JsCommonObjectGenerator(action.GetResponseFields(), ctx, JsCommonObjectContext{
 			RootClassName: outClassName,
 		})
-
 		if err != nil {
 			return nil, nil, err
 		}
-
 		deps = append(deps, fields.CodeChunkDependenies...)
 		actionRealms.ResponseClass = fields
-
-	} else {
-		fmt.Println("No response field for ", action.GetName())
 	}
 
 	fetch, fetchctx, err := JsActionFetchAndMetaData(action, actionRealms, ctx)
