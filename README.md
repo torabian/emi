@@ -80,15 +80,7 @@ Here is a list of features which will be generated via js/ts compiler:
 - [x] Determine on the path selector, so in the options user can select details needed to be generated
 - [x] Static fields for the common object to access fields via json path
 - [x] Document static fields
-- [ ] Publish on brew to install.
-- [ ] Fetching option using fetch
-- [ ] Fetching using axios
-- [ ] Axios bundle
-- [ ] Connecting to a socket
-- [ ] Connecting to a SSE
-- [ ] Demo the code generated for react
-- [ ] Document react wrappers and the functionality they provide.
-- [ ] Fully test the code with pure javascript (jsdocs or object definitions might be missing)
+- [ ] Make a complete demo of the code generation as a slideshow and video.
 
 ## Emi Golang
 
