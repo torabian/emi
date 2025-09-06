@@ -28,7 +28,7 @@
         },
         "meta-workspace": {
           "type": "boolean",
-          "description": "Magic property for Fireback FirebackEmi.yml file. It's gonna be true only in a single file internally in Fireback"
+          "description": "Magic property for Emi EmiEmi.yml file. It's gonna be true only in a single file internally in Emi"
         },
         "name": {
           "type": "string",
@@ -74,7 +74,7 @@
             "$ref": "#/definitions/EmiRemote"
           },
           "type": "array",
-          "description": "Remotes are definition of external services which could be contacted via http and Fireback developer can make them typesafe by defining them here."
+          "description": "Remotes are definition of external services which could be contacted via http and Emi developer can make them typesafe by defining them here."
         },
         "notifications": {
           "items": {
@@ -95,7 +95,7 @@
             "$ref": "#/definitions/EmiQuery"
           },
           "type": "array",
-          "description": "Queries are set of SQL queries that developer writes and Fireback generates tools for fetching them from database to golang code."
+          "description": "Queries are set of SQL queries that developer writes and Emi generates tools for fetching them from database to golang code."
         },
         "config": {
           "items": {
@@ -145,7 +145,7 @@
             "reactive",
             "sse"
           ],
-          "description": "HTTP method type including standard and Fireback-specific methods"
+          "description": "HTTP method type including standard and Emi-specific methods"
         },
         "binaryType": {
           "type": "string",
@@ -297,7 +297,7 @@
         },
         "type": {
           "type": "string",
-          "description": "Type defines the data type for the environment variable. It supports standard Go types such as string - bool - int64 - and others - along with custom Fireback types. Ensure that the chosen type is supported."
+          "description": "Type defines the data type for the environment variable. It supports standard Go types such as string - bool - int64 - and others - along with custom Emi types. Ensure that the chosen type is supported."
         },
         "description": {
           "type": "string",
@@ -327,7 +327,7 @@
       "properties": {
         "essentials": {
           "type": "boolean",
-          "description": "Essential is a set of the fields which fireback uses to give userId and workspaceId",
+          "description": "Essential is a set of the fields which Emi uses to give userId and workspaceId",
           "default": true
         },
         "primaryId": {
@@ -408,7 +408,7 @@
         },
         "name": {
           "type": "string",
-          "description": "The entity name is crucial as it determines database table names and is used by Fireback's Go and code generation tools; note that changing an entity name does not delete previously created entities requiring manual file deletion and only camelCase naming is supported."
+          "description": "The entity name is crucial as it determines database table names and is used by Emi's Go and code generation tools; note that changing an entity name does not delete previously created entities requiring manual file deletion and only camelCase naming is supported."
         },
         "distinctBy": {
           "type": "string",
@@ -467,11 +467,11 @@
             "type": "string"
           },
           "type": "array",
-          "description": "A list of extra queries that Fireback can generate for the the entity. Fireback might offer some extra queries to be generated so they will be listed here."
+          "description": "A list of extra queries that Emi can generate for the the entity. Emi might offer some extra queries to be generated so they will be listed here."
         },
         "gormMap": {
           "$ref": "#/definitions/GormOverrideMap",
-          "description": "Override the some default Fireback generated fields gorm configuration."
+          "description": "Override the some default Emi generated fields gorm configuration."
         },
         "fields": {
           "items": {
@@ -636,7 +636,7 @@
             "array",
             "string"
           ],
-          "description": "Type of the field based on Fireback types."
+          "description": "Type of the field based on Emi types."
         },
         "primitive": {
           "type": "string",
@@ -717,7 +717,7 @@
         },
         "gormMap": {
           "$ref": "#/definitions/GormOverrideMap",
-          "description": "Used in Module code generation to customized the generated code for gorm tags on Fireback Data management fields such as workspace or user id. For example"
+          "description": "Used in Module code generation to customized the generated code for gorm tags on Emi Data management fields such as workspace or user id. For example"
         },
         "sql": {
           "type": "string",
@@ -738,7 +738,7 @@
       "properties": {
         "dto": {
           "type": "string",
-          "description": "The dto name from Fireback which will be matched. Might be also work with any other go struct but check the generated code."
+          "description": "The dto name from Emi which will be matched. Might be also work with any other go struct but check the generated code."
         }
       },
       "additionalProperties": false,
@@ -793,7 +793,7 @@
           "enum": [
             "eav"
           ],
-          "description": "The macro name which you are using. Fireback developers need to add the macros name here as reference."
+          "description": "The macro name which you are using. Emi developers need to add the macros name here as reference."
         },
         "params": {
           "description": "Params are the macro configuration which are dynamically set based on each macro itself. They will be passed as interface{} to macro and function itself will decide what to do next."
@@ -898,7 +898,7 @@
         },
         "in": {
           "$ref": "#/definitions/EmiActionBody",
-          "description": "Standard EmiActionBody object. Could have fields entity dto as content and you can define the input parameters as struct in Go and fireback will convert it into json."
+          "description": "Standard EmiActionBody object. Could have fields entity dto as content and you can define the input parameters as struct in Go and Emi will convert it into json."
         },
         "query": {
           "items": {
@@ -964,11 +964,11 @@
       "properties": {
         "writeOnRoot": {
           "type": "boolean",
-          "description": "Only users which belong to root and actively selected the root workspace can write to this entity from Fireback default functionality. Read mechanism won't be affected."
+          "description": "Only users which belong to root and actively selected the root workspace can write to this entity from Emi default functionality. Read mechanism won't be affected."
         },
         "readOnRoot": {
           "type": "boolean",
-          "description": "Only users which belong to root and actively selected the root workspace can read from entity from Fireback default functionality. Write mechanism is not affected."
+          "description": "Only users which belong to root and actively selected the root workspace can read from entity from Emi default functionality. Write mechanism is not affected."
         },
         "resolveStrategy": {
           "type": "string",

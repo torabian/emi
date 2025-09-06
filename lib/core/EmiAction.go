@@ -16,8 +16,8 @@ type EmiAction struct {
 	// HTTP route of the action; if not specified the action is CLI-only.
 	Url string `yaml:"url,omitempty" json:"url,omitempty" jsonschema:"description=HTTP route of the action; if not specified the action is CLI-only"`
 
-	// HTTP method type including standard and Fireback-specific methods.
-	Method string `yaml:"method,omitempty" json:"method,omitempty" jsonschema:"enum=post,enum=patch,enum=put,enum=get,enum=delete,enum=webrtc,enum=reactive,enum=sse,description=HTTP method type including standard and Fireback-specific methods"`
+	// HTTP method type including standard and Emi-specific methods.
+	Method string `yaml:"method,omitempty" json:"method,omitempty" jsonschema:"enum=post,enum=patch,enum=put,enum=get,enum=delete,enum=webrtc,enum=reactive,enum=sse,description=HTTP method type including standard and Emi-specific methods"`
 
 	// Text by default for websocket, can be changed to arraybuffer or blob.
 	BinaryType string `yaml:"binaryType,omitempty" json:"binaryType,omitempty" jsonschema:"enum=text,enum=arraybuffer,enum=blob,description=Text by default for websocket, can be changed to arraybuffer or blob"`
