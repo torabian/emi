@@ -34,7 +34,7 @@ export class MyObjectClassDto {
    *
    * @type {MyObjectClassDto.Profile}
    **/
-  #profile: InstanceType<typeof MyObjectClassDto.Profile> = null;
+  #profile: InstanceType<typeof MyObjectClassDto.Profile> | null = null;
   /**
    *
    * @returns {MyObjectClassDto.Profile}
@@ -46,7 +46,7 @@ export class MyObjectClassDto {
    *
    * @type {MyObjectClassDto.Profile}
    **/
-  set profile(value: InstanceType<typeof MyObjectClassDto.Profile>) {
+  set profile(value: InstanceType<typeof MyObjectClassDto.Profile> | null) {
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof MyObjectClassDto.Profile) {
       this.#profile = value;
@@ -54,7 +54,7 @@ export class MyObjectClassDto {
       this.#profile = new MyObjectClassDto.Profile(value);
     }
   }
-  setProfile(value: InstanceType<typeof MyObjectClassDto.Profile>) {
+  setProfile(value: InstanceType<typeof MyObjectClassDto.Profile> | null) {
     this.profile = value;
     return this;
   }

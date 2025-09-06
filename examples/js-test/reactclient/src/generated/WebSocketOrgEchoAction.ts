@@ -96,7 +96,7 @@ setLastName (value: string) {
   * 
   * @type {WebSocketOrgEchoActionReq.User}
   **/
- #user : InstanceType<typeof WebSocketOrgEchoActionReq.User>  =  null
+ #user : InstanceType<typeof WebSocketOrgEchoActionReq.User> | null  =  null
 		/**
   * 
   * @returns {WebSocketOrgEchoActionReq.User}
@@ -106,7 +106,7 @@ get user () { return this.#user }
   * 
   * @type {WebSocketOrgEchoActionReq.User}
   **/
-set user (value: InstanceType<typeof WebSocketOrgEchoActionReq.User>) {
+set user (value: InstanceType<typeof WebSocketOrgEchoActionReq.User> | null) {
 	 	// For objects, the sub type needs to always be instance of the sub class.
 	 	if (value instanceof WebSocketOrgEchoActionReq.User) {
 			this.#user = value
@@ -114,7 +114,7 @@ set user (value: InstanceType<typeof WebSocketOrgEchoActionReq.User>) {
 			this.#user = new WebSocketOrgEchoActionReq.User(value)
 		}
 }
-setUser (value: InstanceType<typeof WebSocketOrgEchoActionReq.User>) {
+setUser (value: InstanceType<typeof WebSocketOrgEchoActionReq.User> | null) {
 	this.user = value
 	return this
 }

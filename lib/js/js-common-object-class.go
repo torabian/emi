@@ -516,7 +516,7 @@ func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 	prefix := core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
 	switch field.Type {
 	case core.FieldTypeObject:
-		return fmt.Sprintf("InstanceType<typeof %v>", prefix)
+		return fmt.Sprintf("InstanceType<typeof %v> | null", prefix)
 	case core.FieldTypeArray:
 		return fmt.Sprintf("InstanceType<typeof %v>[]", prefix)
 	default:
