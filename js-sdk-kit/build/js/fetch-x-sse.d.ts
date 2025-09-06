@@ -1,5 +1,5 @@
 import { TypedResponse } from "./fetch-x";
-export declare const SSEFetch: <T = string>(res: TypedResponse<T>, onMessage?: (ev: MessageEvent) => void, signal?: AbortSignal) => {
+export declare const SSEFetch: <T = string>(res: TypedResponse<T>, onMessage?: (ev: MessageEvent) => void, signal?: AbortSignal | null) => {
     response: TypedResponse<T>;
     done: Promise<void>;
 };

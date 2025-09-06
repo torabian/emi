@@ -11,7 +11,12 @@ export class TypedResponse<T> extends Response {
     return super.json();
   }
 
-  result: T | undefined;
+  result:
+    | T
+    | undefined
+    | ReadableStream<Uint8Array<ArrayBuffer>>
+    | null
+    | string;
 }
 
 export function fetchx<

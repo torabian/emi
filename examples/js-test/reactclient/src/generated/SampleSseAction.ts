@@ -51,16 +51,14 @@ export class SampleSseAction {
 			}
 			if (cd.includes("attachment") || (!ct.includes("json") && !ct.startsWith("text/"))) {
 				res.result = res.body;
-				return res;
-			}
-			if (ct.includes("application/json")) {
+			} else if (ct.includes("application/json")) {
 				const json = await res.json();
-				res.result = new SampleSseActionRes (result);
-				return res;
+				res.result = new SampleSseActionRes (json);
+			} else {
+				// plain text or fallback
+				res.result = await res.text();
 			}
-			// plain text or fallback
-			res.result = await res.text();
-			return res;
+			return { done: Promise.resolve(), response: res };
 	}
 	static Axios : (
 		clientInstance: AxiosInstance,

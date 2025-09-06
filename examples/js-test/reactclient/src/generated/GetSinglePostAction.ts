@@ -85,16 +85,14 @@ export class GetSinglePostAction {
 			}
 			if (cd.includes("attachment") || (!ct.includes("json") && !ct.startsWith("text/"))) {
 				res.result = res.body;
-				return res;
-			}
-			if (ct.includes("application/json")) {
+			} else if (ct.includes("application/json")) {
 				const json = await res.json();
-				res.result = new GetSinglePostActionRes (result);
-				return res;
+				res.result = new GetSinglePostActionRes (json);
+			} else {
+				// plain text or fallback
+				res.result = await res.text();
 			}
-			// plain text or fallback
-			res.result = await res.text();
-			return res;
+			return { done: Promise.resolve(), response: res };
 	}
 	static Axios : (
 		clientInstance: AxiosInstance,
