@@ -1,0 +1,28 @@
+package core
+
+// Use for both remotes and actions to generate the same code
+type EmiRpcAction interface {
+	GetName() string
+	GetUrl() string
+	GetMethod() string
+	MethodUpper() string
+	Upper() string
+
+	GetQuery() []*EmiField
+
+	HasRequest() bool
+	HasRequestHeaders() bool
+	GetRequestHeaders() []EmiHeader
+
+	// Checks if the request has inline fields definition
+	HasRequestFields() bool
+	GetRequestFields() []*EmiField
+
+	HasResponse() bool
+	HasResponseHeaders() bool
+	GetResponseHeaders() []EmiHeader
+
+	// Checks if the response has inline fields definition
+	HasResponseFields() bool
+	GetResponseFields() []*EmiField
+}

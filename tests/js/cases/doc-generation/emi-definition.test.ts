@@ -5,7 +5,7 @@ import path from "path";
 
 var schema: any = {};
 
-const coreDefinition = "lib/core/definitions.go";
+const coreDefinition = "lib/core/Emi.go";
 
 describe("Generate the emi introduction documentation", () => {
   const content: string[] = [];
