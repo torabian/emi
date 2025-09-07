@@ -22,12 +22,23 @@ export class GResponse<T> extends ResponseDto implements EnvelopeClass<T> {
     super(data);
   }
 
-  updatePayload(payload: T) {
+  /**
+   * Add the content of the payload. If array given, it will
+   * be full filling the items, else, would fullfil the
+   * data.item
+   * @param payload
+   * @returns
+   */
+  updatePayload(payload: T | T[]) {
     if (!this.data) {
       this.setData({} as any);
     }
 
-    this.data?.setItem(payload as any);
+    if (Array.isArray(payload)) {
+      this.data?.setItems(payload as any);
+    } else {
+      this.data?.setItem(payload as any);
+    }
 
     return this;
   }
