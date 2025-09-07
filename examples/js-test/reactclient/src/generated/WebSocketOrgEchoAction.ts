@@ -1,5 +1,8 @@
-import { WebSocketX, buildUrl, isPlausibleObject, withPrefix } from './sdk/js';
-import { useWebSocketX } from './sdk/react';
+import { WebSocketX } from './sdk/common/WebSocketX';
+import { buildUrl } from './sdk/common/buildUrl';
+import { isPlausibleObject } from './sdk/common/isPlausibleObject';
+import { useWebSocketX } from './sdk/react/useWebSocketX';
+import { withPrefix } from './sdk/common/withPrefix';
 /**
 * Action to communicate with the action webSocketOrgEcho
 */

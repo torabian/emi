@@ -1,6 +1,9 @@
-import { SSEFetch, buildUrl, fetchx, handleFetchResponse, isPlausibleObject, type TypedRequestInit, withPrefix } from './sdk/js';
+import { buildUrl } from './sdk/common/buildUrl';
+import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
+import { isPlausibleObject } from './sdk/common/isPlausibleObject';
 import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
-import { useSse } from './sdk/react';
+import { useSse } from './sdk/react/useSse';
+import { withPrefix } from './sdk/common/withPrefix';
 /**
 * Action to communicate with the action sampleSse
 */

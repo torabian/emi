@@ -58,7 +58,7 @@ export const {{ .className }} = (options: {
 		ActualScript: []byte(templateResult),
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
-				Location: INTERNAL_SDK_REACT_LOCATION,
+				Location: INTERNAL_SDK_REACT_LOCATION + "/useSse",
 				Objects:  []string{"useSse"},
 			},
 		},

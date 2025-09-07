@@ -24,8 +24,8 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
-				Location: INTERNAL_SDK_JS_LOCATION,
 				Objects:  []string{"isPlausibleObject"},
+				Location: INTERNAL_SDK_JS_LOCATION + "/isPlausibleObject",
 			},
 		},
 	}

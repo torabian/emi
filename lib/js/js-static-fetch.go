@@ -204,15 +204,15 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"fetchx"},
-				Location: INTERNAL_SDK_JS_LOCATION,
+				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
 			},
 		},
 	}
 
 	res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
 		{
-			Objects:  []string{"SSEFetch", "handleFetchResponse"},
-			Location: INTERNAL_SDK_JS_LOCATION,
+			Objects:  []string{"handleFetchResponse"},
+			Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
 		},
 	}...)
 
@@ -220,7 +220,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type TypedRequestInit"},
-				Location: INTERNAL_SDK_JS_LOCATION,
+				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
 			},
 		}...)
 	}
@@ -230,5 +230,5 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 
 // On final stage of compiling, this varialble will be replaced with context
 // sdk location on the disk
-var INTERNAL_SDK_JS_LOCATION string = "./sdk/js"
+var INTERNAL_SDK_JS_LOCATION string = "./sdk/common"
 var INTERNAL_SDK_REACT_LOCATION string = "./sdk/react"

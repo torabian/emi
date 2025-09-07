@@ -5,6 +5,7 @@ package js
 
 import (
 	"encoding/json"
+	"path"
 	"slices"
 	"strings"
 
@@ -114,12 +115,15 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
 	}
 
+	internalUsage := []string{}
 	// Those actions are valid ts or js files, including some helpers for react, axios, fetch
 	// and couple of more, directly can be written on the disk
 	for _, action := range actionsRendered {
 
 		for _, loc := range action.CodeChunkDependenies {
-			if loc.Location == INTERNAL_SDK_JS_LOCATION {
+			if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) {
+
+				internalUsage = append(internalUsage, loc.Location)
 				continue
 			}
 			globalPacakges = append(globalPacakges, loc.Location)
@@ -134,7 +138,8 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 
 	for _, dtoItem := range entitiesAndDtos {
 		for _, loc := range dtoItem.CodeChunkDependenies {
-			if loc.Location == INTERNAL_SDK_JS_LOCATION {
+			if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) {
+				internalUsage = append(internalUsage, loc.Location)
 				continue
 			}
 			globalPacakges = append(globalPacakges, loc.Location)
@@ -174,10 +179,22 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		})
 	}
 
+	sdkFiles := []core.VirtualFile{}
+
 	if isTypeScript {
-		files = append(files, core.FsEmbedToVirtualFile(&tssdk.Content, "sdk")...)
+		sdkFiles = append(sdkFiles, core.FsEmbedToVirtualFile(&tssdk.Content, "sdk")...)
 	} else {
-		files = append(files, core.FsEmbedToVirtualFile(&jssdk.Content, "sdk")...)
+		sdkFiles = append(sdkFiles, core.FsEmbedToVirtualFile(&jssdk.Content, "sdk")...)
+	}
+
+	for _, sdkFile := range sdkFiles {
+		actual := "./" + path.Join(sdkFile.Location, sdkFile.Name, sdkFile.Extension)
+		actual = strings.ReplaceAll(actual, ".ts", "")
+		actual = strings.ReplaceAll(actual, ".js", "")
+
+		if slices.Contains(internalUsage, actual) {
+			files = append(files, sdkFile)
+		}
 	}
 
 	return files, nil

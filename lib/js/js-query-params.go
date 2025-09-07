@@ -89,7 +89,7 @@ func renderTsJsQsClass(ctx core.MicroGenContext, action core.EmiRpcAction, field
 		Objects: []string{
 			"URLSearchParamsX",
 		},
-		Location: INTERNAL_SDK_JS_LOCATION,
+		Location: INTERNAL_SDK_JS_LOCATION + "/URLSearchParamsX",
 	})
 
 	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{

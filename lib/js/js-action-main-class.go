@@ -85,8 +85,16 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"buildUrl", "withPrefix", "isPlausibleObject"},
-				Location: INTERNAL_SDK_JS_LOCATION,
+				Objects:  []string{"buildUrl"},
+				Location: INTERNAL_SDK_JS_LOCATION + "/buildUrl",
+			},
+			{
+				Objects:  []string{"withPrefix"},
+				Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
+			},
+			{
+				Objects:  []string{"isPlausibleObject"},
+				Location: INTERNAL_SDK_JS_LOCATION + "/isPlausibleObject",
 			},
 		},
 	}

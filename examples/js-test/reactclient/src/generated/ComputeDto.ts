@@ -1,4 +1,4 @@
-import { isPlausibleObject } from './sdk/js';
+import { isPlausibleObject } from './sdk/common/isPlausibleObject';
 /**
   * The base class definition for computeDto
   **/
