@@ -1,0 +1,11 @@
+name: compute
+complexes:
+- name: Money
+  location: '../Money'
+fields:
+  - name: stringField
+    type: string
+  - name: dateField
+    complex: Date
+  - name: amount
+    complex: Money

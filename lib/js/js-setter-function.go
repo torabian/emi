@@ -57,6 +57,14 @@ set {{ .ctx.Name }} (|@arg.value|) {
 	 	const correctType = value === true || value === false
 		this.#{{.ctx.Name}} = correctType ? value : Boolean(value);
 	{{ end }}
+
+ 	{{ if and (eq .ctx.Type "complex")}}
+	 	if (value instanceof {{ .ctx.ComplexClass }}) {
+			this.#{{.ctx.Name}} = value
+		} else {
+		 	this.#{{.ctx.Name}} = new {{ .ctx.ComplexClass }}(value)
+		}
+	{{ end }}
 	
 	{{ if and (eq .ctx.Type "bool?")}}
 	 	const correctType = value === true || value === false || value === undefined || value === null

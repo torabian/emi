@@ -76,6 +76,7 @@ type jsFieldVariable struct {
 	SafeDefaultValue     string
 	Type                 string
 	ConstructorClass     string
+	ComplexClass         string
 	ComputedType         string
 	IsNullable           bool
 	IsNumeric            bool
@@ -158,6 +159,11 @@ func jsRenderField(field *core.EmiField, parentChain string, fieldDepth string, 
 		ComputedType:         tsFieldType,
 		IsNumeric:            IsNumericDataType(string(field.Type)),
 		ConstructorClass:     core.ToUpper(parentChain) + "." + core.ToUpper(field.Name),
+		ComplexClass:         field.Complex,
+	}
+
+	if field.Complex != "" {
+		privateFieldToken.Type = "complex"
 	}
 
 	privateField := privateFieldToken.Compile(isTypeScript)

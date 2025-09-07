@@ -37,9 +37,11 @@ func tsFieldType(field *core.EmiField, parentChain string) string {
 		}
 		return "any[]"
 	}
+
 	if field.Type == core.FieldTypeObject {
 		return core.ToUpper(parentChain) + "." + fieldName
 	}
+
 	return TsComputedField(field, false)
 }
 

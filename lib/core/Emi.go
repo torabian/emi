@@ -32,6 +32,9 @@ type Emi struct {
 	// Dtos are basically golang structs with some additional functionality which can be used for request/response actions
 	Dto []EmiDto `yaml:"dtos,omitempty" json:"dtos,omitempty" jsonschema:"description=Dtos are basically golang structs with some additional functionality which can be used for request/response actions"`
 
+	// Complex custom data types definitions and location
+	Complexes []EmiComplex `yaml:"complexes,omitempty" json:"complexes,omitempty" jsonschema:"description=Complex custom data types definitions and location"`
+
 	// Actions are similar to controllers in other frameworks. They are custom functionality available via CLI or Http requests and developer need to implement their logic
 	Actions []*EmiAction `yaml:"actions,omitempty" json:"actions,omitempty" jsonschema:"description=Actions are similar to controllers in other frameworks. They are custom functionality available via CLI or Http requests and developer need to implement their logic"`
 

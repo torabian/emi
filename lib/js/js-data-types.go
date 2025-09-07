@@ -19,6 +19,9 @@ func IsNullable(value string) bool {
 }
 
 func TsComputedField(field *core.EmiField, isWorkspace bool) string {
+	if field.Complex != "" {
+		return field.Complex
+	}
 	switch field.Type {
 	case "string", "text", "string?":
 		return "string"

@@ -45,6 +45,7 @@ On the yaml root, you can set different features of a the module, such as entiti
 | `entities` | `array` | List of entities that module contains. Entities are basically tables in database with their mapping on golang and general actions generated for them |
 | `tasks` | `array` | Tasks are actions which are triggered by a queue message or a cron job. |
 | `dtos` | `array` | Dtos are basically golang structs with some additional functionality which can be used for request/response actions |
+| `complexes` | `array` | Complex custom data types definitions and location |
 | `actions` | `array` | Actions are similar to controllers in other frameworks. They are custom functionality available via CLI or Http requests and developer need to implement their logic |
 | `macros` | `array` | Macros are extra definition or templates which will modify the module and able to add extra fields or tables before the codegen occures. |
 | `remotes` | `array` | Remotes are definition of external services which could be contacted via http and Emi developer can make them typesafe by defining them here. |
