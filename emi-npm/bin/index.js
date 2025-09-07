@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-const program = new Command();
+import { readFileSync, writeFileSync } from "fs";
 import { applyFlags } from "./cliutils.js";
 import { FileActions, fileWriter, TextActions } from "./getPublicActions.js";
-import { readFileSync, mkdirSync, writeFileSync } from "fs";
-import { dirname, join } from "path";
+import prettier from "prettier";
+
+const program = new Command();
 
 for (const a of TextActions) {
   const cmd = program
@@ -31,7 +32,10 @@ for (const a of TextActions) {
       if (!ctx.output) {
         console.log(result);
       } else {
-        writeFileSync(ctx.output, result, "utf8");
+        const formatted = await prettier.format(result, {
+          parser: "typescript",
+        });
+        writeFileSync(ctx.output, formatted, "utf8");
       }
     });
   applyFlags(cmd, a.Flags);
@@ -63,7 +67,7 @@ for (const a of FileActions) {
       if (!ctx.output) {
         console.log(JSON.stringify(files, null, 2));
       } else {
-        fileWriter(files, ctx.output);
+        await fileWriter(files, ctx.output);
       }
     });
 

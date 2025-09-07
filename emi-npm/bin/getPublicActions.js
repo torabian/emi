@@ -3,14 +3,22 @@ import "./wasm_exec.js";
 import fs, { mkdirSync, writeFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path, { dirname, join } from "path";
+import prettier from "prettier";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export const fileWriter = (files, output) => {
+export const fileWriter = async (files, output) => {
   for (const f of files) {
     const fullPath = join(output, f.Location, f.Name + f.Extension);
     mkdirSync(dirname(fullPath), { recursive: true });
-    writeFileSync(fullPath, f.ActualScript, "utf8");
+
+    let result = f.ActualScript;
+    try {
+      result = await prettier.format(f.ActualScript, {
+        parser: "typescript",
+      });
+    } catch (err) {}
+    writeFileSync(fullPath, result, "utf8");
   }
 };
 const createInstance = async () => {

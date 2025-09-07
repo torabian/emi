@@ -83,7 +83,7 @@ describe("Generate the http sdk for it", () => {
     files = globalThis.jsGenModule(JSON.stringify(sample1), {
       Tags: "typescript",
     });
-    fileWriter(files, genOutput);
+    await fileWriter(files, genOutput);
   });
 
   it("install dependencies", () => {

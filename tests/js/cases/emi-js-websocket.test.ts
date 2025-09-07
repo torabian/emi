@@ -70,7 +70,7 @@ describe("Generate the emi javascript web socket", () => {
     files = globalThis.jsGenModule(JSON.stringify(sample1), {
       Tags: "typescript",
     });
-    fileWriter(files, genOutput);
+    await fileWriter(files, genOutput);
   });
 
   it("introduction", () => {

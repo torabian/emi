@@ -102,7 +102,7 @@ describe("Generates the http action codes and classes", () => {
     files = globalThis.jsGenModule(JSON.stringify(sample1), {
       Tags: "typescript",
     });
-    fileWriter(files, genOutput);
+    await fileWriter(files, genOutput);
   });
 
   it("install dependencies", () => {
