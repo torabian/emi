@@ -55,6 +55,13 @@
           "type": "array",
           "description": "Dtos are basically golang structs with some additional functionality which can be used for request/response actions"
         },
+        "complexes": {
+          "items": {
+            "$ref": "#/definitions/EmiComplex"
+          },
+          "type": "array",
+          "description": "Complex custom data types definitions and location"
+        },
         "actions": {
           "items": {
             "$ref": "#/definitions/EmiAction"
@@ -251,6 +258,24 @@
           },
           "type": "array",
           "description": "Typesafe headers."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiComplex": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": " Name of the complex class or struct"
+        },
+        "location": {
+          "type": "string",
+          "description": " Location of the definition"
+        },
+        "compiler": {
+          "type": "string",
+          "description": " Different compilers can import the definition from different locations"
         }
       },
       "additionalProperties": false,
@@ -609,6 +634,8 @@
           "enum": [
             "string?",
             "int?",
+            "any",
+            "complex",
             "float64?",
             "money?",
             "xfile?",
@@ -701,9 +728,9 @@
           "type": "string",
           "description": "When type is one there will be another field added with Id prefix. This tag will override gorm meta"
         },
-        "computedType": {
+        "complex": {
           "type": "string",
-          "description": "Not sure what it does"
+          "description": "In case of complex data type"
         },
         "matches": {
           "items": {
