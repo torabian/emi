@@ -1,6 +1,6 @@
 export function withPrefix<T extends Record<string, any>>(
   prefix: string,
-  fields: T
+  fields: T,
 ): T {
   const out: Record<string, any> = {};
   for (const [k, v] of Object.entries(fields)) {

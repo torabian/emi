@@ -9,14 +9,14 @@
 export function buildUrl(
   url: string,
   params?: Record<string, unknown>,
-  qs?: URLSearchParams
+  qs?: URLSearchParams,
 ) {
   // Replace :placeholders
   if (params) {
     Object.entries(params as Record<string, string>).forEach(([key, value]) => {
       url = url.replace(
         new RegExp(`:${key}`, "g"),
-        encodeURIComponent(String(value))
+        encodeURIComponent(String(value)),
       );
     });
   }
@@ -25,7 +25,7 @@ export function buildUrl(
     url += `?${qs.toString()}`;
   } else if (qs && Object.keys(qs).length) {
     const query = new URLSearchParams(
-      Object.entries(qs).map(([k, v]) => [k, String(v)])
+      Object.entries(qs).map(([k, v]) => [k, String(v)]),
     ).toString();
     url += `?${query}`;
   }

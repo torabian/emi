@@ -1,6 +1,5 @@
 import { Controller, Get, MessageEvent, Post, Sse } from '@nestjs/common';
 import { AppService } from './app.service';
-import { GetSinglePostReqHeaders } from './generated/GetSinglePostAction';
 import { interval, map, Observable, take } from 'rxjs';
 
 @Controller()

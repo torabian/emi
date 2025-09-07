@@ -2,7 +2,7 @@ type ConstructorWithArg<T = any, R = any> = new (arg: T, ...rest: any[]) => R;
 
 export class WebSocketX<
   SendType = string | ArrayBufferLike | Blob | ArrayBufferView,
-  RecieveData = string
+  RecieveData = string,
 > extends WebSocket {
   public readonly addEventListenerRaw: WebSocket["addEventListener"];
   public readonly sendRaw: WebSocket["send"];
@@ -13,7 +13,7 @@ export class WebSocketX<
     protocols?: string | string[],
     options?: {
       MessageFactoryClass: ConstructorWithArg<any>;
-    }
+    },
   ) {
     super(url, protocols);
 
@@ -26,7 +26,7 @@ export class WebSocketX<
   }
 
   set onmessage(
-    fn: ((this: WebSocket, ev: MessageEvent<RecieveData>) => any) | null
+    fn: ((this: WebSocket, ev: MessageEvent<RecieveData>) => any) | null,
   ) {
     if (fn) {
       this.addEventListener("message", fn);
@@ -56,21 +56,21 @@ export class WebSocketX<
   addEventListener(
     type: "message",
     listener: (this: WebSocket, ev: MessageEvent<RecieveData>) => unknown,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void;
 
   // fallback overloads (other event types)
   addEventListener<K extends Exclude<keyof WebSocketEventMap, "message">>(
     type: K,
     listener: (this: WebSocket, ev: WebSocketEventMap[K]) => unknown,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void;
 
   // implementation
   addEventListener(
     type: string,
     listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions
+    options?: boolean | AddEventListenerOptions,
   ): void {
     if (type === "message") {
       const wrapped = ((ev: MessageEvent) => {
@@ -85,7 +85,7 @@ export class WebSocketX<
 
         (listener as EventListener).call(
           this,
-          new MessageEvent("message", { data: parsed })
+          new MessageEvent("message", { data: parsed }),
         );
       }) as EventListener;
 

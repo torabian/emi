@@ -22,10 +22,10 @@ export class TypedResponse<T> extends Response {
 export function fetchx<
   TResponse = unknown,
   TBody = unknown,
-  THeaders = unknown
+  THeaders = unknown,
 >(
   input: RequestInfo | URL,
-  init?: TypedRequestInit<TBody, THeaders>
+  init?: TypedRequestInit<TBody, THeaders>,
 ): Promise<TypedResponse<TResponse>> {
   return fetch(input, init as RequestInit) as Promise<TypedResponse<TResponse>>;
 }
@@ -42,7 +42,7 @@ export async function handleFetchResponse<T>(
   res: TypedResponse<T>,
   dto?: DtoFactory<T>,
   onMessage?: (msg: any) => void,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
 ): Promise<{ done: Promise<void>; response: TypedResponse<T> }> {
   const ct = res.headers.get("content-type") || "";
   const cd = res.headers.get("content-disposition") || "";
@@ -75,10 +75,10 @@ export async function handleFetchResponse<T>(
   return { done: Promise.resolve(), response: res as any };
 }
 
-export const SSEFetch = <T = string>(
+export const SSEFetch = <T = string,>(
   res: TypedResponse<T>,
   onMessage?: (ev: MessageEvent) => void,
-  signal?: AbortSignal | null
+  signal?: AbortSignal | null,
 ): { response: TypedResponse<T>; done: Promise<void> } => {
   if (!res.body) throw new Error("SSE requires readable body");
 
