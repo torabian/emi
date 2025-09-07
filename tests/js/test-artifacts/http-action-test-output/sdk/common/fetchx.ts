@@ -30,12 +30,20 @@ export function fetchx<
   return fetch(input, init as RequestInit) as Promise<TypedResponse<TResponse>>;
 }
 
+type DtoFactory<T> = { new (data: any): T } | ((data: any) => T);
+
+function isConstructor<T>(fn: DtoFactory<T>): fn is { new (data: any): T } {
+  return (
+    typeof fn === "function" && fn.prototype && fn.prototype.constructor === fn
+  );
+}
+
 export async function handleFetchResponse<T>(
   res: TypedResponse<T>,
-  dto?: new (data: any) => T,
+  dto?: DtoFactory<T>,
   onMessage?: (msg: any) => void,
   signal?: AbortSignal | null
-): Promise<{ done: Promise<void>; response: Response & { result?: any } }> {
+): Promise<{ done: Promise<void>; response: TypedResponse<T> }> {
   const ct = res.headers.get("content-type") || "";
   const cd = res.headers.get("content-disposition") || "";
 
@@ -50,7 +58,16 @@ export async function handleFetchResponse<T>(
     (res as any).result = res.body;
   } else if (ct.includes("application/json")) {
     const json = await res.json();
-    (res as any).result = dto ? new dto(json) : json;
+
+    if (dto) {
+      if (isConstructor(dto)) {
+        (res as any).result = new dto(json); // ✅ class constructor
+      } else {
+        (res as any).result = dto(json); // ✅ factory function
+      }
+    } else {
+      (res as any).result = json;
+    }
   } else {
     (res as any).result = await res.text();
   }

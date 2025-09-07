@@ -179,6 +179,18 @@ func JsActionManifestRealms(
 		deps = append(deps, actionRealms.ResponseClass.CodeChunkDependenies...)
 	}
 
+	if actionRealms.ResponseClass != nil && action.GetResponseEnvelopeClass() != "" {
+		actionRealms.ResponseClass.Tokens = append(actionRealms.ResponseClass.Tokens, core.GeneratedScriptToken{
+			Name:  TOKEN_RESPONSE_ENVELOPE,
+			Value: action.GetResponseEnvelopeClass(),
+		})
+
+		deps = append(deps, core.CodeChunkDependency{
+			Objects:  []string{action.GetResponseEnvelopeClass()},
+			Location: INTERNAL_SDK_ENVELOPES_LOCATION,
+		})
+	}
+
 	fetch, fetchctx, err := JsActionFetchAndMetaData(action, actionRealms, ctx)
 	if err != nil {
 		return nil, nil, err

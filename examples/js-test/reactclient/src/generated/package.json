@@ -8,10 +8,6 @@
     "test": "echo 'test script here'"
   },
   "dependencies": {
-    "./AverageDto": "latest",
-    "./ComputeDto": "latest",
-    "./sdk/react/useSse": "latest",
-    "./sdk/react/useWebSocketX": "latest",
     "@tanstack/react-query": "^5.85.5",
     "@types/qs": "^6.14.0",
     "axios": "^1.11.0",

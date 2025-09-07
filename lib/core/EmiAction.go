@@ -154,6 +154,14 @@ func (x EmiAction) HasResponseHeaders() bool {
 	return x.HasResponse() && len(x.Out.Headers) > 0
 }
 
+func (x EmiAction) GetResponseEnvelopeClass() string {
+	if !x.HasResponse() {
+		return ""
+	}
+
+	return x.Out.Envelope
+}
+
 func (x EmiAction) GetResponseHeaders() []EmiHeader {
 	if x.HasResponseHeaders() {
 		return x.Out.Headers

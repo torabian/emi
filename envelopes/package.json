@@ -1,0 +1,23 @@
+{
+  "name": "js-sdk-kit",
+  "version": "1.0.0",
+  "description": "Sharable code for javascript world sdk.",
+  "main": "index.js",
+  "scripts": {
+    "build": "rm -rf build && tsc",
+    "compile": "rm -rf src/google-json-style-guide/generated && ../emi js:module --path src/google-json-style-guide/google-envelop.emi.yml --output src/google-json-style-guide/generated --tags typescript,no-envelope",
+    
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  },
+  "peerDependencies": {
+    "@types/qs": "^6.14.0",
+    "@types/react": "^19.1.12",
+    "qs": "^6.14.0",
+    "react": "^19.1.1"
+  }
+}

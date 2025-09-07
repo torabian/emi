@@ -45,4 +45,3 @@ export declare class URLSearchParamsX extends URLSearchParams {
  * @returns
  */
 export declare function buildUrl(url: string, params?: Record<string, unknown>, qs?: URLSearchParams): string;
-export declare const isPlausibleObject: (obj: any) => boolean;

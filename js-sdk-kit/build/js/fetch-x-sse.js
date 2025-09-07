@@ -46,7 +46,11 @@ export const SSEFetch = (res, onMessage, signal) => {
     });
     return { response: res, done };
 };
-export async function handleFetchResponse(res, dto, onMessage, signal) {
+function isConstructor(fn) {
+    return (typeof fn === "function" && fn.prototype && fn.prototype.constructor === fn);
+}
+export async function handleFetchResponse(res, dto, // accepts both
+onMessage, signal) {
     const ct = res.headers.get("content-type") || "";
     const cd = res.headers.get("content-disposition") || "";
     if (ct.includes("text/event-stream")) {
@@ -58,7 +62,11 @@ export async function handleFetchResponse(res, dto, onMessage, signal) {
     }
     else if (ct.includes("application/json")) {
         const json = await res.json();
-        res.result = dto ? new dto(json) : json;
+        res.result = dto
+            ? isConstructor(dto)
+                ? new dto(json) // ✅ class
+                : dto(json) // ✅ factory
+            : json;
     }
     else {
         res.result = await res.text();

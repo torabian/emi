@@ -3,3 +3,5 @@ emi
 .DS_Store
 *.wasm
 __webdir
+
+envelopes/build

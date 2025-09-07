@@ -15,10 +15,11 @@ import (
 type fetchStaticFunctionContext struct {
 	EndpointUrl string
 
-	ActionMethod     string
-	RequestClass     string
-	ResponseClass    string
-	QueryStringClass string
+	ActionMethod          string
+	RequestClass          string
+	ResponseClass         string
+	ResponseEnvelopeClass string
+	QueryStringClass      string
 
 	// Those requests with /:id/:item in them, will generate
 	// a custom type, and will be available here.
@@ -74,6 +75,11 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 	requestHeaderType := GetClassOrUnknown(fetchctx.RequestHeadersClass)
 	requestType := GetClassOrUnknown(fetchctx.RequestClass)
 
+	// Wrap the class into the envelope type
+	if fetchctx.ResponseEnvelopeClass != "" {
+		responseType = fmt.Sprintf("%v<%v>", fetchctx.ResponseEnvelopeClass, responseType)
+	}
+
 	claims := []core.JsFnArgument{
 		{
 			Key: "fetch.init",
@@ -106,6 +112,29 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 			Js:  "onMessage",
 			Ts:  "onMessage?: (ev: MessageEvent) => void",
 		},
+	}
+
+	if fetchctx.ResponseClass != "" {
+		// If there is no envelope, passing the class with constructor is enough
+		if fetchctx.ResponseEnvelopeClass == "" {
+			claims = append(claims, core.JsFnArgument{
+				Key: "response.cls",
+				Ts:  fetchctx.ResponseClass,
+				Js:  fetchctx.ResponseClass,
+			})
+		} else {
+
+			statement := `(data) => { const envelope = new %v<%v>(data); envelope.updatePayload(new %v(envelope.getPayload())); return envelope;}`
+			seq := fmt.Sprintf(statement, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass, fetchctx.ResponseClass)
+
+			// seq := fmt.Sprintf("(data) => new %v(data).updatePayload(new %v())", fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)
+			claims = append(claims, core.JsFnArgument{
+				Key: "response.cls",
+				Ts:  seq,
+				Js:  seq,
+			})
+
+		}
 	}
 
 	return claims
@@ -171,7 +200,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			return handleFetchResponse(
 				res, 
 				{{ if .fetchctx.ResponseClass }}
-				{{ .fetchctx.ResponseClass }},
+				|@response.cls|,
 				{{ else }}
 				undefined,
 				{{ end }}
@@ -232,3 +261,4 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 // sdk location on the disk
 var INTERNAL_SDK_JS_LOCATION string = "./sdk/common"
 var INTERNAL_SDK_REACT_LOCATION string = "./sdk/react"
+var INTERNAL_SDK_ENVELOPES_LOCATION string = "./sdk/envelopes/index"

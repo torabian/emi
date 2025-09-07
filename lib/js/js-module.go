@@ -4,12 +4,15 @@ package js
 // the webrequestX based class for communication
 
 import (
+	"embed"
 	"encoding/json"
 	"path"
 	"slices"
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
+
+	ts_envelopes "github.com/torabian/emi/lib/js/ts-envelopes"
 	jssdk "github.com/torabian/emi/lib/js/ts-sdk"
 	tssdk "github.com/torabian/emi/lib/js/ts-sdk"
 )
@@ -165,6 +168,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	})
 
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	skipEnvelopes := strings.Contains(ctx.Tags, GEN_SKIP_ENVELOPES)
 	isAxiosBundle := strings.Contains(ctx.Tags, GEN_AXIOS_BUNDLE_COMPATIBILITY)
 
 	if isAxiosBundle {
@@ -177,6 +181,13 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 			Extension:    axiosBundle.SuggestedExtension,
 			ActualScript: AsFullDocument(axiosBundle),
 		})
+	}
+
+	/// Add the core sdk first
+
+	if !skipEnvelopes {
+		var source *embed.FS = &ts_envelopes.Content
+		files = append(files, core.FsEmbedToVirtualFile(source, "sdk/envelopes")...)
 	}
 
 	sdkFiles := []core.VirtualFile{}

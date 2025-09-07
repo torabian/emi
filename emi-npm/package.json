@@ -1,6 +1,6 @@
 {
   "name": "emicc",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "bin": {
     "emicc": "./bin/index.js"
   },

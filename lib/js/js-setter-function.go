@@ -63,6 +63,10 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		this.#{{.ctx.Name}} = correctType ? value : Boolean(value);
 	{{ end }}
 	
+	{{ if and (eq .ctx.Type "any")}}
+		this.#{{.ctx.Name}} = value;
+	{{ end }}
+	
 	{{ if and (eq .ctx.Type "array")}}
 	 	// For arrays, you only can pass arrays to the object
 	 	if (!Array.isArray(value)) {

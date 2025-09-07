@@ -196,6 +196,7 @@ func FsEmbedToVirtualFile(template *embed.FS, predir string) []VirtualFile {
 		if file == "index.go" { // skip internal files
 			continue
 		}
+
 		content, err := ReadEmbedFileContent(template, file)
 		if err != nil {
 			log.Fatalln(err)
