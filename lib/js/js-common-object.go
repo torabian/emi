@@ -27,6 +27,10 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 				Objects:  []string{"isPlausibleObject"},
 				Location: INTERNAL_SDK_JS_LOCATION + "/isPlausibleObject",
 			},
+			{
+				Objects:  []string{"withPrefix"},
+				Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
+			},
 		},
 	}
 	var tsTypes *core.CodeChunkCompiled

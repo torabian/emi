@@ -98,7 +98,82 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 			},
 		},
 	}
-	// How to do it iterte and call Compile?
+
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+		Name:  TOKEN_NEW_URL_FN,
+		Value: fetchctx.UrlCreatorFunction,
+	})
+
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+		Name:  TOKEN_URL_METHOD,
+		Value: fetchctx.UrlMethod,
+	})
+
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+		Name:  TOKEN_ACTUAL_METHOD,
+		Value: fetchctx.ActionMethod,
+	})
+
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+		Name:  TOKEN_ROOT_CLASS,
+		Value: className,
+	})
+
+	if len(core.ExtractPlaceholdersInUrl(action.GetUrl())) > 0 {
+		fetchctx.PathParameterTypeName = fmt.Sprintf("%vPathParameter", className)
+	}
+
+	if realms.ResponseClass != nil {
+		responseClassToken := findTokenByName(realms.ResponseClass.Tokens, TOKEN_OBJ_CLASS)
+		if responseClassToken != nil {
+
+			// Not sure about this yet. Primitives also can be a class, right?
+			// therefor they might not need to cast to json, but still you need to create a class out of them.
+			fetchctx.CastToJson = true
+			fetchctx.ResponseClass = responseClassToken.Value
+		}
+
+		responseEnvelopeToken := findTokenByName(realms.ResponseClass.Tokens, TOKEN_RESPONSE_ENVELOPE)
+		if responseEnvelopeToken != nil {
+			fetchctx.ResponseEnvelopeClass = responseEnvelopeToken.Value
+		}
+	}
+
+	var axiosStaticFunction *core.CodeChunkCompiled
+
+	if isAxiosSupported && fetchctx.IsClassicHttpCall {
+		// Add the axios helper function to the response depencencies,
+		fn, err := AxiosStaticHelper(fetchctx, ctx)
+		if err != nil {
+			return nil, fetchctx, err
+		}
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
+		axiosStaticFunction = fn
+	}
+
+	var fetchStaticFunction *core.CodeChunkCompiled
+
+	if strings.ToUpper(fetchctx.ActionMethod) != EMI_METHOD_REACTIVE {
+		// add the native fetch function to the axios
+		fn, err := FetchStaticHelper(fetchctx, ctx)
+		if err != nil {
+			return nil, fetchctx, err
+		}
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
+		fetchStaticFunction = fn
+	}
+
+	var websocketCreateFunction *core.CodeChunkCompiled
+	if strings.ToUpper(fetchctx.ActionMethod) == EMI_METHOD_REACTIVE {
+
+		// add the native fetch function to the axios
+		fn, err := CreateWebSocketStaticHelper(fetchctx, ctx)
+		if err != nil {
+			return nil, fetchctx, err
+		}
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
+		websocketCreateFunction = fn
+	}
 
 	const tmpl = `/**
  * {{.className}}
@@ -142,77 +217,6 @@ export class {{ .className }} {
   
 }
 `
-
-	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
-		Name:  TOKEN_NEW_URL_FN,
-		Value: fetchctx.UrlCreatorFunction,
-	})
-
-	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
-		Name:  TOKEN_URL_METHOD,
-		Value: fetchctx.UrlMethod,
-	})
-
-	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
-		Name:  TOKEN_ACTUAL_METHOD,
-		Value: fetchctx.ActionMethod,
-	})
-
-	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
-		Name:  TOKEN_ROOT_CLASS,
-		Value: className,
-	})
-
-	if len(core.ExtractPlaceholdersInUrl(action.GetUrl())) > 0 {
-		fetchctx.PathParameterTypeName = fmt.Sprintf("%vPathParameter", className)
-	}
-
-	if realms.ResponseClass != nil {
-		responseClassToken := findTokenByName(realms.ResponseClass.Tokens, TOKEN_OBJ_CLASS)
-		if responseClassToken != nil {
-
-			// Not sure about this yet. Primitives also can be a class, right?
-			// therefor they might not need to cast to json, but still you need to create a class out of them.
-			fetchctx.CastToJson = true
-			fetchctx.ResponseClass = responseClassToken.Value
-		}
-	}
-
-	var axiosStaticFunction *core.CodeChunkCompiled
-
-	if isAxiosSupported && fetchctx.IsClassicHttpCall {
-		// Add the axios helper function to the response depencencies,
-		fn, err := AxiosStaticHelper(fetchctx, ctx)
-		if err != nil {
-			return nil, fetchctx, err
-		}
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
-		axiosStaticFunction = fn
-	}
-
-	var fetchStaticFunction *core.CodeChunkCompiled
-
-	if strings.ToUpper(fetchctx.ActionMethod) != EMI_METHOD_REACTIVE {
-		// add the native fetch function to the axios
-		fn, err := FetchStaticHelper(fetchctx, ctx)
-		if err != nil {
-			return nil, fetchctx, err
-		}
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
-		fetchStaticFunction = fn
-	}
-
-	var websocketCreateFunction *core.CodeChunkCompiled
-	if strings.ToUpper(fetchctx.ActionMethod) == EMI_METHOD_REACTIVE {
-
-		// add the native fetch function to the axios
-		fn, err := CreateWebSocketStaticHelper(fetchctx, ctx)
-		if err != nil {
-			return nil, fetchctx, err
-		}
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
-		websocketCreateFunction = fn
-	}
 
 	t := template.Must(template.New("qsclass").Funcs(core.CommonMap).Parse(tmpl))
 

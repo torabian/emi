@@ -213,6 +213,10 @@
           "type": "array",
           "description": "Typesafe headers."
         },
+        "envelope": {
+          "type": "string",
+          "description": "Envelop the content"
+        },
         "fields": {
           "items": {
             "$ref": "#/definitions/EmiField"
@@ -220,9 +224,6 @@
           "type": "array"
         },
         "dto": {
-          "type": "string"
-        },
-        "entity": {
           "type": "string"
         },
         "primitive": {
@@ -769,24 +770,6 @@
       "type": "object"
     },
     "EmiMacro": {
-      "oneOf": [
-        {
-          "if": {
-            "properties": {
-              "using": {
-                "const": "eav"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "params": {
-                "$ref": "#/definitions/EavMacroParams"
-              }
-            }
-          }
-        }
-      ],
       "properties": {
         "using": {
           "type": "string",

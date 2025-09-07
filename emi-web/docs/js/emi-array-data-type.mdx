@@ -26,6 +26,7 @@ fields:
     
 ```ts
 import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
+import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myArrayClassDto
  **/
@@ -254,6 +255,7 @@ Arrays can hold primitive types or nested objects.
     
 ```ts
 import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
+import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myArrayClassDto
  **/
@@ -477,28 +479,29 @@ Defaults to `undefined`, but you can assign an array or `null`.
     
 ```ts
 import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
+import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myArrayClassDto
  **/
 export class MyArrayClassDto {
   /**
    *
-   * @type {string}
+   * @type {any}
    **/
-  #nullableTags?: string | null = undefined;
+  #nullableTags?: any | null = undefined;
   /**
    *
-   * @returns {string}
+   * @returns {any}
    **/
   get nullableTags() {
     return this.#nullableTags;
   }
   /**
    *
-   * @type {string}
+   * @type {any}
    **/
-  set nullableTags(value: string) {}
-  setNullableTags(value: string) {
+  set nullableTags(value: any) {}
+  setNullableTags(value: any) {
     this.nullableTags = value;
     return this;
   }
@@ -550,9 +553,9 @@ export abstract class MyArrayClassDtoFactory {
 export type MyArrayClassDtoType = {
   /**
    *
-   * @type {string}
+   * @type {any}
    **/
-  nullableTags?: string;
+  nullableTags?: any;
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyArrayClassDtoType {}

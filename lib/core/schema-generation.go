@@ -17,38 +17,38 @@ func AppendEavCustomParams(schema *jsonschema.Schema) {
 	})
 
 	for key := range schema.Definitions {
-		if key == "EmiMacro" {
+		// if key == "EmiMacro" {
 
-			jsonStr := `{
-				"oneOf": [
-					{
-						"if": {
-							"properties": {
-								"using": {
-									"const": "eav"
-								}
-							}
-						},
-						"then": {
-							"properties": {
-								"params": {
-									"$ref": "#/definitions/EavMacroParams"
-								}
-							}
-						}
-					}
-				]
-			}`
+		// 	jsonStr := `{
+		// 		"oneOf": [
+		// 			{
+		// 				"if": {
+		// 					"properties": {
+		// 						"using": {
+		// 							"const": "eav"
+		// 						}
+		// 					}
+		// 				},
+		// 				"then": {
+		// 					"properties": {
+		// 						"params": {
+		// 							"$ref": "#/definitions/EavMacroParams"
+		// 						}
+		// 					}
+		// 				}
+		// 			}
+		// 		]
+		// 	}`
 
-			var schemaP jsonschema.Schema
-			err := json.Unmarshal([]byte(jsonStr), &schemaP)
-			if err != nil {
-				fmt.Println("Error:", err)
-				return
-			}
+		// 	var schemaP jsonschema.Schema
+		// 	err := json.Unmarshal([]byte(jsonStr), &schemaP)
+		// 	if err != nil {
+		// 		fmt.Println("Error:", err)
+		// 		return
+		// 	}
 
-			schema.Definitions[key].OneOf = schemaP.OneOf
-		}
+		// 	schema.Definitions[key].OneOf = schemaP.OneOf
+		// }
 		if key == "EmiConfigField" {
 
 			jsonStr := `{

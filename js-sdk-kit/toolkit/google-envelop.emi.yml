@@ -1,0 +1,18 @@
+name: googleEnvelop
+description: 
+  Generating envelop API responses using Emi itself. 
+  Emi codegen is so strong that can generate deep classes in javascript which could be used
+  in itself and in this example we are doing it.
+
+  All responses can be wrapped in google json styleguide, which gives extream consistency.
+
+dtos:
+  - name: response
+    fields:
+      - name: apiVersion
+        type: string
+      - name: context
+        type: string
+      - name: data
+        type: any
+      

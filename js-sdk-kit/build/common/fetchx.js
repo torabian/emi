@@ -6,6 +6,9 @@ export class TypedResponse extends Response {
 export function fetchx(input, init) {
     return fetch(input, init);
 }
+function isConstructor(fn) {
+    return (typeof fn === "function" && fn.prototype && fn.prototype.constructor === fn);
+}
 export async function handleFetchResponse(res, dto, onMessage, signal) {
     const ct = res.headers.get("content-type") || "";
     const cd = res.headers.get("content-disposition") || "";
@@ -18,7 +21,17 @@ export async function handleFetchResponse(res, dto, onMessage, signal) {
     }
     else if (ct.includes("application/json")) {
         const json = await res.json();
-        res.result = dto ? new dto(json) : json;
+        if (dto) {
+            if (isConstructor(dto)) {
+                res.result = new dto(json); // ✅ class constructor
+            }
+            else {
+                res.result = dto(json); // ✅ factory function
+            }
+        }
+        else {
+            res.result = json;
+        }
     }
     else {
         res.result = await res.text();

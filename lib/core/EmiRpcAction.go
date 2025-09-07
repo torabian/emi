@@ -23,6 +23,9 @@ type EmiRpcAction interface {
 	GetRequestDto() string
 	HasResponseDto() bool
 	GetResponseDto() string
+
+	GetResponseEnvelopeClass() string
+
 	HasResponseHeaders() bool
 	GetResponseHeaders() []EmiHeader
 

@@ -45,6 +45,11 @@ func GeneratePackageJSON(packageName string, locations []string) ([]byte, error)
 	deps := map[string]string{}
 	for _, loc := range sortedLocs {
 
+		// This is internal file import, so do not add
+		// to package
+		if strings.HasPrefix(loc, "./") {
+			continue
+		}
 		if version, ok := packagesUsedVersions[loc]; ok {
 			deps[loc] = version
 		} else {

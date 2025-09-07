@@ -95,6 +95,15 @@ func (x EmiRemote) HasResponseDto() bool {
 func (x EmiRemote) GetResponseDto() string {
 	return x.Out.Dto
 }
+
+func (x EmiRemote) GetResponseEnvelopeClass() string {
+	if !x.HasResponse() {
+		return ""
+	}
+
+	return x.Out.Envelope
+}
+
 func (x EmiRemote) HasRequestDto() bool {
 	return x.HasRequest() && x.In.Dto != ""
 }

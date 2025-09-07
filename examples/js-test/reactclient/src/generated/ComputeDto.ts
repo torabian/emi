@@ -1,4 +1,5 @@
 import { isPlausibleObject } from './sdk/common/isPlausibleObject';
+import { withPrefix } from './sdk/common/withPrefix';
 /**
   * The base class definition for computeDto
   **/
