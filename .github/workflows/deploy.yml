@@ -37,6 +37,8 @@ jobs:
       - name: Build Playground
         run: cd playground && npm run build
         
+      - name: install emi-npm deps
+        run: cd emi-npm && npm i
       - name: Javascript tests
         run: cd tests/js && npm i -f && npx vitest run
       
