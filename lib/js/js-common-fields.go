@@ -138,7 +138,13 @@ func (x jsFieldVariable) Compile(isTypeScript bool) string {
 	return strings.Join(sequence, " ")
 }
 
-func jsRenderField(field *core.EmiField, parentChain string, fieldDepth string, ctx core.MicroGenContext) jsRenderedField {
+func jsRenderField(
+	field *core.EmiField,
+	parentChain string,
+	fieldDepth string,
+	ctx core.MicroGenContext,
+	jsctx JsCommonObjectContext,
+) jsRenderedField {
 	jsFieldType := jsFieldTypeOnNestedClasses(field, parentChain)
 	tsFieldType := tsFieldTypeOnNestedClasses(field, parentChain)
 	isFieldNullable := IsNullable(string(field.Type))
@@ -159,13 +165,19 @@ func jsRenderField(field *core.EmiField, parentChain string, fieldDepth string, 
 		ComputedType:         tsFieldType,
 		IsNumeric:            IsNumericDataType(string(field.Type)),
 		ConstructorClass:     core.ToUpper(parentChain) + "." + core.ToUpper(field.Name),
-		ComplexClass:         field.Complex,
 	}
 
 	if field.Complex != "" {
 		privateFieldToken.Type = "complex"
+
+		// This means type is complex, can be instantiated.
+		if strings.Contains(field.Complex, "+") {
+			privateFieldToken.ComplexClass = strings.ReplaceAll(field.Complex, "+", "")
+		}
 	}
 
+	// + needs to be cleaned.
+	privateFieldToken.ComputedType = strings.ReplaceAll(privateFieldToken.ComputedType, "+", "")
 	privateField := privateFieldToken.Compile(isTypeScript)
 
 	getterjsdoc := NewJsDoc("  ")
@@ -224,11 +236,17 @@ func jsRenderField(field *core.EmiField, parentChain string, fieldDepth string, 
 	}
 }
 
-func jsRenderFieldsShallow(fields []*core.EmiField, parentChain string, fieldDepth string, ctx core.MicroGenContext) []jsRenderedField {
+func jsRenderFieldsShallow(
+	fields []*core.EmiField,
+	parentChain string,
+	fieldDepth string,
+	ctx core.MicroGenContext,
+	jsctx JsCommonObjectContext,
+) []jsRenderedField {
 	out := make([]jsRenderedField, 0, len(fields))
 	for _, f := range fields {
 		if f != nil {
-			out = append(out, jsRenderField(f, parentChain, fieldDepth, ctx))
+			out = append(out, jsRenderField(f, parentChain, fieldDepth, ctx, jsctx))
 		}
 	}
 	return out

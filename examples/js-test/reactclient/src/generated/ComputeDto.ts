@@ -1,3 +1,4 @@
+import { Decimal } from 'decimal';
 import { isPlausibleObject } from './sdk/common/isPlausibleObject';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
@@ -6,26 +7,26 @@ import { withPrefix } from './sdk/common/withPrefix';
 export class ComputeDto {
 		/**
   * Minimum number which can be generated
-  * @type {number}
+  * @type {Decimal}
   **/
- #min : number  =  0
+ #min : Decimal  =  null
 		/**
   * Minimum number which can be generated
-  * @returns {number}
+  * @returns {Decimal}
   **/
 get min () { return this.#min }
 /**
   * Minimum number which can be generated
-  * @type {number}
+  * @type {Decimal}
   **/
-set min (value: number) {
-	 	const correctType = typeof value === 'number'
-		const parsedValue = correctType ? value : Number(value)
-		if (!Number.isNaN(parsedValue)) {
-			this.#min = parsedValue;
+set min (value: Decimal) {
+	 	if (value instanceof Decimal) {
+			this.#min = value //1
+		} else {
+		 	this.#min = new Decimal(value)
 		}
 }
-setMin (value: number) {
+setMin (value: Decimal) {
 	this.min = value
 	return this
 }
@@ -131,9 +132,9 @@ export abstract class ComputeDtoFactory {
 	export type ComputeDtoType =  {
 			/**
   * Minimum number which can be generated
-  * @type {number}
+  * @type {Decimal}
   **/
- min?: number;
+ min?: Decimal;
 			/**
   * Maximum number which can be generated
   * @type {number}

@@ -1,5 +1,3 @@
-// Renders the common object, such as entities, dtos.
-
 package js
 
 import (
@@ -10,11 +8,20 @@ import (
 	"github.com/torabian/emi/lib/core"
 )
 
+type RecognizedComplex struct {
+	Symbol string
+
+	ImportLocation string
+}
+
 type JsCommonObjectContext struct {
 
 	// The class name which will be used to generate nested classes,
 	// in case of array or object
 	RootClassName string
+
+	// List of allowed complexes type to be used on fields
+	RecognizedComplexes []RecognizedComplex
 }
 
 // This function can be used in different locations of the code generation,
@@ -39,12 +46,12 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 		chunk, tsTypeError := TsCommonObjectGenerator(fields, ctx, TsCommonObjectContext{
 			RootTypeName: jsctx.RootClassName,
 		})
+
 		if tsTypeError != nil {
 			return nil, tsTypeError
 		}
 
 		res.Tokens = append(res.Tokens, chunk.Tokens...)
-
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, chunk.CodeChunkDependenies...)
 		tsTypes = chunk
 	}
@@ -52,7 +59,7 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	tsClass, tsClassError := JsCommonObjectClassGenerator(
 		fields,
 		ctx,
-		JsCommonObjectContext{RootClassName: jsctx.RootClassName},
+		jsctx,
 	)
 
 	if tsClassError != nil {

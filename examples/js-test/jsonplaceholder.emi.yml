@@ -1,9 +1,14 @@
+complexes:
+  - name: Money
+    location: ../Money
+  - name: Decimal
+    location: decimal
 name: sampleModule
 dtos:
   - name: compute
     fields:
       - name: min
-        type: int
+        complex: +Decimal
         description: Minimum number which can be generated
       - name: max
         type: int
@@ -36,8 +41,8 @@ actions:
           type: int64
         - name: id
           type: int64
-        - name: title
-          type: string
+        - name: title22
+          complex: +Money
         - name: body
           type: string
   - name: sampleSse

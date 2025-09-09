@@ -30,6 +30,8 @@ type jsActionRealms struct {
 func JsActionManifestRealms(
 	action core.EmiRpcAction,
 	ctx core.MicroGenContext,
+	complexes []RecognizedComplex,
+
 ) (*jsActionRealms, []core.CodeChunkDependency, error) {
 	deps := []core.CodeChunkDependency{}
 	actionRealms := jsActionRealms{
@@ -149,7 +151,8 @@ func JsActionManifestRealms(
 	// Action request (in)
 	if action.HasRequestFields() {
 		fields, err := JsCommonObjectGenerator(action.GetRequestFields(), ctx, JsCommonObjectContext{
-			RootClassName: action.GetName() + "Req",
+			RootClassName:       action.GetName() + "Req",
+			RecognizedComplexes: complexes,
 		})
 
 		if err != nil {
@@ -167,7 +170,8 @@ func JsActionManifestRealms(
 	if action.HasResponseFields() {
 		outClassName := action.GetName() + "Res"
 		fields, err := JsCommonObjectGenerator(action.GetResponseFields(), ctx, JsCommonObjectContext{
-			RootClassName: outClassName,
+			RootClassName:       outClassName,
+			RecognizedComplexes: complexes,
 		})
 		if err != nil {
 			return nil, nil, err

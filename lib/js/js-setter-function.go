@@ -58,9 +58,9 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		this.#{{.ctx.Name}} = correctType ? value : Boolean(value);
 	{{ end }}
 
- 	{{ if and (eq .ctx.Type "complex")}}
+ 	{{ if .ctx.ComplexClass }}
 	 	if (value instanceof {{ .ctx.ComplexClass }}) {
-			this.#{{.ctx.Name}} = value
+			this.#{{.ctx.Name}} = value //1
 		} else {
 		 	this.#{{.ctx.Name}} = new {{ .ctx.ComplexClass }}(value)
 		}

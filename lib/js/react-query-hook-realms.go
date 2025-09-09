@@ -32,7 +32,7 @@ func ReactQueryHooksBasedOnActionRealms(
 		}
 	}
 
-	if action.MethodUpper() == "POST" {
+	if action.MethodUpper() != EMI_METHOD_REACTIVE {
 		if useMutationRealms, useMutationDeps, err := ReactQueryUseMutationRealms(ctx, actionRealms); err != nil {
 			return nil, nil, err
 		} else {
