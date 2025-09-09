@@ -60,7 +60,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 
  	{{ if .ctx.ComplexClass }}
 	 	if (value instanceof {{ .ctx.ComplexClass }}) {
-			this.#{{.ctx.Name}} = value //1
+			this.#{{.ctx.Name}} = value
 		} else {
 		 	this.#{{.ctx.Name}} = new {{ .ctx.ComplexClass }}(value)
 		}

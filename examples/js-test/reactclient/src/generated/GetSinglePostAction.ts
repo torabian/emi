@@ -214,7 +214,7 @@ get title22 () { return this.#title22 }
   **/
 set title22 (value: Money) {
 	 	if (value instanceof Money) {
-			this.#title22 = value //1
+			this.#title22 = value
 		} else {
 		 	this.#title22 = new Money(value)
 		}

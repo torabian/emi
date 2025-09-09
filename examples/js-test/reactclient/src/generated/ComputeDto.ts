@@ -21,7 +21,7 @@ get min () { return this.#min }
   **/
 set min (value: Decimal) {
 	 	if (value instanceof Decimal) {
-			this.#min = value //1
+			this.#min = value
 		} else {
 		 	this.#min = new Decimal(value)
 		}

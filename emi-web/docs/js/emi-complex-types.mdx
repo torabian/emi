@@ -1,0 +1,224 @@
+# Complex Types in Emi
+In Emi modules, you can define **complexes** as reusable types. Each complex requires a class name and a location where it should be imported from.
+Instead of using primitive types like `number` or `string`, you can specify `complex: ClassName` inside the action field definition.
+- If you prefix the complex with **"+"**, like `+ClassName`, Emi will automatically instantiate the value when parsing the response.
+- Built-in types such as `Date` can be used directly as complexes.
+- User-defined types such as `Money` need to be registered in the **complexes** array of your module.
+
+## Sample module
+
+Here you can see based on defining 2 complex fields, we are generating them as class instances
+
+Example schema:
+```yaml
+name: emiComplexFields
+complexes:
+  - name: Money
+    location: ../some/directory/Money
+actions:
+  - name: sample
+    url: http://localhost:8081 (for test we use override)
+    method: post
+    description: Demo action that shows how complex types can be used in an action
+    out:
+      envelope: GResponse
+      fields:
+        - name: date
+          complex: +Date
+          description: Use javascript Date class as complex type
+        - name: money
+          complex: +Money
+          description: External money type
+
+```
+
+## Example Generated Code
+
+```ts
+import { GResponse } from "./sdk/envelopes/index";
+import { Money } from "../some/directory/Money";
+import { buildUrl } from "./sdk/common/buildUrl";
+import {
+  fetchx,
+  handleFetchResponse,
+  type TypedRequestInit,
+} from "./sdk/common/fetchx";
+import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
+import { withPrefix } from "./sdk/common/withPrefix";
+/**
+ * Action to communicate with the action sample
+ */
+export type SampleActionOptions = {
+  queryKey?: unknown[];
+  qs?: URLSearchParams;
+};
+/**
+ * SampleAction
+ */
+export class SampleAction {
+  static URL = "http://localhost:8081 (for test we use override)";
+  static NewUrl = (qs?: URLSearchParams) =>
+    buildUrl(SampleAction.URL, undefined, qs);
+  static Method = "post";
+  static Fetch$ = async (
+    qs?: URLSearchParams,
+    init?: TypedRequestInit<unknown, unknown>,
+    overrideUrl?: string,
+  ) => {
+    return fetchx<GResponse<SampleActionRes>, unknown, unknown>(
+      overrideUrl ?? SampleAction.NewUrl(qs),
+      {
+        method: SampleAction.Method,
+        ...(init || {}),
+      },
+    );
+  };
+  static Fetch = async (
+    qs?: URLSearchParams,
+    init?: TypedRequestInit<unknown, unknown>,
+    onMessage?: (ev: MessageEvent) => void,
+    overrideUrl?: string,
+  ) => {
+    const res = await SampleAction.Fetch$(qs, init, overrideUrl);
+    return handleFetchResponse(
+      res,
+      (data) => {
+        const envelope = new GResponse<SampleActionRes>(data);
+        envelope.updatePayload(new SampleActionRes(envelope.getPayload()));
+        return envelope;
+      },
+      onMessage,
+      init?.signal,
+    );
+  };
+}
+/**
+ * The base class definition for sampleActionRes
+ **/
+export class SampleActionRes {
+  /**
+   * Use javascript Date class as complex type
+   * @type {Date}
+   **/
+  #date: Date = null;
+  /**
+   * Use javascript Date class as complex type
+   * @returns {Date}
+   **/
+  get date() {
+    return this.#date;
+  }
+  /**
+   * Use javascript Date class as complex type
+   * @type {Date}
+   **/
+  set date(value: Date) {
+    if (value instanceof Date) {
+      this.#date = value;
+    } else {
+      this.#date = new Date(value);
+    }
+  }
+  setDate(value: Date) {
+    this.date = value;
+    return this;
+  }
+  /**
+   * External money type
+   * @type {Money}
+   **/
+  #money: Money = null;
+  /**
+   * External money type
+   * @returns {Money}
+   **/
+  get money() {
+    return this.#money;
+  }
+  /**
+   * External money type
+   * @type {Money}
+   **/
+  set money(value: Money) {
+    if (value instanceof Money) {
+      this.#money = value;
+    } else {
+      this.#money = new Money(value);
+    }
+  }
+  setMoney(value: Money) {
+    this.money = value;
+    return this;
+  }
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (isPlausibleObject(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error("Instance is not implemented.");
+    }
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<SampleActionRes>;
+    if (d.date !== undefined) {
+      this.date = d.date;
+    }
+    if (d.money !== undefined) {
+      this.money = d.money;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      date: this.#date,
+      money: this.#money,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      date: "date",
+      money: "money",
+    };
+  }
+}
+export abstract class SampleActionResFactory {
+  abstract create(data: unknown): SampleActionRes;
+}
+/**
+ * The base type definition for sampleActionRes
+ **/
+export type SampleActionResType = {
+  /**
+   * Use javascript Date class as complex type
+   * @type {Date}
+   **/
+  date?: Date;
+  /**
+   * External money type
+   * @type {Money}
+   **/
+  money?: Money;
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace SampleActionResType {}
+
+```
+
+## Notes
+
+- `Date` is treated as a built-in complex and is not imported.
+- `Money` is imported from the given location and instantiated when assigned.
+- The generated setters (`setDate`, `setMoney`) return `this` so you can chain assignments.
