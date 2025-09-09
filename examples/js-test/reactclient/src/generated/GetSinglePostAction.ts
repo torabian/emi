@@ -1,8 +1,9 @@
+import { Money } from '../Money';
 import { buildUrl } from './sdk/common/buildUrl';
 import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
 import { isPlausibleObject } from './sdk/common/isPlausibleObject';
 import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
-import { type UseQueryOptions, useQuery } from '@tanstack/react-query';
+import { type UseMutationOptions, type UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
 * Action to communicate with the action getSinglePost
@@ -40,6 +41,27 @@ export const useGetSinglePostAction = (
 				headers: options.headers,
 			}
 		),
+		...(options || {}),
+	});
+};
+export type GetSinglePostActionMutationOptions = Omit<
+	UseMutationOptions<unknown, unknown, unknown, unknown>,
+	"mutationFn"
+> &
+	GetSinglePostActionOptions;
+export const useGetSinglePostActionMutation = (
+	options: GetSinglePostActionMutationOptions
+) => {
+	return useMutation({
+		mutationFn: (vars: unknown) =>
+			GetSinglePostAction.Fetch(
+				options.params,
+				options.qs,
+				{
+					body: vars,
+					headers: options.headers,
+				}
+			),
 		...(options || {}),
 	});
 };
@@ -178,24 +200,27 @@ setId (value: number) {
 }
 		/**
   * 
-  * @type {string}
+  * @type {Money}
   **/
- #title : string  =  ""
+ #title22 : Money  =  null
 		/**
   * 
-  * @returns {string}
+  * @returns {Money}
   **/
-get title () { return this.#title }
+get title22 () { return this.#title22 }
 /**
   * 
-  * @type {string}
+  * @type {Money}
   **/
-set title (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#title = correctType ? value : ('' + value);
+set title22 (value: Money) {
+	 	if (value instanceof Money) {
+			this.#title22 = value //1
+		} else {
+		 	this.#title22 = new Money(value)
+		}
 }
-setTitle (value: string) {
-	this.title = value
+setTitle22 (value: Money) {
+	this.title22 = value
 	return this
 }
 		/**
@@ -239,7 +264,7 @@ setBody (value: string) {
 		const d = data as Partial<GetSinglePostActionRes>;
 			if (d.userId !== undefined) { this.userId = d.userId }
 			if (d.id !== undefined) { this.id = d.id }
-			if (d.title !== undefined) { this.title = d.title }
+			if (d.title22 !== undefined) { this.title22 = d.title22 }
 			if (d.body !== undefined) { this.body = d.body }
 	}
 	/**
@@ -250,7 +275,7 @@ setBody (value: string) {
     	return { 
 				userId: this.#userId,
 				id: this.#id,
-				title: this.#title,
+				title22: this.#title22,
 				body: this.#body,
 		};
   	}
@@ -261,7 +286,7 @@ setBody (value: string) {
       return {
 			userId: 'userId',
 			id: 'id',
-			title: 'title',
+			title22: 'title22',
 			body: 'body',
 	  }
 	}
@@ -285,9 +310,9 @@ export abstract class GetSinglePostActionResFactory {
  id?: number;
 			/**
   * 
-  * @type {string}
+  * @type {Money}
   **/
- title?: string;
+ title22?: Money;
 			/**
   * 
   * @type {string}

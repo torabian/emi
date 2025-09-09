@@ -107,7 +107,7 @@ func CombineImportsJsWorld(chunk core.CodeChunkCompiled) string {
 
 func commonJsActionStringCompiler(
 	ctx core.MicroGenContext,
-	callback func(action core.EmiRpcAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error),
+	callback func(action core.EmiRpcAction, ctx core.MicroGenContext, complexes []RecognizedComplex) (*core.CodeChunkCompiled, error),
 ) (string, error) {
 
 	action, err := core.StringToEmiAction(ctx.Content)
@@ -115,7 +115,7 @@ func commonJsActionStringCompiler(
 		return "", err
 	}
 
-	result, err := callback(&action, ctx)
+	result, err := callback(&action, ctx, []RecognizedComplex{})
 	if err != nil {
 		return "", err
 	}

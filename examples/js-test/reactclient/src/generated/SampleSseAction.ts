@@ -2,6 +2,7 @@ import { buildUrl } from './sdk/common/buildUrl';
 import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
 import { isPlausibleObject } from './sdk/common/isPlausibleObject';
 import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
 import { useSse } from './sdk/react/useSse';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
@@ -10,6 +11,26 @@ import { withPrefix } from './sdk/common/withPrefix';
 export type SampleSseActionOptions = {
 	queryKey?: unknown[];
 	qs?: URLSearchParams;
+};
+export type SampleSseActionMutationOptions = Omit<
+	UseMutationOptions<unknown, unknown, unknown, unknown>,
+	"mutationFn"
+> &
+	SampleSseActionOptions;
+export const useSampleSseActionMutation = (
+	options: SampleSseActionMutationOptions
+) => {
+	return useMutation({
+		mutationFn: (vars: unknown) =>
+			SampleSseAction.Fetch(
+				options.qs,
+				{
+					body: vars,
+					headers: options.headers,
+				}
+			),
+		...(options || {}),
+	});
 };
 export const useSampleSseAction = (options: {
 	qs?: URLSearchParams,

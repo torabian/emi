@@ -23,7 +23,7 @@ type jsRenderedDataClass struct {
 	DataSourceStatement string
 }
 
-func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, isFirst bool, ctx core.MicroGenContext) []jsRenderedDataClass {
+func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, isFirst bool, ctx core.MicroGenContext, jsctx JsCommonObjectContext) []jsRenderedDataClass {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	if len(fields) == 0 {
 		return nil
@@ -37,7 +37,7 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 
 	currentClass := jsRenderedDataClass{
 		ClassName:           core.ToUpper(className),
-		Fields:              jsRenderFieldsShallow(fields, treeLocation, fieldDepth, ctx),
+		Fields:              jsRenderFieldsShallow(fields, treeLocation, fieldDepth, ctx, jsctx),
 		JsDoc:               jsdoc.String(),
 		Signature:           signature,
 		DataSourceStatement: "const d = data;",
@@ -54,11 +54,43 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 			if fieldDepth == "" {
 				newDepth = f.Name
 			}
-			currentClass.SubClasses = append(currentClass.SubClasses, jsRenderDataClasses(f.Fields, childName, treeLocation+"."+childName, newDepth, false, ctx)...)
+			currentClass.SubClasses = append(currentClass.SubClasses, jsRenderDataClasses(f.Fields, childName, treeLocation+"."+childName, newDepth, false, ctx, jsctx)...)
 		}
 	}
 
 	return []jsRenderedDataClass{currentClass}
+}
+
+// Only finds the complex classes, those have + prefix or affix
+func CollectComplexClasses(fields []*core.EmiField) []string {
+	var result []string
+
+	var walk func(f []*core.EmiField)
+	walk = func(f []*core.EmiField) {
+		for _, field := range f {
+			if strings.Contains(field.Complex, "+") {
+				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
+			}
+			if len(field.Fields) > 0 {
+				walk(field.Fields)
+			}
+		}
+	}
+
+	walk(fields)
+	return result
+}
+
+func findComplexLocation(complexName string, jsctx JsCommonObjectContext) string {
+
+	for _, item := range jsctx.RecognizedComplexes {
+		if item.Symbol == complexName {
+			return item.ImportLocation
+		}
+	}
+
+	// If no location, then basically skip it.
+	return ""
 }
 
 // Generates a class with getters and setters.
@@ -66,7 +98,21 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	isTS := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{}
 
-	renderedClasses := jsRenderDataClasses(fields, jsctx.RootClassName, jsctx.RootClassName, "", true, ctx)
+	usedComplexes := CollectComplexClasses(fields)
+	for _, item := range usedComplexes {
+
+		location := findComplexLocation(item, jsctx)
+		if location == "" {
+			continue
+		}
+
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, core.CodeChunkDependency{
+			Objects:  []string{item},
+			Location: location,
+		})
+	}
+
+	renderedClasses := jsRenderDataClasses(fields, jsctx.RootClassName, jsctx.RootClassName, "", true, ctx, jsctx)
 	if len(renderedClasses) > 0 {
 		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: renderedClasses[0].ClassName})
 		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_OBJ_CLASS, Value: renderedClasses[0].ClassName})
@@ -181,13 +227,17 @@ export abstract class %vFactory {
 }
 
 func jsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string {
+	value := ""
 	if field == nil {
-		return ""
+		value = ""
+	} else if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject {
+		value = core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
+	} else {
+		value = TsComputedField(field, false)
 	}
-	if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject {
-		return core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
-	}
-	return TsComputedField(field, false)
+
+	// For the complex fields
+	return strings.ReplaceAll(value, "+", "")
 }
 
 func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string {

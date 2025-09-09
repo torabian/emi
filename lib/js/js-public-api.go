@@ -60,7 +60,8 @@ func GetJsPublicActions() core.PublicAPIActions {
 						jsctx JsCommonObjectContext,
 					) (*core.CodeChunkCompiled, error) {
 						return JsCommonObjectGenerator(dto.Fields, ctx, JsCommonObjectContext{
-							RootClassName: dto.GetClassName(),
+							RootClassName:       dto.GetClassName(),
+							RecognizedComplexes: []RecognizedComplex{},
 						})
 					},
 				)

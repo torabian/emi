@@ -16,7 +16,11 @@ import (
 
 // Bundles all of the different classes, imports, types,
 // and so on required to create an action into a single code chunk.
-func JsActionManifest(action core.EmiRpcAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+func JsActionManifest(
+	action core.EmiRpcAction,
+	ctx core.MicroGenContext,
+	complexes []RecognizedComplex,
+) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	isReact := strings.Contains(ctx.Tags, GEN_REACT_COMPATIBILITY)
 
@@ -29,7 +33,7 @@ func JsActionManifest(action core.EmiRpcAction, ctx core.MicroGenContext) (*core
 		},
 	}
 
-	actionRealms, jsDependencies, err := JsActionManifestRealms(action, ctx)
+	actionRealms, jsDependencies, err := JsActionManifestRealms(action, ctx, complexes)
 	if err != nil {
 		return nil, err
 	}

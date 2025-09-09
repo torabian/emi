@@ -53,10 +53,29 @@ func (x JsModuleGenerationFlags) GetEntities() []string {
 	return strings.Split(*x.Entities, ",")
 }
 
+// Finds the ts/js compatible types.
+func discoverComplexes(module *core.Emi) []RecognizedComplex {
+	items := []RecognizedComplex{}
+	for _, complex := range module.Complexes {
+
+		// only pick general or js/ts specific complexes for js-modules
+		if complex.Compiler == "js" || complex.Compiler == "ts" || complex.Compiler == "" {
+			items = append(items, RecognizedComplex{
+				Symbol:         complex.Name,
+				ImportLocation: complex.Location,
+			})
+		}
+	}
+
+	return items
+}
+
 // Combines entire features for a module, and creates a virtual map of the files
 // which is necessary to run entire modules
 func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
+
+	complexes := discoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := JsModuleGenerationFlags{}
@@ -70,7 +89,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 			continue
 		}
 
-		actionRendered, err := JsActionManifest(action, ctx)
+		actionRendered, err := JsActionManifest(action, ctx, complexes)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +101,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 			continue
 		}
 
-		actionRendered, err := JsActionManifest(remote, ctx)
+		actionRendered, err := JsActionManifest(remote, ctx, complexes)
 		if err != nil {
 			return nil, err
 		}
@@ -96,7 +115,8 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		}
 
 		actionRendered, err := JsCommonObjectGenerator(entity.Fields, ctx, JsCommonObjectContext{
-			RootClassName: entity.GetClassName(),
+			RootClassName:       entity.GetClassName(),
+			RecognizedComplexes: complexes,
 		})
 		if err != nil {
 			return nil, err
@@ -110,7 +130,8 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		}
 
 		actionRendered, err := JsCommonObjectGenerator(dto.Fields, ctx, JsCommonObjectContext{
-			RootClassName: dto.GetClassName(),
+			RootClassName:       dto.GetClassName(),
+			RecognizedComplexes: complexes,
 		})
 		if err != nil {
 			return nil, err

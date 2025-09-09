@@ -5,6 +5,7 @@ package js
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -25,24 +26,26 @@ type tsRenderedField struct {
 }
 
 func tsFieldType(field *core.EmiField, parentChain string) string {
-	if field == nil {
-		return ""
-	}
 
-	fieldName := core.ToUpper(field.Name) + "Type"
+	value := ""
+	if field != nil {
 
-	if field.Type == core.FieldTypeArray {
-		if len(field.Fields) > 0 {
-			return fmt.Sprintf("%v[]", core.ToUpper(parentChain)+"."+fieldName)
+		fieldName := core.ToUpper(field.Name) + "Type"
+
+		switch field.Type {
+		case core.FieldTypeArray:
+			if len(field.Fields) > 0 {
+				return fmt.Sprintf("%v[]", core.ToUpper(parentChain)+"."+fieldName)
+			}
+			value = "any[]"
+		case core.FieldTypeObject:
+			value = core.ToUpper(parentChain) + "." + fieldName
+		default:
+			value = TsComputedField(field, false)
 		}
-		return "any[]"
 	}
 
-	if field.Type == core.FieldTypeObject {
-		return core.ToUpper(parentChain) + "." + fieldName
-	}
-
-	return TsComputedField(field, false)
+	return strings.ReplaceAll(value, "+", "")
 }
 
 func tsRenderField(field *core.EmiField, parentChain string) tsRenderedField {
@@ -127,6 +130,7 @@ func TsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 			Name:  TOKEN_ROOT_CLASS,
 			Value: renderedTypes[0].TypeName,
 		})
+
 		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
 			Name:  TOKEN_OBJ_TYPE,
 			Value: renderedTypes[0].TypeName,
