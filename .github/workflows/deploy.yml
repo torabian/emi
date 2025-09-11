@@ -38,7 +38,7 @@ jobs:
         run: cd playground && npm run build
         
       - name: pwd
-        run: pwd
+        run: pwd && ls -la
       - name: install emi-npm deps
         run: cd emi-npm && npm i
 
