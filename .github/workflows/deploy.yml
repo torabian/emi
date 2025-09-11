@@ -59,6 +59,9 @@ jobs:
       - name: Get the version tag
         id: get_version_tag
         run: echo "tag_name=$(basename ${GITHUB_REF})" >> $GITHUB_ENV
+      
+      - name: Make all release
+        run: make release
 
       - name: release
         uses: actions/create-release@v1
