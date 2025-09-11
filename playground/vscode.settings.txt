@@ -1,0 +1,15 @@
+
+	{
+		"yaml.schemas": {
+			"./.vscode/emi-module-spec.json": [
+				"*.emi.yml",
+				"*.emi.yaml",
+			],
+			"./.vscode/emi-dto-spec.json": [
+				"*.dto.yml",
+				"*.dto.yaml",
+			]
+		},
+	}
+	
+	
