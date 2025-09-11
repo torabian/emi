@@ -39,12 +39,15 @@ jobs:
         
       - name: install emi-npm deps
         run: cd emi-npm && npm i
+
+
+      - name: Make all release
+        run: cd ./cmd/emi && make release
+
       - name: Javascript tests
         run: cd tests/js && npm i -f && npx vitest run
       
-      - name: Make all release
-        run: cd cmd/emi && make release
-        
+
       - name: Compile the web veresion (docs, and only after running tests because they create document)
         run: cd emi-web && npm i -f && npm run build
 
