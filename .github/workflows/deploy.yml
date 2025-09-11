@@ -61,7 +61,7 @@ jobs:
         run: echo "tag_name=$(basename ${GITHUB_REF})" >> $GITHUB_ENV
       
       - name: Make all release
-        run: make release
+        run: cd cmd/emi && make release
 
       - name: release
         uses: actions/create-release@v1
