@@ -1,49 +1,43 @@
+import { CreatorSignature, EnvelopeClass } from "../common/EnvelopeClass";
 import { ResponseDto } from "./generated/ResponseDto";
-
-/**
- * To declare a new envelope class, you must follow these rules:
- * 1. The constructor must accept any object, which will contain the parsed JSON message
- *    from a response.
- * 2. Envelope classes must provide a function to update the payload. Since payloads are
- *    type-safe, they must be instantiated and passed to the envelope; the common constructor
- *    alone is not enough.
- * 3. Enveope must have a way to provide the content back actually, in order to create a class out of them.
- */
-
-interface EnvelopeClass<T> {
-  updatePayload(payload: T): void;
-
-  getPayload(): T;
-}
 
 // Use this class to generate a GResponse.
 export class GResponse<T> extends ResponseDto implements EnvelopeClass<T> {
-  constructor(data: unknown) {
+  creator: CreatorSignature<T>;
+
+  constructor(data?: unknown) {
     super(data);
   }
 
-  /**
-   * Add the content of the payload. If array given, it will
-   * be full filling the items, else, would fullfil the
-   * data.item
-   * @param payload
-   * @returns
-   */
-  updatePayload(payload: T | T[]) {
-    if (!this.data) {
-      this.setData({} as any);
-    }
-
-    if (Array.isArray(payload)) {
-      this.data?.setItems(payload as any);
-    } else {
-      this.data?.setItem(payload as any);
-    }
+  setCreator(fn: CreatorSignature<T>) {
+    this.creator = fn;
 
     return this;
   }
 
-  getPayload(): T {
-    return this.data?.item as T;
+  /**
+   * GResponse can have data.item or data.items
+   * We create that based on incoming data tpye, so there is no need for 2 different
+   * classes, one for array and other for singular
+   * @param data
+   * @returns
+   */
+  inject(body: any): this {
+    this.applyFromObject(body);
+
+    if ((body as any)?.data) {
+      if (!this.data) {
+        this.setData({} as any);
+      }
+      if (Array.isArray(body?.data.items)) {
+        this.data?.setItems(
+          body?.data?.items?.map((item) => this.creator(item)),
+        );
+      } else if (typeof body?.data?.item === "object") {
+        this.data?.setItem(this.creator(body?.data?.item));
+      }
+    }
+
+    return this;
   }
 }

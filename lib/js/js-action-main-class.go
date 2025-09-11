@@ -92,10 +92,10 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 				Objects:  []string{"withPrefix"},
 				Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
 			},
-			{
-				Objects:  []string{"isPlausibleObject"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/isPlausibleObject",
-			},
+			// {
+			// 	Objects:  []string{"isPlausibleObject"},
+			// 	Location: INTERNAL_SDK_JS_LOCATION + "/isPlausibleObject",
+			// },
 		},
 	}
 

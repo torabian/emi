@@ -1,4 +1,3 @@
-import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for responseDto
@@ -131,7 +130,7 @@ export class ResponseDto {
    * Main data payload of the response.
    * @type {ResponseDto.Data}
    **/
-  #data: InstanceType<typeof ResponseDto.Data> | null = null;
+  #data: InstanceType<typeof ResponseDto.Data>;
   /**
    * Main data payload of the response.
    * @returns {ResponseDto.Data}
@@ -143,7 +142,7 @@ export class ResponseDto {
    * Main data payload of the response.
    * @type {ResponseDto.Data}
    **/
-  set data(value: InstanceType<typeof ResponseDto.Data> | null) {
+  set data(value: InstanceType<typeof ResponseDto.Data>) {
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof ResponseDto.Data) {
       this.#data = value;
@@ -151,7 +150,7 @@ export class ResponseDto {
       this.#data = new ResponseDto.Data(value);
     }
   }
-  setData(value: InstanceType<typeof ResponseDto.Data> | null) {
+  setData(value: InstanceType<typeof ResponseDto.Data>) {
     this.data = value;
     return this;
   }
@@ -159,7 +158,7 @@ export class ResponseDto {
    * Error details, if the request failed.
    * @type {ResponseDto.Error}
    **/
-  #error: InstanceType<typeof ResponseDto.Error> | null = null;
+  #error: InstanceType<typeof ResponseDto.Error>;
   /**
    * Error details, if the request failed.
    * @returns {ResponseDto.Error}
@@ -171,7 +170,7 @@ export class ResponseDto {
    * Error details, if the request failed.
    * @type {ResponseDto.Error}
    **/
-  set error(value: InstanceType<typeof ResponseDto.Error> | null) {
+  set error(value: InstanceType<typeof ResponseDto.Error>) {
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof ResponseDto.Error) {
       this.#error = value;
@@ -179,7 +178,7 @@ export class ResponseDto {
       this.#error = new ResponseDto.Error(value);
     }
   }
-  setError(value: InstanceType<typeof ResponseDto.Error> | null) {
+  setError(value: InstanceType<typeof ResponseDto.Error>) {
     this.error = value;
     return this;
   }
@@ -660,11 +659,31 @@ export class ResponseDto {
       }
       if (typeof data === "string") {
         this.applyFromObject(JSON.parse(data));
-      } else if (isPlausibleObject(data)) {
+      } else if (this.#isJsonAppliable(data)) {
         this.applyFromObject(data);
       } else {
-        throw new Error("Instance is not implemented.");
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
       }
+    }
+    #isJsonAppliable(obj) {
+      const isBuffer =
+        typeof globalThis.Buffer !== "undefined" &&
+        typeof globalThis.Buffer.isBuffer === "function" &&
+        globalThis.Buffer.isBuffer(obj);
+      const isBlob =
+        typeof globalThis.Blob !== "undefined" &&
+        obj instanceof globalThis.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
     }
     /**
      * casts the fields of a javascript object into the class properties one by one
@@ -1098,11 +1117,31 @@ export class ResponseDto {
         }
         if (typeof data === "string") {
           this.applyFromObject(JSON.parse(data));
-        } else if (isPlausibleObject(data)) {
+        } else if (this.#isJsonAppliable(data)) {
           this.applyFromObject(data);
         } else {
-          throw new Error("Instance is not implemented.");
+          throw new Error(
+            "Instance cannot be created on an unknown value, check the content being passed. got: " +
+              typeof data,
+          );
         }
+      }
+      #isJsonAppliable(obj) {
+        const isBuffer =
+          typeof globalThis.Buffer !== "undefined" &&
+          typeof globalThis.Buffer.isBuffer === "function" &&
+          globalThis.Buffer.isBuffer(obj);
+        const isBlob =
+          typeof globalThis.Blob !== "undefined" &&
+          obj instanceof globalThis.Blob;
+        return (
+          obj &&
+          typeof obj === "object" &&
+          !Array.isArray(obj) &&
+          !isBuffer &&
+          !(obj instanceof ArrayBuffer) &&
+          !isBlob
+        );
       }
       /**
        * casts the fields of a javascript object into the class properties one by one
@@ -1172,11 +1211,31 @@ export class ResponseDto {
       }
       if (typeof data === "string") {
         this.applyFromObject(JSON.parse(data));
-      } else if (isPlausibleObject(data)) {
+      } else if (this.#isJsonAppliable(data)) {
         this.applyFromObject(data);
       } else {
-        throw new Error("Instance is not implemented.");
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
       }
+    }
+    #isJsonAppliable(obj) {
+      const isBuffer =
+        typeof globalThis.Buffer !== "undefined" &&
+        typeof globalThis.Buffer.isBuffer === "function" &&
+        globalThis.Buffer.isBuffer(obj);
+      const isBlob =
+        typeof globalThis.Blob !== "undefined" &&
+        obj instanceof globalThis.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
     }
     /**
      * casts the fields of a javascript object into the class properties one by one
@@ -1232,11 +1291,30 @@ export class ResponseDto {
     }
     if (typeof data === "string") {
       this.applyFromObject(JSON.parse(data));
-    } else if (isPlausibleObject(data)) {
+    } else if (this.#isJsonAppliable(data)) {
       this.applyFromObject(data);
     } else {
-      throw new Error("Instance is not implemented.");
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
     }
+  }
+  #isJsonAppliable(obj) {
+    const isBuffer =
+      typeof globalThis.Buffer !== "undefined" &&
+      typeof globalThis.Buffer.isBuffer === "function" &&
+      globalThis.Buffer.isBuffer(obj);
+    const isBlob =
+      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
   }
   /**
    * casts the fields of a javascript object into the class properties one by one
@@ -1332,17 +1410,17 @@ export type ResponseDtoType = {
    * Parameters sent with the request.
    * @type {any}
    **/
-  params?: any;
+  params: any;
   /**
    * Main data payload of the response.
    * @type {ResponseDtoType.DataType}
    **/
-  data?: ResponseDtoType.DataType;
+  data: ResponseDtoType.DataType;
   /**
    * Error details, if the request failed.
    * @type {ResponseDtoType.ErrorType}
    **/
-  error?: ResponseDtoType.ErrorType;
+  error: ResponseDtoType.ErrorType;
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace ResponseDtoType {
@@ -1354,12 +1432,12 @@ export namespace ResponseDtoType {
      * Single item returned by the API.
      * @type {any}
      **/
-    item?: any;
+    item: any;
     /**
      * List of items returned by the API.
      * @type {any}
      **/
-    items?: any;
+    items: any;
     /**
      * Link to edit this resource.
      * @type {string}
@@ -1451,22 +1529,22 @@ export namespace ResponseDtoType {
      * Numeric error code representing the failure.
      * @type {number}
      **/
-    code?: number;
+    code: number;
     /**
      * Human-readable explanation of the error.
      * @type {string}
      **/
-    message?: string;
+    message: string;
     /**
      * Localized/translated version of the error message.
      * @type {string}
      **/
-    messageTranslated?: string;
+    messageTranslated: string;
     /**
      * Detailed list of error objects.
      * @type {ResponseDtoType.ErrorType.ErrorsType[]}
      **/
-    errors?: ResponseDtoType.ErrorType.ErrorsType[];
+    errors: ResponseDtoType.ErrorType.ErrorsType[];
   };
   // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace ErrorType {

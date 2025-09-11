@@ -3,22 +3,90 @@ package core
 type FieldType string
 
 const (
+
+	// Wen adding a new type here, remember to add it into func GetEmiFieldTypeCatalog
+	// so the consumers know about fields.
 	FieldTypeArray     FieldType = "array"
 	FieldTypeArrayP    FieldType = "arrayP"
-	FieldTypeJSON      FieldType = "json"
 	FieldTypeOne       FieldType = "one"
-	FieldTypeDate      FieldType = "date"
 	FieldTypeMany2Many FieldType = "many2many"
 	FieldTypeObject    FieldType = "object"
 	FieldTypeEmbed     FieldType = "embed"
-	FieldTypeMoney     FieldType = "money?"
-	FieldTypeXFile     FieldType = "xfile?"
 	FieldTypeEnum      FieldType = "enum"
-	FieldTypeComputed  FieldType = "computed"
 	FieldTypeText      FieldType = "text"
 	FieldTypeString    FieldType = "string"
-	FieldTypeAny       FieldType = "any"
+	FieldTypeBool      FieldType = "bool"
+	FieldTypeInt       FieldType = "int"
+	FieldTypeInt32     FieldType = "int32"
+	FieldTypeInt64     FieldType = "int64"
+	FieldTypeFloat32   FieldType = "float32"
+	FieldTypeFloat64   FieldType = "float64"
+
+	FieldTypeArrayNullable     FieldType = "array?"
+	FieldTypeArrayPNullable    FieldType = "arrayP?"
+	FieldTypeOneNullable       FieldType = "one?"
+	FieldTypeMany2ManyNullable FieldType = "many2many?"
+	FieldTypeObjectNullable    FieldType = "object?"
+	FieldTypeEmbedNullable     FieldType = "embed?"
+	FieldTypeEnumNullable      FieldType = "enum?"
+	FieldTypeTextNullable      FieldType = "text?"
+	FieldTypeStringNullable    FieldType = "string?"
+	FieldTypeBoolNullable      FieldType = "bool?"
+	FieldTypeIntNullable       FieldType = "int?"
+	FieldTypeInt32Nullable     FieldType = "int32?"
+	FieldTypeInt64Nullable     FieldType = "int64?"
+	FieldTypeFloat32Nullable   FieldType = "float32?"
+	FieldTypeFloat64Nullable   FieldType = "float64?"
+
+	// Non-nullable fields, which doesn't matter will go here.
+	FieldTypeAny FieldType = "any"
 )
+
+// Expose some information about available types in the codebase.
+type FieldSupportCatalog struct {
+	DtoFieldTypes         []FieldType
+	DtoNullableFieldTypes []FieldType
+}
+
+func GetEmiFieldTypeCatalog() FieldSupportCatalog {
+
+	return FieldSupportCatalog{
+		DtoFieldTypes: []FieldType{
+			FieldTypeArray,
+			FieldTypeArrayP,
+			FieldTypeOne,
+			FieldTypeMany2Many,
+			FieldTypeObject,
+			FieldTypeEmbed,
+			FieldTypeEnum,
+			FieldTypeText,
+			FieldTypeString,
+			FieldTypeBool,
+			FieldTypeInt,
+			FieldTypeInt32,
+			FieldTypeInt64,
+			FieldTypeFloat32,
+			FieldTypeFloat64,
+		},
+		DtoNullableFieldTypes: []FieldType{
+			FieldTypeArrayNullable,
+			FieldTypeArrayPNullable,
+			FieldTypeOneNullable,
+			FieldTypeMany2ManyNullable,
+			FieldTypeObjectNullable,
+			FieldTypeEmbedNullable,
+			FieldTypeEnumNullable,
+			FieldTypeTextNullable,
+			FieldTypeStringNullable,
+			FieldTypeBoolNullable,
+			FieldTypeIntNullable,
+			FieldTypeInt32Nullable,
+			FieldTypeInt64Nullable,
+			FieldTypeFloat32Nullable,
+			FieldTypeFloat64Nullable,
+		},
+	}
+}
 
 type EmiField struct {
 
@@ -32,7 +100,7 @@ type EmiField struct {
 	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description about the field for developers and generated documents."`
 
 	// Type of the field based on Emi types.
-	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=string?,enum=int?,enum=any,enum=complex,enum=float64?,enum=money?,enum=xfile?,enum=float32?,enum=bool?,enum=int32?,enum=int64?,enum=int,enum=datetime,enum=json,enum=embed,enum=datenano,enum=html,enum=text,enum=date,enum=daterange,enum=many2many,enum=arrayP,enum=enum,enum=bool,enum=one,enum=int64,enum=float64,enum=duration?,enum=object,enum=array,enum=string,description=Type of the field based on Emi types."`
+	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=object?,enum=array?,enum=string?,enum=int?,enum=any,enum=complex,enum=float64?,enum=money?,enum=xfile?,enum=float32?,enum=bool?,enum=int32?,enum=int64?,enum=int,enum=datetime,enum=json,enum=embed,enum=datenano,enum=html,enum=text,enum=date,enum=daterange,enum=many2many,enum=arrayP,enum=enum,enum=bool,enum=one,enum=int64,enum=float64,enum=duration?,enum=object,enum=array,enum=string,description=Type of the field based on Emi types."`
 
 	// Primitive type in golang when type: arrayP is set
 	Primitive string `yaml:"primitive,omitempty" json:"primitive,omitempty" jsonschema:"description=Primitive type in golang when type: arrayP is set"`

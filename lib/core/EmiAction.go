@@ -4,6 +4,9 @@ import "strings"
 
 type EmiAction struct {
 
+	// Type of the emi content
+	Emi string `jsonschema:"description=Type of the emi content.;enum=action" json:"emi" yaml:"emi"`
+
 	// General name of the action used for generating code and CLI commands.
 	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description=General name of the action used for generating code and CLI commands"`
 

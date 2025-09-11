@@ -1,6 +1,15 @@
 package js
 
-import "github.com/torabian/emi/lib/core"
+import (
+	"embed"
+	"errors"
+	"path"
+	"slices"
+	"strings"
+
+	"github.com/torabian/emi/lib/core"
+	tssdk "github.com/torabian/emi/lib/js/ts-sdk"
+)
 
 func GetJsPublicActions() core.PublicAPIActions {
 	textActions := []core.ActionText{
@@ -67,19 +76,58 @@ func GetJsPublicActions() core.PublicAPIActions {
 				)
 			},
 		},
-		{
-			BaseAction: core.BaseAction{
-				Name:             "emi:spec",
-				Description:      "Generate the emi specs",
-				WasmFunctionName: "genEmiSpec",
-			},
-			Run: func(ctx core.MicroGenContext) (string, error) {
-				return core.GenerateJsonSpecForEmi(), nil
-			},
-		},
 	}
 
 	fileActions := []core.ActionFile{
+		{
+			BaseAction: core.BaseAction{
+				Name:             "js",
+				Description:      "Compiles a definition file catalog, and based on emi tag, it would use an appropriate sub compiler.",
+				WasmFunctionName: "jsGen",
+				Flags:            []core.FlagDef{},
+			},
+			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+				type_, err := core.DetectEmiStringContentType(ctx.Content)
+				if err != nil {
+					return nil, err
+				}
+
+				if type_ == "module" {
+					emiModule, err := core.StringToEmi(ctx.Content)
+					if err != nil {
+						return nil, err
+					}
+
+					return JsModuleFullVirtualFiles(&emiModule, ctx)
+				}
+
+				if type_ == "dto" {
+
+					emiDto, err := core.StringToEmiDto(ctx.Content)
+					if err != nil {
+						return nil, err
+					}
+
+					result, err := JsCommonObjectGenerator(emiDto.Fields, ctx, JsCommonObjectContext{
+						RootClassName:       emiDto.GetClassName(),
+						RecognizedComplexes: []RecognizedComplex{},
+					})
+
+					if err != nil {
+						return nil, err
+					}
+
+					files, err := detectUsedFilesAndImports(result, &tssdk.Content)
+					if err != nil {
+						return nil, err
+					}
+
+					return files, nil
+				}
+
+				return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
+			},
+		},
 		{
 			BaseAction: core.BaseAction{
 				Name:             "js:module",
@@ -112,10 +160,58 @@ func GetJsPublicActions() core.PublicAPIActions {
 				return commonJsModuleFileCompiler(ctx, JsModuleFullVirtualFiles)
 			},
 		},
+
+		{
+			BaseAction: core.BaseAction{
+				Name:             "spec",
+				Description:      "Generate the emi specs",
+				WasmFunctionName: "genEmiSpec",
+			},
+			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+				return core.GenerateJsonSpecForEmi()
+			},
+		},
 	}
 
 	return core.PublicAPIActions{
 		TextActions: textActions,
 		FileActions: fileActions,
 	}
+}
+
+func detectUsedFilesAndImports(
+	result *core.CodeChunkCompiled,
+	sdkEmbedContent *embed.FS,
+) ([]core.VirtualFile, error) {
+	globalPkgs := []string{}
+	internalUsage := []string{}
+
+	for _, loc := range result.CodeChunkDependenies {
+		if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) {
+			internalUsage = append(internalUsage, loc.Location)
+		} else {
+			globalPkgs = append(globalPkgs, loc.Location)
+		}
+	}
+
+	files := []core.VirtualFile{{
+		Name:         result.SuggestedFileName,
+		Extension:    result.SuggestedExtension,
+		ActualScript: AsFullDocument(result),
+	}}
+
+	// Switch between SDK sources if needed
+	sdkFiles := core.FsEmbedToVirtualFile(sdkEmbedContent, "sdk")
+
+	for _, sdkFile := range sdkFiles {
+		actual := "./" + path.Join(sdkFile.Location, sdkFile.Name, sdkFile.Extension)
+		actual = strings.TrimSuffix(actual, ".ts")
+		actual = strings.TrimSuffix(actual, ".js")
+
+		if slices.Contains(internalUsage, actual) {
+			files = append(files, sdkFile)
+		}
+	}
+
+	return files, nil
 }

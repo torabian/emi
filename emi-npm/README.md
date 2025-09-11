@@ -97,7 +97,7 @@ Emi kotlin wil be a generated client tools (and some shared, to be used in sprin
 ## Emi syntax
 
 Emi is a yaml file, and here you can find the complete schema:
-- https://github.com/torabian/emi/blob/main/playground/public/emi-definitions.json
+- https://github.com/torabian/emi/blob/main/playground/public/emi-module-spec.json
 
 You can use the definition with Redhat yaml plugin in the vscode.
 

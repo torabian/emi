@@ -85,7 +85,6 @@ pass number as many as you want, and it would replace [:i] statements to have pr
 
           
 ```ts
-import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for anonymouse
@@ -180,7 +179,7 @@ export class Anonymouse {
      *
      * @type {Anonymouse.LoginHistory.Data}
      **/
-    #data = null;
+    #data;
     /**
      *
      * @returns {Anonymouse.LoginHistory.Data}
@@ -238,11 +237,31 @@ export class Anonymouse {
         }
         if (typeof data === "string") {
           this.applyFromObject(JSON.parse(data));
-        } else if (isPlausibleObject(data)) {
+        } else if (this.#isJsonAppliable(data)) {
           this.applyFromObject(data);
         } else {
-          throw new Error("Instance is not implemented.");
+          throw new Error(
+            "Instance cannot be created on an unknown value, check the content being passed. got: " +
+              typeof data,
+          );
         }
+      }
+      #isJsonAppliable(obj) {
+        const isBuffer =
+          typeof globalThis.Buffer !== "undefined" &&
+          typeof globalThis.Buffer.isBuffer === "function" &&
+          globalThis.Buffer.isBuffer(obj);
+        const isBlob =
+          typeof globalThis.Blob !== "undefined" &&
+          obj instanceof globalThis.Blob;
+        return (
+          obj &&
+          typeof obj === "object" &&
+          !Array.isArray(obj) &&
+          !isBuffer &&
+          !(obj instanceof ArrayBuffer) &&
+          !isBlob
+        );
       }
       /**
        * casts the fields of a javascript object into the class properties one by one
@@ -277,11 +296,31 @@ export class Anonymouse {
       }
       if (typeof data === "string") {
         this.applyFromObject(JSON.parse(data));
-      } else if (isPlausibleObject(data)) {
+      } else if (this.#isJsonAppliable(data)) {
         this.applyFromObject(data);
       } else {
-        throw new Error("Instance is not implemented.");
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
       }
+    }
+    #isJsonAppliable(obj) {
+      const isBuffer =
+        typeof globalThis.Buffer !== "undefined" &&
+        typeof globalThis.Buffer.isBuffer === "function" &&
+        globalThis.Buffer.isBuffer(obj);
+      const isBlob =
+        typeof globalThis.Blob !== "undefined" &&
+        obj instanceof globalThis.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
     }
     /**
      * casts the fields of a javascript object into the class properties one by one
@@ -327,11 +366,30 @@ export class Anonymouse {
     }
     if (typeof data === "string") {
       this.applyFromObject(JSON.parse(data));
-    } else if (isPlausibleObject(data)) {
+    } else if (this.#isJsonAppliable(data)) {
       this.applyFromObject(data);
     } else {
-      throw new Error("Instance is not implemented.");
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
     }
+  }
+  #isJsonAppliable(obj) {
+    const isBuffer =
+      typeof globalThis.Buffer !== "undefined" &&
+      typeof globalThis.Buffer.isBuffer === "function" &&
+      globalThis.Buffer.isBuffer(obj);
+    const isBlob =
+      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
   }
   /**
    * casts the fields of a javascript object into the class properties one by one

@@ -1,4 +1,3 @@
-import { isPlausibleObject } from './sdk/common/isPlausibleObject';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
   * The base class definition for responseDto
@@ -117,7 +116,7 @@ setParams (value: any) {
   * Main data payload of the response.
   * @type {ResponseDto.Data}
   **/
- #data : InstanceType<typeof ResponseDto.Data> | null  =  null
+ #data : InstanceType<typeof ResponseDto.Data>
 		/**
   * Main data payload of the response.
   * @returns {ResponseDto.Data}
@@ -127,7 +126,7 @@ get data () { return this.#data }
   * Main data payload of the response.
   * @type {ResponseDto.Data}
   **/
-set data (value: InstanceType<typeof ResponseDto.Data> | null) {
+set data (value: InstanceType<typeof ResponseDto.Data>) {
 	 	// For objects, the sub type needs to always be instance of the sub class.
 	 	if (value instanceof ResponseDto.Data) {
 			this.#data = value
@@ -135,7 +134,7 @@ set data (value: InstanceType<typeof ResponseDto.Data> | null) {
 			this.#data = new ResponseDto.Data(value)
 		}
 }
-setData (value: InstanceType<typeof ResponseDto.Data> | null) {
+setData (value: InstanceType<typeof ResponseDto.Data>) {
 	this.data = value
 	return this
 }
@@ -143,7 +142,7 @@ setData (value: InstanceType<typeof ResponseDto.Data> | null) {
   * Error details, if the request failed.
   * @type {ResponseDto.Error}
   **/
- #error : InstanceType<typeof ResponseDto.Error> | null  =  null
+ #error : InstanceType<typeof ResponseDto.Error>
 		/**
   * Error details, if the request failed.
   * @returns {ResponseDto.Error}
@@ -153,7 +152,7 @@ get error () { return this.#error }
   * Error details, if the request failed.
   * @type {ResponseDto.Error}
   **/
-set error (value: InstanceType<typeof ResponseDto.Error> | null) {
+set error (value: InstanceType<typeof ResponseDto.Error>) {
 	 	// For objects, the sub type needs to always be instance of the sub class.
 	 	if (value instanceof ResponseDto.Error) {
 			this.#error = value
@@ -161,7 +160,7 @@ set error (value: InstanceType<typeof ResponseDto.Error> | null) {
 			this.#error = new ResponseDto.Error(value)
 		}
 }
-setError (value: InstanceType<typeof ResponseDto.Error> | null) {
+setError (value: InstanceType<typeof ResponseDto.Error>) {
 	this.error = value
 	return this
 }
@@ -590,11 +589,27 @@ setTotalPages (value: number) {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -960,11 +975,27 @@ setSendReport (value: string) {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -1018,11 +1049,27 @@ setSendReport (value: string) {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -1070,11 +1117,27 @@ get errors() {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -1142,37 +1205,37 @@ export abstract class ResponseDtoFactory {
   * Version of the API used for this response.
   * @type {string}
   **/
- apiVersion?: string;
+ apiVersion ?: string;
 			/**
   * Context string provided by the client or system for request tracking.
   * @type {string}
   **/
- context?: string;
+ context ?: string;
 			/**
   * Unique identifier assigned to the request/response.
   * @type {string}
   **/
- id?: string;
+ id ?: string;
 			/**
   * Name of the API method invoked.
   * @type {string}
   **/
- method?: string;
+ method ?: string;
 			/**
   * Parameters sent with the request.
   * @type {any}
   **/
- params?: any;
+ params : any;
 			/**
   * Main data payload of the response.
   * @type {ResponseDtoType.DataType}
   **/
- data?: ResponseDtoType.DataType;
+ data : ResponseDtoType.DataType;
 			/**
   * Error details, if the request failed.
   * @type {ResponseDtoType.ErrorType}
   **/
- error?: ResponseDtoType.ErrorType;
+ error : ResponseDtoType.ErrorType;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace ResponseDtoType {
@@ -1184,92 +1247,92 @@ export namespace ResponseDtoType {
   * Single item returned by the API.
   * @type {any}
   **/
- item?: any;
+ item : any;
 			/**
   * List of items returned by the API.
   * @type {any}
   **/
- items?: any;
+ items : any;
 			/**
   * Link to edit this resource.
   * @type {string}
   **/
- editLink?: string;
+ editLink ?: string;
 			/**
   * Link to retrieve this resource.
   * @type {string}
   **/
- selfLink?: string;
+ selfLink ?: string;
 			/**
   * Resource type (kind) identifier.
   * @type {string}
   **/
- kind?: string;
+ kind ?: string;
 			/**
   * Selector specifying which fields are included in a partial response.
   * @type {string}
   **/
- fields?: string;
+ fields ?: string;
 			/**
   * ETag of the resource, used for caching/version control.
   * @type {string}
   **/
- etag?: string;
+ etag ?: string;
 			/**
   * Cursor for paginated data fetching.
   * @type {string}
   **/
- cursor?: string;
+ cursor ?: string;
 			/**
   * Unique identifier of the resource.
   * @type {string}
   **/
- id?: string;
+ id ?: string;
 			/**
   * Language code of the response data.
   * @type {string}
   **/
- lang?: string;
+ lang ?: string;
 			/**
   * Last modification time of the resource.
   * @type {string}
   **/
- updated?: string;
+ updated ?: string;
 			/**
   * Number of items in the current response page.
   * @type {number}
   **/
- currentItemCount?: number;
+ currentItemCount ?: number;
 			/**
   * Maximum number of items per page.
   * @type {number}
   **/
- itemsPerPage?: number;
+ itemsPerPage ?: number;
 			/**
   * Index of the first item in the current page.
   * @type {number}
   **/
- startIndex?: number;
+ startIndex ?: number;
 			/**
   * Total number of items available.
   * @type {number}
   **/
- totalItems?: number;
+ totalItems ?: number;
 			/**
   * Number of items available for this user/query.
   * @type {number}
   **/
- totalAvailableItems?: number;
+ totalAvailableItems ?: number;
 			/**
   * Current page index in the pagination.
   * @type {number}
   **/
- pageIndex?: number;
+ pageIndex ?: number;
 			/**
   * Total number of pages in the pagination.
   * @type {number}
   **/
- totalPages?: number;
+ totalPages ?: number;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DataType {
@@ -1282,22 +1345,22 @@ export namespace DataType {
   * Numeric error code representing the failure.
   * @type {number}
   **/
- code?: number;
+ code : number;
 			/**
   * Human-readable explanation of the error.
   * @type {string}
   **/
- message?: string;
+ message : string;
 			/**
   * Localized/translated version of the error message.
   * @type {string}
   **/
- messageTranslated?: string;
+ messageTranslated : string;
 			/**
   * Detailed list of error objects.
   * @type {ResponseDtoType.ErrorType.ErrorsType[]}
   **/
- errors?: ResponseDtoType.ErrorType.ErrorsType[];
+ errors : ResponseDtoType.ErrorType.ErrorsType[];
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace ErrorType {
@@ -1309,42 +1372,42 @@ export namespace ErrorType {
   * Logical grouping of the error (e.g., global, usageLimits).
   * @type {string}
   **/
- domain?: string;
+ domain ?: string;
 			/**
   * Reason identifier for the error.
   * @type {string}
   **/
- reason?: string;
+ reason ?: string;
 			/**
   * Human-readable explanation of the sub-error.
   * @type {string}
   **/
- message?: string;
+ message ?: string;
 			/**
   * Localized/translated version of the sub-error message.
   * @type {string}
   **/
- messageTranslated?: string;
+ messageTranslated ?: string;
 			/**
   * Field or parameter in which the error occurred.
   * @type {string}
   **/
- location?: string;
+ location ?: string;
 			/**
   * Type of location (e.g., parameter, header).
   * @type {string}
   **/
- locationType?: string;
+ locationType ?: string;
 			/**
   * URL linking to additional documentation about the error.
   * @type {string}
   **/
- extendedHelp?: string;
+ extendedHelp ?: string;
 			/**
   * URL to submit a report for this error.
   * @type {string}
   **/
- sendReport?: string;
+ sendReport ?: string;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace ErrorsType {

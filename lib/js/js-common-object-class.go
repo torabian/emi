@@ -48,7 +48,7 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 	}
 
 	for _, f := range fields {
-		if f != nil && (f.Type == core.FieldTypeObject || f.Type == core.FieldTypeArray) {
+		if f != nil && (f.Type == core.FieldTypeObject || f.Type == core.FieldTypeObjectNullable || f.Type == core.FieldTypeArray || f.Type == core.FieldTypeArrayNullable) {
 			childName := core.ToUpper(f.Name)
 			newDepth := fieldDepth + "." + f.Name
 			if fieldDepth == "" {
@@ -81,6 +81,27 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	return result
 }
 
+func hasClassesAsChildren(fields []*core.EmiField) bool {
+	var result = false
+
+	var walk func(f []*core.EmiField)
+	walk = func(f []*core.EmiField) {
+		for _, field := range f {
+			if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeMany2Many {
+				result = true
+				break
+			}
+
+			if len(field.Fields) > 0 {
+				walk(field.Fields)
+			}
+		}
+	}
+
+	walk(fields)
+	return result
+}
+
 func findComplexLocation(complexName string, jsctx JsCommonObjectContext) string {
 
 	for _, item := range jsctx.RecognizedComplexes {
@@ -95,8 +116,19 @@ func findComplexLocation(complexName string, jsctx JsCommonObjectContext) string
 
 // Generates a class with getters and setters.
 func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error) {
+
+	hasChildrenWithStaticFields := hasClassesAsChildren(fields)
 	isTS := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	res := &core.CodeChunkCompiled{}
+	res := &core.CodeChunkCompiled{
+		CodeChunkDependenies: []core.CodeChunkDependency{},
+	}
+
+	if hasChildrenWithStaticFields {
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, core.CodeChunkDependency{
+			Objects:  []string{"withPrefix"},
+			Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
+		})
+	}
 
 	usedComplexes := CollectComplexClasses(fields)
 	for _, item := range usedComplexes {
@@ -150,11 +182,30 @@ export abstract class %vFactory {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 
 
@@ -230,7 +281,7 @@ func jsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 	value := ""
 	if field == nil {
 		value = ""
-	} else if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject {
+	} else if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable {
 		value = core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
 	} else {
 		value = TsComputedField(field, false)
@@ -247,9 +298,13 @@ func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 	prefix := core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
 	switch field.Type {
 	case core.FieldTypeObject:
-		return fmt.Sprintf("InstanceType<typeof %v> | null", prefix)
+		return fmt.Sprintf("InstanceType<typeof %v>", prefix)
 	case core.FieldTypeArray:
 		return fmt.Sprintf("InstanceType<typeof %v>[]", prefix)
+	case core.FieldTypeObjectNullable:
+		return fmt.Sprintf("InstanceType<typeof %v> | null | undefined", prefix)
+	case core.FieldTypeArrayNullable:
+		return fmt.Sprintf("InstanceType<typeof %v>[] | null | undefined", prefix)
 	default:
 		return TsComputedField(field, false)
 	}

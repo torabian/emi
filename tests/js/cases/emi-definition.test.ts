@@ -37,7 +37,8 @@ You will find all structs in https://github.com/torabian/emi/tree/main/${coreDef
   });
 
   it("should generate the schema directly from wasm", () => {
-    schema = JSON.parse(globalThis.genEmiSpec("", {}));
+    const definitions = globalThis.genEmiSpec("", {});
+    schema = JSON.parse(definitions[0].ActualScript);
   });
 
   it("Should document an example of Emi module", () => {
@@ -96,7 +97,7 @@ actions:
   /// Last step is to write the document down
   it("should write the final doc", () => {
     writeFileSync(
-      "../../emi-web/docs/emi-definitions.mdx",
+      "../../emi-web/docs/emi-module-spec.mdx",
       content.join("\r\n").trim()
     );
   });

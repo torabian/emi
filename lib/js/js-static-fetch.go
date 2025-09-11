@@ -124,7 +124,12 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 			})
 		} else {
 
-			statement := `(data) => { const envelope = new %v<%v>(data); envelope.updatePayload(new %v(envelope.getPayload())); return envelope;}`
+			statement := `(data) => { 
+				return new %v<%v>()
+					.setCreator((item) => new %v(item))
+					.inject(data);
+			
+			}`
 			seq := fmt.Sprintf(statement, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass, fetchctx.ResponseClass)
 
 			// seq := fmt.Sprintf("(data) => new %v(data).updatePayload(new %v())", fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)

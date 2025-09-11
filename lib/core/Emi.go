@@ -2,8 +2,10 @@ package core
 
 import "fmt"
 
-// Emi struct represents the entire file tree
 type Emi struct {
+
+	// Type of the emi content
+	Emi string `jsonschema:"description=Type of the emi content.;enum=module" json:"emi" yaml:"emi"`
 
 	// Custom imports appened by some macros
 	ActionsCustomImport []string `jsonschema:"-" json:"-" yaml:"-"`

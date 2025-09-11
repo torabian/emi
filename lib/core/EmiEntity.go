@@ -5,6 +5,9 @@ package core
 // queries based on the type
 type EmiEntity struct {
 
+	// Type of the emi content
+	Emi string `jsonschema:"description=Type of the emi content.;enum=entity" json:"emi" yaml:"emi"`
+
 	// The replica configuration for the entity
 	Replicas *EmiEntityReplicas `json:"replicas,omitempty" yaml:"replicas,omitempty" jsonschema:"The replica configuration for the entity"`
 
