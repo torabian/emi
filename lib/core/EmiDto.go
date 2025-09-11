@@ -6,6 +6,9 @@ package core
 // of pure struct in golang.
 type EmiDto struct {
 
+	// Type of the emi content
+	Emi string `jsonschema:"description=Type of the emi content.;enum=dto" json:"emi" yaml:"emi"`
+
 	// Name of the dto, in camel case, the rest of the code related to this dto is being generated based on this
 	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description=Name of the dto in camel case the rest of the code related to this dto is being generated based on this"`
 

@@ -1,6 +1,5 @@
 import { WebSocketX } from './sdk/common/WebSocketX';
 import { buildUrl } from './sdk/common/buildUrl';
-import { isPlausibleObject } from './sdk/common/isPlausibleObject';
 import { useWebSocketX } from './sdk/react/useWebSocketX';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
@@ -99,7 +98,7 @@ setLastName (value: string) {
   * 
   * @type {WebSocketOrgEchoActionReq.User}
   **/
- #user : InstanceType<typeof WebSocketOrgEchoActionReq.User> | null  =  null
+ #user : InstanceType<typeof WebSocketOrgEchoActionReq.User>
 		/**
   * 
   * @returns {WebSocketOrgEchoActionReq.User}
@@ -109,7 +108,7 @@ get user () { return this.#user }
   * 
   * @type {WebSocketOrgEchoActionReq.User}
   **/
-set user (value: InstanceType<typeof WebSocketOrgEchoActionReq.User> | null) {
+set user (value: InstanceType<typeof WebSocketOrgEchoActionReq.User>) {
 	 	// For objects, the sub type needs to always be instance of the sub class.
 	 	if (value instanceof WebSocketOrgEchoActionReq.User) {
 			this.#user = value
@@ -117,7 +116,7 @@ set user (value: InstanceType<typeof WebSocketOrgEchoActionReq.User> | null) {
 			this.#user = new WebSocketOrgEchoActionReq.User(value)
 		}
 }
-setUser (value: InstanceType<typeof WebSocketOrgEchoActionReq.User> | null) {
+setUser (value: InstanceType<typeof WebSocketOrgEchoActionReq.User>) {
 	this.user = value
 	return this
 }
@@ -236,11 +235,27 @@ setSubItem2 (value: number) {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -276,11 +291,27 @@ setSubItem2 (value: number) {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -322,11 +353,27 @@ get item2array() {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -376,17 +423,17 @@ export abstract class WebSocketOrgEchoActionReqFactory {
   * 
   * @type {string}
   **/
- firstName?: string;
+ firstName : string;
 			/**
   * 
   * @type {string}
   **/
- lastName?: string;
+ lastName : string;
 			/**
   * 
   * @type {WebSocketOrgEchoActionReqType.UserType}
   **/
- user?: WebSocketOrgEchoActionReqType.UserType;
+ user : WebSocketOrgEchoActionReqType.UserType;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace WebSocketOrgEchoActionReqType {
@@ -398,12 +445,12 @@ export namespace WebSocketOrgEchoActionReqType {
   * 
   * @type {string}
   **/
- item1?: string;
+ item1 : string;
 			/**
   * 
   * @type {WebSocketOrgEchoActionReqType.UserType.Item2arrayType[]}
   **/
- item2array?: WebSocketOrgEchoActionReqType.UserType.Item2arrayType[];
+ item2array : WebSocketOrgEchoActionReqType.UserType.Item2arrayType[];
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace UserType {
@@ -415,12 +462,12 @@ export namespace UserType {
   * 
   * @type {number}
   **/
- subItem1?: number;
+ subItem1 : number;
 			/**
   * 
   * @type {number}
   **/
- subItem2?: number;
+ subItem2 : number;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Item2arrayType {
@@ -459,11 +506,27 @@ setLastName (value: string) {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -501,7 +564,7 @@ export abstract class WebSocketOrgEchoActionResFactory {
   * 
   * @type {string}
   **/
- lastName?: string;
+ lastName : string;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace WebSocketOrgEchoActionResType {

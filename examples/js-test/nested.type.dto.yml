@@ -1,0 +1,31 @@
+# As you see, by defining emi: dto, now the file is only dto instead of a full module.
+emi: dto
+name: singleDto
+fields:
+  - name: min
+    type: int
+    description: Minimum number which can be generated
+  - name: max
+    type: int
+    description: Maximum number which can be generated
+  - name: count
+    type: int
+    description: >-
+      How many numbers you want to be generated based on maximum and
+      minimum
+  - name: nullableObject
+    type: object?
+    description: 
+      This object is optional. Can be passed or not.
+      On typ has ? operator
+    fields:
+      - name: firstName
+        type: string
+  - name: staticObject
+    type: object
+    description: 
+      This object is not nullable. On classes, will be always instantiated,
+      also on types, is not having ? operator
+    fields:
+      - name: firstName
+        type: string

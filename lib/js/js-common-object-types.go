@@ -33,12 +33,12 @@ func tsFieldType(field *core.EmiField, parentChain string) string {
 		fieldName := core.ToUpper(field.Name) + "Type"
 
 		switch field.Type {
-		case core.FieldTypeArray:
+		case core.FieldTypeArray, core.FieldTypeArrayNullable:
 			if len(field.Fields) > 0 {
 				return fmt.Sprintf("%v[]", core.ToUpper(parentChain)+"."+fieldName)
 			}
 			value = "any[]"
-		case core.FieldTypeObject:
+		case core.FieldTypeObject, core.FieldTypeObjectNullable:
 			value = core.ToUpper(parentChain) + "." + fieldName
 		default:
 			value = TsComputedField(field, false)
@@ -55,7 +55,12 @@ func tsRenderField(field *core.EmiField, parentChain string) tsRenderedField {
 	jsdoc.Add(field.Description)
 	jsdoc.Add(fmt.Sprintf("@type {%v}", tsFieldTypeStr))
 
-	output := fmt.Sprintf("%v %v?: %v;", jsdoc.String(), field.PrivateName(), tsFieldTypeStr)
+	// Add ? only for nullable fields.
+	mark := ""
+	if IsNullable(string(field.Type)) {
+		mark = "?"
+	}
+	output := fmt.Sprintf("%v %v %v: %v;", jsdoc.String(), field.PrivateName(), mark, tsFieldTypeStr)
 
 	return tsRenderedField{
 		Name:   field.Name,
@@ -101,7 +106,7 @@ func tsRenderTypes(fields []*core.EmiField, typeName string, treeLocation string
 		if field == nil {
 			continue
 		}
-		if field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArray {
+		if field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeArrayNullable {
 			childName := core.ToUpper(field.Name) + "Type"
 			currentType.SubTypes = append(
 				currentType.SubTypes,

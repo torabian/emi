@@ -55,3 +55,84 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: ./__webdir
+
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: true
+          prerelease: true
+          release_name: ${{ steps.version.outputs.version }}
+          tag_name: ${{ env.tag_name }}
+          body_path: README.md
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      
+      - name: Upload amd64-darwin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/emi_amd64_darwin.zip
+          asset_name: emi_amd64_darwin.zip
+          asset_content_type: application/zip
+        
+      - name: Upload arm64-darwin
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/emi_arm64_darwin.zip
+          asset_name: emi_arm64_darwin.zip
+          asset_content_type: application/zip
+      
+      - name: Upload amd64-linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/emi_amd64_linux.zip
+          asset_name: emi_amd64_linux.zip
+          asset_content_type: application/zip
+        
+      - name: Upload arm64-linux
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/emi_arm64_linux.zip
+          asset_name: emi_arm64_linux.zip
+          asset_content_type: application/zip
+   
+      - name: Upload amd64-windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/emi_amd64_windows.zip
+          asset_name: emi_amd64_windows.zip
+          asset_content_type: application/zip
+        
+      - name: Upload arm64-windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/emi_arm64_windows.zip
+          asset_name: emi_arm64_windows.zip
+          asset_content_type: application/zip
+      - name: Upload node.js wasm
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: artifacts/emi-node-wasm-package.zip
+          asset_name: emi-node-wasm-package.zip
+          asset_content_type: application/zip

@@ -75,7 +75,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		this.#{{.ctx.Name}} = value;
 	{{ end }}
 	
-	{{ if and (eq .ctx.Type "array")}}
+	{{ if or (eq .ctx.Type "array") (eq .ctx.Type "array?")}}
 	 	// For arrays, you only can pass arrays to the object
 	 	if (!Array.isArray(value)) {
 			return;
@@ -87,7 +87,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		}
  	{{ end }}
 
-	{{ if and (eq .ctx.Type "object")}}
+	{{ if or (eq .ctx.Type "object") (eq .ctx.Type "object?")}}
 	 	// For objects, the sub type needs to always be instance of the sub class.
 	 	if (value instanceof {{.ctx.ConstructorClass}}) {
 			this.#{{.ctx.Name}} = value

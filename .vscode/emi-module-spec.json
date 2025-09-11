@@ -14,6 +14,10 @@
     },
     "Emi": {
       "properties": {
+        "emi": {
+          "type": "string",
+          "description": "Type of the emi content.;enum=module"
+        },
         "namespace": {
           "type": "string",
           "description": "Represents where is the location of the module in app tree. Similar to PHP namespacing sytem it be used to explicitly as export path of the actions for client frameworks"
@@ -117,10 +121,17 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "emi"
+      ]
     },
     "EmiAction": {
       "properties": {
+        "emi": {
+          "type": "string",
+          "description": "Type of the emi content.;enum=action"
+        },
         "name": {
           "type": "string",
           "description": "General name of the action used for generating code and CLI commands"
@@ -209,7 +220,10 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "emi"
+      ]
     },
     "EmiActionBody": {
       "properties": {
@@ -377,6 +391,10 @@
     },
     "EmiDto": {
       "properties": {
+        "emi": {
+          "type": "string",
+          "description": "Type of the emi content.;enum=dto"
+        },
         "name": {
           "type": "string",
           "description": "Name of the dto in camel case the rest of the code related to this dto is being generated based on this"
@@ -390,10 +408,17 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "emi"
+      ]
     },
     "EmiEntity": {
       "properties": {
+        "emi": {
+          "type": "string",
+          "description": "Type of the emi content.;enum=entity"
+        },
         "replicas": {
           "$ref": "#/definitions/EmiEntityReplicas"
         },
@@ -528,7 +553,10 @@
         }
       },
       "additionalProperties": false,
-      "type": "object"
+      "type": "object",
+      "required": [
+        "emi"
+      ]
     },
     "EmiEntityActionConfig": {
       "properties": {
@@ -632,6 +660,8 @@
         "type": {
           "type": "string",
           "enum": [
+            "object?",
+            "array?",
             "string?",
             "int?",
             "any",

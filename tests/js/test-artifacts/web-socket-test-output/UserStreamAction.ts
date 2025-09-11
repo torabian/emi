@@ -1,6 +1,5 @@
 import { WebSocketX } from "./sdk/common/WebSocketX";
 import { buildUrl } from "./sdk/common/buildUrl";
-import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * Action to communicate with the action userStream
@@ -119,11 +118,30 @@ export class UserStreamActionReq {
     }
     if (typeof data === "string") {
       this.applyFromObject(JSON.parse(data));
-    } else if (isPlausibleObject(data)) {
+    } else if (this.#isJsonAppliable(data)) {
       this.applyFromObject(data);
     } else {
-      throw new Error("Instance is not implemented.");
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
     }
+  }
+  #isJsonAppliable(obj) {
+    const isBuffer =
+      typeof globalThis.Buffer !== "undefined" &&
+      typeof globalThis.Buffer.isBuffer === "function" &&
+      globalThis.Buffer.isBuffer(obj);
+    const isBlob =
+      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
   }
   /**
    * casts the fields of a javascript object into the class properties one by one
@@ -173,17 +191,17 @@ export type UserStreamActionReqType = {
    * Minimum number which can be generated
    * @type {number}
    **/
-  min?: number;
+  min: number;
   /**
    * Maximum number which can be generated
    * @type {number}
    **/
-  max?: number;
+  max: number;
   /**
    * How many numbers you want to be generated based on maximum and minimum
    * @type {number}
    **/
-  count?: number;
+  count: number;
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace UserStreamActionReqType {}
@@ -224,11 +242,30 @@ export class UserStreamActionRes {
     }
     if (typeof data === "string") {
       this.applyFromObject(JSON.parse(data));
-    } else if (isPlausibleObject(data)) {
+    } else if (this.#isJsonAppliable(data)) {
       this.applyFromObject(data);
     } else {
-      throw new Error("Instance is not implemented.");
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
     }
+  }
+  #isJsonAppliable(obj) {
+    const isBuffer =
+      typeof globalThis.Buffer !== "undefined" &&
+      typeof globalThis.Buffer.isBuffer === "function" &&
+      globalThis.Buffer.isBuffer(obj);
+    const isBlob =
+      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
   }
   /**
    * casts the fields of a javascript object into the class properties one by one
@@ -268,7 +305,7 @@ export type UserStreamActionResType = {
    *
    * @type {number}
    **/
-  number?: number;
+  number: number;
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace UserStreamActionResType {}

@@ -3,8 +3,8 @@ build:
 	make build-envelopes && \
 	go build -ldflags "-s -w" -o ./emi ./cmd/emi && \
 	make wasm && \
-	./emi spec --output .vscode/emi-definitions.json && \
-	./emi spec --output ./playground/public/emi-definitions.json
+	./emi spec --output .vscode/ && \
+	./emi spec --output ./playground/public/
 
 
 build-js-sdks:
@@ -41,3 +41,23 @@ ci:
 
 compile-github:
 	rm -rf __webdir && cp -R emi-web/build __webdir && touch __webdir/.nojekyll && cp -R playground/dist __webdir/playground
+
+
+release:
+	rm -rf ./artifacts/
+	GOARCH=amd64 GOOS=darwin go build -ldflags "-s -w" -o ./artifacts/emi cmd/emi/main.go
+	cd ./artifacts/ && zip emi_amd64_darwin.zip emi && cd -
+# 	packagesbuild --project ./macos-installer.pkgproj && mv ./artifacts/emi.pkg ./artifacts/emi_intel_amd64.pkg
+	GOARCH=arm64 GOOS=darwin go build -ldflags "-s -w" -o ./artifacts/emi cmd/emi/main.go
+	cd ./artifacts/ && zip emi_arm64_darwin.zip emi && cd -
+# 	packagesbuild --project ./macos-installer.pkgproj && mv ./artifacts/emi.pkg ./artifacts/emi_silicon_arm64.pkg
+	GOARCH=arm64 GOOS=windows go build -ldflags "-s -w" -o ./artifacts/emi.exe cmd/emi/main.go
+	cd ./artifacts/ && zip emi_arm64_windows.zip emi.exe && cd -
+	GOARCH=amd64 GOOS=windows go build -ldflags "-s -w" -o ./artifacts/emi.exe cmd/emi/main.go
+	cd ./artifacts/ && zip emi_amd64_windows.zip emi.exe && cd -
+	GOARCH=arm64 GOOS=linux go build -ldflags "-s -w" -o ./artifacts/emi cmd/emi/main.go
+	cd ./artifacts/ && zip emi_arm64_linux.zip emi && cd -
+	GOARCH=amd64 GOOS=linux go build -ldflags "-s -w" -o ./artifacts/emi cmd/emi/main.go
+	cd ./artifacts/ && zip emi_amd64_linux.zip emi && cd -
+	rm -rf ./artifacts/emi ./artifacts/emi.exe
+	zip -r ./artifacts/emi-node-wasm-package.zip ./emi-npm

@@ -25,7 +25,6 @@ fields:
 - `object?` allows `null`/ `undefined`.  
     
 ```ts
-import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myObjectClassDto
@@ -35,7 +34,7 @@ export class MyObjectClassDto {
    *
    * @type {MyObjectClassDto.Profile}
    **/
-  #profile: InstanceType<typeof MyObjectClassDto.Profile> | null = null;
+  #profile: InstanceType<typeof MyObjectClassDto.Profile>;
   /**
    *
    * @returns {MyObjectClassDto.Profile}
@@ -47,7 +46,7 @@ export class MyObjectClassDto {
    *
    * @type {MyObjectClassDto.Profile}
    **/
-  set profile(value: InstanceType<typeof MyObjectClassDto.Profile> | null) {
+  set profile(value: InstanceType<typeof MyObjectClassDto.Profile>) {
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof MyObjectClassDto.Profile) {
       this.#profile = value;
@@ -55,7 +54,7 @@ export class MyObjectClassDto {
       this.#profile = new MyObjectClassDto.Profile(value);
     }
   }
-  setProfile(value: InstanceType<typeof MyObjectClassDto.Profile> | null) {
+  setProfile(value: InstanceType<typeof MyObjectClassDto.Profile>) {
     this.profile = value;
     return this;
   }
@@ -120,11 +119,31 @@ export class MyObjectClassDto {
       }
       if (typeof data === "string") {
         this.applyFromObject(JSON.parse(data));
-      } else if (isPlausibleObject(data)) {
+      } else if (this.#isJsonAppliable(data)) {
         this.applyFromObject(data);
       } else {
-        throw new Error("Instance is not implemented.");
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
       }
+    }
+    #isJsonAppliable(obj) {
+      const isBuffer =
+        typeof globalThis.Buffer !== "undefined" &&
+        typeof globalThis.Buffer.isBuffer === "function" &&
+        globalThis.Buffer.isBuffer(obj);
+      const isBlob =
+        typeof globalThis.Blob !== "undefined" &&
+        obj instanceof globalThis.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
     }
     /**
      * casts the fields of a javascript object into the class properties one by one
@@ -164,11 +183,30 @@ export class MyObjectClassDto {
     }
     if (typeof data === "string") {
       this.applyFromObject(JSON.parse(data));
-    } else if (isPlausibleObject(data)) {
+    } else if (this.#isJsonAppliable(data)) {
       this.applyFromObject(data);
     } else {
-      throw new Error("Instance is not implemented.");
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
     }
+  }
+  #isJsonAppliable(obj) {
+    const isBuffer =
+      typeof globalThis.Buffer !== "undefined" &&
+      typeof globalThis.Buffer.isBuffer === "function" &&
+      globalThis.Buffer.isBuffer(obj);
+    const isBlob =
+      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
   }
   /**
    * casts the fields of a javascript object into the class properties one by one
@@ -211,7 +249,7 @@ export type MyObjectClassDtoType = {
    *
    * @type {MyObjectClassDtoType.ProfileType}
    **/
-  profile?: MyObjectClassDtoType.ProfileType;
+  profile: MyObjectClassDtoType.ProfileType;
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyObjectClassDtoType {
@@ -223,12 +261,12 @@ export namespace MyObjectClassDtoType {
      *
      * @type {string}
      **/
-    firstName?: string;
+    firstName: string;
     /**
      *
      * @type {number}
      **/
-    age?: number;
+    age: number;
   };
   // eslint-disable-next-line @typescript-eslint/no-namespace
   export namespace ProfileType {}
@@ -251,7 +289,6 @@ fields:
 Defaults to `undefined`, but you can assign an object with required child fields or `null`.
     
 ```ts
-import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myObjectClassDto
@@ -259,36 +296,163 @@ import { withPrefix } from "./sdk/common/withPrefix";
 export class MyObjectClassDto {
   /**
    *
-   * @type {any}
+   * @type {MyObjectClassDto.OptionalProfile}
    **/
-  #optionalProfile?: any | null = undefined;
+  #optionalProfile?:
+    | InstanceType<typeof MyObjectClassDto.OptionalProfile>
+    | null
+    | undefined
+    | null = undefined;
   /**
    *
-   * @returns {any}
+   * @returns {MyObjectClassDto.OptionalProfile}
    **/
   get optionalProfile() {
     return this.#optionalProfile;
   }
   /**
    *
-   * @type {any}
+   * @type {MyObjectClassDto.OptionalProfile}
    **/
-  set optionalProfile(value: any) {}
-  setOptionalProfile(value: any) {
+  set optionalProfile(
+    value:
+      | InstanceType<typeof MyObjectClassDto.OptionalProfile>
+      | null
+      | undefined,
+  ) {
+    // For objects, the sub type needs to always be instance of the sub class.
+    if (value instanceof MyObjectClassDto.OptionalProfile) {
+      this.#optionalProfile = value;
+    } else {
+      this.#optionalProfile = new MyObjectClassDto.OptionalProfile(value);
+    }
+  }
+  setOptionalProfile(
+    value:
+      | InstanceType<typeof MyObjectClassDto.OptionalProfile>
+      | null
+      | undefined,
+  ) {
     this.optionalProfile = value;
     return this;
   }
+  /**
+   * The base class definition for optionalProfile
+   **/
+  static OptionalProfile = class OptionalProfile {
+    /**
+     *
+     * @type {string}
+     **/
+    #lastName: string = "";
+    /**
+     *
+     * @returns {string}
+     **/
+    get lastName() {
+      return this.#lastName;
+    }
+    /**
+     *
+     * @type {string}
+     **/
+    set lastName(value: string) {
+      const correctType = typeof value === "string";
+      this.#lastName = correctType ? value : "" + value;
+    }
+    setLastName(value: string) {
+      this.lastName = value;
+      return this;
+    }
+    constructor(data) {
+      if (data === null || data === undefined) {
+        return;
+      }
+      if (typeof data === "string") {
+        this.applyFromObject(JSON.parse(data));
+      } else if (this.#isJsonAppliable(data)) {
+        this.applyFromObject(data);
+      } else {
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
+      }
+    }
+    #isJsonAppliable(obj) {
+      const isBuffer =
+        typeof globalThis.Buffer !== "undefined" &&
+        typeof globalThis.Buffer.isBuffer === "function" &&
+        globalThis.Buffer.isBuffer(obj);
+      const isBlob =
+        typeof globalThis.Blob !== "undefined" &&
+        obj instanceof globalThis.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
+    }
+    /**
+     * casts the fields of a javascript object into the class properties one by one
+     **/
+    applyFromObject(data = {}) {
+      const d = data as Partial<OptionalProfile>;
+      if (d.lastName !== undefined) {
+        this.lastName = d.lastName;
+      }
+    }
+    /**
+     *	Special toJSON override, since the field are private,
+     *	Json stringify won't see them unless we mention it explicitly.
+     **/
+    toJSON() {
+      return {
+        lastName: this.#lastName,
+      };
+    }
+    toString() {
+      return JSON.stringify(this);
+    }
+    static get Fields() {
+      return {
+        lastName: "lastName",
+      };
+    }
+  };
   constructor(data) {
     if (data === null || data === undefined) {
       return;
     }
     if (typeof data === "string") {
       this.applyFromObject(JSON.parse(data));
-    } else if (isPlausibleObject(data)) {
+    } else if (this.#isJsonAppliable(data)) {
       this.applyFromObject(data);
     } else {
-      throw new Error("Instance is not implemented.");
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
     }
+  }
+  #isJsonAppliable(obj) {
+    const isBuffer =
+      typeof globalThis.Buffer !== "undefined" &&
+      typeof globalThis.Buffer.isBuffer === "function" &&
+      globalThis.Buffer.isBuffer(obj);
+    const isBlob =
+      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
   }
   /**
    * casts the fields of a javascript object into the class properties one by one
@@ -313,7 +477,13 @@ export class MyObjectClassDto {
   }
   static get Fields() {
     return {
-      optionalProfile: "optionalProfile",
+      optionalProfile$: "optionalProfile",
+      get optionalProfile() {
+        return withPrefix(
+          "optionalProfile",
+          MyObjectClassDto.OptionalProfile.Fields,
+        );
+      },
     };
   }
 }
@@ -326,11 +496,24 @@ export abstract class MyObjectClassDtoFactory {
 export type MyObjectClassDtoType = {
   /**
    *
-   * @type {any}
+   * @type {MyObjectClassDtoType.OptionalProfileType}
    **/
-  optionalProfile?: any;
+  optionalProfile?: MyObjectClassDtoType.OptionalProfileType;
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace MyObjectClassDtoType {}
+export namespace MyObjectClassDtoType {
+  /**
+   * The base type definition for optionalProfileType
+   **/
+  export type OptionalProfileType = {
+    /**
+     *
+     * @type {string}
+     **/
+    lastName: string;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  export namespace OptionalProfileType {}
+}
 
 ```

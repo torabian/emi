@@ -55,7 +55,7 @@ func jsGetSafeFieldValue(field *core.EmiField) string {
 	switch field.Type {
 	case "array", "arrayP", "many2many":
 		return "[]"
-	case "json", "object", "embed", "computed", "any":
+	case "json", "object?", "embed", "computed", "any":
 		return "null"
 	case "string", "text":
 		return `""`
@@ -63,10 +63,8 @@ func jsGetSafeFieldValue(field *core.EmiField) string {
 		return "0.0"
 	case "int", "int32", "int64", "int?", "int32?", "int64?":
 		return "0"
-	case "money?":
-		return `{"amount":0,"currency":"USD"}`
 	default:
-		return "null"
+		return ""
 	}
 }
 
@@ -119,19 +117,15 @@ func (x jsFieldVariable) Compile(isTypeScript bool) string {
 		}
 	}
 
-	sequence = append(sequence, " = ")
-
 	if x.IsNullable {
 		if x.NullableDefaultValue != "" {
+			sequence = append(sequence, " = ")
 			sequence = append(sequence, x.NullableDefaultValue)
-		} else {
-			sequence = append(sequence, "undefined")
 		}
 	} else if !x.IsNullable {
 		if x.SafeDefaultValue != "" {
+			sequence = append(sequence, " = ")
 			sequence = append(sequence, x.SafeDefaultValue)
-		} else {
-			sequence = append(sequence, "undefined")
 		}
 	}
 
@@ -143,7 +137,6 @@ func jsRenderField(
 	parentChain string,
 	fieldDepth string,
 	ctx core.MicroGenContext,
-	jsctx JsCommonObjectContext,
 ) jsRenderedField {
 	jsFieldType := jsFieldTypeOnNestedClasses(field, parentChain)
 	tsFieldType := tsFieldTypeOnNestedClasses(field, parentChain)
@@ -189,7 +182,7 @@ func jsRenderField(
 
 	staticVariables := []string{}
 
-	if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many || field.Type == core.FieldTypeEmbed || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne {
+	if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many || field.Type == core.FieldTypeEmbed || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne {
 		staticVariables = append(
 			staticVariables,
 			fmt.Sprintf("%v$: '%v',", field.Name, field.Name),
@@ -197,7 +190,7 @@ func jsRenderField(
 
 		withArrayIndex := ""
 
-		if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many {
+		if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many {
 			withArrayIndex = "[:i]"
 		}
 
@@ -246,7 +239,7 @@ func jsRenderFieldsShallow(
 	out := make([]jsRenderedField, 0, len(fields))
 	for _, f := range fields {
 		if f != nil {
-			out = append(out, jsRenderField(f, parentChain, fieldDepth, ctx, jsctx))
+			out = append(out, jsRenderField(f, parentChain, fieldDepth, ctx))
 		}
 	}
 	return out

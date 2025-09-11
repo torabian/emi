@@ -2,7 +2,6 @@ import { AverageDto } from './AverageDto';
 import { ComputeDto } from './ComputeDto';
 import { buildUrl } from './sdk/common/buildUrl';
 import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
-import { isPlausibleObject } from './sdk/common/isPlausibleObject';
 import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
 import { withPrefix } from './sdk/common/withPrefix';

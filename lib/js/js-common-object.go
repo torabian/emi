@@ -30,14 +30,11 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependenies: []core.CodeChunkDependency{
-			{
-				Objects:  []string{"isPlausibleObject"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/isPlausibleObject",
-			},
-			{
-				Objects:  []string{"withPrefix"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
-			},
+			// It's got inlined in the class
+			// {
+			// 	Objects:  []string{"isPlausibleObject"},
+			// 	Location: INTERNAL_SDK_JS_LOCATION + "/isPlausibleObject",
+			// },
 		},
 	}
 	var tsTypes *core.CodeChunkCompiled

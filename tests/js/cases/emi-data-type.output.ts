@@ -1,5 +1,3 @@
-
-
 /**
   * The base class definition for anonymouse
   **/
@@ -96,7 +94,7 @@ setNullablestringFieldWithValue (value: string) {
   * bool field, non-nullable
   * @type {boolean}
   **/
- #boolField : boolean  =  null
+ #boolField : boolean
 		/**
   * bool field, non-nullable
   * @returns {boolean}
@@ -666,11 +664,27 @@ setNullableFloat64FieldWithValue (value: number) {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -789,142 +803,142 @@ export abstract class AnonymouseFactory {
   * string field, non-nullable
   * @type {string}
   **/
- stringField?: string;
+ stringField : string;
 			/**
   * string field with default
   * @type {string}
   **/
- stringFieldWithValue?: string;
+ stringFieldWithValue : string;
 			/**
   * nullable string
   * @type {string}
   **/
- nullablestringField?: string;
+ nullablestringField ?: string;
 			/**
   * nullable string with default
   * @type {string}
   **/
- nullablestringFieldWithValue?: string;
+ nullablestringFieldWithValue ?: string;
 			/**
   * bool field, non-nullable
   * @type {boolean}
   **/
- boolField?: boolean;
+ boolField : boolean;
 			/**
   * bool field with default
   * @type {boolean}
   **/
- boolFieldWithValue?: boolean;
+ boolFieldWithValue : boolean;
 			/**
   * nullable bool
   * @type {boolean}
   **/
- nullableboolField?: boolean;
+ nullableboolField ?: boolean;
 			/**
   * nullable bool with default
   * @type {boolean}
   **/
- nullableboolFieldWithValue?: boolean;
+ nullableboolFieldWithValue ?: boolean;
 			/**
   * int field, non-nullable
   * @type {number}
   **/
- intField?: number;
+ intField : number;
 			/**
   * int field with default
   * @type {number}
   **/
- intFieldWithValue?: number;
+ intFieldWithValue : number;
 			/**
   * nullable int
   * @type {number}
   **/
- nullableIntField?: number;
+ nullableIntField ?: number;
 			/**
   * nullable int with default
   * @type {number}
   **/
- nullableIntFieldWithValue?: number;
+ nullableIntFieldWithValue ?: number;
 			/**
   * int32 field, non-nullable
   * @type {number}
   **/
- int32Field?: number;
+ int32Field : number;
 			/**
   * int32 with default
   * @type {number}
   **/
- int32FieldWithValue?: number;
+ int32FieldWithValue : number;
 			/**
   * nullable int32
   * @type {number}
   **/
- nullableInt32Field?: number;
+ nullableInt32Field ?: number;
 			/**
   * nullable int32 with default
   * @type {number}
   **/
- nullableInt32FieldWithValue?: number;
+ nullableInt32FieldWithValue ?: number;
 			/**
   * int64 field
   * @type {number}
   **/
- int64Field?: number;
+ int64Field : number;
 			/**
   * int64 with default
   * @type {number}
   **/
- int64FieldWithValue?: number;
+ int64FieldWithValue ?: number;
 			/**
   * nullable int64
   * @type {number}
   **/
- nullableInt64Field?: number;
+ nullableInt64Field ?: number;
 			/**
   * nullable int64 with default
   * @type {number}
   **/
- nullableInt64FieldWithValue?: number;
+ nullableInt64FieldWithValue ?: number;
 			/**
   * float32 field
   * @type {number}
   **/
- float32Field?: number;
+ float32Field : number;
 			/**
   * float32 with default
   * @type {number}
   **/
- float32FieldWithValue?: number;
+ float32FieldWithValue : number;
 			/**
   * nullable float32
   * @type {number}
   **/
- nullableFloat32Field?: number;
+ nullableFloat32Field ?: number;
 			/**
   * nullable float32 with default
   * @type {number}
   **/
- nullableFloat32FieldWithValue?: number;
+ nullableFloat32FieldWithValue ?: number;
 			/**
   * float64 field
   * @type {number}
   **/
- float64Field?: number;
+ float64Field : number;
 			/**
   * float64 with default
   * @type {number}
   **/
- float64FieldWithValue?: number;
+ float64FieldWithValue : number;
 			/**
   * nullable float64
   * @type {number}
   **/
- nullableFloat64Field?: number;
+ nullableFloat64Field ?: number;
 			/**
   * nullable float64 with default
   * @type {number}
   **/
- nullableFloat64FieldWithValue?: number;
+ nullableFloat64FieldWithValue ?: number;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace AnonymouseType {

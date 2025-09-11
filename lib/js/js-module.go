@@ -212,7 +212,6 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	}
 
 	sdkFiles := []core.VirtualFile{}
-
 	if isTypeScript {
 		sdkFiles = append(sdkFiles, core.FsEmbedToVirtualFile(&tssdk.Content, "sdk")...)
 	} else {

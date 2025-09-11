@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/torabian/emi/lib/core/emi-dto",
+  "$ref": "#/definitions/EmiDto",
+  "definitions": {
+    "EmiDto": {
+      "properties": {
+        "emi": {
+          "type": "string",
+          "description": "Type of the emi content.;enum=dto"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the dto in camel case the rest of the code related to this dto is being generated based on this"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "List of fields and body definitions of the dto"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "emi"
+      ]
+    },
+    "EmiEnum": {
+      "properties": {
+        "k": {
+          "type": "string",
+          "description": "Enum key which will be used in golang generation and validation"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the enum for developers. It's not translated or meant to be shown to end users."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiField": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the field in camel case. Will be upper case automatically when necessary"
+        },
+        "recommended": {
+          "type": "boolean",
+          "description": "Recommended field will be asked upon an interactive cli operation."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description about the field for developers and generated documents."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "object?",
+            "array?",
+            "string?",
+            "int?",
+            "any",
+            "complex",
+            "float64?",
+            "money?",
+            "xfile?",
+            "float32?",
+            "bool?",
+            "int32?",
+            "int64?",
+            "int",
+            "datetime",
+            "json",
+            "embed",
+            "datenano",
+            "html",
+            "text",
+            "date",
+            "daterange",
+            "many2many",
+            "arrayP",
+            "enum",
+            "bool",
+            "one",
+            "int64",
+            "float64",
+            "duration?",
+            "object",
+            "array",
+            "string"
+          ],
+          "description": "Type of the field based on Emi types."
+        },
+        "primitive": {
+          "type": "string",
+          "description": "Primitive type in golang when type: arrayP is set"
+        },
+        "target": {
+          "type": "string",
+          "description": "The entity in golang which will be operated on in case of type: one or type: many2many"
+        },
+        "validate": {
+          "type": "string",
+          "description": "The meta tag for validate library which will be checked on different operations"
+        },
+        "excerptSize": {
+          "type": "integer",
+          "description": "For the html and text fields there will be a automatic excerpt generated."
+        },
+        "default": {
+          "description": "Default value of the field which will be added to the meta tags"
+        },
+        "translate": {
+          "type": "boolean",
+          "description": "If true adds the field into polyglot table for translations. Only works with the first leve"
+        },
+        "unsafe": {
+          "type": "boolean",
+          "description": "It would skip the sanitization for html field types allowing store anything as htm"
+        },
+        "allowCreate": {
+          "type": "boolean",
+          "description": "Allow create is a useful option to set true if the type one or many2many could be allowed to crea"
+        },
+        "module": {
+          "type": "string",
+          "description": "When using one or many2many types you need to set the module name here to import tha"
+        },
+        "provider": {
+          "type": "string",
+          "description": "The go project module of the important target for one or many2many fields if its from exte"
+        },
+        "json": {
+          "type": "string",
+          "description": "The json tag of the generated field. Defaults to the name but can be overwritten"
+        },
+        "yaml": {
+          "type": "string",
+          "description": "The yaml tag of the generated field. Defaults to the name but can be overwritten"
+        },
+        "xml": {
+          "type": "string",
+          "description": "The xml tag of the generated field. Defaults to the name but can be overwritten"
+        },
+        "of": {
+          "items": {
+            "$ref": "#/definitions/EmiEnum"
+          },
+          "type": "array",
+          "description": "List of enum values in case of enum type for the field. Check EmiEnum for more d"
+        },
+        "idFieldGorm": {
+          "type": "string",
+          "description": "When type is one there will be another field added with Id prefix. This tag will override gorm meta"
+        },
+        "complex": {
+          "type": "string",
+          "description": "In case of complex data type"
+        },
+        "matches": {
+          "items": {
+            "$ref": "#/definitions/EmiFieldMatch"
+          },
+          "type": "array",
+          "description": "On the json type this field will generate necessary code to cast it into different dtos"
+        },
+        "gorm": {
+          "type": "string",
+          "description": "Override the gorm meta tag generated for golang"
+        },
+        "gormMap": {
+          "$ref": "#/definitions/GormOverrideMap",
+          "description": "Used in Module code generation to customized the generated code for gorm tags on Emi Data management fields such as workspace or user id. For example"
+        },
+        "sql": {
+          "type": "string",
+          "description": "Direct manipulation of the sql meta tag on the field."
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "For types such as array or object children fields can be defined and will separate struct with name prefixed to parent"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiFieldMatch": {
+      "properties": {
+        "dto": {
+          "type": "string",
+          "description": "The dto name from Emi which will be matched. Might be also work with any other go struct but check the generated code."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "GormOverrideMap": {
+      "properties": {
+        "workspaceId": {
+          "type": "string",
+          "description": "Override the workspace id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Override the user id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

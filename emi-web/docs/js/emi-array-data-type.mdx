@@ -25,7 +25,6 @@ fields:
 - `array?` allows `null`/ `undefined`.  
     
 ```ts
-import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myArrayClassDto
@@ -121,11 +120,31 @@ export class MyArrayClassDto {
       }
       if (typeof data === "string") {
         this.applyFromObject(JSON.parse(data));
-      } else if (isPlausibleObject(data)) {
+      } else if (this.#isJsonAppliable(data)) {
         this.applyFromObject(data);
       } else {
-        throw new Error("Instance is not implemented.");
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
       }
+    }
+    #isJsonAppliable(obj) {
+      const isBuffer =
+        typeof globalThis.Buffer !== "undefined" &&
+        typeof globalThis.Buffer.isBuffer === "function" &&
+        globalThis.Buffer.isBuffer(obj);
+      const isBlob =
+        typeof globalThis.Blob !== "undefined" &&
+        obj instanceof globalThis.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
     }
     /**
      * casts the fields of a javascript object into the class properties one by one
@@ -165,11 +184,30 @@ export class MyArrayClassDto {
     }
     if (typeof data === "string") {
       this.applyFromObject(JSON.parse(data));
-    } else if (isPlausibleObject(data)) {
+    } else if (this.#isJsonAppliable(data)) {
       this.applyFromObject(data);
     } else {
-      throw new Error("Instance is not implemented.");
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
     }
+  }
+  #isJsonAppliable(obj) {
+    const isBuffer =
+      typeof globalThis.Buffer !== "undefined" &&
+      typeof globalThis.Buffer.isBuffer === "function" &&
+      globalThis.Buffer.isBuffer(obj);
+    const isBlob =
+      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
   }
   /**
    * casts the fields of a javascript object into the class properties one by one
@@ -212,7 +250,7 @@ export type MyArrayClassDtoType = {
    *
    * @type {MyArrayClassDtoType.ContactsType[]}
    **/
-  contacts?: MyArrayClassDtoType.ContactsType[];
+  contacts: MyArrayClassDtoType.ContactsType[];
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyArrayClassDtoType {
@@ -224,7 +262,7 @@ export namespace MyArrayClassDtoType {
      *
      * @type {string}
      **/
-    email?: string;
+    email: string;
     /**
      *
      * @type {string}
@@ -254,7 +292,6 @@ fields:
 Arrays can hold primitive types or nested objects.
     
 ```ts
-import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myArrayClassDto
@@ -350,11 +387,31 @@ export class MyArrayClassDto {
       }
       if (typeof data === "string") {
         this.applyFromObject(JSON.parse(data));
-      } else if (isPlausibleObject(data)) {
+      } else if (this.#isJsonAppliable(data)) {
         this.applyFromObject(data);
       } else {
-        throw new Error("Instance is not implemented.");
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
       }
+    }
+    #isJsonAppliable(obj) {
+      const isBuffer =
+        typeof globalThis.Buffer !== "undefined" &&
+        typeof globalThis.Buffer.isBuffer === "function" &&
+        globalThis.Buffer.isBuffer(obj);
+      const isBlob =
+        typeof globalThis.Blob !== "undefined" &&
+        obj instanceof globalThis.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
     }
     /**
      * casts the fields of a javascript object into the class properties one by one
@@ -394,11 +451,30 @@ export class MyArrayClassDto {
     }
     if (typeof data === "string") {
       this.applyFromObject(JSON.parse(data));
-    } else if (isPlausibleObject(data)) {
+    } else if (this.#isJsonAppliable(data)) {
       this.applyFromObject(data);
     } else {
-      throw new Error("Instance is not implemented.");
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
     }
+  }
+  #isJsonAppliable(obj) {
+    const isBuffer =
+      typeof globalThis.Buffer !== "undefined" &&
+      typeof globalThis.Buffer.isBuffer === "function" &&
+      globalThis.Buffer.isBuffer(obj);
+    const isBlob =
+      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
   }
   /**
    * casts the fields of a javascript object into the class properties one by one
@@ -441,7 +517,7 @@ export type MyArrayClassDtoType = {
    *
    * @type {MyArrayClassDtoType.ContactsType[]}
    **/
-  contacts?: MyArrayClassDtoType.ContactsType[];
+  contacts: MyArrayClassDtoType.ContactsType[];
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyArrayClassDtoType {
@@ -453,7 +529,7 @@ export namespace MyArrayClassDtoType {
      *
      * @type {string}
      **/
-    email?: string;
+    email: string;
     /**
      *
      * @type {string}
@@ -478,7 +554,6 @@ fields:
 Defaults to `undefined`, but you can assign an array or `null`.
     
 ```ts
-import { isPlausibleObject } from "./sdk/common/isPlausibleObject";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myArrayClassDto
@@ -486,22 +561,48 @@ import { withPrefix } from "./sdk/common/withPrefix";
 export class MyArrayClassDto {
   /**
    *
-   * @type {any}
+   * @type {MyArrayClassDto.NullableTags}
    **/
-  #nullableTags?: any | null = undefined;
+  #nullableTags?:
+    | InstanceType<typeof MyArrayClassDto.NullableTags>[]
+    | null
+    | undefined
+    | null = undefined;
   /**
    *
-   * @returns {any}
+   * @returns {MyArrayClassDto.NullableTags}
    **/
   get nullableTags() {
     return this.#nullableTags;
   }
   /**
    *
-   * @type {any}
+   * @type {MyArrayClassDto.NullableTags}
    **/
-  set nullableTags(value: any) {}
-  setNullableTags(value: any) {
+  set nullableTags(
+    value:
+      | InstanceType<typeof MyArrayClassDto.NullableTags>[]
+      | null
+      | undefined,
+  ) {
+    // For arrays, you only can pass arrays to the object
+    if (!Array.isArray(value)) {
+      return;
+    }
+    if (value.length > 0 && value[0] instanceof MyArrayClassDto.NullableTags) {
+      this.#nullableTags = value;
+    } else {
+      this.#nullableTags = value.map(
+        (item) => new MyArrayClassDto.NullableTags(item),
+      );
+    }
+  }
+  setNullableTags(
+    value:
+      | InstanceType<typeof MyArrayClassDto.NullableTags>[]
+      | null
+      | undefined,
+  ) {
     this.nullableTags = value;
     return this;
   }
@@ -511,11 +612,30 @@ export class MyArrayClassDto {
     }
     if (typeof data === "string") {
       this.applyFromObject(JSON.parse(data));
-    } else if (isPlausibleObject(data)) {
+    } else if (this.#isJsonAppliable(data)) {
       this.applyFromObject(data);
     } else {
-      throw new Error("Instance is not implemented.");
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
     }
+  }
+  #isJsonAppliable(obj) {
+    const isBuffer =
+      typeof globalThis.Buffer !== "undefined" &&
+      typeof globalThis.Buffer.isBuffer === "function" &&
+      globalThis.Buffer.isBuffer(obj);
+    const isBlob =
+      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
   }
   /**
    * casts the fields of a javascript object into the class properties one by one
@@ -540,7 +660,13 @@ export class MyArrayClassDto {
   }
   static get Fields() {
     return {
-      nullableTags: "nullableTags",
+      nullableTags$: "nullableTags",
+      get nullableTags() {
+        return withPrefix(
+          "nullableTags[:i]",
+          MyArrayClassDto.NullableTags.Fields,
+        );
+      },
     };
   }
 }
@@ -553,9 +679,9 @@ export abstract class MyArrayClassDtoFactory {
 export type MyArrayClassDtoType = {
   /**
    *
-   * @type {any}
+   * @type {any[]}
    **/
-  nullableTags?: any;
+  nullableTags?: any[];
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace MyArrayClassDtoType {}

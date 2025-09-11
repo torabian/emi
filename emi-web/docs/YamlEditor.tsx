@@ -20,7 +20,7 @@ export function YamlEditor({
       hover: true,
       schemas: [
         {
-          uri: "/emi-definitions.json",
+          uri: "/emi-module-spec.json",
           fileMatch: ["config.yaml"], // must match Editor path
         },
       ],

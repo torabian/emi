@@ -1,6 +1,5 @@
 import { buildUrl } from './sdk/common/buildUrl';
 import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
-import { isPlausibleObject } from './sdk/common/isPlausibleObject';
 import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
 import { useSse } from './sdk/react/useSse';
@@ -139,11 +138,27 @@ setMessage (value: string) {
 		}
 		if (typeof data === "string") {
 			this.applyFromObject(JSON.parse(data));
-		} else if (isPlausibleObject(data)) {
+		} else if (this.#isJsonAppliable(data)) {
 			this.applyFromObject(data);
 		} else {
-			throw new Error("Instance is not implemented.");
+			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
+	}
+	#isJsonAppliable(obj) {
+		const isBuffer =
+			typeof globalThis.Buffer !== "undefined" &&
+			typeof globalThis.Buffer.isBuffer === "function" &&
+			globalThis.Buffer.isBuffer(obj);
+		const isBlob =
+			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+		return (
+			obj &&
+			typeof obj === "object" &&
+			!Array.isArray(obj) &&
+			!isBuffer &&
+			!(obj instanceof ArrayBuffer) &&
+			!isBlob
+		);
 	}
 	/**
 	* casts the fields of a javascript object into the class properties one by one
@@ -181,7 +196,7 @@ export abstract class SampleSseActionResFactory {
   * 
   * @type {string}
   **/
- message?: string;
+ message : string;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace SampleSseActionResType {

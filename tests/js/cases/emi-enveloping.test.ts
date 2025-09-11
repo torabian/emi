@@ -42,14 +42,18 @@ async function startServer() {
 
     if (url.includes("/json")) {
       res.setHeader("Content-Type", "application/json");
-      const seq = new GResponse({ apiVersion: sampleVersion })
-        .updatePayload(new HttpActionActionRes({}).setRecordNumber(102))
-        .toString();
+      const seq = new GResponse({ apiVersion: sampleVersion });
 
-      console.log(2, seq);
-      res.end(seq);
+      seq.setCreator((data) => new HttpActionActionRes(data));
+      seq.inject({
+        data: {
+          item: {
+            recordNumber: 102,
+          },
+        },
+      });
 
-      // res.end(JSON.stringify({ data: { items: [{ recordNumber: 1 }] } }));
+      res.end(seq.toString());
     } else {
       res.statusCode = 404;
       res.end("not found");
@@ -106,8 +110,9 @@ describe("Generate the http sdk for it", () => {
 
     if (res.result instanceof GResponse) {
       const envelope = res.result;
+      console.log(1000, envelope.apiVersion);
       expect(envelope.apiVersion).toBe(sampleVersion);
-      expect(envelope.getPayload().recordNumber).toBe(102);
+      expect(envelope.data.item.recordNumber).toBe(102);
     }
   });
 });

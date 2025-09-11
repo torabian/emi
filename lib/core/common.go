@@ -264,6 +264,31 @@ func StringToEmi(content string) (Emi, error) {
 	return module, err
 }
 
+// Based on the emi tag on the root, we detect what is the type of compile.
+func DetectEmiStringContentType(content string) (string, error) {
+	var module EmiCatalog
+	err := yaml.Unmarshal([]byte(content), &module)
+
+	if err != nil {
+		return "", err
+	}
+
+	if module.Emi == "dto" {
+		return "dto", nil
+	}
+
+	if module.Emi == "action" {
+		return "action", nil
+	}
+
+	if module.Emi == "entity" {
+		return "entity", nil
+	}
+
+	// By default, it's an emit module
+	return "module", nil
+}
+
 func ReadEmiFromString(content string) (*Emi, error) {
 	var data Emi
 	if err := yaml.Unmarshal([]byte(content), &data); err != nil {

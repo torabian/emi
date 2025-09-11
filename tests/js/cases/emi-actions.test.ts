@@ -28,7 +28,8 @@ For most cases, actions help you to define 'get', 'post' ... actions, as well as
   });
 
   it("should generate the schema directly from wasm", () => {
-    schema = JSON.parse(globalThis.genEmiSpec("", {}));
+    const definitions = globalThis.genEmiSpec("", {});
+    schema = JSON.parse(definitions[0].ActualScript);
   });
 
   it("Should document an example of Emi module", () => {

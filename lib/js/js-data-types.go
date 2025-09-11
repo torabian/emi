@@ -43,7 +43,7 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 		return "number"
 	case "bool?":
 		return "boolean"
-	case "array":
+	case "array", "array?":
 		return field.PublicName() + "[]"
 	case "arrayP":
 		return TsPrimitive(field.Primitive) + "[]"
@@ -61,7 +61,7 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 		return "Date"
 	case "double":
 		return "number"
-	case "object", "embed":
+	case "object", "object?", "embed":
 		return field.PublicName()
 	case "money?":
 		return "{amount: number, currency: string, formatted?: string}"
