@@ -56,6 +56,10 @@ jobs:
         with:
           folder: ./__webdir
 
+      - name: Get the version tag
+        id: get_version_tag
+        run: echo "tag_name=$(basename ${GITHUB_REF})" >> $GITHUB_ENV
+
       - name: release
         uses: actions/create-release@v1
         id: create_release
