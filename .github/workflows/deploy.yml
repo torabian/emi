@@ -42,6 +42,9 @@ jobs:
       - name: Javascript tests
         run: cd tests/js && npm i -f && npx vitest run
       
+      - name: Make all release
+        run: cd cmd/emi && make release
+        
       - name: Compile the web veresion (docs, and only after running tests because they create document)
         run: cd emi-web && npm i -f && npm run build
 
@@ -60,8 +63,6 @@ jobs:
         id: get_version_tag
         run: echo "tag_name=$(basename ${GITHUB_REF})" >> $GITHUB_ENV
       
-      - name: Make all release
-        run: cd cmd/emi && make release
 
       - name: release
         uses: actions/create-release@v1
