@@ -37,15 +37,8 @@ jobs:
       - name: Build Playground
         run: cd playground && npm run build
         
-      - name: pwd
-        run: cd ./cmd && pwd && ls -la 
-
       - name: install emi-npm deps
         run: cd emi-npm && npm i
-
-
-      - name: Make all release
-        run: cd ./cmd/emi && make release
 
       - name: Javascript tests
         run: cd tests/js && npm i -f && npx vitest run
@@ -58,6 +51,8 @@ jobs:
       - name: Add web version and playground into same
         run: make compile-github
 
+      - name: Make all release
+        run: cd ./cmd/emi && make release
 
       - name: Deploy pages 🚀
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
