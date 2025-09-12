@@ -14,6 +14,7 @@ func IsNumericDataType(value string) bool {
 		return false
 	}
 }
+
 func IsNullable(value string) bool {
 	return strings.Contains(value, "?")
 }
@@ -25,11 +26,16 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 	switch field.Type {
 	case "string", "text", "string?":
 		return "string"
-	case "one":
+	case "one", "one?":
 		return field.Target
 	case "daterange":
 		return "any"
 	case "enum":
+
+		if field.Target != "" {
+			return field.Target
+		}
+
 		items := []string{}
 		for _, item := range field.OfType {
 			items = append(items, "\""+item.Key+"\"")
@@ -37,7 +43,7 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 		return strings.Join(items, " | ")
 	case "json":
 		return TsCalcJsonField(field)
-	case "many2many":
+	case "many2many", "many2many?":
 		return field.Target + "[]"
 	case "int64?", "int32?", "int?", "float64?", "float32?":
 		return "number"

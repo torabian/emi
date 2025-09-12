@@ -339,11 +339,11 @@ setSubItem2 (value: number) {
 			item1: 'item1',
 			item2array$: 'item2array',
 get item2array() {
-				return withPrefix(
-					"user.item2array[:i]",
-					WebSocketOrgEchoActionReq.User.Item2array.Fields
-				);
-			},
+					return withPrefix(
+						"user.item2array[:i]",
+						WebSocketOrgEchoActionReq.User.Item2array.Fields
+						);
+						},
 	  }
 	}
 }
@@ -404,11 +404,11 @@ get item2array() {
 			lastName: 'lastName',
 			user$: 'user',
 get user() {
-				return withPrefix(
-					"user",
-					WebSocketOrgEchoActionReq.User.Fields
-				);
-			},
+					return withPrefix(
+						"user",
+						WebSocketOrgEchoActionReq.User.Fields
+						);
+						},
 	  }
 	}
 }

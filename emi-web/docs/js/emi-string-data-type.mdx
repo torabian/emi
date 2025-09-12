@@ -204,12 +204,12 @@ export class MyStringClassDto {
    *
    * @type {string}
    **/
-  set nullableStringWithDefault(value: string) {
+  set nullableStringWithDefault(value: string | null | undefined) {
     const correctType =
       typeof value === "string" || value === undefined || value === null;
     this.#nullableStringWithDefault = correctType ? value : "" + value;
   }
-  setNullableStringWithDefault(value: string) {
+  setNullableStringWithDefault(value: string | null | undefined) {
     this.nullableStringWithDefault = value;
     return this;
   }
@@ -229,12 +229,12 @@ export class MyStringClassDto {
    *
    * @type {string}
    **/
-  set nullableWithoutDefault(value: string) {
+  set nullableWithoutDefault(value: string | null | undefined) {
     const correctType =
       typeof value === "string" || value === undefined || value === null;
     this.#nullableWithoutDefault = correctType ? value : "" + value;
   }
-  setNullableWithoutDefault(value: string) {
+  setNullableWithoutDefault(value: string | null | undefined) {
     this.nullableWithoutDefault = value;
     return this;
   }

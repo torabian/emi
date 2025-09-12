@@ -14,10 +14,6 @@
     },
     "Emi": {
       "properties": {
-        "emi": {
-          "type": "string",
-          "description": "Type of the emi content.;enum=module"
-        },
         "namespace": {
           "type": "string",
           "description": "Represents where is the location of the module in app tree. Similar to PHP namespacing sytem it be used to explicitly as export path of the actions for client frameworks"
@@ -44,6 +40,13 @@
           },
           "type": "array",
           "description": "List of entities that module contains. Entities are basically tables in database with their mapping on golang and general actions generated for them"
+        },
+        "enums": {
+          "items": {
+            "$ref": "#/definitions/EmiEnum"
+          },
+          "type": "array",
+          "description": "Module level enums which can be used across the other parts of generated code."
         },
         "tasks": {
           "items": {
@@ -121,17 +124,10 @@
         }
       },
       "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "emi"
-      ]
+      "type": "object"
     },
     "EmiAction": {
       "properties": {
-        "emi": {
-          "type": "string",
-          "description": "Type of the emi content.;enum=action"
-        },
         "name": {
           "type": "string",
           "description": "General name of the action used for generating code and CLI commands"
@@ -220,10 +216,7 @@
         }
       },
       "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "emi"
-      ]
+      "type": "object"
     },
     "EmiActionBody": {
       "properties": {
@@ -391,9 +384,9 @@
     },
     "EmiDto": {
       "properties": {
-        "emi": {
+        "description": {
           "type": "string",
-          "description": "Type of the emi content.;enum=dto"
+          "description": "Description about the purpose of the dto. It will be used in CLI and codegen documentation."
         },
         "name": {
           "type": "string",
@@ -408,10 +401,7 @@
         }
       },
       "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "emi"
-      ]
+      "type": "object"
     },
     "EmiEntity": {
       "properties": {
@@ -605,6 +595,23 @@
     },
     "EmiEnum": {
       "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the enum in camel case the rest of the code related to this enum is being generated based on this"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiEnumInline"
+          },
+          "type": "array",
+          "description": "Define the enum fields as an array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiEnumInline": {
+      "properties": {
         "k": {
           "type": "string",
           "description": "Enum key which will be used in golang generation and validation"
@@ -661,6 +668,8 @@
           "type": "string",
           "enum": [
             "object?",
+            "many2many?",
+            "one?",
             "array?",
             "string?",
             "int?",
@@ -749,10 +758,10 @@
         },
         "of": {
           "items": {
-            "$ref": "#/definitions/EmiEnum"
+            "$ref": "#/definitions/EmiEnumInline"
           },
           "type": "array",
-          "description": "List of enum values in case of enum type for the field. Check EmiEnum for more d"
+          "description": "List of enum values in case of enum type for the field. Check EmiEnumInline for more d"
         },
         "idFieldGorm": {
           "type": "string",

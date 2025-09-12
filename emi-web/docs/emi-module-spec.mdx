@@ -37,13 +37,13 @@ actions:
 On the yaml root, you can set different features of a the module, such as entities, dtos, actions, and many more.
 | Property | Type | Description |
 |----------|------|-------------|
-| `emi` | `string` | Type of the emi content.;enum=module |
 | `namespace` | `string` | Represents where is the location of the module in app tree. Similar to PHP namespacing sytem it be used to explicitly as export path of the actions for client frameworks |
 | `description` | `string` | Description of module and it's purpose. Used in code gen and creating documents. |
 | `version` | `string` | Version of the module. Helpful for different code generation phases but it's not necessary. |
 | `meta-workspace` | `boolean` | Magic property for Emi EmiEmi.yml file. It's gonna be true only in a single file internally in Emi |
 | `name` | `string` | Name of the module. Needs to be lower camel case and Module.go and Module.dyno.go will be generated based on this name. |
 | `entities` | `array` | List of entities that module contains. Entities are basically tables in database with their mapping on golang and general actions generated for them |
+| `enums` | `array` | Module level enums which can be used across the other parts of generated code. |
 | `tasks` | `array` | Tasks are actions which are triggered by a queue message or a cron job. |
 | `dtos` | `array` | Dtos are basically golang structs with some additional functionality which can be used for request/response actions |
 | `complexes` | `array` | Complex custom data types definitions and location |

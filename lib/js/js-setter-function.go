@@ -13,10 +13,15 @@ import (
 
 func (x jsFieldVariable) CreateSetterFunction(ctx core.MicroGenContext) string {
 
+	tsValue := "value: " + x.ComputedType
+
+	if x.IsNullable {
+		tsValue += " | null | undefined"
+	}
 	claims := []core.JsFnArgument{
 		{
 			Key: "arg.value",
-			Ts:  "value: " + x.ComputedType,
+			Ts:  tsValue,
 			Js:  "value",
 		},
 	}
@@ -75,7 +80,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		this.#{{.ctx.Name}} = value;
 	{{ end }}
 	
-	{{ if or (eq .ctx.Type "array") (eq .ctx.Type "array?")}}
+	{{ if or (eq .ctx.Type "array") (eq .ctx.Type "array?") (eq .ctx.Type "many2many?") (eq .ctx.Type "many2many")}}
 	 	// For arrays, you only can pass arrays to the object
 	 	if (!Array.isArray(value)) {
 			return;
@@ -87,7 +92,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		}
  	{{ end }}
 
-	{{ if or (eq .ctx.Type "object") (eq .ctx.Type "object?")}}
+	{{ if or (eq .ctx.Type "object") (eq .ctx.Type "object?") (eq .ctx.Type "one") (eq .ctx.Type "one?")}}
 	 	// For objects, the sub type needs to always be instance of the sub class.
 	 	if (value instanceof {{.ctx.ConstructorClass}}) {
 			this.#{{.ctx.Name}} = value

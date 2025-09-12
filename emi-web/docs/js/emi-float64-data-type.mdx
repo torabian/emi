@@ -189,7 +189,7 @@ export class MyFloatClassDto {
    *
    * @type {number}
    **/
-  set nullableFloatWithDefault(value: number) {
+  set nullableFloatWithDefault(value: number | null | undefined) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
     const parsedValue = correctType ? value : Number(value);
@@ -197,7 +197,7 @@ export class MyFloatClassDto {
       this.#nullableFloatWithDefault = parsedValue;
     }
   }
-  setNullableFloatWithDefault(value: number) {
+  setNullableFloatWithDefault(value: number | null | undefined) {
     this.nullableFloatWithDefault = value;
     return this;
   }
@@ -217,7 +217,7 @@ export class MyFloatClassDto {
    *
    * @type {number}
    **/
-  set nullableFloatWithoutDefault(value: number) {
+  set nullableFloatWithoutDefault(value: number | null | undefined) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
     const parsedValue = correctType ? value : Number(value);
@@ -225,7 +225,7 @@ export class MyFloatClassDto {
       this.#nullableFloatWithoutDefault = parsedValue;
     }
   }
-  setNullableFloatWithoutDefault(value: number) {
+  setNullableFloatWithoutDefault(value: number | null | undefined) {
     this.nullableFloatWithoutDefault = value;
     return this;
   }

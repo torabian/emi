@@ -201,7 +201,7 @@ export class MyIntClassDto {
    *
    * @type {number}
    **/
-  set nullableIntWithDefault(value: number) {
+  set nullableIntWithDefault(value: number | null | undefined) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
     const parsedValue = correctType ? value : Number(value);
@@ -209,7 +209,7 @@ export class MyIntClassDto {
       this.#nullableIntWithDefault = parsedValue;
     }
   }
-  setNullableIntWithDefault(value: number) {
+  setNullableIntWithDefault(value: number | null | undefined) {
     this.nullableIntWithDefault = value;
     return this;
   }
@@ -229,7 +229,7 @@ export class MyIntClassDto {
    *
    * @type {number}
    **/
-  set nullableIntWithoutDefault(value: number) {
+  set nullableIntWithoutDefault(value: number | null | undefined) {
     const correctType =
       typeof value === "number" || value === undefined || value === null;
     const parsedValue = correctType ? value : Number(value);
@@ -237,7 +237,7 @@ export class MyIntClassDto {
       this.#nullableIntWithoutDefault = parsedValue;
     }
   }
-  setNullableIntWithoutDefault(value: number) {
+  setNullableIntWithoutDefault(value: number | null | undefined) {
     this.nullableIntWithoutDefault = value;
     return this;
   }
