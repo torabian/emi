@@ -208,7 +208,7 @@ export class MyBoolClassDto {
    *
    * @type {boolean}
    **/
-  set nullableBoolWithDefault(value: boolean) {
+  set nullableBoolWithDefault(value: boolean | null | undefined) {
     const correctType =
       value === true ||
       value === false ||
@@ -216,7 +216,7 @@ export class MyBoolClassDto {
       value === null;
     this.#nullableBoolWithDefault = correctType ? value : Boolean(value);
   }
-  setNullableBoolWithDefault(value: boolean) {
+  setNullableBoolWithDefault(value: boolean | null | undefined) {
     this.nullableBoolWithDefault = value;
     return this;
   }
@@ -236,7 +236,7 @@ export class MyBoolClassDto {
    *
    * @type {boolean}
    **/
-  set nullableBoolWithoutDefault(value: boolean) {
+  set nullableBoolWithoutDefault(value: boolean | null | undefined) {
     const correctType =
       value === true ||
       value === false ||
@@ -244,7 +244,7 @@ export class MyBoolClassDto {
       value === null;
     this.#nullableBoolWithoutDefault = correctType ? value : Boolean(value);
   }
-  setNullableBoolWithoutDefault(value: boolean) {
+  setNullableBoolWithoutDefault(value: boolean | null | undefined) {
     this.nullableBoolWithoutDefault = value;
     return this;
   }

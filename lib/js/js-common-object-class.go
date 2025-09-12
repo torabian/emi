@@ -81,6 +81,28 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	return result
 }
 
+// when developer says target: AnotherEntity or target: AnotherDto, we need
+// to import that. Here we search through the definition tree and extract them all
+func CollectTargets(fields []*core.EmiField) []string {
+	var result []string
+
+	var walk func(f []*core.EmiField)
+	walk = func(f []*core.EmiField) {
+		for _, field := range f {
+			if field.Target != "" {
+				result = append(result, field.Target)
+			}
+
+			if len(field.Fields) > 0 {
+				walk(field.Fields)
+			}
+		}
+	}
+
+	walk(fields)
+	return result
+}
+
 func hasClassesAsChildren(fields []*core.EmiField) bool {
 	var result = false
 
@@ -142,6 +164,12 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 			Objects:  []string{item},
 			Location: location,
 		})
+	}
+
+	collectTargets := CollectTargets(fields)
+	for _, item := range collectTargets {
+		m := castDtoNameToCodeChunk(item)
+		res.CodeChunkDependenies = append(res.CodeChunkDependenies, m.CodeChunkDependenies...)
 	}
 
 	renderedClasses := jsRenderDataClasses(fields, jsctx.RootClassName, jsctx.RootClassName, "", true, ctx, jsctx)

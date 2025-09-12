@@ -147,6 +147,13 @@ func jsRenderField(
 	jsdoc.Add(field.Description)
 	jsdoc.Add(fmt.Sprintf("@type {%v}", jsFieldType))
 
+	// In case of target, means the constructor class is the target, not
+	// the field name with chain
+	constructorClass := core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
+	if field.Target != "" {
+		constructorClass = field.Target
+	}
+
 	privateFieldToken := jsFieldVariable{
 		Modifier:             "private",
 		Name:                 field.PrivateName(),
@@ -157,7 +164,7 @@ func jsRenderField(
 		Type:                 string(field.Type),
 		ComputedType:         tsFieldType,
 		IsNumeric:            IsNumericDataType(string(field.Type)),
-		ConstructorClass:     core.ToUpper(parentChain) + "." + core.ToUpper(field.Name),
+		ConstructorClass:     constructorClass,
 	}
 
 	if field.Complex != "" {
@@ -182,7 +189,7 @@ func jsRenderField(
 
 	staticVariables := []string{}
 
-	if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many || field.Type == core.FieldTypeEmbed || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne {
+	if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many || field.Type == core.FieldTypeEmbed || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeMany2ManyNullable {
 		staticVariables = append(
 			staticVariables,
 			fmt.Sprintf("%v$: '%v',", field.Name, field.Name),
@@ -198,15 +205,31 @@ func jsRenderField(
 		if fieldDepth == "" {
 			newDepth = field.Name
 		}
-		staticVariables = append(
-			staticVariables,
-			fmt.Sprintf(`get %v() {
-				return withPrefix(
-					"%v%v",
-					%v.Fields
-				);
-			},`, field.Name, newDepth, withArrayIndex, core.ToUpper(parentChain)+"."+core.ToUpper(field.Name)),
-		)
+
+		classReference := core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
+		// In case of target available, means the class is external.
+		if field.Target != "" && (field.Type != core.FieldTypeEnum && field.Type != core.FieldTypeEnumNullable) {
+			classReference = field.Target
+		}
+
+		if field.Type != core.FieldTypeArrayP && field.Type != core.FieldTypeArrayPNullable {
+			staticVariables = append(
+				staticVariables,
+				fmt.Sprintf(`get %v() {
+					return withPrefix(
+						"%v%v",
+						%v.Fields
+						);
+						},`, field.Name, newDepth, withArrayIndex, classReference),
+			)
+		} else {
+			staticVariables = append(
+				staticVariables,
+				fmt.Sprintf(`get %v() {
+					return "%v%v";
+						},`, field.Name, newDepth, withArrayIndex),
+			)
+		}
 	} else {
 		// For default types the string name is enough.
 		staticVariables = append(

@@ -4,9 +4,6 @@ import "fmt"
 
 type Emi struct {
 
-	// Type of the emi content
-	Emi string `jsonschema:"description=Type of the emi content.;enum=module" json:"emi" yaml:"emi"`
-
 	// Custom imports appened by some macros
 	ActionsCustomImport []string `jsonschema:"-" json:"-" yaml:"-"`
 
@@ -27,6 +24,9 @@ type Emi struct {
 
 	// List of entities that module contains. Entities are basically tables in database with their mapping on golang and general actions generated for them
 	Entities []EmiEntity `yaml:"entities,omitempty" json:"entities,omitempty" jsonschema:"description=List of entities that module contains. Entities are basically tables in database with their mapping on golang and general actions generated for them"`
+
+	// Module level enums which can be used across the other parts of generated code.
+	Enums []EmiEnum `yaml:"enums,omitempty" json:"enums,omitempty" jsonschema:"description=Module level enums which can be used across the other parts of generated code."`
 
 	// Tasks are actions which are triggered by a queue message or a cron job.
 	Tasks []*EmiTask `yaml:"tasks,omitempty" json:"tasks,omitempty" jsonschema:"description=Tasks are actions which are triggered by a queue message or a cron job."`

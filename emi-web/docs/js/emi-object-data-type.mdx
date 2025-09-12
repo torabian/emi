@@ -318,6 +318,8 @@ export class MyObjectClassDto {
     value:
       | InstanceType<typeof MyObjectClassDto.OptionalProfile>
       | null
+      | undefined
+      | null
       | undefined,
   ) {
     // For objects, the sub type needs to always be instance of the sub class.
@@ -330,6 +332,8 @@ export class MyObjectClassDto {
   setOptionalProfile(
     value:
       | InstanceType<typeof MyObjectClassDto.OptionalProfile>
+      | null
+      | undefined
       | null
       | undefined,
   ) {

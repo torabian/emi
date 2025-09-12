@@ -17,11 +17,11 @@ get apiVersion () { return this.#apiVersion }
   * Version of the API used for this response.
   * @type {string}
   **/
-set apiVersion (value: string) {
+set apiVersion (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#apiVersion = correctType ? value : ('' + value);
 }
-setApiVersion (value: string) {
+setApiVersion (value: string | null | undefined) {
 	this.apiVersion = value
 	return this
 }
@@ -39,11 +39,11 @@ get context () { return this.#context }
   * Context string provided by the client or system for request tracking.
   * @type {string}
   **/
-set context (value: string) {
+set context (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#context = correctType ? value : ('' + value);
 }
-setContext (value: string) {
+setContext (value: string | null | undefined) {
 	this.context = value
 	return this
 }
@@ -61,11 +61,11 @@ get id () { return this.#id }
   * Unique identifier assigned to the request/response.
   * @type {string}
   **/
-set id (value: string) {
+set id (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#id = correctType ? value : ('' + value);
 }
-setId (value: string) {
+setId (value: string | null | undefined) {
 	this.id = value
 	return this
 }
@@ -83,11 +83,11 @@ get method () { return this.#method }
   * Name of the API method invoked.
   * @type {string}
   **/
-set method (value: string) {
+set method (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#method = correctType ? value : ('' + value);
 }
-setMethod (value: string) {
+setMethod (value: string | null | undefined) {
 	this.method = value
 	return this
 }
@@ -224,11 +224,11 @@ get editLink () { return this.#editLink }
   * Link to edit this resource.
   * @type {string}
   **/
-set editLink (value: string) {
+set editLink (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#editLink = correctType ? value : ('' + value);
 }
-setEditLink (value: string) {
+setEditLink (value: string | null | undefined) {
 	this.editLink = value
 	return this
 }
@@ -246,11 +246,11 @@ get selfLink () { return this.#selfLink }
   * Link to retrieve this resource.
   * @type {string}
   **/
-set selfLink (value: string) {
+set selfLink (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#selfLink = correctType ? value : ('' + value);
 }
-setSelfLink (value: string) {
+setSelfLink (value: string | null | undefined) {
 	this.selfLink = value
 	return this
 }
@@ -268,11 +268,11 @@ get kind () { return this.#kind }
   * Resource type (kind) identifier.
   * @type {string}
   **/
-set kind (value: string) {
+set kind (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#kind = correctType ? value : ('' + value);
 }
-setKind (value: string) {
+setKind (value: string | null | undefined) {
 	this.kind = value
 	return this
 }
@@ -290,11 +290,11 @@ get fields () { return this.#fields }
   * Selector specifying which fields are included in a partial response.
   * @type {string}
   **/
-set fields (value: string) {
+set fields (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#fields = correctType ? value : ('' + value);
 }
-setFields (value: string) {
+setFields (value: string | null | undefined) {
 	this.fields = value
 	return this
 }
@@ -312,11 +312,11 @@ get etag () { return this.#etag }
   * ETag of the resource, used for caching/version control.
   * @type {string}
   **/
-set etag (value: string) {
+set etag (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#etag = correctType ? value : ('' + value);
 }
-setEtag (value: string) {
+setEtag (value: string | null | undefined) {
 	this.etag = value
 	return this
 }
@@ -334,11 +334,11 @@ get cursor () { return this.#cursor }
   * Cursor for paginated data fetching.
   * @type {string}
   **/
-set cursor (value: string) {
+set cursor (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#cursor = correctType ? value : ('' + value);
 }
-setCursor (value: string) {
+setCursor (value: string | null | undefined) {
 	this.cursor = value
 	return this
 }
@@ -356,11 +356,11 @@ get id () { return this.#id }
   * Unique identifier of the resource.
   * @type {string}
   **/
-set id (value: string) {
+set id (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#id = correctType ? value : ('' + value);
 }
-setId (value: string) {
+setId (value: string | null | undefined) {
 	this.id = value
 	return this
 }
@@ -378,11 +378,11 @@ get lang () { return this.#lang }
   * Language code of the response data.
   * @type {string}
   **/
-set lang (value: string) {
+set lang (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#lang = correctType ? value : ('' + value);
 }
-setLang (value: string) {
+setLang (value: string | null | undefined) {
 	this.lang = value
 	return this
 }
@@ -400,11 +400,11 @@ get updated () { return this.#updated }
   * Last modification time of the resource.
   * @type {string}
   **/
-set updated (value: string) {
+set updated (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#updated = correctType ? value : ('' + value);
 }
-setUpdated (value: string) {
+setUpdated (value: string | null | undefined) {
 	this.updated = value
 	return this
 }
@@ -422,14 +422,14 @@ get currentItemCount () { return this.#currentItemCount }
   * Number of items in the current response page.
   * @type {number}
   **/
-set currentItemCount (value: number) {
+set currentItemCount (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#currentItemCount = parsedValue;
 		}
 }
-setCurrentItemCount (value: number) {
+setCurrentItemCount (value: number | null | undefined) {
 	this.currentItemCount = value
 	return this
 }
@@ -447,14 +447,14 @@ get itemsPerPage () { return this.#itemsPerPage }
   * Maximum number of items per page.
   * @type {number}
   **/
-set itemsPerPage (value: number) {
+set itemsPerPage (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#itemsPerPage = parsedValue;
 		}
 }
-setItemsPerPage (value: number) {
+setItemsPerPage (value: number | null | undefined) {
 	this.itemsPerPage = value
 	return this
 }
@@ -472,14 +472,14 @@ get startIndex () { return this.#startIndex }
   * Index of the first item in the current page.
   * @type {number}
   **/
-set startIndex (value: number) {
+set startIndex (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#startIndex = parsedValue;
 		}
 }
-setStartIndex (value: number) {
+setStartIndex (value: number | null | undefined) {
 	this.startIndex = value
 	return this
 }
@@ -497,14 +497,14 @@ get totalItems () { return this.#totalItems }
   * Total number of items available.
   * @type {number}
   **/
-set totalItems (value: number) {
+set totalItems (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#totalItems = parsedValue;
 		}
 }
-setTotalItems (value: number) {
+setTotalItems (value: number | null | undefined) {
 	this.totalItems = value
 	return this
 }
@@ -522,14 +522,14 @@ get totalAvailableItems () { return this.#totalAvailableItems }
   * Number of items available for this user/query.
   * @type {number}
   **/
-set totalAvailableItems (value: number) {
+set totalAvailableItems (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#totalAvailableItems = parsedValue;
 		}
 }
-setTotalAvailableItems (value: number) {
+setTotalAvailableItems (value: number | null | undefined) {
 	this.totalAvailableItems = value
 	return this
 }
@@ -547,14 +547,14 @@ get pageIndex () { return this.#pageIndex }
   * Current page index in the pagination.
   * @type {number}
   **/
-set pageIndex (value: number) {
+set pageIndex (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#pageIndex = parsedValue;
 		}
 }
-setPageIndex (value: number) {
+setPageIndex (value: number | null | undefined) {
 	this.pageIndex = value
 	return this
 }
@@ -572,14 +572,14 @@ get totalPages () { return this.#totalPages }
   * Total number of pages in the pagination.
   * @type {number}
   **/
-set totalPages (value: number) {
+set totalPages (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#totalPages = parsedValue;
 		}
 }
-setTotalPages (value: number) {
+setTotalPages (value: number | null | undefined) {
 	this.totalPages = value
 	return this
 }
@@ -807,11 +807,11 @@ get domain () { return this.#domain }
   * Logical grouping of the error (e.g., global, usageLimits).
   * @type {string}
   **/
-set domain (value: string) {
+set domain (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#domain = correctType ? value : ('' + value);
 }
-setDomain (value: string) {
+setDomain (value: string | null | undefined) {
 	this.domain = value
 	return this
 }
@@ -829,11 +829,11 @@ get reason () { return this.#reason }
   * Reason identifier for the error.
   * @type {string}
   **/
-set reason (value: string) {
+set reason (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#reason = correctType ? value : ('' + value);
 }
-setReason (value: string) {
+setReason (value: string | null | undefined) {
 	this.reason = value
 	return this
 }
@@ -851,11 +851,11 @@ get message () { return this.#message }
   * Human-readable explanation of the sub-error.
   * @type {string}
   **/
-set message (value: string) {
+set message (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#message = correctType ? value : ('' + value);
 }
-setMessage (value: string) {
+setMessage (value: string | null | undefined) {
 	this.message = value
 	return this
 }
@@ -873,11 +873,11 @@ get messageTranslated () { return this.#messageTranslated }
   * Localized/translated version of the sub-error message.
   * @type {string}
   **/
-set messageTranslated (value: string) {
+set messageTranslated (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#messageTranslated = correctType ? value : ('' + value);
 }
-setMessageTranslated (value: string) {
+setMessageTranslated (value: string | null | undefined) {
 	this.messageTranslated = value
 	return this
 }
@@ -895,11 +895,11 @@ get location () { return this.#location }
   * Field or parameter in which the error occurred.
   * @type {string}
   **/
-set location (value: string) {
+set location (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#location = correctType ? value : ('' + value);
 }
-setLocation (value: string) {
+setLocation (value: string | null | undefined) {
 	this.location = value
 	return this
 }
@@ -917,11 +917,11 @@ get locationType () { return this.#locationType }
   * Type of location (e.g., parameter, header).
   * @type {string}
   **/
-set locationType (value: string) {
+set locationType (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#locationType = correctType ? value : ('' + value);
 }
-setLocationType (value: string) {
+setLocationType (value: string | null | undefined) {
 	this.locationType = value
 	return this
 }
@@ -939,11 +939,11 @@ get extendedHelp () { return this.#extendedHelp }
   * URL linking to additional documentation about the error.
   * @type {string}
   **/
-set extendedHelp (value: string) {
+set extendedHelp (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#extendedHelp = correctType ? value : ('' + value);
 }
-setExtendedHelp (value: string) {
+setExtendedHelp (value: string | null | undefined) {
 	this.extendedHelp = value
 	return this
 }
@@ -961,11 +961,11 @@ get sendReport () { return this.#sendReport }
   * URL to submit a report for this error.
   * @type {string}
   **/
-set sendReport (value: string) {
+set sendReport (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#sendReport = correctType ? value : ('' + value);
 }
-setSendReport (value: string) {
+setSendReport (value: string | null | undefined) {
 	this.sendReport = value
 	return this
 }
@@ -1103,11 +1103,11 @@ setSendReport (value: string) {
 			messageTranslated: 'messageTranslated',
 			errors$: 'errors',
 get errors() {
-				return withPrefix(
-					"error.errors[:i]",
-					ResponseDto.Error.Errors.Fields
-				);
-			},
+					return withPrefix(
+						"error.errors[:i]",
+						ResponseDto.Error.Errors.Fields
+						);
+						},
 	  }
 	}
 }
@@ -1179,18 +1179,18 @@ get errors() {
 			params: 'params',
 			data$: 'data',
 get data() {
-				return withPrefix(
-					"data",
-					ResponseDto.Data.Fields
-				);
-			},
+					return withPrefix(
+						"data",
+						ResponseDto.Data.Fields
+						);
+						},
 			error$: 'error',
 get error() {
-				return withPrefix(
-					"error",
-					ResponseDto.Error.Fields
-				);
-			},
+					return withPrefix(
+						"error",
+						ResponseDto.Error.Fields
+						);
+						},
 	  }
 	}
 }

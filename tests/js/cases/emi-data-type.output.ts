@@ -60,11 +60,11 @@ get nullablestringField () { return this.#nullablestringField }
   * nullable string
   * @type {string}
   **/
-set nullablestringField (value: string) {
+set nullablestringField (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#nullablestringField = correctType ? value : ('' + value);
 }
-setNullablestringField (value: string) {
+setNullablestringField (value: string | null | undefined) {
 	this.nullablestringField = value
 	return this
 }
@@ -82,11 +82,11 @@ get nullablestringFieldWithValue () { return this.#nullablestringFieldWithValue 
   * nullable string with default
   * @type {string}
   **/
-set nullablestringFieldWithValue (value: string) {
+set nullablestringFieldWithValue (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
 		this.#nullablestringFieldWithValue = correctType ? value : ('' + value);
 }
-setNullablestringFieldWithValue (value: string) {
+setNullablestringFieldWithValue (value: string | null | undefined) {
 	this.nullablestringFieldWithValue = value
 	return this
 }
@@ -148,11 +148,11 @@ get nullableboolField () { return this.#nullableboolField }
   * nullable bool
   * @type {boolean}
   **/
-set nullableboolField (value: boolean) {
+set nullableboolField (value: boolean | null | undefined) {
 	 	const correctType = value === true || value === false || value === undefined || value === null
 		this.#nullableboolField = correctType ? value : Boolean(value);
 }
-setNullableboolField (value: boolean) {
+setNullableboolField (value: boolean | null | undefined) {
 	this.nullableboolField = value
 	return this
 }
@@ -170,11 +170,11 @@ get nullableboolFieldWithValue () { return this.#nullableboolFieldWithValue }
   * nullable bool with default
   * @type {boolean}
   **/
-set nullableboolFieldWithValue (value: boolean) {
+set nullableboolFieldWithValue (value: boolean | null | undefined) {
 	 	const correctType = value === true || value === false || value === undefined || value === null
 		this.#nullableboolFieldWithValue = correctType ? value : Boolean(value);
 }
-setNullableboolFieldWithValue (value: boolean) {
+setNullableboolFieldWithValue (value: boolean | null | undefined) {
 	this.nullableboolFieldWithValue = value
 	return this
 }
@@ -242,14 +242,14 @@ get nullableIntField () { return this.#nullableIntField }
   * nullable int
   * @type {number}
   **/
-set nullableIntField (value: number) {
+set nullableIntField (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableIntField = parsedValue;
 		}
 }
-setNullableIntField (value: number) {
+setNullableIntField (value: number | null | undefined) {
 	this.nullableIntField = value
 	return this
 }
@@ -267,14 +267,14 @@ get nullableIntFieldWithValue () { return this.#nullableIntFieldWithValue }
   * nullable int with default
   * @type {number}
   **/
-set nullableIntFieldWithValue (value: number) {
+set nullableIntFieldWithValue (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableIntFieldWithValue = parsedValue;
 		}
 }
-setNullableIntFieldWithValue (value: number) {
+setNullableIntFieldWithValue (value: number | null | undefined) {
 	this.nullableIntFieldWithValue = value
 	return this
 }
@@ -342,14 +342,14 @@ get nullableInt32Field () { return this.#nullableInt32Field }
   * nullable int32
   * @type {number}
   **/
-set nullableInt32Field (value: number) {
+set nullableInt32Field (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableInt32Field = parsedValue;
 		}
 }
-setNullableInt32Field (value: number) {
+setNullableInt32Field (value: number | null | undefined) {
 	this.nullableInt32Field = value
 	return this
 }
@@ -367,14 +367,14 @@ get nullableInt32FieldWithValue () { return this.#nullableInt32FieldWithValue }
   * nullable int32 with default
   * @type {number}
   **/
-set nullableInt32FieldWithValue (value: number) {
+set nullableInt32FieldWithValue (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableInt32FieldWithValue = parsedValue;
 		}
 }
-setNullableInt32FieldWithValue (value: number) {
+setNullableInt32FieldWithValue (value: number | null | undefined) {
 	this.nullableInt32FieldWithValue = value
 	return this
 }
@@ -417,14 +417,14 @@ get int64FieldWithValue () { return this.#int64FieldWithValue }
   * int64 with default
   * @type {number}
   **/
-set int64FieldWithValue (value: number) {
+set int64FieldWithValue (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#int64FieldWithValue = parsedValue;
 		}
 }
-setInt64FieldWithValue (value: number) {
+setInt64FieldWithValue (value: number | null | undefined) {
 	this.int64FieldWithValue = value
 	return this
 }
@@ -442,14 +442,14 @@ get nullableInt64Field () { return this.#nullableInt64Field }
   * nullable int64
   * @type {number}
   **/
-set nullableInt64Field (value: number) {
+set nullableInt64Field (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableInt64Field = parsedValue;
 		}
 }
-setNullableInt64Field (value: number) {
+setNullableInt64Field (value: number | null | undefined) {
 	this.nullableInt64Field = value
 	return this
 }
@@ -467,14 +467,14 @@ get nullableInt64FieldWithValue () { return this.#nullableInt64FieldWithValue }
   * nullable int64 with default
   * @type {number}
   **/
-set nullableInt64FieldWithValue (value: number) {
+set nullableInt64FieldWithValue (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableInt64FieldWithValue = parsedValue;
 		}
 }
-setNullableInt64FieldWithValue (value: number) {
+setNullableInt64FieldWithValue (value: number | null | undefined) {
 	this.nullableInt64FieldWithValue = value
 	return this
 }
@@ -532,14 +532,14 @@ get nullableFloat32Field () { return this.#nullableFloat32Field }
   * nullable float32
   * @type {number}
   **/
-set nullableFloat32Field (value: number) {
+set nullableFloat32Field (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableFloat32Field = parsedValue;
 		}
 }
-setNullableFloat32Field (value: number) {
+setNullableFloat32Field (value: number | null | undefined) {
 	this.nullableFloat32Field = value
 	return this
 }
@@ -557,14 +557,14 @@ get nullableFloat32FieldWithValue () { return this.#nullableFloat32FieldWithValu
   * nullable float32 with default
   * @type {number}
   **/
-set nullableFloat32FieldWithValue (value: number) {
+set nullableFloat32FieldWithValue (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableFloat32FieldWithValue = parsedValue;
 		}
 }
-setNullableFloat32FieldWithValue (value: number) {
+setNullableFloat32FieldWithValue (value: number | null | undefined) {
 	this.nullableFloat32FieldWithValue = value
 	return this
 }
@@ -622,14 +622,14 @@ get nullableFloat64Field () { return this.#nullableFloat64Field }
   * nullable float64
   * @type {number}
   **/
-set nullableFloat64Field (value: number) {
+set nullableFloat64Field (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableFloat64Field = parsedValue;
 		}
 }
-setNullableFloat64Field (value: number) {
+setNullableFloat64Field (value: number | null | undefined) {
 	this.nullableFloat64Field = value
 	return this
 }
@@ -647,14 +647,14 @@ get nullableFloat64FieldWithValue () { return this.#nullableFloat64FieldWithValu
   * nullable float64 with default
   * @type {number}
   **/
-set nullableFloat64FieldWithValue (value: number) {
+set nullableFloat64FieldWithValue (value: number | null | undefined) {
 	 	const correctType = typeof value === 'number' || value === undefined || value === null
 		const parsedValue = correctType ? value : Number(value)
 		if (!Number.isNaN(parsedValue)) {
 			this.#nullableFloat64FieldWithValue = parsedValue;
 		}
 }
-setNullableFloat64FieldWithValue (value: number) {
+setNullableFloat64FieldWithValue (value: number | null | undefined) {
 	this.nullableFloat64FieldWithValue = value
 	return this
 }

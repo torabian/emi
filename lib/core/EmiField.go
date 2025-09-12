@@ -100,7 +100,7 @@ type EmiField struct {
 	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description about the field for developers and generated documents."`
 
 	// Type of the field based on Emi types.
-	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=object?,enum=array?,enum=string?,enum=int?,enum=any,enum=complex,enum=float64?,enum=money?,enum=xfile?,enum=float32?,enum=bool?,enum=int32?,enum=int64?,enum=int,enum=datetime,enum=json,enum=embed,enum=datenano,enum=html,enum=text,enum=date,enum=daterange,enum=many2many,enum=arrayP,enum=enum,enum=bool,enum=one,enum=int64,enum=float64,enum=duration?,enum=object,enum=array,enum=string,description=Type of the field based on Emi types."`
+	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=object?,enum=many2many?,enum=one?,enum=array?,enum=string?,enum=int?,enum=any,enum=complex,enum=float64?,enum=money?,enum=xfile?,enum=float32?,enum=bool?,enum=int32?,enum=int64?,enum=int,enum=datetime,enum=json,enum=embed,enum=datenano,enum=html,enum=text,enum=date,enum=daterange,enum=many2many,enum=arrayP,enum=enum,enum=bool,enum=one,enum=int64,enum=float64,enum=duration?,enum=object,enum=array,enum=string,description=Type of the field based on Emi types."`
 
 	// Primitive type in golang when type: arrayP is set
 	Primitive string `yaml:"primitive,omitempty" json:"primitive,omitempty" jsonschema:"description=Primitive type in golang when type: arrayP is set"`
@@ -141,8 +141,8 @@ type EmiField struct {
 	// The xml tag of the generated field. Defaults to the name but can be overwritten with this field
 	Xml string `yaml:"xml,omitempty" json:"xml,omitempty" jsonschema:"description=The xml tag of the generated field. Defaults to the name but can be overwritten"`
 
-	// List of enum values in case of enum type for the field. Check EmiEnum for more details how to define them.
-	OfType []*EmiEnum `yaml:"of,omitempty" json:"of,omitempty" jsonschema:"description=List of enum values in case of enum type for the field. Check EmiEnum for more d"`
+	// List of enum values in case of enum type for the field. Check EmiEnumInline for more details how to define them.
+	OfType []*EmiEnumInline `yaml:"of,omitempty" json:"of,omitempty" jsonschema:"description=List of enum values in case of enum type for the field. Check EmiEnumInline for more d"`
 
 	// When type is one there will be another field added with Id prefix. This tag will override gorm meta tag of that field
 	IdFieldGorm string `yaml:"idFieldGorm,omitempty" json:"idFieldGorm,omitempty" jsonschema:"description=When type is one there will be another field added with Id prefix. This tag will override gorm meta"`

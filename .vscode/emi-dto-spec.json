@@ -5,9 +5,9 @@
   "definitions": {
     "EmiDto": {
       "properties": {
-        "emi": {
+        "description": {
           "type": "string",
-          "description": "Type of the emi content.;enum=dto"
+          "description": "Description about the purpose of the dto. It will be used in CLI and codegen documentation."
         },
         "name": {
           "type": "string",
@@ -22,12 +22,9 @@
         }
       },
       "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "emi"
-      ]
+      "type": "object"
     },
-    "EmiEnum": {
+    "EmiEnumInline": {
       "properties": {
         "k": {
           "type": "string",
@@ -59,6 +56,8 @@
           "type": "string",
           "enum": [
             "object?",
+            "many2many?",
+            "one?",
             "array?",
             "string?",
             "int?",
@@ -147,10 +146,10 @@
         },
         "of": {
           "items": {
-            "$ref": "#/definitions/EmiEnum"
+            "$ref": "#/definitions/EmiEnumInline"
           },
           "type": "array",
-          "description": "List of enum values in case of enum type for the field. Check EmiEnum for more d"
+          "description": "List of enum values in case of enum type for the field. Check EmiEnumInline for more d"
         },
         "idFieldGorm": {
           "type": "string",

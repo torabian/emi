@@ -96,6 +96,20 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		actionsRendered = append(actionsRendered, actionRendered)
 	}
 
+	for _, enum := range module.Enums {
+
+		enumRendered, err := JsStandaloneEnum(enum, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, core.VirtualFile{
+			Name:         enumRendered.SuggestedFileName,
+			Extension:    enumRendered.SuggestedExtension,
+			ActualScript: AsFullDocument(enumRendered),
+		})
+	}
+
 	for _, remote := range module.Remotes {
 		if config.Remotes != nil && len(*config.Remotes) > 0 && !slices.Contains(config.GetRemotes(), remote.Name) {
 			continue
