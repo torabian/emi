@@ -35,7 +35,7 @@ func JsActionManifestRealms(
 ) (*jsActionRealms, []core.CodeChunkDependency, error) {
 	deps := []core.CodeChunkDependency{}
 	actionRealms := jsActionRealms{
-		ActionName: action.GetName(),
+		ActionName: core.NormaliseKey(action.GetName()),
 		HttpMethod: action.MethodUpper(),
 	}
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)

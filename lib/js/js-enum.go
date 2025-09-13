@@ -36,7 +36,7 @@ export enum {{.enum.GetName}} {
 	 	/*
 		*	{{ .Description }}
 		**/
-		{{ .Key }} = '{{.Key}}',
+		{{ .GetKey }} = '{{.Key}}',
 	{{ end }}
 }
 
@@ -46,7 +46,7 @@ export const {{.enum.GetName}} = Object.freeze({
 	 	/*
 		*	{{ .Description }}
 		**/
-		{{ .Key }}: '{{.Key}}',
+		{{ .GetKey }}: '{{.Key}}',
 	{{ end }}
 });
 
