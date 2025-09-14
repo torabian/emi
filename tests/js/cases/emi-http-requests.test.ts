@@ -118,14 +118,16 @@ describe("Generates the http action codes and classes", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
       `http://localhost:${port}/json`
     );
     expect(res.response.result).toBeInstanceOf(HttpActionActionRes);
-    expect(res.response.result?.number).toBe(42);
+    expect((res.response.result as HttpActionActionRes)?.number).toBe(42);
   });
 
   it("handles plain text", async () => {
     const res = await HttpActionAction.Fetch(
+      undefined,
       undefined,
       undefined,
       undefined,
@@ -136,6 +138,7 @@ describe("Generates the http action codes and classes", () => {
 
   it("handles attachment", async () => {
     const res = await HttpActionAction.Fetch(
+      undefined,
       undefined,
       undefined,
       undefined,
