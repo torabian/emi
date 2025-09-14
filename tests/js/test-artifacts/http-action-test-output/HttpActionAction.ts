@@ -34,6 +34,8 @@ export class HttpActionAction {
     );
   };
   static Fetch = async (
+    creatorFn: (item: unknown) => HttpActionActionRes = (item) =>
+      new HttpActionActionRes(item),
     qs?: URLSearchParams,
     init?: TypedRequestInit<HttpActionActionReq, unknown>,
     onMessage?: (ev: MessageEvent) => void,

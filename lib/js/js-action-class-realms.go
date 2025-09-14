@@ -228,28 +228,29 @@ func parseDtoPath(input string) (path string, className string) {
 }
 
 func castDtoNameToCodeChunk(dtoName string) *core.CodeChunkCompiled {
-	directory, className := parseDtoPath(dtoName)
+	names := strings.Split(dtoName, "|")
 
-	return &core.CodeChunkCompiled{
-		ActualScript: []byte(""),
-		Tokens: []core.GeneratedScriptToken{
-			{
-				Name:  TOKEN_OBJ_CLASS,
-				Value: className,
-			},
-			{
-				Name:  TOKEN_ROOT_CLASS,
-				Value: className,
-			},
-		},
-		CodeChunkDependenies: []core.CodeChunkDependency{
-			{
-				Objects: []string{className},
+	chunk := &core.CodeChunkCompiled{
+		ActualScript:         []byte(""),
+		Tokens:               []core.GeneratedScriptToken{},
+		CodeChunkDependenies: []core.CodeChunkDependency{},
+	}
 
-				// @todo This doesn't handle external files unfortunately
+	chunk.Tokens = append(chunk.Tokens,
+		core.GeneratedScriptToken{Name: TOKEN_OBJ_CLASS, Value: dtoName},
+		core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: dtoName},
+	)
 
+	for _, name := range names {
+		directory, className := parseDtoPath(strings.TrimSpace(name))
+
+		chunk.CodeChunkDependenies = append(chunk.CodeChunkDependenies,
+			core.CodeChunkDependency{
+				Objects:  []string{className},
 				Location: directory,
 			},
-		},
+		)
 	}
+
+	return chunk
 }

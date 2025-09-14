@@ -61,6 +61,7 @@ export class ComputeAverageAction {
 		)
 	}
 	static Fetch = async (
+			creatorFn: (item: unknown) => AverageDto = (item) => new AverageDto(item),
 		qs?: URLSearchParams,
 		init?: TypedRequestInit<ComputeDto, unknown>,
 		onMessage?: (ev: MessageEvent) => void,

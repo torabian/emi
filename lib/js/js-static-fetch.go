@@ -70,6 +70,45 @@ func GetClassOrUnknown(value string) string {
 	return "unknown"
 }
 
+type CreateFn struct {
+	ArgStatement string
+
+	// When a return type is multiple different dtos, how can we know what is each instance?
+	// It's impossible. Then developer needs to be forced to provide tht.
+	IsAmbigousCreator bool
+}
+
+func getCreatorFnInfo(fetchctx fetchStaticFunctionContext, isTypescript bool) *CreateFn {
+	isAmbigousCreator := false
+	// There is nothing to create instance, return early.
+	if fetchctx.ResponseClass == "" {
+		return nil
+	}
+
+	// This is a way to detect if multiple things are returning. Might be not the best solution
+	// but works perfectly fine.
+	isAmbigousCreator = strings.Contains(fetchctx.ResponseClass, "|")
+
+	// universal instantiator :D
+	instantiator := fmt.Sprintf("= (item) => new %v(item)", fetchctx.ResponseClass)
+
+	// In case of ambigous creator, we do not have the instantiator, and developer needs to provide it.
+	if isAmbigousCreator {
+		instantiator = fmt.Sprintf(" = () => { throw 'Return type can be different types, you need to pass a function to determine, which class needs to be created: %v' }", fetchctx.ResponseClass)
+	}
+
+	statement := fmt.Sprintf("creatorFn %v", instantiator)
+	if isTypescript {
+		statement = fmt.Sprintf("creatorFn: (item: unknown) => %v %v", fetchctx.ResponseClass, instantiator)
+	}
+
+	return &CreateFn{
+		ArgStatement:      statement,
+		IsAmbigousCreator: isAmbigousCreator,
+	}
+
+}
+
 func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArgument {
 	responseType := GetClassOrUnknown(fetchctx.ResponseClass)
 	requestHeaderType := GetClassOrUnknown(fetchctx.RequestHeadersClass)
@@ -126,13 +165,11 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 
 			statement := `(data) => { 
 				return new %v<%v>()
-					.setCreator((item) => new %v(item))
+					.setCreator(creatorFn)
 					.inject(data);
 			
 			}`
-			seq := fmt.Sprintf(statement, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass, fetchctx.ResponseClass)
-
-			// seq := fmt.Sprintf("(data) => new %v(data).updatePayload(new %v())", fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)
+			seq := fmt.Sprintf(statement, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)
 			claims = append(claims, core.JsFnArgument{
 				Key: "response.cls",
 				Ts:  seq,
@@ -184,6 +221,9 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		{{ if .hasQueryParams }}
 			|@query.params|,
 		{{ end }}
+		 {{ if .creatorFn }}
+			{{ .creatorFn.ArgStatement }},
+		{{ end }}
 		|@fetch.qs|,
 		|@fetch.init|,
 		|@message.callback|,
@@ -218,10 +258,13 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 	}
 	`
 
-	t := template.Must(template.New("axioshelper").Funcs(core.CommonMap).Parse(tmpl))
+	creatorFn := getCreatorFnInfo(fetchctx, isTypeScript)
+
+	t := template.Must(template.New("fetchstatichelper").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"claims":         claimsRendered,
+		"creatorFn":      creatorFn,
 		"fetchctx":       fetchctx,
 		"hasQueryParams": len(queryParams) > 0,
 	}); err != nil {

@@ -67,6 +67,7 @@ export class SampleSseAction {
 		)
 	}
 	static Fetch = async (
+			creatorFn: (item: unknown) => SampleSseActionRes = (item) => new SampleSseActionRes(item),
 		qs?: URLSearchParams,
 		init?: TypedRequestInit<unknown, unknown>,
 		onMessage?: (ev: MessageEvent) => void,

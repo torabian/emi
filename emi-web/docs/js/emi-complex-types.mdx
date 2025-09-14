@@ -73,6 +73,8 @@ export class SampleAction {
     );
   };
   static Fetch = async (
+    creatorFn: (item: unknown) => SampleActionRes = (item) =>
+      new SampleActionRes(item),
     qs?: URLSearchParams,
     init?: TypedRequestInit<unknown, unknown>,
     onMessage?: (ev: MessageEvent) => void,
@@ -83,7 +85,7 @@ export class SampleAction {
       res,
       (data) => {
         return new GResponse<SampleActionRes>()
-          .setCreator((item) => new SampleActionRes(item))
+          .setCreator(creatorFn)
           .inject(data);
       },
       onMessage,

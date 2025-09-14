@@ -103,6 +103,7 @@ export class GetSinglePostAction {
 	}
 	static Fetch = async (
 			params: GetSinglePostActionPathParameter,
+			creatorFn: (item: unknown) => GetSinglePostActionRes = (item) => new GetSinglePostActionRes(item),
 		qs?: URLSearchParams,
 		init?: TypedRequestInit<unknown, unknown>,
 		onMessage?: (ev: MessageEvent) => void,

@@ -35,6 +35,8 @@ export class HttpActionAction {
     );
   };
   static Fetch = async (
+    creatorFn: (item: unknown) => HttpActionActionRes = (item) =>
+      new HttpActionActionRes(item),
     qs?: URLSearchParams,
     init?: TypedRequestInit<unknown, unknown>,
     onMessage?: (ev: MessageEvent) => void,
@@ -45,7 +47,7 @@ export class HttpActionAction {
       res,
       (data) => {
         return new GResponse<HttpActionActionRes>()
-          .setCreator((item) => new HttpActionActionRes(item))
+          .setCreator(creatorFn)
           .inject(data);
       },
       onMessage,
