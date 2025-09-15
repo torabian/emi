@@ -158,8 +158,10 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 		if fetchctx.ResponseEnvelopeClass == "" {
 			claims = append(claims, core.JsFnArgument{
 				Key: "response.cls",
-				Ts:  fetchctx.ResponseClass,
-				Js:  fetchctx.ResponseClass,
+				// Ts:  fetchctx.ResponseClass,
+				// Js:  fetchctx.ResponseClass,
+				Ts: "(item) => creatorFn(item)",
+				Js: "(item) => creatorFn(item)",
 			})
 		} else {
 

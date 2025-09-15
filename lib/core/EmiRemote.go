@@ -1,6 +1,9 @@
 package core
 
-import "strings"
+import (
+	"encoding/json"
+	"strings"
+)
 
 // This is a Emi remote definition, you can make the external API calls typesafe using
 // definitions. This feature is documented in docs/remotes.md
@@ -129,4 +132,9 @@ func (x EmiRemote) MethodUpper() string {
 
 func (x EmiRemote) Upper() string {
 	return ToUpper(x.Name)
+}
+
+func (x EmiRemote) GetDefinition() string {
+	m, _ := json.MarshalIndent(x, "", "  ")
+	return string(m)
 }

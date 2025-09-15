@@ -45,6 +45,64 @@ export class WebSocketOrgEchoAction {
 			}
 		);
 	}
+  static Definition = {
+  "name": "webSocketOrgEcho",
+  "url": "wss://echo.websocket.org/.ws",
+  "method": "reactive",
+  "description": "Websocket.org eco server, to send a json and recieve back",
+  "in": {
+    "fields": [
+      {
+        "name": "firstName",
+        "type": "string",
+        "gormMap": {}
+      },
+      {
+        "name": "lastName",
+        "type": "string",
+        "gormMap": {}
+      },
+      {
+        "name": "user",
+        "type": "object",
+        "gormMap": {},
+        "fields": [
+          {
+            "name": "item1",
+            "type": "string",
+            "gormMap": {}
+          },
+          {
+            "name": "item2array",
+            "type": "array",
+            "gormMap": {},
+            "fields": [
+              {
+                "name": "subItem1",
+                "type": "int64",
+                "gormMap": {}
+              },
+              {
+                "name": "subItem2",
+                "type": "int64",
+                "gormMap": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "out": {
+    "fields": [
+      {
+        "name": "lastName",
+        "type": "string",
+        "gormMap": {}
+      }
+    ]
+  }
+}
 }
 /**
   * The base class definition for webSocketOrgEchoActionReq

@@ -54,6 +54,25 @@ export class HttpActionAction {
       init?.signal,
     );
   };
+  static Definition = {
+    name: "httpAction",
+    url: "http://localhost:8081 (for test we use override)",
+    method: "post",
+    description:
+      "A post request which would return an array, but enveloped in google json styleguide.",
+    out: {
+      envelope: "GResponse",
+      fields: [
+        {
+          name: "recordNumber",
+          description:
+            "Fake record number to simulate a id from database table.",
+          type: "int",
+          gormMap: {},
+        },
+      ],
+    },
+  };
 }
 /**
  * The base class definition for httpActionActionRes

@@ -1,6 +1,9 @@
 package core
 
-import "strings"
+import (
+	"encoding/json"
+	"strings"
+)
 
 type EmiAction struct {
 
@@ -179,4 +182,9 @@ func (x EmiAction) GetResponseFields() []*EmiField {
 		return []*EmiField{}
 	}
 	return x.Out.Fields
+}
+
+func (x EmiAction) GetDefinition() string {
+	m, _ := json.MarshalIndent(x, "", "  ")
+	return string(m)
 }

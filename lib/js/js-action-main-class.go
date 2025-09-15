@@ -214,11 +214,17 @@ export class {{ .className }} {
   {{ if .websocketCreateFunction }}
   	{{ b2s .websocketCreateFunction.ActualScript }}
   {{ end }}
+
+  {{ if .definition }}
+  static Definition = {{ .definition }}
+  {{ end }}
   
 }
 `
 
 	t := template.Must(template.New("qsclass").Funcs(core.CommonMap).Parse(tmpl))
+
+	definition := action.GetDefinition()
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
@@ -227,6 +233,7 @@ export class {{ .className }} {
 		"fetchStaticFunction":     fetchStaticFunction,
 		"websocketCreateFunction": websocketCreateFunction,
 		"shouldExport":            true,
+		"definition":              definition,
 		"realms":                  realms,
 		"fetchctx":                fetchctx,
 		"className":               className,

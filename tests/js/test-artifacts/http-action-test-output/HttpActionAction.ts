@@ -44,10 +44,49 @@ export class HttpActionAction {
     const res = await HttpActionAction.Fetch$(qs, init, overrideUrl);
     return handleFetchResponse(
       res,
-      HttpActionActionRes,
+      (item) => creatorFn(item),
       onMessage,
       init?.signal,
     );
+  };
+  static Definition = {
+    name: "httpAction",
+    url: "http://localhost:8081 (for test we use override)",
+    method: "post",
+    description:
+      "A post connection which would generate random numbers, based on min, max, and count. For normal response, it would return an object, for SSE would be streaming.",
+    in: {
+      fields: [
+        {
+          name: "min",
+          description: "Minimum number which can be generated",
+          type: "int",
+          gormMap: {},
+        },
+        {
+          name: "max",
+          description: "Maximum number which can be generated",
+          type: "int",
+          gormMap: {},
+        },
+        {
+          name: "count",
+          description:
+            "How many numbers you want to be generated based on maximum and minimum",
+          type: "int",
+          gormMap: {},
+        },
+      ],
+    },
+    out: {
+      fields: [
+        {
+          name: "number",
+          type: "int",
+          gormMap: {},
+        },
+      ],
+    },
   };
 }
 /**

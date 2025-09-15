@@ -117,7 +117,7 @@ export class GetSinglePostAction {
 		);
 			return handleFetchResponse(
 				res, 
-				GetSinglePostActionRes,
+				(item) => creatorFn(item),
 				onMessage,
 				init?.signal,
 			);
@@ -143,6 +143,37 @@ export class GetSinglePostAction {
 			data: new GetSinglePostActionRes(res.data),
 			};
 		});
+  static Definition = {
+  "name": "getSinglePost",
+  "cliName": "get-single-post",
+  "url": "https://jsonplaceholder.typicode.com/posts/:id",
+  "method": "get",
+  "description": "Get's an specific post from the endpoint",
+  "out": {
+    "fields": [
+      {
+        "name": "userId",
+        "type": "int64",
+        "gormMap": {}
+      },
+      {
+        "name": "id",
+        "type": "int64",
+        "gormMap": {}
+      },
+      {
+        "name": "title22",
+        "complex": "+Money",
+        "gormMap": {}
+      },
+      {
+        "name": "body",
+        "type": "string",
+        "gormMap": {}
+      }
+    ]
+  }
+}
 }
 /**
   * The base class definition for getSinglePostActionRes

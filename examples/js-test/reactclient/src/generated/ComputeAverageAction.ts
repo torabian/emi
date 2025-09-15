@@ -74,7 +74,7 @@ export class ComputeAverageAction {
 		);
 			return handleFetchResponse(
 				res, 
-				AverageDto,
+				(item) => creatorFn(item),
 				onMessage,
 				init?.signal,
 			);
@@ -100,4 +100,13 @@ export class ComputeAverageAction {
 			data: new AverageDto(res.data),
 			};
 		});
+  static Definition = {
+  "name": "computeAverage",
+  "in": {
+    "dto": "ComputeDto"
+  },
+  "out": {
+    "dto": "AverageDto"
+  }
+}
 }

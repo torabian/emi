@@ -14,6 +14,9 @@ type EmiRpcAction interface {
 	HasRequestHeaders() bool
 	GetRequestHeaders() []EmiHeader
 
+	// Convert the definition to json
+	GetDefinition() string
+
 	// Checks if the request has inline fields definition
 	HasRequestFields() bool
 	GetRequestFields() []*EmiField

@@ -26,6 +26,45 @@ export class UserStreamAction {
       },
     );
   };
+  static Definition = {
+    name: "userStream",
+    url: "ws://localhost:8081",
+    method: "reactive",
+    description:
+      "A socket connection which would generate random numbers, based on min, max, and count.",
+    in: {
+      fields: [
+        {
+          name: "min",
+          description: "Minimum number which can be generated",
+          type: "int",
+          gormMap: {},
+        },
+        {
+          name: "max",
+          description: "Maximum number which can be generated",
+          type: "int",
+          gormMap: {},
+        },
+        {
+          name: "count",
+          description:
+            "How many numbers you want to be generated based on maximum and minimum",
+          type: "int",
+          gormMap: {},
+        },
+      ],
+    },
+    out: {
+      fields: [
+        {
+          name: "number",
+          type: "int",
+          gormMap: {},
+        },
+      ],
+    },
+  };
 }
 /**
  * The base class definition for userStreamActionReq

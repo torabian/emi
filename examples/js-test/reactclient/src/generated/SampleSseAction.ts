@@ -80,7 +80,7 @@ export class SampleSseAction {
 		);
 			return handleFetchResponse(
 				res, 
-				SampleSseActionRes,
+				(item) => creatorFn(item),
 				onMessage,
 				init?.signal,
 			);
@@ -106,6 +106,21 @@ export class SampleSseAction {
 			data: new SampleSseActionRes(res.data),
 			};
 		});
+  static Definition = {
+  "name": "sampleSse",
+  "url": "http://localhost:3000/stream",
+  "method": "sse",
+  "description": "SSE Sample",
+  "out": {
+    "fields": [
+      {
+        "name": "message",
+        "type": "string",
+        "gormMap": {}
+      }
+    ]
+  }
+}
 }
 /**
   * The base class definition for sampleSseActionRes

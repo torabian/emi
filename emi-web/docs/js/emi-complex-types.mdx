@@ -92,6 +92,30 @@ export class SampleAction {
       init?.signal,
     );
   };
+  static Definition = {
+    name: "sample",
+    url: "http://localhost:8081 (for test we use override)",
+    method: "post",
+    description:
+      "Demo action that shows how complex types can be used in an action",
+    out: {
+      envelope: "GResponse",
+      fields: [
+        {
+          name: "date",
+          description: "Use javascript Date class as complex type",
+          complex: "+Date",
+          gormMap: {},
+        },
+        {
+          name: "money",
+          description: "External money type",
+          complex: "+Money",
+          gormMap: {},
+        },
+      ],
+    },
+  };
 }
 /**
  * The base class definition for sampleActionRes
