@@ -140,7 +140,7 @@ func findComplexLocation(complexName string, jsctx JsCommonObjectContext) string
 func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error) {
 
 	hasChildrenWithStaticFields := hasClassesAsChildren(fields)
-	isTS := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependenies: []core.CodeChunkDependency{},
 	}
@@ -179,7 +179,7 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	}
 
 	var abstractFactoryClass string
-	if isTS {
+	if isTypeScript {
 		abstractFactoryClass = fmt.Sprintf(`
 export abstract class %vFactory {
 	abstract create(data: unknown): %v;
@@ -218,13 +218,14 @@ export abstract class %vFactory {
 	}
 
 	#isJsonAppliable(obj) {
+		const g = globalThis
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 
 		return (
 			obj &&
@@ -287,15 +288,19 @@ export abstract class %vFactory {
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
+		"isTypeScript":         isTypeScript,
 		"renderedClasses":      renderedClasses,
 		"abstractFactoryClass": abstractFactoryClass,
 	}); err != nil {
 		return nil, err
 	}
 
-	res.ActualScript = buf.Bytes()
-	if isTS {
-		res.ActualScript = []byte(strings.ReplaceAll(string(res.ActualScript), "constructor(data = {})", "constructor(data: unknown = {})"))
+	result := buf.String()
+
+	if isTypeScript {
+		result = strings.ReplaceAll(string(result), "#isJsonAppliable(obj) {", "#isJsonAppliable(obj: unknown) {")
+		result = strings.ReplaceAll(string(result), "const g = globalThis", "const g = globalThis as any")
+		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data = {})", "constructor(data: unknown = {})"))
 		res.SuggestedExtension = ".ts"
 	} else {
 		res.SuggestedExtension = ".js"

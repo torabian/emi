@@ -154,7 +154,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	}
 
 	internalUsage := []string{}
-	// Those actions are valid ts or js files, including some helpers for react, axios, fetch
+	// Those actions are valid ts or js files, including some helpers for react, fetch
 	// and couple of more, directly can be written on the disk
 	for _, action := range actionsRendered {
 
@@ -204,21 +204,6 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	skipEnvelopes := strings.Contains(ctx.Tags, GEN_SKIP_ENVELOPES)
-	isAxiosBundle := strings.Contains(ctx.Tags, GEN_AXIOS_BUNDLE_COMPATIBILITY)
-
-	if isAxiosBundle {
-		axiosBundle, err := AxiosBundleClass(module, actionsRendered, ctx)
-		if err != nil {
-			return nil, err
-		}
-		files = append(files, core.VirtualFile{
-			Name:         axiosBundle.SuggestedFileName,
-			Extension:    axiosBundle.SuggestedExtension,
-			ActualScript: AsFullDocument(axiosBundle),
-		})
-	}
-
-	/// Add the core sdk first
 
 	if !skipEnvelopes {
 		var source *embed.FS = &ts_envelopes.Content

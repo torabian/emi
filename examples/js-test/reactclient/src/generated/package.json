@@ -11,8 +11,8 @@
     "../Money": "latest",
     "@tanstack/react-query": "^5.85.5",
     "@types/qs": "^6.14.0",
-    "axios": "^1.11.0",
     "decimal": "latest",
-    "qs": "^6.14.0"
+    "qs": "^6.14.0",
+    "react": "latest"
   }
 }

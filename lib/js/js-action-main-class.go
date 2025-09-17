@@ -81,7 +81,6 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 	}
 	claimsRendered := core.ClaimRender(claims, ctx)
 
-	isAxiosSupported := strings.Contains(ctx.Tags, GEN_AXIOS_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
@@ -92,10 +91,6 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 				Objects:  []string{"withPrefix"},
 				Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
 			},
-			// {
-			// 	Objects:  []string{"isPlausibleObject"},
-			// 	Location: INTERNAL_SDK_JS_LOCATION + "/isPlausibleObject",
-			// },
 		},
 	}
 
@@ -139,22 +134,9 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 		}
 	}
 
-	var axiosStaticFunction *core.CodeChunkCompiled
-
-	if isAxiosSupported && fetchctx.IsClassicHttpCall {
-		// Add the axios helper function to the response depencencies,
-		fn, err := AxiosStaticHelper(fetchctx, ctx)
-		if err != nil {
-			return nil, fetchctx, err
-		}
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
-		axiosStaticFunction = fn
-	}
-
 	var fetchStaticFunction *core.CodeChunkCompiled
 
 	if strings.ToUpper(fetchctx.ActionMethod) != EMI_METHOD_REACTIVE {
-		// add the native fetch function to the axios
 		fn, err := FetchStaticHelper(fetchctx, ctx)
 		if err != nil {
 			return nil, fetchctx, err
@@ -166,7 +148,6 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 	var websocketCreateFunction *core.CodeChunkCompiled
 	if strings.ToUpper(fetchctx.ActionMethod) == EMI_METHOD_REACTIVE {
 
-		// add the native fetch function to the axios
 		fn, err := CreateWebSocketStaticHelper(fetchctx, ctx)
 		if err != nil {
 			return nil, fetchctx, err
@@ -207,10 +188,6 @@ export class {{ .className }} {
   	{{ b2s .fetchStaticFunction.ActualScript }}
   {{ end }}
 
-  {{ if .axiosStaticFunction }}
-  	{{ b2s .axiosStaticFunction.ActualScript }}
-  {{ end }}
-
   {{ if .websocketCreateFunction }}
   	{{ b2s .websocketCreateFunction.ActualScript }}
   {{ end }}
@@ -229,7 +206,6 @@ export class {{ .className }} {
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"action":                  action,
-		"axiosStaticFunction":     axiosStaticFunction,
 		"fetchStaticFunction":     fetchStaticFunction,
 		"websocketCreateFunction": websocketCreateFunction,
 		"shouldExport":            true,
@@ -248,6 +224,12 @@ export class {{ .className }} {
 	}
 
 	res.ActualScript = []byte(templateResult)
+
+	if fetchStaticFunction != nil {
+		if token := findTokenByName(fetchStaticFunction.Tokens, TOKEN_CREATOR_FN); token != nil {
+			res.Tokens = append(res.Tokens, *token)
+		}
+	}
 
 	return res, fetchctx, nil
 }

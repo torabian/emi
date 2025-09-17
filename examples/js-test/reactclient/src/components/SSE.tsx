@@ -1,21 +1,21 @@
-import {
-  SampleSseActionQueryParams,
-  useSampleSseAction,
-} from "../generated/SampleSseAction";
+import { useSampleSseActionMutation } from "../generated/SampleSseAction";
 
 export function SSESample() {
-  const { messages } = useSampleSseAction({
-    qs: new SampleSseActionQueryParams(),
+  const { data } = useSampleSseActionMutation({
+    onMessage: () => {
+      alert(1);
+    },
   });
 
   return (
     <div>
       <h3>SSE Messages:</h3>
-      <ul>
-        {messages.map((msg, i) => (
+      <pre>{JSON.stringify(data, null, 2)}</pre>
+      {/* <ul>
+        {data.map((msg, i) => (
           <li key={i}>{msg}</li>
         ))}
-      </ul>
+      </ul> */}
     </div>
   );
 }

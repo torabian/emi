@@ -93,7 +93,7 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 	}
 	`
 
-	t := template.Must(template.New("axioshelper").Funcs(core.CommonMap).Parse(tmpl))
+	t := template.Must(template.New("websocketstaticcreatefunction").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"claims":         claimsRendered,

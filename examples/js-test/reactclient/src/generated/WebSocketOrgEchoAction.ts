@@ -54,38 +54,31 @@ export class WebSocketOrgEchoAction {
     "fields": [
       {
         "name": "firstName",
-        "type": "string",
-        "gormMap": {}
+        "type": "string"
       },
       {
         "name": "lastName",
-        "type": "string",
-        "gormMap": {}
+        "type": "string"
       },
       {
         "name": "user",
         "type": "object",
-        "gormMap": {},
         "fields": [
           {
             "name": "item1",
-            "type": "string",
-            "gormMap": {}
+            "type": "string"
           },
           {
             "name": "item2array",
             "type": "array",
-            "gormMap": {},
             "fields": [
               {
                 "name": "subItem1",
-                "type": "int64",
-                "gormMap": {}
+                "type": "int64"
               },
               {
                 "name": "subItem2",
-                "type": "int64",
-                "gormMap": {}
+                "type": "int64"
               }
             ]
           }
@@ -97,8 +90,7 @@ export class WebSocketOrgEchoAction {
     "fields": [
       {
         "name": "lastName",
-        "type": "string",
-        "gormMap": {}
+        "type": "string"
       }
     ]
   }
@@ -299,13 +291,14 @@ setSubItem2 (value: number) {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&
@@ -355,13 +348,14 @@ setSubItem2 (value: number) {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&
@@ -417,13 +411,14 @@ get item2array() {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&
@@ -570,13 +565,14 @@ setLastName (value: string) {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&

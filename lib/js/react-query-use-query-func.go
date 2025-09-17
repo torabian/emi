@@ -19,10 +19,11 @@ type reactUseQueryOptions struct {
 	NewUrlFunctionName     string
 	MetaDataClassName      string
 	HasPathParameters      bool
+	ActionRealms           jsActionRealms
 }
 
-// generates a static function, to developers prefer to make calls via axios
 func ReactUseQueryOptionsFunction(useQueryOptions reactUseQueryOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+
 	claims := []core.JsFnArgument{
 		{
 			Key: "options.argument",
@@ -33,10 +34,13 @@ func ReactUseQueryOptionsFunction(useQueryOptions reactUseQueryOptions, ctx core
 	className := fmt.Sprintf("use%v", core.ToUpper(useQueryOptions.ActionName))
 	const tmpl = `
 		
-export const {{ .className }} = (
+export const {{ .className }}Query = (
 	|@options.argument|
 ) => {
-	return useQuery({
+	const [isCompleted, setCompleteState] = useState(false);
+	const [response, setResponse] = useState<TypedResponse<unknown>>();
+
+	const queryResult = useQuery({
 		queryKey: [
 			{{ .useQueryOptions.NewUrlFunctionName }} (
 			 	{{ if .useQueryOptions.HasPathParameters }}
@@ -51,13 +55,32 @@ export const {{ .className }} = (
 		 	{{ if .useQueryOptions.HasPathParameters }}
 				options.params,
 			{{ end }}
+			options?.creatorFn,
 			options.qs,
 			{
+				{{ if .useQueryOptions.ActionRealms.RequestHeadersClass }}
 				headers: options.headers,
-			}
-		),
+				{{ end }}
+			},
+			options?.onMessage,
+			options?.overrideUrl,
+		).then((x) => {
+			x.done.then(() => {
+				setCompleteState(true);
+			});
+			
+			setResponse(x.response)
+
+			return x.response.result;
+		}),
 		...(options || {}),
 	});
+
+	return {
+		...queryResult,
+		isCompleted,
+		response
+	}
 };
 
 
@@ -85,6 +108,14 @@ export const {{ .className }} = (
 			{
 				Objects:  []string{"useQuery"},
 				Location: "@tanstack/react-query",
+			},
+			{
+				Objects:  []string{"useState"},
+				Location: "react",
+			},
+			{
+				Objects:  []string{"type TypedResponse"},
+				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{

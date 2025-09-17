@@ -14,38 +14,64 @@ type reactUseMutationOptions struct {
 	ActionName                string
 	MetaDataClassName         string
 	HasPathParameters         bool
+	HasCreatorFunction        bool
+	RequestClass              string
 }
 
 // generates the hook function use<ActionName>Mutation
 func ReactUseMutationFunction(useMutationOptions reactUseMutationOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+	tsValue := "options?: " + useMutationOptions.ActionMutationOptionsName
+
+	if useMutationOptions.HasPathParameters {
+		tsValue = "options: " + useMutationOptions.ActionMutationOptionsName
+	}
+
 	claims := []core.JsFnArgument{
 		{
 			Key: "options.argument",
-			Ts:  "options: " + useMutationOptions.ActionMutationOptionsName,
+			Ts:  tsValue,
 			Js:  "options",
 		},
 	}
-	className := fmt.Sprintf("use%vMutation", core.ToUpper(useMutationOptions.ActionName))
+	className := fmt.Sprintf("use%v", core.ToUpper(useMutationOptions.ActionName))
 
 	const tmpl = `
 export const {{ .className }} = (
 	|@options.argument|
 ) => {
-	return useMutation({
-		mutationFn: (vars: unknown) =>
+ 	const [isCompleted, setCompleteState] = useState(false);
+
+	const mutationResult =  useMutation({
+		mutationFn: (body: {{ .useMutationOptions.RequestClass }}) =>
 			{{ .useMutationOptions.MetaDataClassName }}.Fetch(
 				{{ if .useMutationOptions.HasPathParameters }}
 				options.params,
 				{{ end }}
-				options.qs,
+				{{ if .useMutationOptions.HasCreatorFunction }}
+				options?.creatorFn,
+				{{ end }}
+				options?.qs,
 				{
-					body: vars,
-					headers: options.headers,
-				}
-			),
+					body,
+					headers: options?.headers,
+				},
+				options?.onMessage,
+				options?.overrideUrl,
+			).then((x) => {
+				x.done.then(() => {
+					setCompleteState(true);
+				});
+
+				return x.response;
+			}),
 		...(options || {}),
 
 	});
+
+	return {
+		...mutationResult,
+		isCompleted
+	}
 };
 	`
 
@@ -71,6 +97,10 @@ export const {{ .className }} = (
 			{
 				Objects:  []string{"useMutation"},
 				Location: "@tanstack/react-query",
+			},
+			{
+				Objects:  []string{"useState"},
+				Location: "react",
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{

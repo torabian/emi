@@ -41,7 +41,7 @@ actions:
           type: int64
         - name: id
           type: int64
-        - name: title22
+        - name: title
           complex: +Money
         - name: body
           type: string

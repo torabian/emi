@@ -105,11 +105,11 @@ func (x jsFieldVariable) Compile(isTypeScript bool) string {
 
 	sequence = append(sequence, varName)
 
-	if x.IsNullable {
-		sequence = append(sequence, "?")
-	}
-
 	if isTypeScript {
+
+		if x.IsNullable {
+			sequence = append(sequence, "?")
+		}
 		sequence = append(sequence, ": "+x.ComputedType)
 
 		if x.IsNullable {

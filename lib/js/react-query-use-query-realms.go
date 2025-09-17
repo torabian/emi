@@ -19,6 +19,7 @@ func ReactQueryUseQueryRealms(
 	ctx core.MicroGenContext,
 	actionRealms jsActionRealms,
 ) (*reactQueryUseQueryHookRealms, []core.CodeChunkDependency, error) {
+	creatorFn := findTokenByName(actionRealms.FetchMetaClass.Tokens, TOKEN_CREATOR_FN)
 
 	realms := reactQueryUseQueryHookRealms{}
 	deps := []core.CodeChunkDependency{}
@@ -30,6 +31,12 @@ func ReactQueryUseQueryRealms(
 			ActionName:             actionRealms.ActionName,
 			ActionQueryOptionsName: findTokenByName(actionRealms.OptionsType.Tokens, TOKEN_ROOT_CLASS).Value,
 			JsActionRealms:         actionRealms,
+		}
+
+		if creatorFn != nil {
+			if strings.Contains(creatorFn.Value, " = ") {
+				rqoptions.CreatorFnType = creatorFn.Value[0:strings.Index(creatorFn.Value, " = ")]
+			}
 		}
 
 		if actionRealms.PathParameter != nil {

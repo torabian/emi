@@ -2,8 +2,8 @@ import { AverageDto } from './AverageDto';
 import { ComputeDto } from './ComputeDto';
 import { buildUrl } from './sdk/common/buildUrl';
 import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
-import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
 * Action to communicate with the action computeAverage
@@ -16,21 +16,42 @@ export type ComputeAverageActionMutationOptions = Omit<
 	UseMutationOptions<unknown, unknown, unknown, unknown>,
 	"mutationFn"
 > &
-	ComputeAverageActionOptions;
-export const useComputeAverageActionMutation = (
-	options: ComputeAverageActionMutationOptions
+	ComputeAverageActionOptions
+& {
+    onMessage?: (ev: MessageEvent) => void;
+    overrideUrl?: string;
+    headers?: Headers;
+  }
+& Partial<{
+	creatorFn: (item: unknown) => AverageDto
+}>
+export const useComputeAverageAction = (
+	options?: ComputeAverageActionMutationOptions
 ) => {
-	return useMutation({
-		mutationFn: (vars: unknown) =>
+ 	const [isCompleted, setCompleteState] = useState(false);
+	const mutationResult =  useMutation({
+		mutationFn: (body: ComputeDto) =>
 			ComputeAverageAction.Fetch(
-				options.qs,
+				options?.creatorFn,
+				options?.qs,
 				{
-					body: vars,
-					headers: options.headers,
-				}
-			),
+					body,
+					headers: options?.headers,
+				},
+				options?.onMessage,
+				options?.overrideUrl,
+			).then((x) => {
+				x.done.then(() => {
+					setCompleteState(true);
+				});
+				return x.response;
+			}),
 		...(options || {}),
 	});
+	return {
+		...mutationResult,
+		isCompleted
+	}
 };
 	/**
  * ComputeAverageAction
@@ -79,27 +100,6 @@ export class ComputeAverageAction {
 				init?.signal,
 			);
 	}
-	static Axios : (
-		clientInstance: AxiosInstance,
-		config: AxiosRequestConfig<unknown>,
-	)  => Promise<AxiosResponse<unknown>> = (
-		clientInstance,
-		config,
-	) => 
-		clientInstance
-		.request<unknown, AxiosResponse<unknown>, unknown>(
-			{
-				method: ComputeAverageAction.Method,
-				...(config || {})
-			}
-		)
-		.then((res) => {
-			return {
-			...res,
-			// if there is a output class, create instance out of it.
-			data: new AverageDto(res.data),
-			};
-		});
   static Definition = {
   "name": "computeAverage",
   "in": {

@@ -9,9 +9,7 @@ export const usePlaygroundPresenter = () => {
   const [assemblyFunction, setAssemblyFunction] = useState("jsGenModule");
   const [features, setFeatures] = useState<string[]>([
     "nestjs",
-    "axios",
     "typescript",
-    "axiosbundle",
     "react",
   ]);
   const [files, setOutput] = useState<VirtualFile[]>([]);

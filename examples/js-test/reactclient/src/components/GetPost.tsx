@@ -1,13 +1,13 @@
 import {
-  GetSinglePostActionQueryParams,
-  useGetSinglePostAction,
+  GetSinglePostActionRes,
+  useGetSinglePostActionQuery,
 } from "../generated/GetSinglePostAction";
 
 export function GetPost() {
-  const { data, isLoading, error } = useGetSinglePostAction({
-    params: { id: 10 },
-    qs: new GetSinglePostActionQueryParams().set("pageSize", 100),
-  });
+  const { data, isLoading, error, isCompleted, result } =
+    useGetSinglePostActionQuery({
+      params: { id: 15 },
+    });
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {(error as any).message}</div>;
@@ -21,7 +21,7 @@ export function GetPost() {
           textAlign: "left",
         }}
       >
-        {JSON.stringify(data, null, 2)}
+        Is instance: {data instanceof GetSinglePostActionRes ? "Yes" : "No"}
       </pre>
     </div>
   );

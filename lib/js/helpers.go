@@ -30,7 +30,6 @@ func GeneratePackageJSON(packageName string, locations []string) ([]byte, error)
 	// Used versions
 	var packagesUsedVersions = map[string]string{
 		"@tanstack/react-query": "^5.85.5",
-		"axios":                 "^1.11.0",
 		"qs":                    "^6.14.0",
 		"@types/qs":             "^6.14.0",
 	}
