@@ -668,14 +668,13 @@ export class ResponseDto {
         );
       }
     }
-    #isJsonAppliable(obj) {
+    #isJsonAppliable(obj: unknown) {
+      const g = globalThis as any;
       const isBuffer =
-        typeof globalThis.Buffer !== "undefined" &&
-        typeof globalThis.Buffer.isBuffer === "function" &&
-        globalThis.Buffer.isBuffer(obj);
-      const isBlob =
-        typeof globalThis.Blob !== "undefined" &&
-        obj instanceof globalThis.Blob;
+        typeof g.Buffer !== "undefined" &&
+        typeof g.Buffer.isBuffer === "function" &&
+        g.Buffer.isBuffer(obj);
+      const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
       return (
         obj &&
         typeof obj === "object" &&
@@ -1126,14 +1125,13 @@ export class ResponseDto {
           );
         }
       }
-      #isJsonAppliable(obj) {
+      #isJsonAppliable(obj: unknown) {
+        const g = globalThis as any;
         const isBuffer =
-          typeof globalThis.Buffer !== "undefined" &&
-          typeof globalThis.Buffer.isBuffer === "function" &&
-          globalThis.Buffer.isBuffer(obj);
-        const isBlob =
-          typeof globalThis.Blob !== "undefined" &&
-          obj instanceof globalThis.Blob;
+          typeof g.Buffer !== "undefined" &&
+          typeof g.Buffer.isBuffer === "function" &&
+          g.Buffer.isBuffer(obj);
+        const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
         return (
           obj &&
           typeof obj === "object" &&
@@ -1220,14 +1218,13 @@ export class ResponseDto {
         );
       }
     }
-    #isJsonAppliable(obj) {
+    #isJsonAppliable(obj: unknown) {
+      const g = globalThis as any;
       const isBuffer =
-        typeof globalThis.Buffer !== "undefined" &&
-        typeof globalThis.Buffer.isBuffer === "function" &&
-        globalThis.Buffer.isBuffer(obj);
-      const isBlob =
-        typeof globalThis.Blob !== "undefined" &&
-        obj instanceof globalThis.Blob;
+        typeof g.Buffer !== "undefined" &&
+        typeof g.Buffer.isBuffer === "function" &&
+        g.Buffer.isBuffer(obj);
+      const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
       return (
         obj &&
         typeof obj === "object" &&
@@ -1300,13 +1297,13 @@ export class ResponseDto {
       );
     }
   }
-  #isJsonAppliable(obj) {
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as any;
     const isBuffer =
-      typeof globalThis.Buffer !== "undefined" &&
-      typeof globalThis.Buffer.isBuffer === "function" &&
-      globalThis.Buffer.isBuffer(obj);
-    const isBlob =
-      typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
     return (
       obj &&
       typeof obj === "object" &&

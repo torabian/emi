@@ -19,7 +19,6 @@ type reactWebsocketOptions struct {
 	Fetchctx          fetchStaticFunctionContext
 }
 
-// generates a static function, to developers prefer to make calls via axios
 func ReactWebsocketQueryHook(options reactWebsocketOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	className := fmt.Sprintf("use%v", core.ToUpper(options.ActionName))
 

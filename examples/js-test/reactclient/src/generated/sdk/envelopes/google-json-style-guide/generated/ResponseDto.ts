@@ -595,13 +595,14 @@ setTotalPages (value: number | null | undefined) {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&
@@ -981,13 +982,14 @@ setSendReport (value: string | null | undefined) {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&
@@ -1055,13 +1057,14 @@ setSendReport (value: string | null | undefined) {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&
@@ -1123,13 +1126,14 @@ get errors() {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&

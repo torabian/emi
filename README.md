@@ -17,7 +17,6 @@ Emi javascript generator can be used for both typescript or javascript without n
 via external tools. It would cover:
 
 - Pure vanilla javascript, with classes, and fetch api. (always enabled, not tags needed)
-- Axios helper and Axios Bundle (--tags `axios,axiosbundle`)
 - Nest.js extra decorators (--tags `nestjs`)
 - React query tools (--tags `react`) generates mutations and useQuery tools.
 

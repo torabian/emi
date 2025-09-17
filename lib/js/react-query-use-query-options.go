@@ -18,9 +18,9 @@ type reactQueryOptionsType struct {
 	ActionName             string
 	HasPathParameters      bool
 	JsActionRealms         jsActionRealms
+	CreatorFnType          string
 }
 
-// generates a static function, to developers prefer to make calls via axios
 func ReactQueryOptionsTypeFunction(rqoptions reactQueryOptionsType, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	className := fmt.Sprintf("%vQueryOptions", core.ToUpper(rqoptions.ActionName))
@@ -42,7 +42,18 @@ export type {{ .className }} = Omit<
 	>,
 	"queryKey"
 > &
-	{{ .rqoptions.ActionQueryOptionsName }};
+	{{ .rqoptions.ActionQueryOptionsName }}
+
+{{ if .rqoptions.CreatorFnType }}
+& Partial<{
+	{{ .rqoptions.CreatorFnType }}
+}>
+{{ end }}
+& {
+	onMessage?: (ev: MessageEvent) => void;
+	overrideUrl?: string;
+	headers?: Headers;
+}
 
 	`
 

@@ -184,7 +184,6 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 	return claims
 }
 
-// generates a static function, to developers prefer to make calls via axios
 func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
@@ -286,6 +285,14 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
 			},
 		},
+		Tokens: []core.GeneratedScriptToken{},
+	}
+
+	if creatorFn != nil {
+		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+			Name:  TOKEN_CREATOR_FN,
+			Value: creatorFn.ArgStatement,
+		})
 	}
 
 	res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{

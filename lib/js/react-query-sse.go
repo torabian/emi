@@ -19,7 +19,6 @@ type reactUseSSEOptions struct {
 	Fetchctx          fetchStaticFunctionContext
 }
 
-// generates a static function, to developers prefer to make calls via axios
 func ReactUseSSEHook(options reactUseSSEOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	className := fmt.Sprintf("use%v", core.ToUpper(options.ActionName))
 

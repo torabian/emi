@@ -14,10 +14,9 @@ framework which might be needed.
 is one of the highest quality within the competing tools.
 
 JS Compiler, is mainly generating type-safe objects out of the Emi definition, and targets to make the content super portable. Due to highly usage of
-`nest.js` and `react`, and `axios`, there is an added flags called for each of them to modify or append extra features.
+`nest.js` and `react`, there is an added flags called for each of them to modify or append extra features.
 
-* `--tags axios,axiosbundle` would generate the axios helpers.
 * `--tags react` would generate the react hooks for each action, using tanstack react-query for http, an internal useSse and useWebSocketX hooks for SSE and websockets.
 * `--tags nestjs` would generate decorators which would make the req, headers, qs, portable directly into nest.js without extra code written by the developer.
 
-For typescript support, just append `typescript` to the tags, for example `--tags axios,axiosbundle,react,nestjs,typescript` would generate them all, in typescript.
+For typescript support, just append `typescript` to the tags, for example `--tags react,nestjs,typescript` would generate them all, in typescript.

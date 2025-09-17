@@ -156,9 +156,6 @@ type EmiField struct {
 	// Override the gorm meta tag generated for golang, to add custom types or anything else.
 	Gorm string `yaml:"gorm,omitempty" json:"gorm,omitempty" jsonschema:"description=Override the gorm meta tag generated for golang, to add custom types or anything else."`
 
-	// Override the Emi default fields gorm tags for extra constraint or other configuration.
-	GormMap GormOverrideMap `yaml:"gormMap,omitempty" json:"gormMap,omitempty" jsonschema:"description=Used in Module code generation to customized the generated code for gorm tags on Emi Data management fields such as workspace or user id. For example, you can add extra indexes on these fields."`
-
 	// Direct manipulation of the sql meta tag on the field.
 	Sql string `yaml:"sql,omitempty" json:"sql,omitempty" jsonschema:"description=Direct manipulation of the sql meta tag on the field."`
 

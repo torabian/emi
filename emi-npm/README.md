@@ -17,7 +17,6 @@ Emi javascript generator can be used for both typescript or javascript without n
 via external tools. It would cover:
 
 - Pure vanilla javascript, with classes, and fetch api. (always enabled, not tags needed)
-- Axios helper and Axios Bundle (--tags `axios,axiosbundle`)
 - Nest.js extra decorators (--tags `nestjs`)
 - React query tools (--tags `react`) generates mutations and useQuery tools.
 
@@ -62,7 +61,7 @@ Here is a list of features which will be generated via js/ts compiler:
 
 - [x] Type of action options, to determine the values as query
 - [x] Url parameters type-safety
-- [x] FetchMeta data class, containing the method, url, url generator, fetch and axios helper
+- [x] FetchMeta data class, containing the method, url, url generator and fetchx
 - [x] Generate the object into typescript `type` only
 - [x] Generate Request, and Response classes
 - [x] Generate type-safe query strings (?param=1) and support deep nested

@@ -170,10 +170,6 @@
           "type": "string",
           "description": "Override the gorm meta tag generated for golang"
         },
-        "gormMap": {
-          "$ref": "#/definitions/GormOverrideMap",
-          "description": "Used in Module code generation to customized the generated code for gorm tags on Emi Data management fields such as workspace or user id. For example"
-        },
         "sql": {
           "type": "string",
           "description": "Direct manipulation of the sql meta tag on the field."
@@ -194,20 +190,6 @@
         "dto": {
           "type": "string",
           "description": "The dto name from Emi which will be matched. Might be also work with any other go struct but check the generated code."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "GormOverrideMap": {
-      "properties": {
-        "workspaceId": {
-          "type": "string",
-          "description": "Override the workspace id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Override the user id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
         }
       },
       "additionalProperties": false,

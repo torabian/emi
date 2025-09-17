@@ -12,6 +12,8 @@ import (
 type reactMutationOptionsType struct {
 	ActionMutationOptionsName string
 	ActionName                string
+	CreatorFn                 string
+	CreatorFnType             string
 	HasPathParameters         bool
 }
 
@@ -25,7 +27,17 @@ export type {{ .className }} = Omit<
 	UseMutationOptions<unknown, unknown, unknown, unknown>,
 	"mutationFn"
 > &
-	{{ .rmoptions.ActionMutationOptionsName }};
+	{{ .rmoptions.ActionMutationOptionsName }}
+& {
+    onMessage?: (ev: MessageEvent) => void;
+    overrideUrl?: string;
+    headers?: Headers;
+  }
+{{ if .rmoptions.CreatorFnType }}
+& Partial<{
+	{{ .rmoptions.CreatorFnType }}
+}>
+{{ end }}
 	`
 
 	t := template.Must(template.New("reactmutationoptions").Funcs(core.CommonMap).Parse(tmpl))

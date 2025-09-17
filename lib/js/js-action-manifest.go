@@ -41,25 +41,13 @@ func JsActionManifest(
 
 	var reactQuery *reactQueryHookRealms
 	if isReact {
+
 		reactQueryRealms, reactQuerydeps, err := ReactQueryHooksBasedOnActionRealms(action, ctx, *actionRealms)
 		if err != nil {
 			return nil, err
 		}
 		res.CodeChunkDependenies = append(res.CodeChunkDependenies, reactQuerydeps...)
 		reactQuery = reactQueryRealms
-
-		if action.MethodUpper() == "SSE" {
-			if useSSEHook, err := ReactUseSSEHook(reactUseSSEOptions{
-				ActionName:        fmt.Sprintf("%v", actionRealms.ActionName),
-				MetaDataClassName: findTokenByName(actionRealms.FetchMetaClass.Tokens, TOKEN_ROOT_CLASS).Value,
-				Fetchctx:          actionRealms.Fetchctx,
-			}, ctx); err != nil {
-				return nil, err
-			} else {
-				reactQuery.UseSSE = useSSEHook
-				res.CodeChunkDependenies = append(res.CodeChunkDependenies, useSSEHook.CodeChunkDependenies...)
-			}
-		}
 
 		if action.MethodUpper() == "REACTIVE" {
 			if useSSEHook, err := ReactWebsocketQueryHook(reactWebsocketOptions{

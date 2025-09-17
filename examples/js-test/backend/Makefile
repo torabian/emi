@@ -1,2 +1,2 @@
 gen:
-	rm -rf ./src/generated && emi js:module --path ../jsonplaceholder.emi.yml --output ./src/generated --tags typescript,nestjs,axios && npm run format
+	rm -rf ./src/generated && emi js:module --path ../jsonplaceholder.emi.yml --output ./src/generated --tags typescript,nestjs && npm run format

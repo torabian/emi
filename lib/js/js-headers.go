@@ -59,9 +59,7 @@ func renderJsTsCommonHeadersInfo(headerColumns []core.EmiHeader) ([]renderedJsHe
 var GEN_NEST_JS_COMPATIBILITY string = "nestjs"
 var GEN_TYPESCRIPT_COMPATIBILITY string = "typescript"
 var GEN_SKIP_ENVELOPES string = "no-envelope"
-var GEN_AXIOS_BUNDLE_COMPATIBILITY string = "axiosbundle"
 var GEN_REACT_COMPATIBILITY string = "react"
-var GEN_AXIOS_COMPATIBILITY string = "axios"
 
 func JsHeaderClass(
 	headerctx jsHeaderClassContext,

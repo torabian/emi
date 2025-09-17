@@ -1,8 +1,8 @@
 import { Money } from '../Money';
 import { buildUrl } from './sdk/common/buildUrl';
-import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
-import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import { fetchx, handleFetchResponse, type TypedRequestInit, type TypedResponse } from './sdk/common/fetchx';
 import { type UseMutationOptions, type UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
 * Action to communicate with the action getSinglePost
@@ -21,11 +21,21 @@ export type GetSinglePostActionQueryOptions = Omit<
 	>,
 	"queryKey"
 > &
-	GetSinglePostActionOptions;
-export const useGetSinglePostAction = (
+	GetSinglePostActionOptions
+& Partial<{
+	creatorFn: (item: unknown) => GetSinglePostActionRes
+}>
+& {
+	onMessage?: (ev: MessageEvent) => void;
+	overrideUrl?: string;
+	headers?: Headers;
+}
+export const useGetSinglePostActionQuery = (
 	options: GetSinglePostActionQueryOptions
 ) => {
-	return useQuery({
+	const [isCompleted, setCompleteState] = useState(false);
+	const [response, setResponse] = useState<TypedResponse<unknown>>();
+	const queryResult = useQuery({
 		queryKey: [
 			GetSinglePostAction.NewUrl (
 				options.params,
@@ -35,34 +45,68 @@ export const useGetSinglePostAction = (
 		queryFn: () =>
 		GetSinglePostAction.Fetch(
 				options.params,
+			options?.creatorFn,
 			options.qs,
 			{
-				headers: options.headers,
-			}
-		),
+			},
+			options?.onMessage,
+			options?.overrideUrl,
+		).then((x) => {
+			x.done.then(() => {
+				setCompleteState(true);
+			});
+			setResponse(x.response)
+			return x.response.result;
+		}),
 		...(options || {}),
 	});
+	return {
+		...queryResult,
+		isCompleted,
+		response
+	}
 };
 export type GetSinglePostActionMutationOptions = Omit<
 	UseMutationOptions<unknown, unknown, unknown, unknown>,
 	"mutationFn"
 > &
-	GetSinglePostActionOptions;
-export const useGetSinglePostActionMutation = (
+	GetSinglePostActionOptions
+& {
+    onMessage?: (ev: MessageEvent) => void;
+    overrideUrl?: string;
+    headers?: Headers;
+  }
+& Partial<{
+	creatorFn: (item: unknown) => GetSinglePostActionRes
+}>
+export const useGetSinglePostAction = (
 	options: GetSinglePostActionMutationOptions
 ) => {
-	return useMutation({
-		mutationFn: (vars: unknown) =>
+ 	const [isCompleted, setCompleteState] = useState(false);
+	const mutationResult =  useMutation({
+		mutationFn: (body: unknown) =>
 			GetSinglePostAction.Fetch(
 				options.params,
-				options.qs,
+				options?.creatorFn,
+				options?.qs,
 				{
-					body: vars,
-					headers: options.headers,
-				}
-			),
+					body,
+					headers: options?.headers,
+				},
+				options?.onMessage,
+				options?.overrideUrl,
+			).then((x) => {
+				x.done.then(() => {
+					setCompleteState(true);
+				});
+				return x.response;
+			}),
 		...(options || {}),
 	});
+	return {
+		...mutationResult,
+		isCompleted
+	}
 };
 	/**
  * Path parameters for GetSinglePostAction
@@ -122,27 +166,6 @@ export class GetSinglePostAction {
 				init?.signal,
 			);
 	}
-	static Axios : (
-		clientInstance: AxiosInstance,
-		config: AxiosRequestConfig<unknown>,
-	)  => Promise<AxiosResponse<unknown>> = (
-		clientInstance,
-		config,
-	) => 
-		clientInstance
-		.request<unknown, AxiosResponse<unknown>, unknown>(
-			{
-				method: GetSinglePostAction.Method,
-				...(config || {})
-			}
-		)
-		.then((res) => {
-			return {
-			...res,
-			// if there is a output class, create instance out of it.
-			data: new GetSinglePostActionRes(res.data),
-			};
-		});
   static Definition = {
   "name": "getSinglePost",
   "cliName": "get-single-post",
@@ -153,23 +176,19 @@ export class GetSinglePostAction {
     "fields": [
       {
         "name": "userId",
-        "type": "int64",
-        "gormMap": {}
+        "type": "int64"
       },
       {
         "name": "id",
-        "type": "int64",
-        "gormMap": {}
+        "type": "int64"
       },
       {
-        "name": "title22",
-        "complex": "+Money",
-        "gormMap": {}
+        "name": "title",
+        "complex": "+Money"
       },
       {
         "name": "body",
-        "type": "string",
-        "gormMap": {}
+        "type": "string"
       }
     ]
   }
@@ -233,25 +252,25 @@ setId (value: number) {
   * 
   * @type {Money}
   **/
- #title22 : Money
+ #title : Money
 		/**
   * 
   * @returns {Money}
   **/
-get title22 () { return this.#title22 }
+get title () { return this.#title }
 /**
   * 
   * @type {Money}
   **/
-set title22 (value: Money) {
+set title (value: Money) {
 	 	if (value instanceof Money) {
-			this.#title22 = value
+			this.#title = value
 		} else {
-		 	this.#title22 = new Money(value)
+		 	this.#title = new Money(value)
 		}
 }
-setTitle22 (value: Money) {
-	this.title22 = value
+setTitle (value: Money) {
+	this.title = value
 	return this
 }
 		/**
@@ -288,13 +307,14 @@ setBody (value: string) {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&
@@ -311,7 +331,7 @@ setBody (value: string) {
 		const d = data as Partial<GetSinglePostActionRes>;
 			if (d.userId !== undefined) { this.userId = d.userId }
 			if (d.id !== undefined) { this.id = d.id }
-			if (d.title22 !== undefined) { this.title22 = d.title22 }
+			if (d.title !== undefined) { this.title = d.title }
 			if (d.body !== undefined) { this.body = d.body }
 	}
 	/**
@@ -322,7 +342,7 @@ setBody (value: string) {
     	return { 
 				userId: this.#userId,
 				id: this.#id,
-				title22: this.#title22,
+				title: this.#title,
 				body: this.#body,
 		};
   	}
@@ -333,7 +353,7 @@ setBody (value: string) {
       return {
 			userId: 'userId',
 			id: 'id',
-			title22: 'title22',
+			title: 'title',
 			body: 'body',
 	  }
 	}
@@ -359,7 +379,7 @@ export abstract class GetSinglePostActionResFactory {
   * 
   * @type {Money}
   **/
- title22 : Money;
+ title : Money;
 			/**
   * 
   * @type {string}

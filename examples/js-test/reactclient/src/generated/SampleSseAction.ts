@@ -1,8 +1,7 @@
 import { buildUrl } from './sdk/common/buildUrl';
 import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
-import { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
-import { useSse } from './sdk/react/useSse';
+import { useState } from 'react';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
 * Action to communicate with the action sampleSse
@@ -15,28 +14,42 @@ export type SampleSseActionMutationOptions = Omit<
 	UseMutationOptions<unknown, unknown, unknown, unknown>,
 	"mutationFn"
 > &
-	SampleSseActionOptions;
-export const useSampleSseActionMutation = (
-	options: SampleSseActionMutationOptions
+	SampleSseActionOptions
+& {
+    onMessage?: (ev: MessageEvent) => void;
+    overrideUrl?: string;
+    headers?: Headers;
+  }
+& Partial<{
+	creatorFn: (item: unknown) => SampleSseActionRes
+}>
+export const useSampleSseAction = (
+	options?: SampleSseActionMutationOptions
 ) => {
-	return useMutation({
-		mutationFn: (vars: unknown) =>
+ 	const [isCompleted, setCompleteState] = useState(false);
+	const mutationResult =  useMutation({
+		mutationFn: (body: unknown) =>
 			SampleSseAction.Fetch(
-				options.qs,
+				options?.creatorFn,
+				options?.qs,
 				{
-					body: vars,
-					headers: options.headers,
-				}
-			),
+					body,
+					headers: options?.headers,
+				},
+				options?.onMessage,
+				options?.overrideUrl,
+			).then((x) => {
+				x.done.then(() => {
+					setCompleteState(true);
+				});
+				return x.response;
+			}),
 		...(options || {}),
 	});
-};
-export const useSampleSseAction = (options: {
-	qs?: URLSearchParams,
-	init?: TypedRequestInit<unknown, unknown>,
-	overrideUrl?: string
-}) => {
-	return useSse(SampleSseAction.Fetch, options);
+	return {
+		...mutationResult,
+		isCompleted
+	}
 };
 	/**
  * SampleSseAction
@@ -85,27 +98,6 @@ export class SampleSseAction {
 				init?.signal,
 			);
 	}
-	static Axios : (
-		clientInstance: AxiosInstance,
-		config: AxiosRequestConfig<unknown>,
-	)  => Promise<AxiosResponse<unknown>> = (
-		clientInstance,
-		config,
-	) => 
-		clientInstance
-		.request<unknown, AxiosResponse<unknown>, unknown>(
-			{
-				method: SampleSseAction.Method,
-				...(config || {})
-			}
-		)
-		.then((res) => {
-			return {
-			...res,
-			// if there is a output class, create instance out of it.
-			data: new SampleSseActionRes(res.data),
-			};
-		});
   static Definition = {
   "name": "sampleSse",
   "url": "http://localhost:3000/stream",
@@ -115,8 +107,7 @@ export class SampleSseAction {
     "fields": [
       {
         "name": "message",
-        "type": "string",
-        "gormMap": {}
+        "type": "string"
       }
     ]
   }
@@ -160,13 +151,14 @@ setMessage (value: string) {
 			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
 		}
 	}
-	#isJsonAppliable(obj) {
+	#isJsonAppliable(obj: unknown) {
+		const g = globalThis as any
 		const isBuffer =
-			typeof globalThis.Buffer !== "undefined" &&
-			typeof globalThis.Buffer.isBuffer === "function" &&
-			globalThis.Buffer.isBuffer(obj);
+			typeof g.Buffer !== "undefined" &&
+			typeof g.Buffer.isBuffer === "function" &&
+			g.Buffer.isBuffer(obj);
 		const isBlob =
-			typeof globalThis.Blob !== "undefined" && obj instanceof globalThis.Blob;
+			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
 		return (
 			obj &&
 			typeof obj === "object" &&

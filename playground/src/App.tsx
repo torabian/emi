@@ -66,13 +66,7 @@ function App() {
               WASM Runtime: {ready ? "✅ Ready" : "⏳ Initializing..."}
             </span>
             <FeatureSelector
-              options={[
-                "nestjs",
-                "typescript",
-                "axios",
-                "react",
-                "axiosbundle",
-              ]}
+              options={["nestjs", "typescript", "react"]}
               setSelected={(value) => setFeatures(value)}
               selected={features}
             />
