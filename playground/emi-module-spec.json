@@ -782,10 +782,6 @@
           "type": "string",
           "description": "Override the gorm meta tag generated for golang"
         },
-        "gormMap": {
-          "$ref": "#/definitions/GormOverrideMap",
-          "description": "Used in Module code generation to customized the generated code for gorm tags on Emi Data management fields such as workspace or user id. For example"
-        },
         "sql": {
           "type": "string",
           "description": "Direct manipulation of the sql meta tag on the field."
