@@ -200,7 +200,7 @@ export class NullableResponseActionDto {
       this.firstName = value;
       return this;
     }
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -286,7 +286,7 @@ export class NullableResponseActionDto {
       this.firstName = value;
       return this;
     }
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -344,7 +344,7 @@ export class NullableResponseActionDto {
       };
     }
   };
-  constructor(data) {
+  constructor(data: unknown) {
     if (data === null || data === undefined) {
       return;
     }

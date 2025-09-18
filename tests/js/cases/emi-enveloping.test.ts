@@ -104,6 +104,7 @@ describe("Generate the http sdk for it", () => {
       undefined,
       undefined,
       undefined,
+      undefined,
       `http://localhost:${port}/json`
     );
 

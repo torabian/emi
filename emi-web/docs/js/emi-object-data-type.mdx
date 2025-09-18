@@ -113,7 +113,7 @@ export class MyObjectClassDto {
       this.age = value;
       return this;
     }
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -176,7 +176,7 @@ export class MyObjectClassDto {
       };
     }
   };
-  constructor(data) {
+  constructor(data: unknown) {
     if (data === null || data === undefined) {
       return;
     }
@@ -367,7 +367,7 @@ export class MyObjectClassDto {
       this.lastName = value;
       return this;
     }
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -425,7 +425,7 @@ export class MyObjectClassDto {
       };
     }
   };
-  constructor(data) {
+  constructor(data: unknown) {
     if (data === null || data === undefined) {
       return;
     }

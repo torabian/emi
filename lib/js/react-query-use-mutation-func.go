@@ -22,6 +22,16 @@ type reactUseMutationOptions struct {
 func ReactUseMutationFunction(useMutationOptions reactUseMutationOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	tsValue := "options?: " + useMutationOptions.ActionMutationOptionsName
 
+	fn, err := reactQueryCommonFnFunction(reactQueryCommonFnOptions{
+		RequestClass:      useMutationOptions.RequestClass,
+		MetaDataClassName: useMutationOptions.MetaDataClassName,
+		HasPathParameters: useMutationOptions.HasPathParameters,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
 	if useMutationOptions.HasPathParameters {
 		tsValue = "options: " + useMutationOptions.ActionMutationOptionsName
 	}
@@ -32,6 +42,11 @@ func ReactUseMutationFunction(useMutationOptions reactUseMutationOptions, ctx co
 			Ts:  tsValue,
 			Js:  "options",
 		},
+		{
+			Key: "fn",
+			Ts:  fn,
+			Js:  fn,
+		},
 	}
 	className := fmt.Sprintf("use%v", core.ToUpper(useMutationOptions.ActionName))
 
@@ -39,38 +54,18 @@ func ReactUseMutationFunction(useMutationOptions reactUseMutationOptions, ctx co
 export const {{ .className }} = (
 	|@options.argument|
 ) => {
- 	const [isCompleted, setCompleteState] = useState(false);
 
-	const mutationResult =  useMutation({
-		mutationFn: (body: {{ .useMutationOptions.RequestClass }}) =>
-			{{ .useMutationOptions.MetaDataClassName }}.Fetch(
-				{{ if .useMutationOptions.HasPathParameters }}
-				options.params,
-				{{ end }}
-				{{ if .useMutationOptions.HasCreatorFunction }}
-				options?.creatorFn,
-				{{ end }}
-				options?.qs,
-				{
-					body,
-					headers: options?.headers,
-				},
-				options?.onMessage,
-				options?.overrideUrl,
-			).then((x) => {
-				x.done.then(() => {
-					setCompleteState(true);
-				});
-
-				return x.response;
-			}),
+	|@fn|
+ 
+	const result =  useMutation({
+		mutationFn: fn,
 		...(options || {}),
-
 	});
 
 	return {
-		...mutationResult,
-		isCompleted
+		...result,
+		isCompleted,
+		response
 	}
 };
 	`
@@ -101,6 +96,10 @@ export const {{ .className }} = (
 			{
 				Objects:  []string{"useState"},
 				Location: "react",
+			},
+			{
+				Objects:  []string{"useFetchxContext"},
+				Location: INTERNAL_SDK_REACT_LOCATION + "/useFetchx",
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{

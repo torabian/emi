@@ -135,6 +135,11 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 			Ts:  "overrideUrl?: string",
 			Js:  "overrideUrl",
 		},
+		{
+			Key: "fetch.ctx",
+			Ts:  "ctx?: FetchxContext<unknown, unknown>",
+			Js:  "ctx",
+		},
 
 		{
 			Key: "fetch.generic",
@@ -201,6 +206,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			|@query.params|,
 		{{ end }}
 		|@fetch.qs|,
+		|@fetch.ctx|,
 		|@fetch.init|,
 		|@fetch.overrideUrl|,
 	) => {
@@ -214,7 +220,8 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			{
 				method: {{  .fetchctx.UrlMethod -}},
 				...(init || {})
-			}
+			},
+			ctx
 		)
 	}
 
@@ -226,6 +233,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			{{ .creatorFn.ArgStatement }},
 		{{ end }}
 		|@fetch.qs|,
+		|@fetch.ctx|,
 		|@fetch.init|,
 		|@message.callback|,
 		|@fetch.overrideUrl|,
@@ -237,9 +245,10 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			params,
 			{{ end }}
 			qs,
+			ctx,
 			init,
 			overrideUrl,
-		);
+			);
 
 		{{ if .fetchctx.IsClassicHttpCall }}
 
@@ -281,7 +290,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		ActualScript: []byte(templateResult),
 		CodeChunkDependenies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"fetchx"},
+				Objects:  []string{"fetchx", "FetchxContext"},
 				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
 			},
 		},

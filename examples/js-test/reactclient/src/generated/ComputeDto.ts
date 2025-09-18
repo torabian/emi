@@ -78,7 +78,7 @@ setCount (value: number) {
 	this.count = value
 	return this
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}

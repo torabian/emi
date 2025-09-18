@@ -3,6 +3,7 @@ package js
 import (
 	"embed"
 	"errors"
+	"fmt"
 	"path"
 	"slices"
 	"strings"
@@ -183,14 +184,11 @@ func detectUsedFilesAndImports(
 	result *core.CodeChunkCompiled,
 	sdkEmbedContent *embed.FS,
 ) ([]core.VirtualFile, error) {
-	globalPkgs := []string{}
 	internalUsage := []string{}
 
 	for _, loc := range result.CodeChunkDependenies {
-		if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) {
+		if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
 			internalUsage = append(internalUsage, loc.Location)
-		} else {
-			globalPkgs = append(globalPkgs, loc.Location)
 		}
 	}
 
@@ -204,6 +202,7 @@ func detectUsedFilesAndImports(
 	sdkFiles := core.FsEmbedToVirtualFile(sdkEmbedContent, "sdk")
 
 	for _, sdkFile := range sdkFiles {
+		fmt.Println(sdkFile)
 		actual := "./" + path.Join(sdkFile.Location, sdkFile.Name, sdkFile.Extension)
 		actual = strings.TrimSuffix(actual, ".ts")
 		actual = strings.TrimSuffix(actual, ".js")

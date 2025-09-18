@@ -19,15 +19,32 @@ export class TypedResponse<T> extends Response {
     | string;
 }
 
-export function fetchx<
+export async function fetchx<
   TResponse = unknown,
   TBody = unknown,
   THeaders = unknown
 >(
   input: RequestInfo | URL,
-  init?: TypedRequestInit<TBody, THeaders>
+  init?: TypedRequestInit<TBody, THeaders>,
+  ctx?: FetchxContext<TBody, THeaders>
 ): Promise<TypedResponse<TResponse>> {
-  return fetch(input, init as RequestInit) as Promise<TypedResponse<TResponse>>;
+  let url = input.toString();
+  let reqInit: TypedRequestInit<TBody, THeaders> = init || {};
+
+  if (ctx) {
+    [url, reqInit] = await ctx.apply(url, reqInit);
+  }
+
+  let res = (await fetch(
+    url,
+    reqInit as RequestInit
+  )) as TypedResponse<TResponse>;
+
+  if (ctx) {
+    res = await ctx.handle(res);
+  }
+
+  return res;
 }
 
 type DtoFactory<T> = { new (data: any): T } | ((data: any) => T);
@@ -130,3 +147,60 @@ export const SSEFetch = <T = string>(
 
   return { response: res, done };
 };
+
+export class FetchxContext<TBody, THeaders> {
+  constructor(
+    public baseUrl: string = "",
+    public defaultHeaders: Record<string, string> = {},
+    public requestInterceptor?: (
+      url: string,
+      init: TypedRequestInit<TBody, THeaders>
+    ) =>
+      | Promise<[string, TypedRequestInit<TBody, THeaders>]>
+      | [string, TypedRequestInit<TBody, THeaders>],
+    public responseInterceptor?: <T>(
+      res: TypedResponse<T>
+    ) => Promise<TypedResponse<T>>
+  ) {}
+
+  async apply<T>(
+    url: string,
+    init: TypedRequestInit<TBody, THeaders>
+  ): Promise<[string, TypedRequestInit<TBody, THeaders>]> {
+    // prefix baseUrl
+    if (!/^https?:\/\//.test(url)) {
+      url = this.baseUrl + url;
+    }
+
+    // merge default headers
+    (init.headers as unknown) = {
+      ...this.defaultHeaders,
+      ...((init.headers as object) || {}),
+    };
+
+    // call request interceptor if present
+    if (this.requestInterceptor) {
+      return this.requestInterceptor(url, init);
+    }
+
+    return [url, init];
+  }
+
+  async handle<T>(res: TypedResponse<T>): Promise<TypedResponse<T>> {
+    if (this.responseInterceptor) {
+      return this.responseInterceptor(res);
+    }
+    return res;
+  }
+
+  clone(
+    overrides?: Partial<FetchxContext<TBody, THeaders>>
+  ): FetchxContext<TBody, THeaders> {
+    return new FetchxContext(
+      overrides?.baseUrl ?? this.baseUrl,
+      { ...this.defaultHeaders, ...(overrides?.defaultHeaders || {}) },
+      overrides?.requestInterceptor ?? this.requestInterceptor,
+      overrides?.responseInterceptor ?? this.responseInterceptor
+    );
+  }
+}

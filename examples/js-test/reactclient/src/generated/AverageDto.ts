@@ -27,7 +27,7 @@ setNumber (value: number) {
 	this.number = value
 	return this
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}

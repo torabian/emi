@@ -300,7 +300,7 @@ export abstract class %vFactory {
 	if isTypeScript {
 		result = strings.ReplaceAll(string(result), "#isJsonAppliable(obj) {", "#isJsonAppliable(obj: unknown) {")
 		result = strings.ReplaceAll(string(result), "const g = globalThis", "const g = globalThis as any")
-		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data = {})", "constructor(data: unknown = {})"))
+		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data)", "constructor(data: unknown)"))
 		res.SuggestedExtension = ".ts"
 	} else {
 		res.SuggestedExtension = ".js"

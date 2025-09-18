@@ -3,8 +3,17 @@ export class TypedResponse extends Response {
         return super.json();
     }
 }
-export function fetchx(input, init) {
-    return fetch(input, init);
+export async function fetchx(input, init, ctx) {
+    let url = input.toString();
+    let reqInit = init || {};
+    if (ctx) {
+        [url, reqInit] = await ctx.apply(url, reqInit);
+    }
+    let res = (await fetch(url, reqInit));
+    if (ctx) {
+        res = await ctx.handle(res);
+    }
+    return res;
 }
 function isConstructor(fn) {
     return (typeof fn === "function" && fn.prototype && fn.prototype.constructor === fn);
@@ -86,3 +95,37 @@ export const SSEFetch = (res, onMessage, signal) => {
     });
     return { response: res, done };
 };
+export class FetchxContext {
+    constructor(baseUrl = "", defaultHeaders = {}, requestInterceptor, responseInterceptor) {
+        this.baseUrl = baseUrl;
+        this.defaultHeaders = defaultHeaders;
+        this.requestInterceptor = requestInterceptor;
+        this.responseInterceptor = responseInterceptor;
+    }
+    async apply(url, init) {
+        // prefix baseUrl
+        if (!/^https?:\/\//.test(url)) {
+            url = this.baseUrl + url;
+        }
+        // merge default headers
+        init.headers = {
+            ...this.defaultHeaders,
+            ...(init.headers || {}),
+        };
+        // call request interceptor if present
+        if (this.requestInterceptor) {
+            return this.requestInterceptor(url, init);
+        }
+        return [url, init];
+    }
+    async handle(res) {
+        if (this.responseInterceptor) {
+            return this.responseInterceptor(res);
+        }
+        return res;
+    }
+    clone(overrides) {
+        var _a, _b, _c;
+        return new FetchxContext((_a = overrides === null || overrides === void 0 ? void 0 : overrides.baseUrl) !== null && _a !== void 0 ? _a : this.baseUrl, { ...this.defaultHeaders, ...((overrides === null || overrides === void 0 ? void 0 : overrides.defaultHeaders) || {}) }, (_b = overrides === null || overrides === void 0 ? void 0 : overrides.requestInterceptor) !== null && _b !== void 0 ? _b : this.requestInterceptor, (_c = overrides === null || overrides === void 0 ? void 0 : overrides.responseInterceptor) !== null && _c !== void 0 ? _c : this.responseInterceptor);
+    }
+}

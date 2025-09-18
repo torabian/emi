@@ -56,6 +56,7 @@ func ReactQueryUseQueryRealms(
 		ActionName:         actionRealms.ActionName,
 		NewUrlFunctionName: findTokenByName(actionRealms.FetchMetaClass.Tokens, TOKEN_NEW_URL_FN).Value,
 		MetaDataClassName:  findTokenByName(actionRealms.FetchMetaClass.Tokens, TOKEN_ROOT_CLASS).Value,
+		RequestClass:       "",
 	}
 
 	if actionRealms.PathParameter != nil {

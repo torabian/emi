@@ -653,7 +653,7 @@ export class ResponseDto {
       this.totalPages = value;
       return this;
     }
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -1110,7 +1110,7 @@ export class ResponseDto {
         this.sendReport = value;
         return this;
       }
-      constructor(data) {
+      constructor(data: unknown) {
         if (data === null || data === undefined) {
           return;
         }
@@ -1203,7 +1203,7 @@ export class ResponseDto {
         };
       }
     };
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -1282,7 +1282,7 @@ export class ResponseDto {
       };
     }
   };
-  constructor(data) {
+  constructor(data: unknown) {
     if (data === null || data === undefined) {
       return;
     }

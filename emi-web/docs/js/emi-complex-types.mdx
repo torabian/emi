@@ -35,14 +35,15 @@ actions:
 ## Example Generated Code
 
 ```ts
-import { GResponse } from "./sdk/envelopes/index";
-import { Money } from "../some/directory/Money";
-import { buildUrl } from "./sdk/common/buildUrl";
 import {
+  FetchxContext,
   fetchx,
   handleFetchResponse,
   type TypedRequestInit,
 } from "./sdk/common/fetchx";
+import { GResponse } from "./sdk/envelopes/index";
+import { Money } from "../some/directory/Money";
+import { buildUrl } from "./sdk/common/buildUrl";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * Action to communicate with the action sample
@@ -61,6 +62,7 @@ export class SampleAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: URLSearchParams,
+    ctx?: FetchxContext<unknown, unknown>,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -70,17 +72,19 @@ export class SampleAction {
         method: SampleAction.Method,
         ...(init || {}),
       },
+      ctx,
     );
   };
   static Fetch = async (
     creatorFn: (item: unknown) => SampleActionRes = (item) =>
       new SampleActionRes(item),
     qs?: URLSearchParams,
+    ctx?: FetchxContext<unknown, unknown>,
     init?: TypedRequestInit<unknown, unknown>,
     onMessage?: (ev: MessageEvent) => void,
     overrideUrl?: string,
   ) => {
-    const res = await SampleAction.Fetch$(qs, init, overrideUrl);
+    const res = await SampleAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,
       (data) => {
@@ -173,7 +177,7 @@ export class SampleActionRes {
     this.money = value;
     return this;
   }
-  constructor(data) {
+  constructor(data: unknown) {
     if (data === null || data === undefined) {
       return;
     }

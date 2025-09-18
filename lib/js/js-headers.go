@@ -84,8 +84,15 @@ func JsHeaderClass(
    * {{ .Description }}
    * @param { {{.Type}} } value
    */
-  {{.SetterFunc}} (value) {
-    this.set('{{.PropertyName}}', value);
+
+  {{ if $.isTypeScript }}
+  	{{.SetterFunc}} (value: {{ .Type }}) {
+		{{ else }}
+	{{.SetterFunc}} (value) {
+  {{ end }}
+	if (value !== null) {
+		this.set('{{.PropertyName}}', value);
+	}
     return this;
   }
   {{- end }}
@@ -165,6 +172,7 @@ func JsHeaderClass(
 		"getTypeArgument":         getTypeArgument,
 		"getKeyArgument":          getKeyArgument,
 		"headers":                 renderedHeaders,
+		"isTypeScript":            isTypeScript,
 		"shouldExport":            true,
 		"nestjsDecorator":         nestJsDecoratorRendered,
 		"className":               headerctx.ClassName,
