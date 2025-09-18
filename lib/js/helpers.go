@@ -75,7 +75,7 @@ func CombineImportsJsWorld(chunk core.CodeChunkCompiled) string {
 	// group by location
 	locMap := map[string]map[string]struct{}{}
 
-	for _, dep := range chunk.CodeChunkDependenies {
+	for _, dep := range chunk.CodeChunkDependensies {
 		if _, ok := locMap[dep.Location]; !ok {
 			locMap[dep.Location] = map[string]struct{}{}
 		}

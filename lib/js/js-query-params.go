@@ -65,7 +65,7 @@ func renderTsJsQsClass(ctx core.MicroGenContext, action core.EmiRpcAction, field
 		}
 
 		// Make sure to add dependencies to render tree
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, nestjsStaticDecorator.CodeChunkDependenies...)
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, nestjsStaticDecorator.CodeChunkDependensies...)
 
 		// Add the static function to the class bottom
 		nestJsDecoratorRendered = string(nestjsStaticDecorator.ActualScript)
@@ -85,7 +85,7 @@ func renderTsJsQsClass(ctx core.MicroGenContext, action core.EmiRpcAction, field
 
 	res.ActualScript = buf.Bytes()
 
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, core.CodeChunkDependency{
+	res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
 		Objects: []string{
 			"URLSearchParamsX",
 		},
@@ -119,7 +119,7 @@ func JsActionQsClass(action core.EmiRpcAction, ctx core.MicroGenContext) (*core.
    * {{ .Description }}
    * @param { {{.Type}} } value
    */
-  {{.SetterFunc}} (value) {
+  {{.SetterFunc}} (value: {{.Type}}) {
     this.set('{{.PropertyName}}', value);
     return this;
   }

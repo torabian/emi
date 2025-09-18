@@ -104,12 +104,19 @@ func (x jsFieldVariable) Compile(isTypeScript bool) string {
 	}
 
 	sequence = append(sequence, varName)
-
 	if isTypeScript {
 
+		// For enums, classes, still not sure if we have to initiate them empty regardless
+		// therefor we need to make
+		isLateInit := !x.IsNullable && x.SafeDefaultValue == ""
+
+		// When field is nullable, we just put the question mark
 		if x.IsNullable {
 			sequence = append(sequence, "?")
+		} else if isLateInit {
+			sequence = append(sequence, "!")
 		}
+
 		sequence = append(sequence, ": "+x.ComputedType)
 
 		if x.IsNullable {

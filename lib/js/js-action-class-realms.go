@@ -53,7 +53,7 @@ func JsActionManifestRealms(
 		}
 
 		if requestHeader != nil {
-			deps = append(deps, requestHeader.CodeChunkDependenies...)
+			deps = append(deps, requestHeader.CodeChunkDependensies...)
 			actionRealms.RequestHeadersClass = requestHeader
 		}
 
@@ -74,7 +74,7 @@ func JsActionManifestRealms(
 		}
 
 		if responseHeader != nil {
-			deps = append(deps, responseHeader.CodeChunkDependenies...)
+			deps = append(deps, responseHeader.CodeChunkDependensies...)
 			actionRealms.ResponseHeadersClass = responseHeader
 		}
 	}
@@ -88,7 +88,7 @@ func JsActionManifestRealms(
 		}
 
 		if pathParameter != nil {
-			deps = append(deps, pathParameter.CodeChunkDependenies...)
+			deps = append(deps, pathParameter.CodeChunkDependensies...)
 			actionRealms.PathParameter = pathParameter
 		}
 	}
@@ -108,7 +108,7 @@ func JsActionManifestRealms(
 		}
 
 		if qs != nil {
-			deps = append(deps, qs.CodeChunkDependenies...)
+			deps = append(deps, qs.CodeChunkDependensies...)
 			actionRealms.QueryStringClass = qs
 			token := findTokenByName(qs.Tokens, TOKEN_ROOT_CLASS)
 			if token != nil {
@@ -143,7 +143,7 @@ func JsActionManifestRealms(
 		if err != nil {
 			return nil, nil, err
 		}
-		deps = append(deps, optionsType.CodeChunkDependenies...)
+		deps = append(deps, optionsType.CodeChunkDependensies...)
 		actionRealms.OptionsType = optionsType
 
 	}
@@ -159,11 +159,11 @@ func JsActionManifestRealms(
 			return nil, nil, err
 		}
 
-		deps = append(deps, fields.CodeChunkDependenies...)
+		deps = append(deps, fields.CodeChunkDependensies...)
 		actionRealms.RequestClass = fields
 	} else if action.HasRequestDto() {
 		actionRealms.RequestClass = castDtoNameToCodeChunk(action.GetRequestDto())
-		deps = append(deps, actionRealms.RequestClass.CodeChunkDependenies...)
+		deps = append(deps, actionRealms.RequestClass.CodeChunkDependensies...)
 	}
 
 	// Action response (out)
@@ -176,11 +176,11 @@ func JsActionManifestRealms(
 		if err != nil {
 			return nil, nil, err
 		}
-		deps = append(deps, fields.CodeChunkDependenies...)
+		deps = append(deps, fields.CodeChunkDependensies...)
 		actionRealms.ResponseClass = fields
 	} else if action.HasResponseDto() {
 		actionRealms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
-		deps = append(deps, actionRealms.ResponseClass.CodeChunkDependenies...)
+		deps = append(deps, actionRealms.ResponseClass.CodeChunkDependensies...)
 	}
 
 	if actionRealms.ResponseClass != nil && action.GetResponseEnvelopeClass() != "" {
@@ -199,7 +199,7 @@ func JsActionManifestRealms(
 	if err != nil {
 		return nil, nil, err
 	}
-	deps = append(deps, fetch.CodeChunkDependenies...)
+	deps = append(deps, fetch.CodeChunkDependensies...)
 	actionRealms.FetchMetaClass = fetch
 	actionRealms.Fetchctx = fetchctx
 
@@ -231,9 +231,9 @@ func castDtoNameToCodeChunk(dtoName string) *core.CodeChunkCompiled {
 	names := strings.Split(dtoName, "|")
 
 	chunk := &core.CodeChunkCompiled{
-		ActualScript:         []byte(""),
-		Tokens:               []core.GeneratedScriptToken{},
-		CodeChunkDependenies: []core.CodeChunkDependency{},
+		ActualScript:          []byte(""),
+		Tokens:                []core.GeneratedScriptToken{},
+		CodeChunkDependensies: []core.CodeChunkDependency{},
 	}
 
 	chunk.Tokens = append(chunk.Tokens,
@@ -244,7 +244,7 @@ func castDtoNameToCodeChunk(dtoName string) *core.CodeChunkCompiled {
 	for _, name := range names {
 		directory, className := parseDtoPath(strings.TrimSpace(name))
 
-		chunk.CodeChunkDependenies = append(chunk.CodeChunkDependenies,
+		chunk.CodeChunkDependensies = append(chunk.CodeChunkDependensies,
 			core.CodeChunkDependency{
 				Objects:  []string{className},
 				Location: directory,

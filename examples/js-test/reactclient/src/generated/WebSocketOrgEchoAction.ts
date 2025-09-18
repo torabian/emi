@@ -148,7 +148,7 @@ setLastName (value: string) {
   * 
   * @type {WebSocketOrgEchoActionReq.User}
   **/
- #user : InstanceType<typeof WebSocketOrgEchoActionReq.User>
+ #user ! : InstanceType<typeof WebSocketOrgEchoActionReq.User>
 		/**
   * 
   * @returns {WebSocketOrgEchoActionReq.User}
@@ -279,7 +279,7 @@ setSubItem2 (value: number) {
 	this.subItem2 = value
 	return this
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -336,7 +336,7 @@ setSubItem2 (value: number) {
 	  }
 	}
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -399,7 +399,7 @@ get item2array() {
 	  }
 	}
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -553,7 +553,7 @@ setLastName (value: string) {
 	this.lastName = value
 	return this
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}

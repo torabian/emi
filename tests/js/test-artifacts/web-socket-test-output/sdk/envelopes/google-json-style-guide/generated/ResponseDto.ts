@@ -130,7 +130,7 @@ export class ResponseDto {
    * Main data payload of the response.
    * @type {ResponseDto.Data}
    **/
-  #data: InstanceType<typeof ResponseDto.Data>;
+  #data!: InstanceType<typeof ResponseDto.Data>;
   /**
    * Main data payload of the response.
    * @returns {ResponseDto.Data}
@@ -158,7 +158,7 @@ export class ResponseDto {
    * Error details, if the request failed.
    * @type {ResponseDto.Error}
    **/
-  #error: InstanceType<typeof ResponseDto.Error>;
+  #error!: InstanceType<typeof ResponseDto.Error>;
   /**
    * Error details, if the request failed.
    * @returns {ResponseDto.Error}
@@ -653,7 +653,7 @@ export class ResponseDto {
       this.totalPages = value;
       return this;
     }
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -1110,7 +1110,7 @@ export class ResponseDto {
         this.sendReport = value;
         return this;
       }
-      constructor(data) {
+      constructor(data: unknown) {
         if (data === null || data === undefined) {
           return;
         }
@@ -1203,7 +1203,7 @@ export class ResponseDto {
         };
       }
     };
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -1282,7 +1282,7 @@ export class ResponseDto {
       };
     }
   };
-  constructor(data) {
+  constructor(data: unknown) {
     if (data === null || data === undefined) {
       return;
     }

@@ -7,7 +7,7 @@ export class ComputeDto {
   * Minimum number which can be generated
   * @type {Decimal}
   **/
- #min : Decimal
+ #min ! : Decimal
 		/**
   * Minimum number which can be generated
   * @returns {Decimal}
@@ -78,7 +78,7 @@ setCount (value: number) {
 	this.count = value
 	return this
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}

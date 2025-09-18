@@ -84,8 +84,15 @@ func JsHeaderClass(
    * {{ .Description }}
    * @param { {{.Type}} } value
    */
-  {{.SetterFunc}} (value) {
-    this.set('{{.PropertyName}}', value);
+
+  {{ if $.isTypeScript }}
+  	{{.SetterFunc}} (value: {{ .Type }}) {
+		{{ else }}
+	{{.SetterFunc}} (value) {
+  {{ end }}
+	if (value !== null) {
+		this.set('{{.PropertyName}}', value);
+	}
     return this;
   }
   {{- end }}
@@ -153,7 +160,7 @@ func JsHeaderClass(
 		}
 
 		// Make sure to add dependencies to render tree
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, nestjsStaticDecorator.CodeChunkDependenies...)
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, nestjsStaticDecorator.CodeChunkDependensies...)
 
 		// Add the static function to the class bottom
 		nestJsDecoratorRendered = string(nestjsStaticDecorator.ActualScript)
@@ -165,6 +172,7 @@ func JsHeaderClass(
 		"getTypeArgument":         getTypeArgument,
 		"getKeyArgument":          getKeyArgument,
 		"headers":                 renderedHeaders,
+		"isTypeScript":            isTypeScript,
 		"shouldExport":            true,
 		"nestjsDecorator":         nestJsDecoratorRendered,
 		"className":               headerctx.ClassName,

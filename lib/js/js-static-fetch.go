@@ -135,6 +135,11 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 			Ts:  "overrideUrl?: string",
 			Js:  "overrideUrl",
 		},
+		{
+			Key: "fetch.ctx",
+			Ts:  "ctx?: FetchxContext",
+			Js:  "ctx",
+		},
 
 		{
 			Key: "fetch.generic",
@@ -201,6 +206,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			|@query.params|,
 		{{ end }}
 		|@fetch.qs|,
+		|@fetch.ctx|,
 		|@fetch.init|,
 		|@fetch.overrideUrl|,
 	) => {
@@ -214,7 +220,8 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			{
 				method: {{  .fetchctx.UrlMethod -}},
 				...(init || {})
-			}
+			},
+			ctx
 		)
 	}
 
@@ -226,6 +233,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			{{ .creatorFn.ArgStatement }},
 		{{ end }}
 		|@fetch.qs|,
+		|@fetch.ctx|,
 		|@fetch.init|,
 		|@message.callback|,
 		|@fetch.overrideUrl|,
@@ -237,9 +245,10 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			params,
 			{{ end }}
 			qs,
+			ctx,
 			init,
 			overrideUrl,
-		);
+			);
 
 		{{ if .fetchctx.IsClassicHttpCall }}
 
@@ -279,9 +288,9 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 
 	res := &core.CodeChunkCompiled{
 		ActualScript: []byte(templateResult),
-		CodeChunkDependenies: []core.CodeChunkDependency{
+		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"fetchx"},
+				Objects:  []string{"fetchx", "FetchxContext"},
 				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
 			},
 		},
@@ -295,7 +304,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		})
 	}
 
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
+	res.CodeChunkDependensies = append(res.CodeChunkDependensies, []core.CodeChunkDependency{
 		{
 			Objects:  []string{"handleFetchResponse"},
 			Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
@@ -303,7 +312,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 	}...)
 
 	if isTypeScript {
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, []core.CodeChunkDependency{
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type TypedRequestInit"},
 				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",

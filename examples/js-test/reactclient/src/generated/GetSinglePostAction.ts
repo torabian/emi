@@ -1,7 +1,8 @@
+import { FetchxContext, fetchx, handleFetchResponse, type TypedRequestInit, type TypedResponse } from './sdk/common/fetchx';
 import { Money } from '../Money';
 import { buildUrl } from './sdk/common/buildUrl';
-import { fetchx, handleFetchResponse, type TypedRequestInit, type TypedResponse } from './sdk/common/fetchx';
 import { type UseMutationOptions, type UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
+import { useFetchxContext } from './sdk/react/useFetchx';
 import { useState } from 'react';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
@@ -29,39 +30,49 @@ export type GetSinglePostActionQueryOptions = Omit<
 	onMessage?: (ev: MessageEvent) => void;
 	overrideUrl?: string;
 	headers?: Headers;
+	ctx?: FetchxContext;
 }
 export const useGetSinglePostActionQuery = (
 	options: GetSinglePostActionQueryOptions
 ) => {
+	const globalCtx = useFetchxContext(); 
+	const ctx = options?.ctx ?? globalCtx ?? undefined;
 	const [isCompleted, setCompleteState] = useState(false);
 	const [response, setResponse] = useState<TypedResponse<unknown>>();
-	const queryResult = useQuery({
+	const fn = (
+	) =>
+		{
+			setCompleteState(false);
+			GetSinglePostAction.Fetch(
+					options.params,
+				options?.creatorFn,
+				options?.qs,
+				{
+					headers: options?.headers,
+				},
+				options?.onMessage,
+				options?.overrideUrl,
+				ctx,
+			).then((x) => {
+				x.done.then(() => {
+					setCompleteState(true);
+				});
+				setResponse(x.response)
+				return x.response.result;
+			})
+		}
+	const result = useQuery({
 		queryKey: [
 			GetSinglePostAction.NewUrl (
 				options.params,
-				options.qs
+				options?.qs
 			)
 		],
-		queryFn: () =>
-		GetSinglePostAction.Fetch(
-				options.params,
-			options?.creatorFn,
-			options.qs,
-			{
-			},
-			options?.onMessage,
-			options?.overrideUrl,
-		).then((x) => {
-			x.done.then(() => {
-				setCompleteState(true);
-			});
-			setResponse(x.response)
-			return x.response.result;
-		}),
+		queryFn: fn,
 		...(options || {}),
 	});
 	return {
-		...queryResult,
+		...result,
 		isCompleted,
 		response
 	}
@@ -72,6 +83,7 @@ export type GetSinglePostActionMutationOptions = Omit<
 > &
 	GetSinglePostActionOptions
 & {
+	ctx?: FetchxContext;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -82,30 +94,42 @@ export type GetSinglePostActionMutationOptions = Omit<
 export const useGetSinglePostAction = (
 	options: GetSinglePostActionMutationOptions
 ) => {
- 	const [isCompleted, setCompleteState] = useState(false);
-	const mutationResult =  useMutation({
-		mutationFn: (body: unknown) =>
+	const globalCtx = useFetchxContext(); 
+	const ctx = options?.ctx ?? globalCtx ?? undefined;
+	const [isCompleted, setCompleteState] = useState(false);
+	const [response, setResponse] = useState<TypedResponse<unknown>>();
+	const fn = (
+			body: unknown,
+	) =>
+		{
+			setCompleteState(false);
 			GetSinglePostAction.Fetch(
-				options.params,
+					options.params,
 				options?.creatorFn,
 				options?.qs,
 				{
-					body,
+						body,
 					headers: options?.headers,
 				},
 				options?.onMessage,
 				options?.overrideUrl,
+				ctx,
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
 				});
-				return x.response;
-			}),
+				setResponse(x.response)
+				return x.response.result;
+			})
+		}
+	const result =  useMutation({
+		mutationFn: fn,
 		...(options || {}),
 	});
 	return {
-		...mutationResult,
-		isCompleted
+		...result,
+		isCompleted,
+		response
 	}
 };
 	/**
@@ -131,6 +155,7 @@ export class GetSinglePostAction {
 	static Fetch$ = async (
 			params: GetSinglePostActionPathParameter,
 		qs?: URLSearchParams,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<unknown, unknown>,
 		overrideUrl?: string,
 	) => {
@@ -142,13 +167,15 @@ export class GetSinglePostAction {
 			{
 				method: GetSinglePostAction.Method,
 				...(init || {})
-			}
+			},
+			ctx
 		)
 	}
 	static Fetch = async (
 			params: GetSinglePostActionPathParameter,
 			creatorFn: (item: unknown) => GetSinglePostActionRes = (item) => new GetSinglePostActionRes(item),
 		qs?: URLSearchParams,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<unknown, unknown>,
 		onMessage?: (ev: MessageEvent) => void,
 		overrideUrl?: string,
@@ -156,9 +183,10 @@ export class GetSinglePostAction {
 		const res = await GetSinglePostAction.Fetch$(
 			params,
 			qs,
+			ctx,
 			init,
 			overrideUrl,
-		);
+			);
 			return handleFetchResponse(
 				res, 
 				(item) => creatorFn(item),
@@ -252,7 +280,7 @@ setId (value: number) {
   * 
   * @type {Money}
   **/
- #title : Money
+ #title ! : Money
 		/**
   * 
   * @returns {Money}
@@ -295,7 +323,7 @@ setBody (value: string) {
 	this.body = value
 	return this
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}

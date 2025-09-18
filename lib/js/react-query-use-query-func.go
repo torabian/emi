@@ -17,12 +17,22 @@ type reactUseQueryOptions struct {
 	ActionQueryOptionsName string
 	ActionName             string
 	NewUrlFunctionName     string
+	RequestClass           string
 	MetaDataClassName      string
 	HasPathParameters      bool
 	ActionRealms           jsActionRealms
 }
 
 func ReactUseQueryOptionsFunction(useQueryOptions reactUseQueryOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+	fn, err := reactQueryCommonFnFunction(reactQueryCommonFnOptions{
+		RequestClass:      useQueryOptions.RequestClass,
+		MetaDataClassName: useQueryOptions.MetaDataClassName,
+		HasPathParameters: useQueryOptions.HasPathParameters,
+	})
+
+	if err != nil {
+		return nil, err
+	}
 
 	claims := []core.JsFnArgument{
 		{
@@ -30,54 +40,38 @@ func ReactUseQueryOptionsFunction(useQueryOptions reactUseQueryOptions, ctx core
 			Ts:  "options: " + useQueryOptions.ActionQueryOptionsName,
 			Js:  "options",
 		},
+		{
+			Key: "fn",
+			Ts:  fn,
+			Js:  fn,
+		},
 	}
+
 	className := fmt.Sprintf("use%v", core.ToUpper(useQueryOptions.ActionName))
 	const tmpl = `
 		
 export const {{ .className }}Query = (
 	|@options.argument|
 ) => {
-	const [isCompleted, setCompleteState] = useState(false);
-	const [response, setResponse] = useState<TypedResponse<unknown>>();
 
-	const queryResult = useQuery({
+	|@fn|
+
+	const result = useQuery({
 		queryKey: [
-			{{ .useQueryOptions.NewUrlFunctionName }} (
-			 	{{ if .useQueryOptions.HasPathParameters }}
+			{{ .hookOptions.NewUrlFunctionName }} (
+			 	{{ if .hookOptions.HasPathParameters }}
 				options.params,
 				{{ end }}
 				
-				options.qs
+				options?.qs
 			)
 		],
-		queryFn: () =>
-		{{ .useQueryOptions.MetaDataClassName }}.Fetch(
-		 	{{ if .useQueryOptions.HasPathParameters }}
-				options.params,
-			{{ end }}
-			options?.creatorFn,
-			options.qs,
-			{
-				{{ if .useQueryOptions.ActionRealms.RequestHeadersClass }}
-				headers: options.headers,
-				{{ end }}
-			},
-			options?.onMessage,
-			options?.overrideUrl,
-		).then((x) => {
-			x.done.then(() => {
-				setCompleteState(true);
-			});
-			
-			setResponse(x.response)
-
-			return x.response.result;
-		}),
+		queryFn: fn,
 		...(options || {}),
 	});
 
 	return {
-		...queryResult,
+		...result,
 		isCompleted,
 		response
 	}
@@ -89,14 +83,15 @@ export const {{ .className }}Query = (
 	t := template.Must(template.New("jsactionoptions").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"useQueryOptions": useQueryOptions,
-		"ctx":             ctx,
-		"className":       className,
+		"hookOptions": useQueryOptions,
+		"ctx":         ctx,
+		"className":   className,
 	}); err != nil {
 		return nil, err
 	}
 
 	templateResult := buf.String()
+
 	claimsRendered := core.ClaimRender(claims, ctx)
 	for key, value := range claimsRendered {
 		templateResult = strings.ReplaceAll(templateResult, fmt.Sprintf("|@%v|", key), value)
@@ -104,7 +99,7 @@ export const {{ .className }}Query = (
 
 	res := &core.CodeChunkCompiled{
 		ActualScript: []byte(templateResult),
-		CodeChunkDependenies: []core.CodeChunkDependency{
+		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"useQuery"},
 				Location: "@tanstack/react-query",
@@ -116,6 +111,10 @@ export const {{ .className }}Query = (
 			{
 				Objects:  []string{"type TypedResponse"},
 				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
+			},
+			{
+				Objects:  []string{"useFetchxContext"},
+				Location: INTERNAL_SDK_REACT_LOCATION + "/useFetchx",
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{

@@ -42,7 +42,7 @@ func ReactQueryUseMutationRealms(
 		if err != nil {
 			return nil, nil, err
 		}
-		deps = append(deps, reactMutationOptions.CodeChunkDependenies...)
+		deps = append(deps, reactMutationOptions.CodeChunkDependensies...)
 		realms.UseMutationOptions = reactMutationOptions
 	}
 
@@ -72,7 +72,7 @@ func ReactQueryUseMutationRealms(
 	if err != nil {
 		return nil, nil, err
 	}
-	deps = append(deps, useMutationFunction.CodeChunkDependenies...)
+	deps = append(deps, useMutationFunction.CodeChunkDependensies...)
 	realms.UseMutationFunction = useMutationFunction
 
 	return &realms, deps, nil

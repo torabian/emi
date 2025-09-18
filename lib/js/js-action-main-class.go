@@ -82,7 +82,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 	claimsRendered := core.ClaimRender(claims, ctx)
 
 	res := &core.CodeChunkCompiled{
-		CodeChunkDependenies: []core.CodeChunkDependency{
+		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"buildUrl"},
 				Location: INTERNAL_SDK_JS_LOCATION + "/buildUrl",
@@ -141,7 +141,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 		if err != nil {
 			return nil, fetchctx, err
 		}
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, fn.CodeChunkDependensies...)
 		fetchStaticFunction = fn
 	}
 
@@ -152,7 +152,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 		if err != nil {
 			return nil, fetchctx, err
 		}
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, fn.CodeChunkDependenies...)
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, fn.CodeChunkDependensies...)
 		websocketCreateFunction = fn
 	}
 

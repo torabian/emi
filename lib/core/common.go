@@ -56,12 +56,12 @@ type GeneratedScriptToken struct {
 
 // CodeChunkCompiled represents a compiled code chunk, with metadata and dependencies.
 type CodeChunkCompiled struct {
-	ActualScript         []byte
-	CodeChunkDependenies []CodeChunkDependency
-	SuggestedFileName    string
-	SuggestedExtension   string
-	Tokens               []GeneratedScriptToken
-	Realms               interface{}
+	ActualScript          []byte
+	CodeChunkDependensies []CodeChunkDependency
+	SuggestedFileName     string
+	SuggestedExtension    string
+	Tokens                []GeneratedScriptToken
+	Realms                interface{}
 }
 
 // CodeChunkDependency represents a dependency (import) for a code chunk.

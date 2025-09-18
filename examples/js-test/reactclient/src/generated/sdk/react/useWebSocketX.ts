@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { WebSocketX } from "../js/WebSocketX";
+import { WebSocketX } from "../common/WebSocketX";
 
 export type UseWebSocketResult<TSend, TRecv> = {
   send: (msg: TSend) => void;

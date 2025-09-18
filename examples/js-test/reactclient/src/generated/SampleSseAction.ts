@@ -1,6 +1,7 @@
+import { FetchxContext, fetchx, handleFetchResponse, type TypedRequestInit, type TypedResponse } from './sdk/common/fetchx';
 import { buildUrl } from './sdk/common/buildUrl';
-import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
-import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
+import { type UseMutationOptions, type UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
+import { useFetchxContext } from './sdk/react/useFetchx';
 import { useState } from 'react';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
@@ -10,12 +11,75 @@ export type SampleSseActionOptions = {
 	queryKey?: unknown[];
 	qs?: URLSearchParams;
 };
+export type SampleSseActionQueryOptions = Omit<
+	UseQueryOptions<
+		unknown,
+		unknown,
+			SampleSseActionRes,
+		unknown[]
+	>,
+	"queryKey"
+> &
+	SampleSseActionOptions
+& Partial<{
+	creatorFn: (item: unknown) => SampleSseActionRes
+}>
+& {
+	onMessage?: (ev: MessageEvent) => void;
+	overrideUrl?: string;
+	headers?: Headers;
+	ctx?: FetchxContext;
+}
+export const useSampleSseActionQuery = (
+	options: SampleSseActionQueryOptions
+) => {
+	const globalCtx = useFetchxContext(); 
+	const ctx = options?.ctx ?? globalCtx ?? undefined;
+	const [isCompleted, setCompleteState] = useState(false);
+	const [response, setResponse] = useState<TypedResponse<unknown>>();
+	const fn = (
+	) =>
+		{
+			setCompleteState(false);
+			SampleSseAction.Fetch(
+				options?.creatorFn,
+				options?.qs,
+				{
+					headers: options?.headers,
+				},
+				options?.onMessage,
+				options?.overrideUrl,
+				ctx,
+			).then((x) => {
+				x.done.then(() => {
+					setCompleteState(true);
+				});
+				setResponse(x.response)
+				return x.response.result;
+			})
+		}
+	const result = useQuery({
+		queryKey: [
+			SampleSseAction.NewUrl (
+				options?.qs
+			)
+		],
+		queryFn: fn,
+		...(options || {}),
+	});
+	return {
+		...result,
+		isCompleted,
+		response
+	}
+};
 export type SampleSseActionMutationOptions = Omit<
 	UseMutationOptions<unknown, unknown, unknown, unknown>,
 	"mutationFn"
 > &
 	SampleSseActionOptions
 & {
+	ctx?: FetchxContext;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -26,29 +90,41 @@ export type SampleSseActionMutationOptions = Omit<
 export const useSampleSseAction = (
 	options?: SampleSseActionMutationOptions
 ) => {
- 	const [isCompleted, setCompleteState] = useState(false);
-	const mutationResult =  useMutation({
-		mutationFn: (body: unknown) =>
+	const globalCtx = useFetchxContext(); 
+	const ctx = options?.ctx ?? globalCtx ?? undefined;
+	const [isCompleted, setCompleteState] = useState(false);
+	const [response, setResponse] = useState<TypedResponse<unknown>>();
+	const fn = (
+			body: unknown,
+	) =>
+		{
+			setCompleteState(false);
 			SampleSseAction.Fetch(
 				options?.creatorFn,
 				options?.qs,
 				{
-					body,
+						body,
 					headers: options?.headers,
 				},
 				options?.onMessage,
 				options?.overrideUrl,
+				ctx,
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
 				});
-				return x.response;
-			}),
+				setResponse(x.response)
+				return x.response.result;
+			})
+		}
+	const result =  useMutation({
+		mutationFn: fn,
 		...(options || {}),
 	});
 	return {
-		...mutationResult,
-		isCompleted
+		...result,
+		isCompleted,
+		response
 	}
 };
 	/**
@@ -63,9 +139,10 @@ export class SampleSseAction {
 		 undefined,
 		qs
 	);
-  static Method = 'sse';
+  static Method = 'get';
 	static Fetch$ = async (
 		qs?: URLSearchParams,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<unknown, unknown>,
 		overrideUrl?: string,
 	) => {
@@ -76,21 +153,24 @@ export class SampleSseAction {
 			{
 				method: SampleSseAction.Method,
 				...(init || {})
-			}
+			},
+			ctx
 		)
 	}
 	static Fetch = async (
 			creatorFn: (item: unknown) => SampleSseActionRes = (item) => new SampleSseActionRes(item),
 		qs?: URLSearchParams,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<unknown, unknown>,
 		onMessage?: (ev: MessageEvent) => void,
 		overrideUrl?: string,
 	) => {
 		const res = await SampleSseAction.Fetch$(
 			qs,
+			ctx,
 			init,
 			overrideUrl,
-		);
+			);
 			return handleFetchResponse(
 				res, 
 				(item) => creatorFn(item),
@@ -101,7 +181,7 @@ export class SampleSseAction {
   static Definition = {
   "name": "sampleSse",
   "url": "http://localhost:3000/stream",
-  "method": "sse",
+  "method": "get",
   "description": "SSE Sample",
   "out": {
     "fields": [
@@ -139,7 +219,7 @@ setMessage (value: string) {
 	this.message = value
 	return this
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}

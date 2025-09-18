@@ -46,7 +46,7 @@ export class NullableResponseActionDto {
    * Mother info should be present
    * @type {NullableResponseActionDto.Mother}
    **/
-  #mother: InstanceType<typeof NullableResponseActionDto.Mother>;
+  #mother!: InstanceType<typeof NullableResponseActionDto.Mother>;
   /**
    * Mother info should be present
    * @returns {NullableResponseActionDto.Mother}
@@ -120,7 +120,7 @@ export class NullableResponseActionDto {
    * Uncle is a separate dto, therefor we use that entity
    * @type {UncleDto}
    **/
-  #firstUncle: UncleDto;
+  #firstUncle!: UncleDto;
   /**
    * Uncle is a separate dto, therefor we use that entity
    * @returns {UncleDto}
@@ -200,7 +200,7 @@ export class NullableResponseActionDto {
       this.firstName = value;
       return this;
     }
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -286,7 +286,7 @@ export class NullableResponseActionDto {
       this.firstName = value;
       return this;
     }
-    constructor(data) {
+    constructor(data: unknown) {
       if (data === null || data === undefined) {
         return;
       }
@@ -344,7 +344,7 @@ export class NullableResponseActionDto {
       };
     }
   };
-  constructor(data) {
+  constructor(data: unknown) {
     if (data === null || data === undefined) {
       return;
     }

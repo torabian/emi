@@ -7,7 +7,7 @@ import { CreatorSignature, EnvelopeClass } from "../common/EnvelopeClass";
 
 export class FlatArray<T> implements EnvelopeClass<T> {
   public data: T[] = [];
-  creator: CreatorSignature<T>;
+  creator?: CreatorSignature<T> | null = null;
 
   inject(data: unknown) {
     if (!Array.isArray(data)) {
@@ -16,12 +16,18 @@ export class FlatArray<T> implements EnvelopeClass<T> {
       );
     }
 
-    this.data = data.map((item) => this.creator(item));
+    if (typeof this.creator !== "undefined") {
+      this.data = data.map((item) =>
+        (this.creator as CreatorSignature<T>)(item)
+      );
+    } else {
+      this.data = data;
+    }
 
     return this;
   }
 
-  setCreator(creator) {
+  setCreator(creator: CreatorSignature<T>) {
     this.creator = creator;
 
     return this;

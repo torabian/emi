@@ -1,9 +1,10 @@
-import { buildUrl } from "./sdk/common/buildUrl";
 import {
+  FetchxContext,
   fetchx,
   handleFetchResponse,
   type TypedRequestInit,
 } from "./sdk/common/fetchx";
+import { buildUrl } from "./sdk/common/buildUrl";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * Action to communicate with the action httpAction
@@ -22,6 +23,7 @@ export class HttpActionAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: URLSearchParams,
+    ctx?: FetchxContext,
     init?: TypedRequestInit<HttpActionActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -31,17 +33,19 @@ export class HttpActionAction {
         method: HttpActionAction.Method,
         ...(init || {}),
       },
+      ctx,
     );
   };
   static Fetch = async (
     creatorFn: (item: unknown) => HttpActionActionRes = (item) =>
       new HttpActionActionRes(item),
     qs?: URLSearchParams,
+    ctx?: FetchxContext,
     init?: TypedRequestInit<HttpActionActionReq, unknown>,
     onMessage?: (ev: MessageEvent) => void,
     overrideUrl?: string,
   ) => {
-    const res = await HttpActionAction.Fetch$(qs, init, overrideUrl);
+    const res = await HttpActionAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,
       (item) => creatorFn(item),
@@ -170,7 +174,7 @@ export class HttpActionActionReq {
     this.count = value;
     return this;
   }
-  constructor(data) {
+  constructor(data: unknown) {
     if (data === null || data === undefined) {
       return;
     }
@@ -294,7 +298,7 @@ export class HttpActionActionRes {
     this.number = value;
     return this;
   }
-  constructor(data) {
+  constructor(data: unknown) {
     if (data === null || data === undefined) {
       return;
     }

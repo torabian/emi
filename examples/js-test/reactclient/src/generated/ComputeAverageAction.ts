@@ -1,8 +1,9 @@
 import { AverageDto } from './AverageDto';
 import { ComputeDto } from './ComputeDto';
+import { FetchxContext, fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
 import { buildUrl } from './sdk/common/buildUrl';
-import { fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
+import { useFetchxContext } from './sdk/react/useFetchx';
 import { useState } from 'react';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
@@ -18,6 +19,7 @@ export type ComputeAverageActionMutationOptions = Omit<
 > &
 	ComputeAverageActionOptions
 & {
+	ctx?: FetchxContext;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -28,29 +30,41 @@ export type ComputeAverageActionMutationOptions = Omit<
 export const useComputeAverageAction = (
 	options?: ComputeAverageActionMutationOptions
 ) => {
- 	const [isCompleted, setCompleteState] = useState(false);
-	const mutationResult =  useMutation({
-		mutationFn: (body: ComputeDto) =>
+	const globalCtx = useFetchxContext(); 
+	const ctx = options?.ctx ?? globalCtx ?? undefined;
+	const [isCompleted, setCompleteState] = useState(false);
+	const [response, setResponse] = useState<TypedResponse<unknown>>();
+	const fn = (
+			body: ComputeDto,
+	) =>
+		{
+			setCompleteState(false);
 			ComputeAverageAction.Fetch(
 				options?.creatorFn,
 				options?.qs,
 				{
-					body,
+						body,
 					headers: options?.headers,
 				},
 				options?.onMessage,
 				options?.overrideUrl,
+				ctx,
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
 				});
-				return x.response;
-			}),
+				setResponse(x.response)
+				return x.response.result;
+			})
+		}
+	const result =  useMutation({
+		mutationFn: fn,
 		...(options || {}),
 	});
 	return {
-		...mutationResult,
-		isCompleted
+		...result,
+		isCompleted,
+		response
 	}
 };
 	/**
@@ -68,6 +82,7 @@ export class ComputeAverageAction {
   static Method = '';
 	static Fetch$ = async (
 		qs?: URLSearchParams,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<ComputeDto, unknown>,
 		overrideUrl?: string,
 	) => {
@@ -78,21 +93,24 @@ export class ComputeAverageAction {
 			{
 				method: ComputeAverageAction.Method,
 				...(init || {})
-			}
+			},
+			ctx
 		)
 	}
 	static Fetch = async (
 			creatorFn: (item: unknown) => AverageDto = (item) => new AverageDto(item),
 		qs?: URLSearchParams,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<ComputeDto, unknown>,
 		onMessage?: (ev: MessageEvent) => void,
 		overrideUrl?: string,
 	) => {
 		const res = await ComputeAverageAction.Fetch$(
 			qs,
+			ctx,
 			init,
 			overrideUrl,
-		);
+			);
 			return handleFetchResponse(
 				res, 
 				(item) => creatorFn(item),

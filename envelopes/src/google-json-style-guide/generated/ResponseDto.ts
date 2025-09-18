@@ -116,7 +116,7 @@ setParams (value: any) {
   * Main data payload of the response.
   * @type {ResponseDto.Data}
   **/
- #data : InstanceType<typeof ResponseDto.Data>
+ #data ! : InstanceType<typeof ResponseDto.Data>
 		/**
   * Main data payload of the response.
   * @returns {ResponseDto.Data}
@@ -142,7 +142,7 @@ setData (value: InstanceType<typeof ResponseDto.Data>) {
   * Error details, if the request failed.
   * @type {ResponseDto.Error}
   **/
- #error : InstanceType<typeof ResponseDto.Error>
+ #error ! : InstanceType<typeof ResponseDto.Error>
 		/**
   * Error details, if the request failed.
   * @returns {ResponseDto.Error}
@@ -583,7 +583,7 @@ setTotalPages (value: number | null | undefined) {
 	this.totalPages = value
 	return this
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -970,7 +970,7 @@ setSendReport (value: string | null | undefined) {
 	this.sendReport = value
 	return this
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -1045,7 +1045,7 @@ setSendReport (value: string | null | undefined) {
 	  }
 	}
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -1114,7 +1114,7 @@ get errors() {
 	  }
 	}
 }
-	constructor(data) {
+	constructor(data: unknown) {
 		if (data === null || data === undefined) {
 			return;
 		}
