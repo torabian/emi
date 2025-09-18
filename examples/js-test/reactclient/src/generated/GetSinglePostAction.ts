@@ -30,7 +30,7 @@ export type GetSinglePostActionQueryOptions = Omit<
 	onMessage?: (ev: MessageEvent) => void;
 	overrideUrl?: string;
 	headers?: Headers;
-	ctx?: FetchxContext<unknown, unknown>;
+	ctx?: FetchxContext;
 }
 export const useGetSinglePostActionQuery = (
 	options: GetSinglePostActionQueryOptions
@@ -83,7 +83,7 @@ export type GetSinglePostActionMutationOptions = Omit<
 > &
 	GetSinglePostActionOptions
 & {
-	ctx?: FetchxContext<unknown, unknown>;
+	ctx?: FetchxContext;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -155,7 +155,7 @@ export class GetSinglePostAction {
 	static Fetch$ = async (
 			params: GetSinglePostActionPathParameter,
 		qs?: URLSearchParams,
-		ctx?: FetchxContext<unknown, unknown>,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<unknown, unknown>,
 		overrideUrl?: string,
 	) => {
@@ -175,7 +175,7 @@ export class GetSinglePostAction {
 			params: GetSinglePostActionPathParameter,
 			creatorFn: (item: unknown) => GetSinglePostActionRes = (item) => new GetSinglePostActionRes(item),
 		qs?: URLSearchParams,
-		ctx?: FetchxContext<unknown, unknown>,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<unknown, unknown>,
 		onMessage?: (ev: MessageEvent) => void,
 		overrideUrl?: string,
@@ -280,7 +280,7 @@ setId (value: number) {
   * 
   * @type {Money}
   **/
- #title : Money
+ #title ! : Money
 		/**
   * 
   * @returns {Money}

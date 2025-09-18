@@ -7,7 +7,7 @@ export class ComputeDto {
   * Minimum number which can be generated
   * @type {Decimal}
   **/
- #min : Decimal
+ #min ! : Decimal
 		/**
   * Minimum number which can be generated
   * @returns {Decimal}

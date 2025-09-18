@@ -6,7 +6,7 @@ export declare class TypedResponse<T> extends Response {
     json(): Promise<T>;
     result: T | undefined | ReadableStream<Uint8Array<ArrayBuffer>> | null | string;
 }
-export declare function fetchx<TResponse = unknown, TBody = unknown, THeaders = unknown>(input: RequestInfo | URL, init?: TypedRequestInit<TBody, THeaders>, ctx?: FetchxContext<TBody, THeaders>): Promise<TypedResponse<TResponse>>;
+export declare function fetchx<TResponse = unknown, TBody = unknown, THeaders = unknown>(input: RequestInfo | URL, init?: TypedRequestInit<TBody, THeaders>, ctx?: FetchxContext): Promise<TypedResponse<TResponse>>;
 type DtoFactory<T> = {
     new (data: any): T;
 } | ((data: any) => T);
@@ -18,14 +18,14 @@ export declare const SSEFetch: <T = string>(res: TypedResponse<T>, onMessage?: (
     response: TypedResponse<T>;
     done: Promise<void>;
 };
-export declare class FetchxContext<TBody, THeaders> {
+export declare class FetchxContext {
     baseUrl: string;
     defaultHeaders: Record<string, string>;
-    requestInterceptor?: (url: string, init: TypedRequestInit<TBody, THeaders>) => Promise<[string, TypedRequestInit<TBody, THeaders>]> | [string, TypedRequestInit<TBody, THeaders>];
+    requestInterceptor?: (url: string, init: TypedRequestInit<any, any>) => Promise<[string, TypedRequestInit<any, any>]> | [string, TypedRequestInit<any, any>];
     responseInterceptor?: <T>(res: TypedResponse<T>) => Promise<TypedResponse<T>>;
-    constructor(baseUrl?: string, defaultHeaders?: Record<string, string>, requestInterceptor?: (url: string, init: TypedRequestInit<TBody, THeaders>) => Promise<[string, TypedRequestInit<TBody, THeaders>]> | [string, TypedRequestInit<TBody, THeaders>], responseInterceptor?: <T>(res: TypedResponse<T>) => Promise<TypedResponse<T>>);
-    apply<T>(url: string, init: TypedRequestInit<TBody, THeaders>): Promise<[string, TypedRequestInit<TBody, THeaders>]>;
+    constructor(baseUrl?: string, defaultHeaders?: Record<string, string>, requestInterceptor?: (url: string, init: TypedRequestInit<any, any>) => Promise<[string, TypedRequestInit<any, any>]> | [string, TypedRequestInit<any, any>], responseInterceptor?: <T>(res: TypedResponse<T>) => Promise<TypedResponse<T>>);
+    apply<T>(url: string, init: TypedRequestInit<any, any>): Promise<[string, TypedRequestInit<any, any>]>;
     handle<T>(res: TypedResponse<T>): Promise<TypedResponse<T>>;
-    clone(overrides?: Partial<FetchxContext<TBody, THeaders>>): FetchxContext<TBody, THeaders>;
+    clone(overrides?: Partial<FetchxContext>): FetchxContext;
 }
 export {};

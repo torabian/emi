@@ -53,7 +53,7 @@ export type {{ .className }} = Omit<
 	onMessage?: (ev: MessageEvent) => void;
 	overrideUrl?: string;
 	headers?: Headers;
-	ctx?: FetchxContext<unknown, unknown>;
+	ctx?: FetchxContext;
 }
 
 	`
@@ -83,7 +83,7 @@ export type {{ .className }} = Omit<
 	}
 
 	if isTypeScript {
-		res.CodeChunkDependenies = []core.CodeChunkDependency{
+		res.CodeChunkDependensies = []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type UseQueryOptions"},
 				Location: "@tanstack/react-query",

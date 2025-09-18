@@ -158,7 +158,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	// and couple of more, directly can be written on the disk
 	for _, action := range actionsRendered {
 
-		for _, loc := range action.CodeChunkDependenies {
+		for _, loc := range action.CodeChunkDependensies {
 			if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
 
 				internalUsage = append(internalUsage, loc.Location)
@@ -175,7 +175,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	}
 
 	for _, dtoItem := range entitiesAndDtos {
-		for _, loc := range dtoItem.CodeChunkDependenies {
+		for _, loc := range dtoItem.CodeChunkDependensies {
 			if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
 				internalUsage = append(internalUsage, loc.Location)
 				continue

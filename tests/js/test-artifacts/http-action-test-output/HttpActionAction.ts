@@ -23,7 +23,7 @@ export class HttpActionAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext<unknown, unknown>,
+    ctx?: FetchxContext,
     init?: TypedRequestInit<HttpActionActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -40,7 +40,7 @@ export class HttpActionAction {
     creatorFn: (item: unknown) => HttpActionActionRes = (item) =>
       new HttpActionActionRes(item),
     qs?: URLSearchParams,
-    ctx?: FetchxContext<unknown, unknown>,
+    ctx?: FetchxContext,
     init?: TypedRequestInit<HttpActionActionReq, unknown>,
     onMessage?: (ev: MessageEvent) => void,
     overrideUrl?: string,

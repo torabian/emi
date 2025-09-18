@@ -3,7 +3,7 @@ import { ResponseDto } from "./generated/ResponseDto";
 
 // Use this class to generate a GResponse.
 export class GResponse<T> extends ResponseDto implements EnvelopeClass<T> {
-  creator: CreatorSignature<T>;
+  creator?: CreatorSignature<T> | null;
 
   constructor(data?: unknown) {
     super(data);
@@ -29,12 +29,23 @@ export class GResponse<T> extends ResponseDto implements EnvelopeClass<T> {
       if (!this.data) {
         this.setData({} as any);
       }
-      if (Array.isArray(body?.data.items)) {
+
+      if (
+        Array.isArray(body?.data.items) &&
+        typeof this.creator !== "undefined" &&
+        this.creator !== null
+      ) {
         this.data?.setItems(
-          body?.data?.items?.map((item) => this.creator(item)),
+          body?.data?.items?.map((item: unknown) => this.creator?.(item)),
         );
-      } else if (typeof body?.data?.item === "object") {
+      } else if (
+        typeof body?.data?.item === "object" &&
+        typeof this.creator !== "undefined" &&
+        this.creator !== null
+      ) {
         this.data?.setItem(this.creator(body?.data?.item));
+      } else {
+        this.data?.setItem(body?.data?.item);
       }
     }
 

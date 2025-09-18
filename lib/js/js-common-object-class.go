@@ -109,7 +109,7 @@ func hasClassesAsChildren(fields []*core.EmiField) bool {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
-			if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeMany2Many {
+			if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2ManyNullable || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeMany2Many {
 				result = true
 				break
 			}
@@ -142,11 +142,11 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	hasChildrenWithStaticFields := hasClassesAsChildren(fields)
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	res := &core.CodeChunkCompiled{
-		CodeChunkDependenies: []core.CodeChunkDependency{},
+		CodeChunkDependensies: []core.CodeChunkDependency{},
 	}
 
 	if hasChildrenWithStaticFields {
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, core.CodeChunkDependency{
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
 			Objects:  []string{"withPrefix"},
 			Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
 		})
@@ -160,7 +160,7 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 			continue
 		}
 
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, core.CodeChunkDependency{
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
 			Objects:  []string{item},
 			Location: location,
 		})
@@ -169,7 +169,7 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	collectTargets := CollectTargets(fields)
 	for _, item := range collectTargets {
 		m := castDtoNameToCodeChunk(item)
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, m.CodeChunkDependenies...)
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, m.CodeChunkDependensies...)
 	}
 
 	renderedClasses := jsRenderDataClasses(fields, jsctx.RootClassName, jsctx.RootClassName, "", true, ctx, jsctx)

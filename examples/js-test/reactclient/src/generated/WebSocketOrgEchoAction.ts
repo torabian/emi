@@ -148,7 +148,7 @@ setLastName (value: string) {
   * 
   * @type {WebSocketOrgEchoActionReq.User}
   **/
- #user : InstanceType<typeof WebSocketOrgEchoActionReq.User>
+ #user ! : InstanceType<typeof WebSocketOrgEchoActionReq.User>
 		/**
   * 
   * @returns {WebSocketOrgEchoActionReq.User}

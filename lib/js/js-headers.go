@@ -160,7 +160,7 @@ func JsHeaderClass(
 		}
 
 		// Make sure to add dependencies to render tree
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, nestjsStaticDecorator.CodeChunkDependenies...)
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, nestjsStaticDecorator.CodeChunkDependensies...)
 
 		// Add the static function to the class bottom
 		nestJsDecoratorRendered = string(nestjsStaticDecorator.ActualScript)

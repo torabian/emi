@@ -7,7 +7,7 @@ import { CreatorSignature, EnvelopeClass } from "../common/EnvelopeClass";
 
 export class FlatArray<T> implements EnvelopeClass<T> {
   public data: T[] = [];
-  creator?: CreatorSignature<T>;
+  creator?: CreatorSignature<T> | null = null;
 
   inject(data: unknown) {
     if (!Array.isArray(data)) {

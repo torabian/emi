@@ -28,15 +28,8 @@ type JsCommonObjectContext struct {
 // creates dtos, entities for actions or other specs.
 func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error) {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	res := &core.CodeChunkCompiled{
-		CodeChunkDependenies: []core.CodeChunkDependency{
-			// It's got inlined in the class
-			// {
-			// 	Objects:  []string{"isPlausibleObject"},
-			// 	Location: INTERNAL_SDK_JS_LOCATION + "/isPlausibleObject",
-			// },
-		},
-	}
+	res := &core.CodeChunkCompiled{}
+
 	var tsTypes *core.CodeChunkCompiled
 
 	if isTypeScript {
@@ -49,7 +42,7 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 		}
 
 		res.Tokens = append(res.Tokens, chunk.Tokens...)
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, chunk.CodeChunkDependenies...)
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, chunk.CodeChunkDependensies...)
 		tsTypes = chunk
 	}
 
@@ -64,7 +57,7 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	}
 
 	res.Tokens = append(res.Tokens, tsClass.Tokens...)
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, tsClass.CodeChunkDependenies...)
+	res.CodeChunkDependensies = append(res.CodeChunkDependensies, tsClass.CodeChunkDependensies...)
 
 	const tmpl = `
 {{ if .tsClass }}

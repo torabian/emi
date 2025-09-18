@@ -94,7 +94,7 @@ setNullablestringFieldWithValue (value: string | null | undefined) {
   * bool field, non-nullable
   * @type {boolean}
   **/
- #boolField : boolean
+ #boolField ! : boolean
 		/**
   * bool field, non-nullable
   * @returns {boolean}

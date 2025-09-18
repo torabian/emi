@@ -19,7 +19,7 @@ export type ComputeAverageActionMutationOptions = Omit<
 > &
 	ComputeAverageActionOptions
 & {
-	ctx?: FetchxContext<unknown, unknown>;
+	ctx?: FetchxContext;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -82,7 +82,7 @@ export class ComputeAverageAction {
   static Method = '';
 	static Fetch$ = async (
 		qs?: URLSearchParams,
-		ctx?: FetchxContext<unknown, unknown>,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<ComputeDto, unknown>,
 		overrideUrl?: string,
 	) => {
@@ -100,7 +100,7 @@ export class ComputeAverageAction {
 	static Fetch = async (
 			creatorFn: (item: unknown) => AverageDto = (item) => new AverageDto(item),
 		qs?: URLSearchParams,
-		ctx?: FetchxContext<unknown, unknown>,
+		ctx?: FetchxContext,
 		init?: TypedRequestInit<ComputeDto, unknown>,
 		onMessage?: (ev: MessageEvent) => void,
 		overrideUrl?: string,

@@ -116,7 +116,7 @@ func JsNestJsStaticDecorator(ctxstatic NestJsStaticDecoratorContext, ctx core.Mi
 		nestjsCommon.Objects = append(nestjsCommon.Objects, "ExecutionContext")
 	}
 
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, nestjsCommon)
+	res.CodeChunkDependensies = append(res.CodeChunkDependensies, nestjsCommon)
 
 	return res, nil
 }

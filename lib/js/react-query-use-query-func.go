@@ -99,7 +99,7 @@ export const {{ .className }}Query = (
 
 	res := &core.CodeChunkCompiled{
 		ActualScript: []byte(templateResult),
-		CodeChunkDependenies: []core.CodeChunkDependency{
+		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"useQuery"},
 				Location: "@tanstack/react-query",

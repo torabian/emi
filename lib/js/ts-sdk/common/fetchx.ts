@@ -26,7 +26,7 @@ export async function fetchx<
 >(
   input: RequestInfo | URL,
   init?: TypedRequestInit<TBody, THeaders>,
-  ctx?: FetchxContext<TBody, THeaders>
+  ctx?: FetchxContext
 ): Promise<TypedResponse<TResponse>> {
   let url = input.toString();
   let reqInit: TypedRequestInit<TBody, THeaders> = init || {};
@@ -148,16 +148,16 @@ export const SSEFetch = <T = string>(
   return { response: res, done };
 };
 
-export class FetchxContext<TBody, THeaders> {
+export class FetchxContext {
   constructor(
     public baseUrl: string = "",
     public defaultHeaders: Record<string, string> = {},
     public requestInterceptor?: (
       url: string,
-      init: TypedRequestInit<TBody, THeaders>
+      init: TypedRequestInit<any, any>
     ) =>
-      | Promise<[string, TypedRequestInit<TBody, THeaders>]>
-      | [string, TypedRequestInit<TBody, THeaders>],
+      | Promise<[string, TypedRequestInit<any, any>]>
+      | [string, TypedRequestInit<any, any>],
     public responseInterceptor?: <T>(
       res: TypedResponse<T>
     ) => Promise<TypedResponse<T>>
@@ -165,8 +165,8 @@ export class FetchxContext<TBody, THeaders> {
 
   async apply<T>(
     url: string,
-    init: TypedRequestInit<TBody, THeaders>
-  ): Promise<[string, TypedRequestInit<TBody, THeaders>]> {
+    init: TypedRequestInit<any, any>
+  ): Promise<[string, TypedRequestInit<any, any>]> {
     // prefix baseUrl
     if (!/^https?:\/\//.test(url)) {
       url = this.baseUrl + url;
@@ -193,9 +193,7 @@ export class FetchxContext<TBody, THeaders> {
     return res;
   }
 
-  clone(
-    overrides?: Partial<FetchxContext<TBody, THeaders>>
-  ): FetchxContext<TBody, THeaders> {
+  clone(overrides?: Partial<FetchxContext>): FetchxContext {
     return new FetchxContext(
       overrides?.baseUrl ?? this.baseUrl,
       { ...this.defaultHeaders, ...(overrides?.defaultHeaders || {}) },

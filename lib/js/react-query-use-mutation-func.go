@@ -88,7 +88,7 @@ export const {{ .className }} = (
 
 	res := &core.CodeChunkCompiled{
 		ActualScript: []byte(templateResult),
-		CodeChunkDependenies: []core.CodeChunkDependency{
+		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"useMutation"},
 				Location: "@tanstack/react-query",

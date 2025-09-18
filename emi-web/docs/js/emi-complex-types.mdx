@@ -62,7 +62,7 @@ export class SampleAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext<unknown, unknown>,
+    ctx?: FetchxContext,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -79,7 +79,7 @@ export class SampleAction {
     creatorFn: (item: unknown) => SampleActionRes = (item) =>
       new SampleActionRes(item),
     qs?: URLSearchParams,
-    ctx?: FetchxContext<unknown, unknown>,
+    ctx?: FetchxContext,
     init?: TypedRequestInit<unknown, unknown>,
     onMessage?: (ev: MessageEvent) => void,
     overrideUrl?: string,
@@ -127,7 +127,7 @@ export class SampleActionRes {
    * Use javascript Date class as complex type
    * @type {Date}
    **/
-  #date: Date;
+  #date!: Date;
   /**
    * Use javascript Date class as complex type
    * @returns {Date}
@@ -154,7 +154,7 @@ export class SampleActionRes {
    * External money type
    * @type {Money}
    **/
-  #money: Money;
+  #money!: Money;
   /**
    * External money type
    * @returns {Money}

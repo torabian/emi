@@ -47,7 +47,7 @@ func ReactQueryUseQueryRealms(
 		if err != nil {
 			return nil, nil, err
 		}
-		deps = append(deps, reactQueryOptions.CodeChunkDependenies...)
+		deps = append(deps, reactQueryOptions.CodeChunkDependensies...)
 		realms.ReactQueryOptions = reactQueryOptions
 	}
 
@@ -71,7 +71,7 @@ func ReactQueryUseQueryRealms(
 	if err != nil {
 		return nil, nil, err
 	}
-	deps = append(deps, useQueryFunction.CodeChunkDependenies...)
+	deps = append(deps, useQueryFunction.CodeChunkDependensies...)
 	realms.UseQueryFunction = useQueryFunction
 
 	return &realms, deps, nil

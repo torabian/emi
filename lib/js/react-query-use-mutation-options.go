@@ -29,7 +29,7 @@ export type {{ .className }} = Omit<
 > &
 	{{ .rmoptions.ActionMutationOptionsName }}
 & {
-	ctx?: FetchxContext<unknown, unknown>;
+	ctx?: FetchxContext;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -62,7 +62,7 @@ export type {{ .className }} = Omit<
 	}
 
 	if isTypeScript {
-		res.CodeChunkDependenies = []core.CodeChunkDependency{
+		res.CodeChunkDependensies = []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type UseMutationOptions"},
 				Location: "@tanstack/react-query",

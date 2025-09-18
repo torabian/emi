@@ -37,7 +37,7 @@ func JsActionManifest(
 	if err != nil {
 		return nil, err
 	}
-	res.CodeChunkDependenies = append(res.CodeChunkDependenies, jsDependencies...)
+	res.CodeChunkDependensies = append(res.CodeChunkDependensies, jsDependencies...)
 
 	var reactQuery *reactQueryHookRealms
 	if isReact {
@@ -46,7 +46,7 @@ func JsActionManifest(
 		if err != nil {
 			return nil, err
 		}
-		res.CodeChunkDependenies = append(res.CodeChunkDependenies, reactQuerydeps...)
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, reactQuerydeps...)
 		reactQuery = reactQueryRealms
 
 		if action.MethodUpper() == "REACTIVE" {
@@ -58,7 +58,7 @@ func JsActionManifest(
 				return nil, err
 			} else {
 				reactQuery.UseSSE = useSSEHook
-				res.CodeChunkDependenies = append(res.CodeChunkDependenies, useSSEHook.CodeChunkDependenies...)
+				res.CodeChunkDependensies = append(res.CodeChunkDependensies, useSSEHook.CodeChunkDependensies...)
 			}
 		}
 

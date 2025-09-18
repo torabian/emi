@@ -186,7 +186,7 @@ func detectUsedFilesAndImports(
 ) ([]core.VirtualFile, error) {
 	internalUsage := []string{}
 
-	for _, loc := range result.CodeChunkDependenies {
+	for _, loc := range result.CodeChunkDependensies {
 		if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
 			internalUsage = append(internalUsage, loc.Location)
 		}
