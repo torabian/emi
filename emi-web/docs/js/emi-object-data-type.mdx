@@ -175,6 +175,30 @@ export class MyObjectClassDto {
         age: "age",
       };
     }
+    /**
+     * Creates an instance of MyObjectClassDto.Profile, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject: MyObjectClassDtoType.ProfileType) {
+      return new MyObjectClassDto.Profile(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of MyObjectClassDto.Profile, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(partialDtoObject: Partial<MyObjectClassDtoType.ProfileType>) {
+      return new MyObjectClassDto.Profile(partialDtoObject);
+    }
+    copyWith(
+      partial: Partial<MyObjectClassDtoType.ProfileType>,
+    ): InstanceType<typeof MyObjectClassDto.Profile> {
+      return new MyObjectClassDto.Profile({ ...this.toJSON(), ...partial });
+    }
+    clone(): InstanceType<typeof MyObjectClassDto.Profile> {
+      return new MyObjectClassDto.Profile(this.toJSON());
+    }
   };
   constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
@@ -246,6 +270,30 @@ export class MyObjectClassDto {
         return withPrefix("profile", MyObjectClassDto.Profile.Fields);
       },
     };
+  }
+  /**
+   * Creates an instance of MyObjectClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyObjectClassDtoType) {
+    return new MyObjectClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyObjectClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyObjectClassDtoType>) {
+    return new MyObjectClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyObjectClassDtoType>,
+  ): InstanceType<typeof MyObjectClassDto> {
+    return new MyObjectClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyObjectClassDto> {
+    return new MyObjectClassDto(this.toJSON());
   }
 }
 export abstract class MyObjectClassDtoFactory {
@@ -435,6 +483,35 @@ export class MyObjectClassDto {
         lastName: "lastName",
       };
     }
+    /**
+     * Creates an instance of MyObjectClassDto.OptionalProfile, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject: MyObjectClassDtoType.OptionalProfileType) {
+      return new MyObjectClassDto.OptionalProfile(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of MyObjectClassDto.OptionalProfile, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(
+      partialDtoObject: Partial<MyObjectClassDtoType.OptionalProfileType>,
+    ) {
+      return new MyObjectClassDto.OptionalProfile(partialDtoObject);
+    }
+    copyWith(
+      partial: Partial<MyObjectClassDtoType.OptionalProfileType>,
+    ): InstanceType<typeof MyObjectClassDto.OptionalProfile> {
+      return new MyObjectClassDto.OptionalProfile({
+        ...this.toJSON(),
+        ...partial,
+      });
+    }
+    clone(): InstanceType<typeof MyObjectClassDto.OptionalProfile> {
+      return new MyObjectClassDto.OptionalProfile(this.toJSON());
+    }
   };
   constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
@@ -498,6 +575,30 @@ export class MyObjectClassDto {
         );
       },
     };
+  }
+  /**
+   * Creates an instance of MyObjectClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyObjectClassDtoType) {
+    return new MyObjectClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyObjectClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyObjectClassDtoType>) {
+    return new MyObjectClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyObjectClassDtoType>,
+  ): InstanceType<typeof MyObjectClassDto> {
+    return new MyObjectClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyObjectClassDto> {
+    return new MyObjectClassDto(this.toJSON());
   }
 }
 export abstract class MyObjectClassDtoFactory {

@@ -18,10 +18,22 @@ type jsRenderedDataClass struct {
 	Signature            string
 	JsDoc                string
 	SubClasses           []jsRenderedDataClass
+	ClassTypePath        string
+	ClassNamePath        string
 	ClassStaticFunctions []string
 
 	// For typescript, it has the Partial types.
 	DataSourceStatement string
+}
+
+// Is is a bit weird function I am adding to capture type.
+// basically, Name.Object.Item will become NameType.ObjectType.ItemType
+func treeAsType(treeLocation string) string {
+	parts := strings.Split(treeLocation, ".")
+	for i, p := range parts {
+		parts[i] = p + "Type"
+	}
+	return strings.Join(parts, ".")
 }
 
 func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, isFirst bool, ctx core.MicroGenContext, jsctx JsCommonObjectContext) []jsRenderedDataClass {
@@ -47,6 +59,8 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 	currentClass := jsRenderedDataClass{
 		ClassName:           core.ToUpper(className),
 		Fields:              fieldsRendered,
+		ClassNamePath:       treeLocation,
+		ClassTypePath:       treeAsType(treeLocation),
 		LateInitFields:      lateInitFields,
 		JsDoc:               jsdoc.String(),
 		Signature:           signature,
@@ -301,6 +315,33 @@ export abstract class %vFactory {
 		{{ end }}
 	  }
 	}
+
+	/**
+	* Creates an instance of {{ .ClassNamePath }}, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: {{ .ClassTypePath }}) {
+		return new {{ .ClassNamePath }}(possibleDtoObject);
+	}
+
+	/**
+	* Creates an instance of {{ .ClassNamePath }}, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<{{ .ClassTypePath }}>) {
+		return new {{ .ClassNamePath }}(partialDtoObject);
+	}
+
+	copyWith(partial: Partial<{{ .ClassTypePath }}>): InstanceType<typeof {{ .ClassNamePath }}> {
+		return new {{ .ClassNamePath }} ({ ...this.toJSON(), ...partial });
+	}
+
+	clone(): InstanceType<typeof {{ .ClassNamePath }}> {
+		return new {{ .ClassNamePath }}(this.toJSON());
+	}
+
 }
 {{ end }}
 

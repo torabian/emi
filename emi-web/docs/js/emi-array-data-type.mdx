@@ -176,6 +176,30 @@ export class MyArrayClassDto {
         phone: "phone",
       };
     }
+    /**
+     * Creates an instance of MyArrayClassDto.Contacts, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject: MyArrayClassDtoType.ContactsType) {
+      return new MyArrayClassDto.Contacts(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of MyArrayClassDto.Contacts, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(partialDtoObject: Partial<MyArrayClassDtoType.ContactsType>) {
+      return new MyArrayClassDto.Contacts(partialDtoObject);
+    }
+    copyWith(
+      partial: Partial<MyArrayClassDtoType.ContactsType>,
+    ): InstanceType<typeof MyArrayClassDto.Contacts> {
+      return new MyArrayClassDto.Contacts({ ...this.toJSON(), ...partial });
+    }
+    clone(): InstanceType<typeof MyArrayClassDto.Contacts> {
+      return new MyArrayClassDto.Contacts(this.toJSON());
+    }
   };
   constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
@@ -236,6 +260,30 @@ export class MyArrayClassDto {
         return withPrefix("contacts[:i]", MyArrayClassDto.Contacts.Fields);
       },
     };
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyArrayClassDtoType) {
+    return new MyArrayClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyArrayClassDtoType>) {
+    return new MyArrayClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyArrayClassDtoType>,
+  ): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto(this.toJSON());
   }
 }
 export abstract class MyArrayClassDtoFactory {
@@ -442,6 +490,30 @@ export class MyArrayClassDto {
         phone: "phone",
       };
     }
+    /**
+     * Creates an instance of MyArrayClassDto.Contacts, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject: MyArrayClassDtoType.ContactsType) {
+      return new MyArrayClassDto.Contacts(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of MyArrayClassDto.Contacts, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(partialDtoObject: Partial<MyArrayClassDtoType.ContactsType>) {
+      return new MyArrayClassDto.Contacts(partialDtoObject);
+    }
+    copyWith(
+      partial: Partial<MyArrayClassDtoType.ContactsType>,
+    ): InstanceType<typeof MyArrayClassDto.Contacts> {
+      return new MyArrayClassDto.Contacts({ ...this.toJSON(), ...partial });
+    }
+    clone(): InstanceType<typeof MyArrayClassDto.Contacts> {
+      return new MyArrayClassDto.Contacts(this.toJSON());
+    }
   };
   constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
@@ -502,6 +574,30 @@ export class MyArrayClassDto {
         return withPrefix("contacts[:i]", MyArrayClassDto.Contacts.Fields);
       },
     };
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyArrayClassDtoType) {
+    return new MyArrayClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyArrayClassDtoType>) {
+    return new MyArrayClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyArrayClassDtoType>,
+  ): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto(this.toJSON());
   }
 }
 export abstract class MyArrayClassDtoFactory {
@@ -670,6 +766,30 @@ export class MyArrayClassDto {
         );
       },
     };
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyArrayClassDtoType) {
+    return new MyArrayClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyArrayClassDtoType>) {
+    return new MyArrayClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyArrayClassDtoType>,
+  ): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto(this.toJSON());
   }
 }
 export abstract class MyArrayClassDtoFactory {

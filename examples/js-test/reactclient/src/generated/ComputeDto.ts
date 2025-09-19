@@ -137,6 +137,28 @@ setCount (value: number) {
 			count: 'count',
 	  }
 	}
+	/**
+	* Creates an instance of ComputeDto, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: ComputeDtoType) {
+		return new ComputeDto(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of ComputeDto, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<ComputeDtoType>) {
+		return new ComputeDto(partialDtoObject);
+	}
+	copyWith(partial: Partial<ComputeDtoType>): InstanceType<typeof ComputeDto> {
+		return new ComputeDto ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof ComputeDto> {
+		return new ComputeDto(this.toJSON());
+	}
 }
 export abstract class ComputeDtoFactory {
 	abstract create(data: unknown): ComputeDto;

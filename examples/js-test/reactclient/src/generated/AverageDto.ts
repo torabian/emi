@@ -80,6 +80,28 @@ setNumber (value: number) {
 			number: 'number',
 	  }
 	}
+	/**
+	* Creates an instance of AverageDto, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: AverageDtoType) {
+		return new AverageDto(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of AverageDto, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<AverageDtoType>) {
+		return new AverageDto(partialDtoObject);
+	}
+	copyWith(partial: Partial<AverageDtoType>): InstanceType<typeof AverageDto> {
+		return new AverageDto ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof AverageDto> {
+		return new AverageDto(this.toJSON());
+	}
 }
 export abstract class AverageDtoFactory {
 	abstract create(data: unknown): AverageDto;

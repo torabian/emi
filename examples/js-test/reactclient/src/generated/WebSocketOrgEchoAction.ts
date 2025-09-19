@@ -335,6 +335,28 @@ setSubItem2 (value: number) {
 			subItem2: 'subItem2',
 	  }
 	}
+	/**
+	* Creates an instance of WebSocketOrgEchoActionReq.User.Item2array, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: WebSocketOrgEchoActionReqType.UserType.Item2arrayType) {
+		return new WebSocketOrgEchoActionReq.User.Item2array(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of WebSocketOrgEchoActionReq.User.Item2array, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<WebSocketOrgEchoActionReqType.UserType.Item2arrayType>) {
+		return new WebSocketOrgEchoActionReq.User.Item2array(partialDtoObject);
+	}
+	copyWith(partial: Partial<WebSocketOrgEchoActionReqType.UserType.Item2arrayType>): InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array> {
+		return new WebSocketOrgEchoActionReq.User.Item2array ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array> {
+		return new WebSocketOrgEchoActionReq.User.Item2array(this.toJSON());
+	}
 }
 	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
@@ -397,6 +419,28 @@ get item2array() {
 						);
 						},
 	  }
+	}
+	/**
+	* Creates an instance of WebSocketOrgEchoActionReq.User, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: WebSocketOrgEchoActionReqType.UserType) {
+		return new WebSocketOrgEchoActionReq.User(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of WebSocketOrgEchoActionReq.User, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<WebSocketOrgEchoActionReqType.UserType>) {
+		return new WebSocketOrgEchoActionReq.User(partialDtoObject);
+	}
+	copyWith(partial: Partial<WebSocketOrgEchoActionReqType.UserType>): InstanceType<typeof WebSocketOrgEchoActionReq.User> {
+		return new WebSocketOrgEchoActionReq.User ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof WebSocketOrgEchoActionReq.User> {
+		return new WebSocketOrgEchoActionReq.User(this.toJSON());
 	}
 }
 	constructor(data: unknown = undefined) {
@@ -472,6 +516,28 @@ get user() {
 						);
 						},
 	  }
+	}
+	/**
+	* Creates an instance of WebSocketOrgEchoActionReq, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: WebSocketOrgEchoActionReqType) {
+		return new WebSocketOrgEchoActionReq(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of WebSocketOrgEchoActionReq, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<WebSocketOrgEchoActionReqType>) {
+		return new WebSocketOrgEchoActionReq(partialDtoObject);
+	}
+	copyWith(partial: Partial<WebSocketOrgEchoActionReqType>): InstanceType<typeof WebSocketOrgEchoActionReq> {
+		return new WebSocketOrgEchoActionReq ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof WebSocketOrgEchoActionReq> {
+		return new WebSocketOrgEchoActionReq(this.toJSON());
 	}
 }
 export abstract class WebSocketOrgEchoActionReqFactory {
@@ -614,6 +680,28 @@ setLastName (value: string) {
       return {
 			lastName: 'lastName',
 	  }
+	}
+	/**
+	* Creates an instance of WebSocketOrgEchoActionRes, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: WebSocketOrgEchoActionResType) {
+		return new WebSocketOrgEchoActionRes(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of WebSocketOrgEchoActionRes, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<WebSocketOrgEchoActionResType>) {
+		return new WebSocketOrgEchoActionRes(partialDtoObject);
+	}
+	copyWith(partial: Partial<WebSocketOrgEchoActionResType>): InstanceType<typeof WebSocketOrgEchoActionRes> {
+		return new WebSocketOrgEchoActionRes ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof WebSocketOrgEchoActionRes> {
+		return new WebSocketOrgEchoActionRes(this.toJSON());
 	}
 }
 export abstract class WebSocketOrgEchoActionResFactory {

@@ -239,6 +239,30 @@ export class SampleActionRes {
       money: "money",
     };
   }
+  /**
+   * Creates an instance of SampleActionRes, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: SampleActionResType) {
+    return new SampleActionRes(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of SampleActionRes, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<SampleActionResType>) {
+    return new SampleActionRes(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<SampleActionResType>,
+  ): InstanceType<typeof SampleActionRes> {
+    return new SampleActionRes({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof SampleActionRes> {
+    return new SampleActionRes(this.toJSON());
+  }
 }
 export abstract class SampleActionResFactory {
   abstract create(data: unknown): SampleActionRes;

@@ -272,6 +272,28 @@ setMessage (value: string) {
 			message: 'message',
 	  }
 	}
+	/**
+	* Creates an instance of SampleSseActionRes, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: SampleSseActionResType) {
+		return new SampleSseActionRes(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of SampleSseActionRes, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<SampleSseActionResType>) {
+		return new SampleSseActionRes(partialDtoObject);
+	}
+	copyWith(partial: Partial<SampleSseActionResType>): InstanceType<typeof SampleSseActionRes> {
+		return new SampleSseActionRes ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof SampleSseActionRes> {
+		return new SampleSseActionRes(this.toJSON());
+	}
 }
 export abstract class SampleSseActionResFactory {
 	abstract create(data: unknown): SampleSseActionRes;

@@ -792,6 +792,28 @@ setNullableFloat64FieldWithValue (value: number | null | undefined) {
 			nullableFloat64FieldWithValue: 'nullableFloat64FieldWithValue',
 	  }
 	}
+	/**
+	* Creates an instance of Anonymouse, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: AnonymouseType) {
+		return new Anonymouse(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of Anonymouse, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<AnonymouseType>) {
+		return new Anonymouse(partialDtoObject);
+	}
+	copyWith(partial: Partial<AnonymouseType>): InstanceType<typeof Anonymouse> {
+		return new Anonymouse ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof Anonymouse> {
+		return new Anonymouse(this.toJSON());
+	}
 }
 export abstract class AnonymouseFactory {
 	abstract create(data: unknown): Anonymouse;
