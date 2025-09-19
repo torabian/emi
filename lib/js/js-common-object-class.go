@@ -14,6 +14,7 @@ import (
 type jsRenderedDataClass struct {
 	ClassName            string
 	Fields               []jsRenderedField
+	LateInitFields       []jsRenderedField
 	Signature            string
 	JsDoc                string
 	SubClasses           []jsRenderedDataClass
@@ -35,9 +36,18 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 		signature = fmt.Sprintf("static %v = class %v", className, className)
 	}
 
+	lateInitFields := []jsRenderedField{}
+	fieldsRendered := jsRenderFieldsShallow(fields, treeLocation, fieldDepth, ctx, jsctx)
+	for _, field := range fieldsRendered {
+		if field.LateInitStatement != "" {
+			lateInitFields = append(lateInitFields, field)
+		}
+	}
+
 	currentClass := jsRenderedDataClass{
 		ClassName:           core.ToUpper(className),
-		Fields:              jsRenderFieldsShallow(fields, treeLocation, fieldDepth, ctx, jsctx),
+		Fields:              fieldsRendered,
+		LateInitFields:      lateInitFields,
 		JsDoc:               jsdoc.String(),
 		Signature:           signature,
 		DataSourceStatement: "const d = data;",
@@ -206,6 +216,9 @@ export abstract class %vFactory {
 
 	constructor(data) {
 		if (data === null || data === undefined) {
+			{{ if .LateInitFields }}
+				this.#lateInitFields();
+			{{ end }}
 			return;
 		}
 		if (typeof data === "string") {
@@ -246,7 +259,24 @@ export abstract class %vFactory {
 		{{ range .Fields }}
 			{{ .SetterCallInConstructor }}
 		{{ end }}
+
+		{{ if .LateInitFields }}
+		this.#lateInitFields(data)
+		{{ end }}
 	}
+		
+	{{ if .LateInitFields }}
+	/**
+	 * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+	**/
+	#lateInitFields(data = {}) {
+		{{ .DataSourceStatement }}
+		{{ range .LateInitFields }}
+			{{ .LateInitStatement }}	
+		{{ end }}
+	}
+
+	{{ end }}
 
 	/**
 	*	Special toJSON override, since the field are private,
@@ -300,7 +330,7 @@ export abstract class %vFactory {
 	if isTypeScript {
 		result = strings.ReplaceAll(string(result), "#isJsonAppliable(obj) {", "#isJsonAppliable(obj: unknown) {")
 		result = strings.ReplaceAll(string(result), "const g = globalThis", "const g = globalThis as any")
-		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data)", "constructor(data: unknown)"))
+		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data)", "constructor(data: unknown = undefined)"))
 		res.SuggestedExtension = ".ts"
 	} else {
 		res.SuggestedExtension = ".js"

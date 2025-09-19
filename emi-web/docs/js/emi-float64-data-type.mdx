@@ -68,7 +68,7 @@ export class MyFloatClassDto {
     this.plainFloat = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -229,7 +229,7 @@ export class MyFloatClassDto {
     this.nullableFloatWithoutDefault = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }

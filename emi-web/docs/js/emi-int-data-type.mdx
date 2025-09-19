@@ -80,7 +80,7 @@ export class MyIntClassDto {
     this.plainInt = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -241,7 +241,7 @@ export class MyIntClassDto {
     this.nullableIntWithoutDefault = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }

@@ -108,7 +108,7 @@ export class HttpActionActionRes {
     this.recordNumber = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }

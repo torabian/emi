@@ -200,7 +200,7 @@ export class NullableResponseActionDto {
       this.firstName = value;
       return this;
     }
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -286,7 +286,7 @@ export class NullableResponseActionDto {
       this.firstName = value;
       return this;
     }
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -344,8 +344,9 @@ export class NullableResponseActionDto {
       };
     }
   };
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
+      this.#lateInitFields();
       return;
     }
     if (typeof data === "string") {
@@ -391,6 +392,19 @@ export class NullableResponseActionDto {
     }
     if (d.secondUncle !== undefined) {
       this.secondUncle = d.secondUncle;
+    }
+    this.#lateInitFields(data);
+  }
+  /**
+   * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+   **/
+  #lateInitFields(data = {}) {
+    const d = data as Partial<NullableResponseActionDto>;
+    if (!(d.mother instanceof NullableResponseActionDto.Mother)) {
+      this.mother = new NullableResponseActionDto.Mother(d.mother || {});
+    }
+    if (!(d.firstUncle instanceof UncleDto)) {
+      this.firstUncle = new UncleDto(d.firstUncle || {});
     }
   }
   /**

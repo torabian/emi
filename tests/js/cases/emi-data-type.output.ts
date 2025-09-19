@@ -658,7 +658,7 @@ setNullableFloat64FieldWithValue (value: number | null | undefined) {
 	this.nullableFloat64FieldWithValue = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}

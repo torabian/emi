@@ -653,7 +653,7 @@ export class ResponseDto {
       this.totalPages = value;
       return this;
     }
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -1110,7 +1110,7 @@ export class ResponseDto {
         this.sendReport = value;
         return this;
       }
-      constructor(data: unknown) {
+      constructor(data: unknown = undefined) {
         if (data === null || data === undefined) {
           return;
         }
@@ -1203,7 +1203,7 @@ export class ResponseDto {
         };
       }
     };
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -1282,8 +1282,9 @@ export class ResponseDto {
       };
     }
   };
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
+      this.#lateInitFields();
       return;
     }
     if (typeof data === "string") {
@@ -1338,6 +1339,19 @@ export class ResponseDto {
     }
     if (d.error !== undefined) {
       this.error = d.error;
+    }
+    this.#lateInitFields(data);
+  }
+  /**
+   * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+   **/
+  #lateInitFields(data = {}) {
+    const d = data as Partial<ResponseDto>;
+    if (!(d.data instanceof ResponseDto.Data)) {
+      this.data = new ResponseDto.Data(d.data || {});
+    }
+    if (!(d.error instanceof ResponseDto.Error)) {
+      this.error = new ResponseDto.Error(d.error || {});
     }
   }
   /**

@@ -82,7 +82,7 @@ export class MyBoolClassDto {
     this.plainBool = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -248,7 +248,7 @@ export class MyBoolClassDto {
     this.nullableBoolWithoutDefault = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }

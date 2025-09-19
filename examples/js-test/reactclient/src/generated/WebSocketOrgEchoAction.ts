@@ -279,7 +279,7 @@ setSubItem2 (value: number) {
 	this.subItem2 = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -336,7 +336,7 @@ setSubItem2 (value: number) {
 	  }
 	}
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -399,8 +399,9 @@ get item2array() {
 	  }
 	}
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
+				this.#lateInitFields();
 			return;
 		}
 		if (typeof data === "string") {
@@ -436,6 +437,14 @@ get item2array() {
 			if (d.firstName !== undefined) { this.firstName = d.firstName }
 			if (d.lastName !== undefined) { this.lastName = d.lastName }
 			if (d.user !== undefined) { this.user = d.user }
+		this.#lateInitFields(data)
+	}
+	/**
+	 * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+	**/
+	#lateInitFields(data = {}) {
+		const d = data as Partial<WebSocketOrgEchoActionReq>;
+			if (!(d.user instanceof WebSocketOrgEchoActionReq.User)) { this.user = new WebSocketOrgEchoActionReq.User(d.user || {}) }	
 	}
 	/**
 	*	Special toJSON override, since the field are private,
@@ -553,7 +562,7 @@ setLastName (value: string) {
 	this.lastName = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}

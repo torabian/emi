@@ -323,7 +323,7 @@ setBody (value: string) {
 	this.body = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}

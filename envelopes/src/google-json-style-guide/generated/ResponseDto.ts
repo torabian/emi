@@ -583,7 +583,7 @@ setTotalPages (value: number | null | undefined) {
 	this.totalPages = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -970,7 +970,7 @@ setSendReport (value: string | null | undefined) {
 	this.sendReport = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -1045,7 +1045,7 @@ setSendReport (value: string | null | undefined) {
 	  }
 	}
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -1114,8 +1114,9 @@ get errors() {
 	  }
 	}
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
+				this.#lateInitFields();
 			return;
 		}
 		if (typeof data === "string") {
@@ -1155,6 +1156,15 @@ get errors() {
 			if (d.params !== undefined) { this.params = d.params }
 			if (d.data !== undefined) { this.data = d.data }
 			if (d.error !== undefined) { this.error = d.error }
+		this.#lateInitFields(data)
+	}
+	/**
+	 * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+	**/
+	#lateInitFields(data = {}) {
+		const d = data as Partial<ResponseDto>;
+			if (!(d.data instanceof ResponseDto.Data)) { this.data = new ResponseDto.Data(d.data || {}) }	
+			if (!(d.error instanceof ResponseDto.Error)) { this.error = new ResponseDto.Error(d.error || {}) }	
 	}
 	/**
 	*	Special toJSON override, since the field are private,

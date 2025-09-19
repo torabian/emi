@@ -113,7 +113,7 @@ export class MyObjectClassDto {
       this.age = value;
       return this;
     }
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -176,8 +176,9 @@ export class MyObjectClassDto {
       };
     }
   };
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
+      this.#lateInitFields();
       return;
     }
     if (typeof data === "string") {
@@ -214,6 +215,16 @@ export class MyObjectClassDto {
     const d = data as Partial<MyObjectClassDto>;
     if (d.profile !== undefined) {
       this.profile = d.profile;
+    }
+    this.#lateInitFields(data);
+  }
+  /**
+   * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+   **/
+  #lateInitFields(data = {}) {
+    const d = data as Partial<MyObjectClassDto>;
+    if (!(d.profile instanceof MyObjectClassDto.Profile)) {
+      this.profile = new MyObjectClassDto.Profile(d.profile || {});
     }
   }
   /**
@@ -367,7 +378,7 @@ export class MyObjectClassDto {
       this.lastName = value;
       return this;
     }
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -425,7 +436,7 @@ export class MyObjectClassDto {
       };
     }
   };
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }

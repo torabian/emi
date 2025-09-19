@@ -114,7 +114,7 @@ export class MyArrayClassDto {
       this.phone = value;
       return this;
     }
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -177,7 +177,7 @@ export class MyArrayClassDto {
       };
     }
   };
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -380,7 +380,7 @@ export class MyArrayClassDto {
       this.phone = value;
       return this;
     }
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -443,7 +443,7 @@ export class MyArrayClassDto {
       };
     }
   };
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -608,7 +608,7 @@ export class MyArrayClassDto {
     this.nullableTags = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }

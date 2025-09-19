@@ -174,7 +174,7 @@ export class HttpActionActionReq {
     this.count = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -298,7 +298,7 @@ export class HttpActionActionRes {
     this.number = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }

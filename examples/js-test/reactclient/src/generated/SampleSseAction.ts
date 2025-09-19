@@ -219,7 +219,7 @@ setMessage (value: string) {
 	this.message = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
