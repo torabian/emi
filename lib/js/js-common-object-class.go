@@ -14,13 +14,26 @@ import (
 type jsRenderedDataClass struct {
 	ClassName            string
 	Fields               []jsRenderedField
+	LateInitFields       []jsRenderedField
 	Signature            string
 	JsDoc                string
 	SubClasses           []jsRenderedDataClass
+	ClassTypePath        string
+	ClassNamePath        string
 	ClassStaticFunctions []string
 
 	// For typescript, it has the Partial types.
 	DataSourceStatement string
+}
+
+// Is is a bit weird function I am adding to capture type.
+// basically, Name.Object.Item will become NameType.ObjectType.ItemType
+func treeAsType(treeLocation string) string {
+	parts := strings.Split(treeLocation, ".")
+	for i, p := range parts {
+		parts[i] = p + "Type"
+	}
+	return strings.Join(parts, ".")
 }
 
 func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, isFirst bool, ctx core.MicroGenContext, jsctx JsCommonObjectContext) []jsRenderedDataClass {
@@ -35,9 +48,20 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 		signature = fmt.Sprintf("static %v = class %v", className, className)
 	}
 
+	lateInitFields := []jsRenderedField{}
+	fieldsRendered := jsRenderFieldsShallow(fields, treeLocation, fieldDepth, ctx, jsctx)
+	for _, field := range fieldsRendered {
+		if field.LateInitStatement != "" {
+			lateInitFields = append(lateInitFields, field)
+		}
+	}
+
 	currentClass := jsRenderedDataClass{
 		ClassName:           core.ToUpper(className),
-		Fields:              jsRenderFieldsShallow(fields, treeLocation, fieldDepth, ctx, jsctx),
+		Fields:              fieldsRendered,
+		ClassNamePath:       treeLocation,
+		ClassTypePath:       treeAsType(treeLocation),
+		LateInitFields:      lateInitFields,
 		JsDoc:               jsdoc.String(),
 		Signature:           signature,
 		DataSourceStatement: "const d = data;",
@@ -206,6 +230,9 @@ export abstract class %vFactory {
 
 	constructor(data) {
 		if (data === null || data === undefined) {
+			{{ if .LateInitFields }}
+				this.#lateInitFields();
+			{{ end }}
 			return;
 		}
 		if (typeof data === "string") {
@@ -246,7 +273,24 @@ export abstract class %vFactory {
 		{{ range .Fields }}
 			{{ .SetterCallInConstructor }}
 		{{ end }}
+
+		{{ if .LateInitFields }}
+		this.#lateInitFields(data)
+		{{ end }}
 	}
+		
+	{{ if .LateInitFields }}
+	/**
+	 * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+	**/
+	#lateInitFields(data = {}) {
+		{{ .DataSourceStatement }}
+		{{ range .LateInitFields }}
+			{{ .LateInitStatement }}	
+		{{ end }}
+	}
+
+	{{ end }}
 
 	/**
 	*	Special toJSON override, since the field are private,
@@ -271,6 +315,33 @@ export abstract class %vFactory {
 		{{ end }}
 	  }
 	}
+
+	/**
+	* Creates an instance of {{ .ClassNamePath }}, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: {{ .ClassTypePath }}) {
+		return new {{ .ClassNamePath }}(possibleDtoObject);
+	}
+
+	/**
+	* Creates an instance of {{ .ClassNamePath }}, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<{{ .ClassTypePath }}>) {
+		return new {{ .ClassNamePath }}(partialDtoObject);
+	}
+
+	copyWith(partial: Partial<{{ .ClassTypePath }}>): InstanceType<typeof {{ .ClassNamePath }}> {
+		return new {{ .ClassNamePath }} ({ ...this.toJSON(), ...partial });
+	}
+
+	clone(): InstanceType<typeof {{ .ClassNamePath }}> {
+		return new {{ .ClassNamePath }}(this.toJSON());
+	}
+
 }
 {{ end }}
 
@@ -300,7 +371,7 @@ export abstract class %vFactory {
 	if isTypeScript {
 		result = strings.ReplaceAll(string(result), "#isJsonAppliable(obj) {", "#isJsonAppliable(obj: unknown) {")
 		result = strings.ReplaceAll(string(result), "const g = globalThis", "const g = globalThis as any")
-		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data)", "constructor(data: unknown)"))
+		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data)", "constructor(data: unknown = undefined)"))
 		res.SuggestedExtension = ".ts"
 	} else {
 		res.SuggestedExtension = ".js"

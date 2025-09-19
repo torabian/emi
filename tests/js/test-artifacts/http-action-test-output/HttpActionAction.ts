@@ -174,7 +174,7 @@ export class HttpActionActionReq {
     this.count = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -241,6 +241,30 @@ export class HttpActionActionReq {
       count: "count",
     };
   }
+  /**
+   * Creates an instance of HttpActionActionReq, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: HttpActionActionReqType) {
+    return new HttpActionActionReq(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of HttpActionActionReq, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<HttpActionActionReqType>) {
+    return new HttpActionActionReq(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<HttpActionActionReqType>,
+  ): InstanceType<typeof HttpActionActionReq> {
+    return new HttpActionActionReq({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof HttpActionActionReq> {
+    return new HttpActionActionReq(this.toJSON());
+  }
 }
 export abstract class HttpActionActionReqFactory {
   abstract create(data: unknown): HttpActionActionReq;
@@ -298,7 +322,7 @@ export class HttpActionActionRes {
     this.number = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -354,6 +378,30 @@ export class HttpActionActionRes {
     return {
       number: "number",
     };
+  }
+  /**
+   * Creates an instance of HttpActionActionRes, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: HttpActionActionResType) {
+    return new HttpActionActionRes(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of HttpActionActionRes, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<HttpActionActionResType>) {
+    return new HttpActionActionRes(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<HttpActionActionResType>,
+  ): InstanceType<typeof HttpActionActionRes> {
+    return new HttpActionActionRes({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof HttpActionActionRes> {
+    return new HttpActionActionRes(this.toJSON());
   }
 }
 export abstract class HttpActionActionResFactory {

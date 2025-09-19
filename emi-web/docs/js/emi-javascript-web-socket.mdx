@@ -210,7 +210,7 @@ export class UserStreamActionReq {
     this.count = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -277,6 +277,30 @@ export class UserStreamActionReq {
       count: "count",
     };
   }
+  /**
+   * Creates an instance of UserStreamActionReq, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: UserStreamActionReqType) {
+    return new UserStreamActionReq(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of UserStreamActionReq, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<UserStreamActionReqType>) {
+    return new UserStreamActionReq(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<UserStreamActionReqType>,
+  ): InstanceType<typeof UserStreamActionReq> {
+    return new UserStreamActionReq({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof UserStreamActionReq> {
+    return new UserStreamActionReq(this.toJSON());
+  }
 }
 export abstract class UserStreamActionReqFactory {
   abstract create(data: unknown): UserStreamActionReq;
@@ -334,7 +358,7 @@ export class UserStreamActionRes {
     this.number = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -390,6 +414,30 @@ export class UserStreamActionRes {
     return {
       number: "number",
     };
+  }
+  /**
+   * Creates an instance of UserStreamActionRes, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: UserStreamActionResType) {
+    return new UserStreamActionRes(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of UserStreamActionRes, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<UserStreamActionResType>) {
+    return new UserStreamActionRes(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<UserStreamActionResType>,
+  ): InstanceType<typeof UserStreamActionRes> {
+    return new UserStreamActionRes({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof UserStreamActionRes> {
+    return new UserStreamActionRes(this.toJSON());
   }
 }
 export abstract class UserStreamActionResFactory {

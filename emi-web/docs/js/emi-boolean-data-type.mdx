@@ -82,7 +82,7 @@ export class MyBoolClassDto {
     this.plainBool = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -143,6 +143,30 @@ export class MyBoolClassDto {
       boolWithDefault: "boolWithDefault",
       plainBool: "plainBool",
     };
+  }
+  /**
+   * Creates an instance of MyBoolClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyBoolClassDtoType) {
+    return new MyBoolClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyBoolClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyBoolClassDtoType>) {
+    return new MyBoolClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyBoolClassDtoType>,
+  ): InstanceType<typeof MyBoolClassDto> {
+    return new MyBoolClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyBoolClassDto> {
+    return new MyBoolClassDto(this.toJSON());
   }
 }
 export abstract class MyBoolClassDtoFactory {
@@ -248,7 +272,7 @@ export class MyBoolClassDto {
     this.nullableBoolWithoutDefault = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -309,6 +333,30 @@ export class MyBoolClassDto {
       nullableBoolWithDefault: "nullableBoolWithDefault",
       nullableBoolWithoutDefault: "nullableBoolWithoutDefault",
     };
+  }
+  /**
+   * Creates an instance of MyBoolClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyBoolClassDtoType) {
+    return new MyBoolClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyBoolClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyBoolClassDtoType>) {
+    return new MyBoolClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyBoolClassDtoType>,
+  ): InstanceType<typeof MyBoolClassDto> {
+    return new MyBoolClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyBoolClassDto> {
+    return new MyBoolClassDto(this.toJSON());
   }
 }
 export abstract class MyBoolClassDtoFactory {

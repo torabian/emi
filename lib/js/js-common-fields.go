@@ -18,6 +18,7 @@ type jsRenderedField struct {
 	GetterFunc              string
 	SetterCallInConstructor string
 	StaticFieldItem         string
+	LateInitStatement       string
 	SetterFunc              string
 }
 
@@ -192,7 +193,21 @@ func jsRenderField(
 	getterjsdoc.Add(fmt.Sprintf("@returns {%v}", jsFieldType))
 	getterFunc := getterjsdoc.String() + fmt.Sprintf("get %v () { return this.#%v }", field.Name, field.Name)
 
-	setterCallInConstructor := fmt.Sprintf("if (d.%v !== undefined) { this.%v = d.%v }", field.Name, field.Name, field.Name)
+	// This is enough when type is premitive, or nullable
+	setterCallInConstructor := fmt.Sprintf(
+		"if (d.%v !== undefined) { this.%v = d.%v }",
+		field.Name, field.Name, field.Name,
+	)
+
+	// for non-nullable fields which are late init, we need to make sure instance is being created.
+	isLateInit := !privateFieldToken.IsNullable && privateFieldToken.SafeDefaultValue == ""
+	lateInitStatement := ""
+	if isLateInit && field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeEmbed {
+		lateInitStatement = fmt.Sprintf(
+			"if (!(d.%v instanceof %v)) { this.%v = new %v(d.%v || {}) }",
+			field.Name, constructorClass, field.Name, constructorClass, field.Name,
+		)
+	}
 
 	staticVariables := []string{}
 
@@ -256,6 +271,7 @@ func jsRenderField(
 		SetterCallInConstructor: setterCallInConstructor,
 		StaticFieldItem:         staticFieldItem,
 		GetterFunc:              getterFunc,
+		LateInitStatement:       lateInitStatement,
 	}
 }
 

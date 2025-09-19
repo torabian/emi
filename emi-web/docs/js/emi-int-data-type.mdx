@@ -80,7 +80,7 @@ export class MyIntClassDto {
     this.plainInt = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -141,6 +141,30 @@ export class MyIntClassDto {
       intWithDefault: "intWithDefault",
       plainInt: "plainInt",
     };
+  }
+  /**
+   * Creates an instance of MyIntClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyIntClassDtoType) {
+    return new MyIntClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyIntClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyIntClassDtoType>) {
+    return new MyIntClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyIntClassDtoType>,
+  ): InstanceType<typeof MyIntClassDto> {
+    return new MyIntClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyIntClassDto> {
+    return new MyIntClassDto(this.toJSON());
   }
 }
 export abstract class MyIntClassDtoFactory {
@@ -241,7 +265,7 @@ export class MyIntClassDto {
     this.nullableIntWithoutDefault = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -302,6 +326,30 @@ export class MyIntClassDto {
       nullableIntWithDefault: "nullableIntWithDefault",
       nullableIntWithoutDefault: "nullableIntWithoutDefault",
     };
+  }
+  /**
+   * Creates an instance of MyIntClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyIntClassDtoType) {
+    return new MyIntClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyIntClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyIntClassDtoType>) {
+    return new MyIntClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyIntClassDtoType>,
+  ): InstanceType<typeof MyIntClassDto> {
+    return new MyIntClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyIntClassDto> {
+    return new MyIntClassDto(this.toJSON());
   }
 }
 export abstract class MyIntClassDtoFactory {

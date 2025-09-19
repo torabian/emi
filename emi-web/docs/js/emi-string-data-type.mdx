@@ -79,7 +79,7 @@ export class MyStringClassDto {
     this.emptyString = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -140,6 +140,30 @@ export class MyStringClassDto {
       stringWithDefault: "stringWithDefault",
       emptyString: "emptyString",
     };
+  }
+  /**
+   * Creates an instance of MyStringClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyStringClassDtoType) {
+    return new MyStringClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyStringClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyStringClassDtoType>) {
+    return new MyStringClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyStringClassDtoType>,
+  ): InstanceType<typeof MyStringClassDto> {
+    return new MyStringClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyStringClassDto> {
+    return new MyStringClassDto(this.toJSON());
   }
 }
 export abstract class MyStringClassDtoFactory {
@@ -238,7 +262,7 @@ export class MyStringClassDto {
     this.nullableWithoutDefault = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -299,6 +323,30 @@ export class MyStringClassDto {
       nullableStringWithDefault: "nullableStringWithDefault",
       nullableWithoutDefault: "nullableWithoutDefault",
     };
+  }
+  /**
+   * Creates an instance of MyStringClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyStringClassDtoType) {
+    return new MyStringClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyStringClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyStringClassDtoType>) {
+    return new MyStringClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyStringClassDtoType>,
+  ): InstanceType<typeof MyStringClassDto> {
+    return new MyStringClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyStringClassDto> {
+    return new MyStringClassDto(this.toJSON());
   }
 }
 export abstract class MyStringClassDtoFactory {

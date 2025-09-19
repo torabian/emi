@@ -68,7 +68,7 @@ export class MyFloatClassDto {
     this.plainFloat = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -129,6 +129,30 @@ export class MyFloatClassDto {
       floatWithDefault: "floatWithDefault",
       plainFloat: "plainFloat",
     };
+  }
+  /**
+   * Creates an instance of MyFloatClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyFloatClassDtoType) {
+    return new MyFloatClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyFloatClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyFloatClassDtoType>) {
+    return new MyFloatClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyFloatClassDtoType>,
+  ): InstanceType<typeof MyFloatClassDto> {
+    return new MyFloatClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyFloatClassDto> {
+    return new MyFloatClassDto(this.toJSON());
   }
 }
 export abstract class MyFloatClassDtoFactory {
@@ -229,7 +253,7 @@ export class MyFloatClassDto {
     this.nullableFloatWithoutDefault = value;
     return this;
   }
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       return;
     }
@@ -290,6 +314,30 @@ export class MyFloatClassDto {
       nullableFloatWithDefault: "nullableFloatWithDefault",
       nullableFloatWithoutDefault: "nullableFloatWithoutDefault",
     };
+  }
+  /**
+   * Creates an instance of MyFloatClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyFloatClassDtoType) {
+    return new MyFloatClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyFloatClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<MyFloatClassDtoType>) {
+    return new MyFloatClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<MyFloatClassDtoType>,
+  ): InstanceType<typeof MyFloatClassDto> {
+    return new MyFloatClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyFloatClassDto> {
+    return new MyFloatClassDto(this.toJSON());
   }
 }
 export abstract class MyFloatClassDtoFactory {

@@ -323,7 +323,7 @@ setBody (value: string) {
 	this.body = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -384,6 +384,28 @@ setBody (value: string) {
 			title: 'title',
 			body: 'body',
 	  }
+	}
+	/**
+	* Creates an instance of GetSinglePostActionRes, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: GetSinglePostActionResType) {
+		return new GetSinglePostActionRes(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of GetSinglePostActionRes, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<GetSinglePostActionResType>) {
+		return new GetSinglePostActionRes(partialDtoObject);
+	}
+	copyWith(partial: Partial<GetSinglePostActionResType>): InstanceType<typeof GetSinglePostActionRes> {
+		return new GetSinglePostActionRes ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof GetSinglePostActionRes> {
+		return new GetSinglePostActionRes(this.toJSON());
 	}
 }
 export abstract class GetSinglePostActionResFactory {

@@ -200,7 +200,7 @@ export class NullableResponseActionDto {
       this.firstName = value;
       return this;
     }
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -257,6 +257,35 @@ export class NullableResponseActionDto {
         firstName: "firstName",
       };
     }
+    /**
+     * Creates an instance of NullableResponseActionDto.Mother, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject: NullableResponseActionDtoType.MotherType) {
+      return new NullableResponseActionDto.Mother(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of NullableResponseActionDto.Mother, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(
+      partialDtoObject: Partial<NullableResponseActionDtoType.MotherType>,
+    ) {
+      return new NullableResponseActionDto.Mother(partialDtoObject);
+    }
+    copyWith(
+      partial: Partial<NullableResponseActionDtoType.MotherType>,
+    ): InstanceType<typeof NullableResponseActionDto.Mother> {
+      return new NullableResponseActionDto.Mother({
+        ...this.toJSON(),
+        ...partial,
+      });
+    }
+    clone(): InstanceType<typeof NullableResponseActionDto.Mother> {
+      return new NullableResponseActionDto.Mother(this.toJSON());
+    }
   };
   /**
    * The base class definition for father
@@ -286,7 +315,7 @@ export class NullableResponseActionDto {
       this.firstName = value;
       return this;
     }
-    constructor(data: unknown) {
+    constructor(data: unknown = undefined) {
       if (data === null || data === undefined) {
         return;
       }
@@ -343,9 +372,39 @@ export class NullableResponseActionDto {
         firstName: "firstName",
       };
     }
+    /**
+     * Creates an instance of NullableResponseActionDto.Father, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject: NullableResponseActionDtoType.FatherType) {
+      return new NullableResponseActionDto.Father(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of NullableResponseActionDto.Father, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(
+      partialDtoObject: Partial<NullableResponseActionDtoType.FatherType>,
+    ) {
+      return new NullableResponseActionDto.Father(partialDtoObject);
+    }
+    copyWith(
+      partial: Partial<NullableResponseActionDtoType.FatherType>,
+    ): InstanceType<typeof NullableResponseActionDto.Father> {
+      return new NullableResponseActionDto.Father({
+        ...this.toJSON(),
+        ...partial,
+      });
+    }
+    clone(): InstanceType<typeof NullableResponseActionDto.Father> {
+      return new NullableResponseActionDto.Father(this.toJSON());
+    }
   };
-  constructor(data: unknown) {
+  constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
+      this.#lateInitFields();
       return;
     }
     if (typeof data === "string") {
@@ -392,6 +451,19 @@ export class NullableResponseActionDto {
     if (d.secondUncle !== undefined) {
       this.secondUncle = d.secondUncle;
     }
+    this.#lateInitFields(data);
+  }
+  /**
+   * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+   **/
+  #lateInitFields(data = {}) {
+    const d = data as Partial<NullableResponseActionDto>;
+    if (!(d.mother instanceof NullableResponseActionDto.Mother)) {
+      this.mother = new NullableResponseActionDto.Mother(d.mother || {});
+    }
+    if (!(d.firstUncle instanceof UncleDto)) {
+      this.firstUncle = new UncleDto(d.firstUncle || {});
+    }
   }
   /**
    *	Special toJSON override, since the field are private,
@@ -424,6 +496,30 @@ export class NullableResponseActionDto {
       },
       secondUncle: "secondUncle",
     };
+  }
+  /**
+   * Creates an instance of NullableResponseActionDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: NullableResponseActionDtoType) {
+    return new NullableResponseActionDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of NullableResponseActionDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: Partial<NullableResponseActionDtoType>) {
+    return new NullableResponseActionDto(partialDtoObject);
+  }
+  copyWith(
+    partial: Partial<NullableResponseActionDtoType>,
+  ): InstanceType<typeof NullableResponseActionDto> {
+    return new NullableResponseActionDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof NullableResponseActionDto> {
+    return new NullableResponseActionDto(this.toJSON());
   }
 }
 export abstract class NullableResponseActionDtoFactory {

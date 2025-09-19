@@ -583,7 +583,7 @@ setTotalPages (value: number | null | undefined) {
 	this.totalPages = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -686,6 +686,28 @@ setTotalPages (value: number | null | undefined) {
 			pageIndex: 'pageIndex',
 			totalPages: 'totalPages',
 	  }
+	}
+	/**
+	* Creates an instance of ResponseDto.Data, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: ResponseDtoType.DataType) {
+		return new ResponseDto.Data(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of ResponseDto.Data, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<ResponseDtoType.DataType>) {
+		return new ResponseDto.Data(partialDtoObject);
+	}
+	copyWith(partial: Partial<ResponseDtoType.DataType>): InstanceType<typeof ResponseDto.Data> {
+		return new ResponseDto.Data ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof ResponseDto.Data> {
+		return new ResponseDto.Data(this.toJSON());
 	}
 }
 /**
@@ -970,7 +992,7 @@ setSendReport (value: string | null | undefined) {
 	this.sendReport = value
 	return this
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -1044,8 +1066,30 @@ setSendReport (value: string | null | undefined) {
 			sendReport: 'sendReport',
 	  }
 	}
+	/**
+	* Creates an instance of ResponseDto.Error.Errors, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: ResponseDtoType.ErrorType.ErrorsType) {
+		return new ResponseDto.Error.Errors(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of ResponseDto.Error.Errors, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<ResponseDtoType.ErrorType.ErrorsType>) {
+		return new ResponseDto.Error.Errors(partialDtoObject);
+	}
+	copyWith(partial: Partial<ResponseDtoType.ErrorType.ErrorsType>): InstanceType<typeof ResponseDto.Error.Errors> {
+		return new ResponseDto.Error.Errors ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof ResponseDto.Error.Errors> {
+		return new ResponseDto.Error.Errors(this.toJSON());
+	}
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
 			return;
 		}
@@ -1113,9 +1157,32 @@ get errors() {
 						},
 	  }
 	}
+	/**
+	* Creates an instance of ResponseDto.Error, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: ResponseDtoType.ErrorType) {
+		return new ResponseDto.Error(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of ResponseDto.Error, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<ResponseDtoType.ErrorType>) {
+		return new ResponseDto.Error(partialDtoObject);
+	}
+	copyWith(partial: Partial<ResponseDtoType.ErrorType>): InstanceType<typeof ResponseDto.Error> {
+		return new ResponseDto.Error ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof ResponseDto.Error> {
+		return new ResponseDto.Error(this.toJSON());
+	}
 }
-	constructor(data: unknown) {
+	constructor(data: unknown = undefined) {
 		if (data === null || data === undefined) {
+				this.#lateInitFields();
 			return;
 		}
 		if (typeof data === "string") {
@@ -1155,6 +1222,15 @@ get errors() {
 			if (d.params !== undefined) { this.params = d.params }
 			if (d.data !== undefined) { this.data = d.data }
 			if (d.error !== undefined) { this.error = d.error }
+		this.#lateInitFields(data)
+	}
+	/**
+	 * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+	**/
+	#lateInitFields(data = {}) {
+		const d = data as Partial<ResponseDto>;
+			if (!(d.data instanceof ResponseDto.Data)) { this.data = new ResponseDto.Data(d.data || {}) }	
+			if (!(d.error instanceof ResponseDto.Error)) { this.error = new ResponseDto.Error(d.error || {}) }	
 	}
 	/**
 	*	Special toJSON override, since the field are private,
@@ -1196,6 +1272,28 @@ get error() {
 						);
 						},
 	  }
+	}
+	/**
+	* Creates an instance of ResponseDto, and possibleDtoObject
+	* needs to satisfy the type requirement fully, otherwise typescript compile would
+	* be complaining.
+	**/
+	static from(possibleDtoObject: ResponseDtoType) {
+		return new ResponseDto(possibleDtoObject);
+	}
+	/**
+	* Creates an instance of ResponseDto, and partialDtoObject
+	* needs to satisfy the type, but partially, and rest of the content would
+	* be constructed according to data types and nullability.
+	**/
+	static with(partialDtoObject: Partial<ResponseDtoType>) {
+		return new ResponseDto(partialDtoObject);
+	}
+	copyWith(partial: Partial<ResponseDtoType>): InstanceType<typeof ResponseDto> {
+		return new ResponseDto ({ ...this.toJSON(), ...partial });
+	}
+	clone(): InstanceType<typeof ResponseDto> {
+		return new ResponseDto(this.toJSON());
 	}
 }
 export abstract class ResponseDtoFactory {
