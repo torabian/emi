@@ -58,6 +58,7 @@ func renderTsJsQsClass(ctx core.MicroGenContext, action core.EmiRpcAction, field
 		nestjsStaticDecorator, err := JsNestJsStaticDecorator(NestJsStaticDecoratorContext{
 			ClassInstance:               className,
 			NestJsStaticFunctionUseCase: QueryParams,
+			UsageContext:                "query",
 		}, ctx)
 
 		if err != nil {

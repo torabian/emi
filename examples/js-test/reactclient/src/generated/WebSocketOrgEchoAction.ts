@@ -115,8 +115,7 @@ get firstName () { return this.#firstName }
   * @type {string}
   **/
 set firstName (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#firstName = correctType ? value : ('' + value);
+		this.#firstName = String(value);
 }
 setFirstName (value: string) {
 	this.firstName = value
@@ -137,8 +136,7 @@ get lastName () { return this.#lastName }
   * @type {string}
   **/
 set lastName (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#lastName = correctType ? value : ('' + value);
+		this.#lastName = String(value);
 }
 setLastName (value: string) {
 	this.lastName = value
@@ -189,8 +187,7 @@ get item1 () { return this.#item1 }
   * @type {string}
   **/
 set item1 (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#item1 = correctType ? value : ('' + value);
+		this.#item1 = String(value);
 }
 setItem1 (value: string) {
 	this.item1 = value
@@ -348,10 +345,10 @@ setSubItem2 (value: number) {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<WebSocketOrgEchoActionReqType.UserType.Item2arrayType>) {
+	static with(partialDtoObject: PartialDeep<WebSocketOrgEchoActionReqType.UserType.Item2arrayType>) {
 		return new WebSocketOrgEchoActionReq.User.Item2array(partialDtoObject);
 	}
-	copyWith(partial: Partial<WebSocketOrgEchoActionReqType.UserType.Item2arrayType>): InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array> {
+	copyWith(partial: PartialDeep<WebSocketOrgEchoActionReqType.UserType.Item2arrayType>): InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array> {
 		return new WebSocketOrgEchoActionReq.User.Item2array ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array> {
@@ -433,10 +430,10 @@ get item2array() {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<WebSocketOrgEchoActionReqType.UserType>) {
+	static with(partialDtoObject: PartialDeep<WebSocketOrgEchoActionReqType.UserType>) {
 		return new WebSocketOrgEchoActionReq.User(partialDtoObject);
 	}
-	copyWith(partial: Partial<WebSocketOrgEchoActionReqType.UserType>): InstanceType<typeof WebSocketOrgEchoActionReq.User> {
+	copyWith(partial: PartialDeep<WebSocketOrgEchoActionReqType.UserType>): InstanceType<typeof WebSocketOrgEchoActionReq.User> {
 		return new WebSocketOrgEchoActionReq.User ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof WebSocketOrgEchoActionReq.User> {
@@ -530,10 +527,10 @@ get user() {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<WebSocketOrgEchoActionReqType>) {
+	static with(partialDtoObject: PartialDeep<WebSocketOrgEchoActionReqType>) {
 		return new WebSocketOrgEchoActionReq(partialDtoObject);
 	}
-	copyWith(partial: Partial<WebSocketOrgEchoActionReqType>): InstanceType<typeof WebSocketOrgEchoActionReq> {
+	copyWith(partial: PartialDeep<WebSocketOrgEchoActionReqType>): InstanceType<typeof WebSocketOrgEchoActionReq> {
 		return new WebSocketOrgEchoActionReq ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof WebSocketOrgEchoActionReq> {
@@ -543,6 +540,13 @@ get user() {
 export abstract class WebSocketOrgEchoActionReqFactory {
 	abstract create(data: unknown): WebSocketOrgEchoActionReq;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 	/**
   * The base type definition for webSocketOrgEchoActionReq
   **/
@@ -621,8 +625,7 @@ get lastName () { return this.#lastName }
   * @type {string}
   **/
 set lastName (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#lastName = correctType ? value : ('' + value);
+		this.#lastName = String(value);
 }
 setLastName (value: string) {
 	this.lastName = value
@@ -694,10 +697,10 @@ setLastName (value: string) {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<WebSocketOrgEchoActionResType>) {
+	static with(partialDtoObject: PartialDeep<WebSocketOrgEchoActionResType>) {
 		return new WebSocketOrgEchoActionRes(partialDtoObject);
 	}
-	copyWith(partial: Partial<WebSocketOrgEchoActionResType>): InstanceType<typeof WebSocketOrgEchoActionRes> {
+	copyWith(partial: PartialDeep<WebSocketOrgEchoActionResType>): InstanceType<typeof WebSocketOrgEchoActionRes> {
 		return new WebSocketOrgEchoActionRes ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof WebSocketOrgEchoActionRes> {
@@ -707,6 +710,13 @@ setLastName (value: string) {
 export abstract class WebSocketOrgEchoActionResFactory {
 	abstract create(data: unknown): WebSocketOrgEchoActionRes;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 	/**
   * The base type definition for webSocketOrgEchoActionRes
   **/

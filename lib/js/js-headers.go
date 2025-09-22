@@ -153,6 +153,7 @@ func JsHeaderClass(
 		nestjsStaticDecorator, err := JsNestJsStaticDecorator(NestJsStaticDecoratorContext{
 			ClassInstance:               headerctx.ClassName,
 			NestJsStaticFunctionUseCase: RequestHeaders,
+			UsageContext:                "headers",
 		}, ctx)
 
 		if err != nil {

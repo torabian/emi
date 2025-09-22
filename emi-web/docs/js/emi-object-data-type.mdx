@@ -79,8 +79,7 @@ export class MyObjectClassDto {
      * @type {string}
      **/
     set firstName(value: string) {
-      const correctType = typeof value === "string";
-      this.#firstName = correctType ? value : "" + value;
+      this.#firstName = String(value);
     }
     setFirstName(value: string) {
       this.firstName = value;
@@ -188,11 +187,13 @@ export class MyObjectClassDto {
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
-    static with(partialDtoObject: Partial<MyObjectClassDtoType.ProfileType>) {
+    static with(
+      partialDtoObject: PartialDeep<MyObjectClassDtoType.ProfileType>,
+    ) {
       return new MyObjectClassDto.Profile(partialDtoObject);
     }
     copyWith(
-      partial: Partial<MyObjectClassDtoType.ProfileType>,
+      partial: PartialDeep<MyObjectClassDtoType.ProfileType>,
     ): InstanceType<typeof MyObjectClassDto.Profile> {
       return new MyObjectClassDto.Profile({ ...this.toJSON(), ...partial });
     }
@@ -284,11 +285,11 @@ export class MyObjectClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyObjectClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyObjectClassDtoType>) {
     return new MyObjectClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyObjectClassDtoType>,
+    partial: PartialDeep<MyObjectClassDtoType>,
   ): InstanceType<typeof MyObjectClassDto> {
     return new MyObjectClassDto({ ...this.toJSON(), ...partial });
   }
@@ -299,6 +300,13 @@ export class MyObjectClassDto {
 export abstract class MyObjectClassDtoFactory {
   abstract create(data: unknown): MyObjectClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myObjectClassDto
  **/
@@ -419,8 +427,7 @@ export class MyObjectClassDto {
      * @type {string}
      **/
     set lastName(value: string) {
-      const correctType = typeof value === "string";
-      this.#lastName = correctType ? value : "" + value;
+      this.#lastName = String(value);
     }
     setLastName(value: string) {
       this.lastName = value;
@@ -497,12 +504,12 @@ export class MyObjectClassDto {
      * be constructed according to data types and nullability.
      **/
     static with(
-      partialDtoObject: Partial<MyObjectClassDtoType.OptionalProfileType>,
+      partialDtoObject: PartialDeep<MyObjectClassDtoType.OptionalProfileType>,
     ) {
       return new MyObjectClassDto.OptionalProfile(partialDtoObject);
     }
     copyWith(
-      partial: Partial<MyObjectClassDtoType.OptionalProfileType>,
+      partial: PartialDeep<MyObjectClassDtoType.OptionalProfileType>,
     ): InstanceType<typeof MyObjectClassDto.OptionalProfile> {
       return new MyObjectClassDto.OptionalProfile({
         ...this.toJSON(),
@@ -589,11 +596,11 @@ export class MyObjectClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyObjectClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyObjectClassDtoType>) {
     return new MyObjectClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyObjectClassDtoType>,
+    partial: PartialDeep<MyObjectClassDtoType>,
   ): InstanceType<typeof MyObjectClassDto> {
     return new MyObjectClassDto({ ...this.toJSON(), ...partial });
   }
@@ -604,6 +611,13 @@ export class MyObjectClassDto {
 export abstract class MyObjectClassDtoFactory {
   abstract create(data: unknown): MyObjectClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myObjectClassDto
  **/

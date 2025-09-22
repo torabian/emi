@@ -82,8 +82,7 @@ export class MyArrayClassDto {
      * @type {string}
      **/
     set email(value: string) {
-      const correctType = typeof value === "string";
-      this.#email = correctType ? value : "" + value;
+      this.#email = String(value);
     }
     setEmail(value: string) {
       this.email = value;
@@ -108,7 +107,7 @@ export class MyArrayClassDto {
     set phone(value: string | null | undefined) {
       const correctType =
         typeof value === "string" || value === undefined || value === null;
-      this.#phone = correctType ? value : "" + value;
+      this.#phone = correctType ? value : String(value);
     }
     setPhone(value: string | null | undefined) {
       this.phone = value;
@@ -189,11 +188,13 @@ export class MyArrayClassDto {
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
-    static with(partialDtoObject: Partial<MyArrayClassDtoType.ContactsType>) {
+    static with(
+      partialDtoObject: PartialDeep<MyArrayClassDtoType.ContactsType>,
+    ) {
       return new MyArrayClassDto.Contacts(partialDtoObject);
     }
     copyWith(
-      partial: Partial<MyArrayClassDtoType.ContactsType>,
+      partial: PartialDeep<MyArrayClassDtoType.ContactsType>,
     ): InstanceType<typeof MyArrayClassDto.Contacts> {
       return new MyArrayClassDto.Contacts({ ...this.toJSON(), ...partial });
     }
@@ -274,11 +275,11 @@ export class MyArrayClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyArrayClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyArrayClassDtoType>) {
     return new MyArrayClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyArrayClassDtoType>,
+    partial: PartialDeep<MyArrayClassDtoType>,
   ): InstanceType<typeof MyArrayClassDto> {
     return new MyArrayClassDto({ ...this.toJSON(), ...partial });
   }
@@ -289,6 +290,13 @@ export class MyArrayClassDto {
 export abstract class MyArrayClassDtoFactory {
   abstract create(data: unknown): MyArrayClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myArrayClassDto
  **/
@@ -396,8 +404,7 @@ export class MyArrayClassDto {
      * @type {string}
      **/
     set email(value: string) {
-      const correctType = typeof value === "string";
-      this.#email = correctType ? value : "" + value;
+      this.#email = String(value);
     }
     setEmail(value: string) {
       this.email = value;
@@ -422,7 +429,7 @@ export class MyArrayClassDto {
     set phone(value: string | null | undefined) {
       const correctType =
         typeof value === "string" || value === undefined || value === null;
-      this.#phone = correctType ? value : "" + value;
+      this.#phone = correctType ? value : String(value);
     }
     setPhone(value: string | null | undefined) {
       this.phone = value;
@@ -503,11 +510,13 @@ export class MyArrayClassDto {
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
-    static with(partialDtoObject: Partial<MyArrayClassDtoType.ContactsType>) {
+    static with(
+      partialDtoObject: PartialDeep<MyArrayClassDtoType.ContactsType>,
+    ) {
       return new MyArrayClassDto.Contacts(partialDtoObject);
     }
     copyWith(
-      partial: Partial<MyArrayClassDtoType.ContactsType>,
+      partial: PartialDeep<MyArrayClassDtoType.ContactsType>,
     ): InstanceType<typeof MyArrayClassDto.Contacts> {
       return new MyArrayClassDto.Contacts({ ...this.toJSON(), ...partial });
     }
@@ -588,11 +597,11 @@ export class MyArrayClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyArrayClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyArrayClassDtoType>) {
     return new MyArrayClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyArrayClassDtoType>,
+    partial: PartialDeep<MyArrayClassDtoType>,
   ): InstanceType<typeof MyArrayClassDto> {
     return new MyArrayClassDto({ ...this.toJSON(), ...partial });
   }
@@ -603,6 +612,13 @@ export class MyArrayClassDto {
 export abstract class MyArrayClassDtoFactory {
   abstract create(data: unknown): MyArrayClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myArrayClassDto
  **/
@@ -780,11 +796,11 @@ export class MyArrayClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyArrayClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyArrayClassDtoType>) {
     return new MyArrayClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyArrayClassDtoType>,
+    partial: PartialDeep<MyArrayClassDtoType>,
   ): InstanceType<typeof MyArrayClassDto> {
     return new MyArrayClassDto({ ...this.toJSON(), ...partial });
   }
@@ -795,6 +811,13 @@ export class MyArrayClassDto {
 export abstract class MyArrayClassDtoFactory {
   abstract create(data: unknown): MyArrayClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myArrayClassDto
  **/

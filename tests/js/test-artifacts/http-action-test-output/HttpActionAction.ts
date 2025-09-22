@@ -254,11 +254,11 @@ export class HttpActionActionReq {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<HttpActionActionReqType>) {
+  static with(partialDtoObject: PartialDeep<HttpActionActionReqType>) {
     return new HttpActionActionReq(partialDtoObject);
   }
   copyWith(
-    partial: Partial<HttpActionActionReqType>,
+    partial: PartialDeep<HttpActionActionReqType>,
   ): InstanceType<typeof HttpActionActionReq> {
     return new HttpActionActionReq({ ...this.toJSON(), ...partial });
   }
@@ -269,6 +269,13 @@ export class HttpActionActionReq {
 export abstract class HttpActionActionReqFactory {
   abstract create(data: unknown): HttpActionActionReq;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for httpActionActionReq
  **/
@@ -392,11 +399,11 @@ export class HttpActionActionRes {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<HttpActionActionResType>) {
+  static with(partialDtoObject: PartialDeep<HttpActionActionResType>) {
     return new HttpActionActionRes(partialDtoObject);
   }
   copyWith(
-    partial: Partial<HttpActionActionResType>,
+    partial: PartialDeep<HttpActionActionResType>,
   ): InstanceType<typeof HttpActionActionRes> {
     return new HttpActionActionRes({ ...this.toJSON(), ...partial });
   }
@@ -407,6 +414,13 @@ export class HttpActionActionRes {
 export abstract class HttpActionActionResFactory {
   abstract create(data: unknown): HttpActionActionRes;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for httpActionActionRes
  **/

@@ -227,11 +227,11 @@ export class UserStreamActionReq {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<UserStreamActionReqType>) {
+  static with(partialDtoObject: PartialDeep<UserStreamActionReqType>) {
     return new UserStreamActionReq(partialDtoObject);
   }
   copyWith(
-    partial: Partial<UserStreamActionReqType>,
+    partial: PartialDeep<UserStreamActionReqType>,
   ): InstanceType<typeof UserStreamActionReq> {
     return new UserStreamActionReq({ ...this.toJSON(), ...partial });
   }
@@ -242,6 +242,13 @@ export class UserStreamActionReq {
 export abstract class UserStreamActionReqFactory {
   abstract create(data: unknown): UserStreamActionReq;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for userStreamActionReq
  **/
@@ -365,11 +372,11 @@ export class UserStreamActionRes {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<UserStreamActionResType>) {
+  static with(partialDtoObject: PartialDeep<UserStreamActionResType>) {
     return new UserStreamActionRes(partialDtoObject);
   }
   copyWith(
-    partial: Partial<UserStreamActionResType>,
+    partial: PartialDeep<UserStreamActionResType>,
   ): InstanceType<typeof UserStreamActionRes> {
     return new UserStreamActionRes({ ...this.toJSON(), ...partial });
   }
@@ -380,6 +387,13 @@ export class UserStreamActionRes {
 export abstract class UserStreamActionResFactory {
   abstract create(data: unknown): UserStreamActionRes;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for userStreamActionRes
  **/

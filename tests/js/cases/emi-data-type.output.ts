@@ -17,8 +17,7 @@ get stringField () { return this.#stringField }
   * @type {string}
   **/
 set stringField (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#stringField = correctType ? value : ('' + value);
+		this.#stringField = String(value);
 }
 setStringField (value: string) {
 	this.stringField = value
@@ -39,8 +38,7 @@ get stringFieldWithValue () { return this.#stringFieldWithValue }
   * @type {string}
   **/
 set stringFieldWithValue (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#stringFieldWithValue = correctType ? value : ('' + value);
+		this.#stringFieldWithValue = String(value);
 }
 setStringFieldWithValue (value: string) {
 	this.stringFieldWithValue = value
@@ -62,7 +60,7 @@ get nullablestringField () { return this.#nullablestringField }
   **/
 set nullablestringField (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#nullablestringField = correctType ? value : ('' + value);
+		this.#nullablestringField = correctType ? value : String(value);
 }
 setNullablestringField (value: string | null | undefined) {
 	this.nullablestringField = value
@@ -84,7 +82,7 @@ get nullablestringFieldWithValue () { return this.#nullablestringFieldWithValue 
   **/
 set nullablestringFieldWithValue (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#nullablestringFieldWithValue = correctType ? value : ('' + value);
+		this.#nullablestringFieldWithValue = correctType ? value : String(value);
 }
 setNullablestringFieldWithValue (value: string | null | undefined) {
 	this.nullablestringFieldWithValue = value
@@ -105,8 +103,7 @@ get boolField () { return this.#boolField }
   * @type {boolean}
   **/
 set boolField (value: boolean) {
-	 	const correctType = value === true || value === false
-		this.#boolField = correctType ? value : Boolean(value);
+		this.#boolField = Boolean(value);
 }
 setBoolField (value: boolean) {
 	this.boolField = value
@@ -127,8 +124,7 @@ get boolFieldWithValue () { return this.#boolFieldWithValue }
   * @type {boolean}
   **/
 set boolFieldWithValue (value: boolean) {
-	 	const correctType = value === true || value === false
-		this.#boolFieldWithValue = correctType ? value : Boolean(value);
+		this.#boolFieldWithValue = Boolean(value);
 }
 setBoolFieldWithValue (value: boolean) {
 	this.boolFieldWithValue = value
@@ -805,10 +801,10 @@ setNullableFloat64FieldWithValue (value: number | null | undefined) {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<AnonymouseType>) {
+	static with(partialDtoObject: PartialDeep<AnonymouseType>) {
 		return new Anonymouse(partialDtoObject);
 	}
-	copyWith(partial: Partial<AnonymouseType>): InstanceType<typeof Anonymouse> {
+	copyWith(partial: PartialDeep<AnonymouseType>): InstanceType<typeof Anonymouse> {
 		return new Anonymouse ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof Anonymouse> {
@@ -818,6 +814,13 @@ setNullableFloat64FieldWithValue (value: number | null | undefined) {
 export abstract class AnonymouseFactory {
 	abstract create(data: unknown): Anonymouse;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 	/**
   * The base type definition for anonymouse
   **/

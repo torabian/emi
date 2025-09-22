@@ -193,8 +193,7 @@ export class NullableResponseActionDto {
      * @type {string}
      **/
     set firstName(value: string) {
-      const correctType = typeof value === "string";
-      this.#firstName = correctType ? value : "" + value;
+      this.#firstName = String(value);
     }
     setFirstName(value: string) {
       this.firstName = value;
@@ -271,12 +270,12 @@ export class NullableResponseActionDto {
      * be constructed according to data types and nullability.
      **/
     static with(
-      partialDtoObject: Partial<NullableResponseActionDtoType.MotherType>,
+      partialDtoObject: PartialDeep<NullableResponseActionDtoType.MotherType>,
     ) {
       return new NullableResponseActionDto.Mother(partialDtoObject);
     }
     copyWith(
-      partial: Partial<NullableResponseActionDtoType.MotherType>,
+      partial: PartialDeep<NullableResponseActionDtoType.MotherType>,
     ): InstanceType<typeof NullableResponseActionDto.Mother> {
       return new NullableResponseActionDto.Mother({
         ...this.toJSON(),
@@ -308,8 +307,7 @@ export class NullableResponseActionDto {
      * @type {string}
      **/
     set firstName(value: string) {
-      const correctType = typeof value === "string";
-      this.#firstName = correctType ? value : "" + value;
+      this.#firstName = String(value);
     }
     setFirstName(value: string) {
       this.firstName = value;
@@ -386,12 +384,12 @@ export class NullableResponseActionDto {
      * be constructed according to data types and nullability.
      **/
     static with(
-      partialDtoObject: Partial<NullableResponseActionDtoType.FatherType>,
+      partialDtoObject: PartialDeep<NullableResponseActionDtoType.FatherType>,
     ) {
       return new NullableResponseActionDto.Father(partialDtoObject);
     }
     copyWith(
-      partial: Partial<NullableResponseActionDtoType.FatherType>,
+      partial: PartialDeep<NullableResponseActionDtoType.FatherType>,
     ): InstanceType<typeof NullableResponseActionDto.Father> {
       return new NullableResponseActionDto.Father({
         ...this.toJSON(),
@@ -510,11 +508,11 @@ export class NullableResponseActionDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<NullableResponseActionDtoType>) {
+  static with(partialDtoObject: PartialDeep<NullableResponseActionDtoType>) {
     return new NullableResponseActionDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<NullableResponseActionDtoType>,
+    partial: PartialDeep<NullableResponseActionDtoType>,
   ): InstanceType<typeof NullableResponseActionDto> {
     return new NullableResponseActionDto({ ...this.toJSON(), ...partial });
   }
@@ -525,6 +523,13 @@ export class NullableResponseActionDto {
 export abstract class NullableResponseActionDtoFactory {
   abstract create(data: unknown): NullableResponseActionDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for nullableResponseActionDto
  **/

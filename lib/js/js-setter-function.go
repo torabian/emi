@@ -31,13 +31,12 @@ func (x jsFieldVariable) CreateSetterFunction(ctx core.MicroGenContext) string {
 {{.ctx.JsDoc}}
 set {{ .ctx.Name }} (|@arg.value|) {
 	{{ if or (eq .ctx.Type "string") }}
-	 	const correctType = typeof value === 'string';
-		this.#{{.ctx.Name}} = correctType ? value : ('' + value);
+		this.#{{.ctx.Name}} = String(value);
 	{{ end }}
 
 	{{ if or (eq .ctx.Type "string?") }}
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#{{.ctx.Name}} = correctType ? value : ('' + value);
+		this.#{{.ctx.Name}} = correctType ? value : String(value);
 	{{ end }}
 
 	{{ if and (eq .ctx.IsNumeric true) (eq .ctx.IsNullable true) }}
@@ -59,8 +58,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 	{{ end }}
 	
 	{{ if and (eq .ctx.Type "bool")}}
-	 	const correctType = value === true || value === false
-		this.#{{.ctx.Name}} = correctType ? value : Boolean(value);
+		this.#{{.ctx.Name}} = Boolean(value);
 	{{ end }}
 
  	{{ if .ctx.ComplexClass }}

@@ -19,7 +19,7 @@ get apiVersion () { return this.#apiVersion }
   **/
 set apiVersion (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#apiVersion = correctType ? value : ('' + value);
+		this.#apiVersion = correctType ? value : String(value);
 }
 setApiVersion (value: string | null | undefined) {
 	this.apiVersion = value
@@ -41,7 +41,7 @@ get context () { return this.#context }
   **/
 set context (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#context = correctType ? value : ('' + value);
+		this.#context = correctType ? value : String(value);
 }
 setContext (value: string | null | undefined) {
 	this.context = value
@@ -63,7 +63,7 @@ get id () { return this.#id }
   **/
 set id (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#id = correctType ? value : ('' + value);
+		this.#id = correctType ? value : String(value);
 }
 setId (value: string | null | undefined) {
 	this.id = value
@@ -85,7 +85,7 @@ get method () { return this.#method }
   **/
 set method (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#method = correctType ? value : ('' + value);
+		this.#method = correctType ? value : String(value);
 }
 setMethod (value: string | null | undefined) {
 	this.method = value
@@ -226,7 +226,7 @@ get editLink () { return this.#editLink }
   **/
 set editLink (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#editLink = correctType ? value : ('' + value);
+		this.#editLink = correctType ? value : String(value);
 }
 setEditLink (value: string | null | undefined) {
 	this.editLink = value
@@ -248,7 +248,7 @@ get selfLink () { return this.#selfLink }
   **/
 set selfLink (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#selfLink = correctType ? value : ('' + value);
+		this.#selfLink = correctType ? value : String(value);
 }
 setSelfLink (value: string | null | undefined) {
 	this.selfLink = value
@@ -270,7 +270,7 @@ get kind () { return this.#kind }
   **/
 set kind (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#kind = correctType ? value : ('' + value);
+		this.#kind = correctType ? value : String(value);
 }
 setKind (value: string | null | undefined) {
 	this.kind = value
@@ -292,7 +292,7 @@ get fields () { return this.#fields }
   **/
 set fields (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#fields = correctType ? value : ('' + value);
+		this.#fields = correctType ? value : String(value);
 }
 setFields (value: string | null | undefined) {
 	this.fields = value
@@ -314,7 +314,7 @@ get etag () { return this.#etag }
   **/
 set etag (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#etag = correctType ? value : ('' + value);
+		this.#etag = correctType ? value : String(value);
 }
 setEtag (value: string | null | undefined) {
 	this.etag = value
@@ -336,7 +336,7 @@ get cursor () { return this.#cursor }
   **/
 set cursor (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#cursor = correctType ? value : ('' + value);
+		this.#cursor = correctType ? value : String(value);
 }
 setCursor (value: string | null | undefined) {
 	this.cursor = value
@@ -358,7 +358,7 @@ get id () { return this.#id }
   **/
 set id (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#id = correctType ? value : ('' + value);
+		this.#id = correctType ? value : String(value);
 }
 setId (value: string | null | undefined) {
 	this.id = value
@@ -380,7 +380,7 @@ get lang () { return this.#lang }
   **/
 set lang (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#lang = correctType ? value : ('' + value);
+		this.#lang = correctType ? value : String(value);
 }
 setLang (value: string | null | undefined) {
 	this.lang = value
@@ -402,7 +402,7 @@ get updated () { return this.#updated }
   **/
 set updated (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#updated = correctType ? value : ('' + value);
+		this.#updated = correctType ? value : String(value);
 }
 setUpdated (value: string | null | undefined) {
 	this.updated = value
@@ -700,10 +700,10 @@ setTotalPages (value: number | null | undefined) {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<ResponseDtoType.DataType>) {
+	static with(partialDtoObject: PartialDeep<ResponseDtoType.DataType>) {
 		return new ResponseDto.Data(partialDtoObject);
 	}
-	copyWith(partial: Partial<ResponseDtoType.DataType>): InstanceType<typeof ResponseDto.Data> {
+	copyWith(partial: PartialDeep<ResponseDtoType.DataType>): InstanceType<typeof ResponseDto.Data> {
 		return new ResponseDto.Data ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof ResponseDto.Data> {
@@ -754,8 +754,7 @@ get message () { return this.#message }
   * @type {string}
   **/
 set message (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#message = correctType ? value : ('' + value);
+		this.#message = String(value);
 }
 setMessage (value: string) {
 	this.message = value
@@ -776,8 +775,7 @@ get messageTranslated () { return this.#messageTranslated }
   * @type {string}
   **/
 set messageTranslated (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#messageTranslated = correctType ? value : ('' + value);
+		this.#messageTranslated = String(value);
 }
 setMessageTranslated (value: string) {
 	this.messageTranslated = value
@@ -832,7 +830,7 @@ get domain () { return this.#domain }
   **/
 set domain (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#domain = correctType ? value : ('' + value);
+		this.#domain = correctType ? value : String(value);
 }
 setDomain (value: string | null | undefined) {
 	this.domain = value
@@ -854,7 +852,7 @@ get reason () { return this.#reason }
   **/
 set reason (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#reason = correctType ? value : ('' + value);
+		this.#reason = correctType ? value : String(value);
 }
 setReason (value: string | null | undefined) {
 	this.reason = value
@@ -876,7 +874,7 @@ get message () { return this.#message }
   **/
 set message (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#message = correctType ? value : ('' + value);
+		this.#message = correctType ? value : String(value);
 }
 setMessage (value: string | null | undefined) {
 	this.message = value
@@ -898,7 +896,7 @@ get messageTranslated () { return this.#messageTranslated }
   **/
 set messageTranslated (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#messageTranslated = correctType ? value : ('' + value);
+		this.#messageTranslated = correctType ? value : String(value);
 }
 setMessageTranslated (value: string | null | undefined) {
 	this.messageTranslated = value
@@ -920,7 +918,7 @@ get location () { return this.#location }
   **/
 set location (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#location = correctType ? value : ('' + value);
+		this.#location = correctType ? value : String(value);
 }
 setLocation (value: string | null | undefined) {
 	this.location = value
@@ -942,7 +940,7 @@ get locationType () { return this.#locationType }
   **/
 set locationType (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#locationType = correctType ? value : ('' + value);
+		this.#locationType = correctType ? value : String(value);
 }
 setLocationType (value: string | null | undefined) {
 	this.locationType = value
@@ -964,7 +962,7 @@ get extendedHelp () { return this.#extendedHelp }
   **/
 set extendedHelp (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#extendedHelp = correctType ? value : ('' + value);
+		this.#extendedHelp = correctType ? value : String(value);
 }
 setExtendedHelp (value: string | null | undefined) {
 	this.extendedHelp = value
@@ -986,7 +984,7 @@ get sendReport () { return this.#sendReport }
   **/
 set sendReport (value: string | null | undefined) {
 	 	const correctType = typeof value === 'string' || value === undefined || value === null
-		this.#sendReport = correctType ? value : ('' + value);
+		this.#sendReport = correctType ? value : String(value);
 }
 setSendReport (value: string | null | undefined) {
 	this.sendReport = value
@@ -1079,10 +1077,10 @@ setSendReport (value: string | null | undefined) {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<ResponseDtoType.ErrorType.ErrorsType>) {
+	static with(partialDtoObject: PartialDeep<ResponseDtoType.ErrorType.ErrorsType>) {
 		return new ResponseDto.Error.Errors(partialDtoObject);
 	}
-	copyWith(partial: Partial<ResponseDtoType.ErrorType.ErrorsType>): InstanceType<typeof ResponseDto.Error.Errors> {
+	copyWith(partial: PartialDeep<ResponseDtoType.ErrorType.ErrorsType>): InstanceType<typeof ResponseDto.Error.Errors> {
 		return new ResponseDto.Error.Errors ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof ResponseDto.Error.Errors> {
@@ -1170,10 +1168,10 @@ get errors() {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<ResponseDtoType.ErrorType>) {
+	static with(partialDtoObject: PartialDeep<ResponseDtoType.ErrorType>) {
 		return new ResponseDto.Error(partialDtoObject);
 	}
-	copyWith(partial: Partial<ResponseDtoType.ErrorType>): InstanceType<typeof ResponseDto.Error> {
+	copyWith(partial: PartialDeep<ResponseDtoType.ErrorType>): InstanceType<typeof ResponseDto.Error> {
 		return new ResponseDto.Error ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof ResponseDto.Error> {
@@ -1286,10 +1284,10 @@ get error() {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<ResponseDtoType>) {
+	static with(partialDtoObject: PartialDeep<ResponseDtoType>) {
 		return new ResponseDto(partialDtoObject);
 	}
-	copyWith(partial: Partial<ResponseDtoType>): InstanceType<typeof ResponseDto> {
+	copyWith(partial: PartialDeep<ResponseDtoType>): InstanceType<typeof ResponseDto> {
 		return new ResponseDto ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof ResponseDto> {
@@ -1299,6 +1297,13 @@ get error() {
 export abstract class ResponseDtoFactory {
 	abstract create(data: unknown): ResponseDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 	/**
   * The base type definition for responseDto
   **/

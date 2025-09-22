@@ -330,11 +330,11 @@ export abstract class %vFactory {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<{{ .ClassTypePath }}>) {
+	static with(partialDtoObject: PartialDeep<{{ .ClassTypePath }}>) {
 		return new {{ .ClassNamePath }}(partialDtoObject);
 	}
 
-	copyWith(partial: Partial<{{ .ClassTypePath }}>): InstanceType<typeof {{ .ClassNamePath }}> {
+	copyWith(partial: PartialDeep<{{ .ClassTypePath }}>): InstanceType<typeof {{ .ClassNamePath }}> {
 		return new {{ .ClassNamePath }} ({ ...this.toJSON(), ...partial });
 	}
 
@@ -352,7 +352,14 @@ export abstract class %vFactory {
 {{ if .abstractFactoryClass }}
 	{{ .abstractFactoryClass }}
 {{ end }}
- 
+
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))

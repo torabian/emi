@@ -48,8 +48,7 @@ export class MyStringClassDto {
    * @type {string}
    **/
   set stringWithDefault(value: string) {
-    const correctType = typeof value === "string";
-    this.#stringWithDefault = correctType ? value : "" + value;
+    this.#stringWithDefault = String(value);
   }
   setStringWithDefault(value: string) {
     this.stringWithDefault = value;
@@ -72,8 +71,7 @@ export class MyStringClassDto {
    * @type {string}
    **/
   set emptyString(value: string) {
-    const correctType = typeof value === "string";
-    this.#emptyString = correctType ? value : "" + value;
+    this.#emptyString = String(value);
   }
   setEmptyString(value: string) {
     this.emptyString = value;
@@ -154,11 +152,11 @@ export class MyStringClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyStringClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyStringClassDtoType>) {
     return new MyStringClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyStringClassDtoType>,
+    partial: PartialDeep<MyStringClassDtoType>,
   ): InstanceType<typeof MyStringClassDto> {
     return new MyStringClassDto({ ...this.toJSON(), ...partial });
   }
@@ -169,6 +167,13 @@ export class MyStringClassDto {
 export abstract class MyStringClassDtoFactory {
   abstract create(data: unknown): MyStringClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myStringClassDto
  **/
@@ -231,7 +236,7 @@ export class MyStringClassDto {
   set nullableStringWithDefault(value: string | null | undefined) {
     const correctType =
       typeof value === "string" || value === undefined || value === null;
-    this.#nullableStringWithDefault = correctType ? value : "" + value;
+    this.#nullableStringWithDefault = correctType ? value : String(value);
   }
   setNullableStringWithDefault(value: string | null | undefined) {
     this.nullableStringWithDefault = value;
@@ -256,7 +261,7 @@ export class MyStringClassDto {
   set nullableWithoutDefault(value: string | null | undefined) {
     const correctType =
       typeof value === "string" || value === undefined || value === null;
-    this.#nullableWithoutDefault = correctType ? value : "" + value;
+    this.#nullableWithoutDefault = correctType ? value : String(value);
   }
   setNullableWithoutDefault(value: string | null | undefined) {
     this.nullableWithoutDefault = value;
@@ -337,11 +342,11 @@ export class MyStringClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyStringClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyStringClassDtoType>) {
     return new MyStringClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyStringClassDtoType>,
+    partial: PartialDeep<MyStringClassDtoType>,
   ): InstanceType<typeof MyStringClassDto> {
     return new MyStringClassDto({ ...this.toJSON(), ...partial });
   }
@@ -352,6 +357,13 @@ export class MyStringClassDto {
 export abstract class MyStringClassDtoFactory {
   abstract create(data: unknown): MyStringClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myStringClassDto
  **/

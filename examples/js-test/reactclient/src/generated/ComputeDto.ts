@@ -150,10 +150,10 @@ setCount (value: number) {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<ComputeDtoType>) {
+	static with(partialDtoObject: PartialDeep<ComputeDtoType>) {
 		return new ComputeDto(partialDtoObject);
 	}
-	copyWith(partial: Partial<ComputeDtoType>): InstanceType<typeof ComputeDto> {
+	copyWith(partial: PartialDeep<ComputeDtoType>): InstanceType<typeof ComputeDto> {
 		return new ComputeDto ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof ComputeDto> {
@@ -163,6 +163,13 @@ setCount (value: number) {
 export abstract class ComputeDtoFactory {
 	abstract create(data: unknown): ComputeDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 	/**
   * The base type definition for computeDto
   **/

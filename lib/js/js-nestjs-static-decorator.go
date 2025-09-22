@@ -31,22 +31,44 @@ type NestJsStaticDecoratorContext struct {
 	// represents location of the static function, to change the request section
 	// which will be created
 	NestJsStaticFunctionUseCase nestJsStaticFunctionUseCase
+
+	// UsageContext means where it's being used, as body, query, headers, etc
+	UsageContext string
 }
 
 // If we add a static decorator to some classes, we can used them directly in nest.js
 // decorators, and req, res, headers, query strings will become typesafe automatically
 func JsNestJsStaticDecorator(ctxstatic NestJsStaticDecoratorContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 
 	// How to do it iterte and call Compile?
 
 	const tmpl = `/**
-   * Nest.js decorator for controller headers. Instead of using @Headers() value: any, now you can use for example:
-   * @example
+   * Nest.js decorator helper, for different parts of the request.
+   {{ if eq .ctx.UsageContext "headers" }}
    * @Get()
+   * @example
+   * For headers:
    * getHello(@{{.className}}.Nest() headers: {{.className}}): string {
    *  return JSON.stringify(headers.getContentType());
    * }
+   {{ end }}
+   {{ if eq .ctx.UsageContext "body" }}
+   * @example
+   * For body:
+   * getHello(@{{.className}}.Nest() body: {{.className}}): string {
+	*  return JSON.stringify(body);
+	* }
+   {{ end }}
+
+   {{ if eq .ctx.UsageContext "query" }}
+   * @example
+   * For query:
+   * getHello(@{{.className}}.Nest() query: {{.className}}): string {
+   *  return JSON.stringify(query);
+   * }
+   {{ end }}
    */
 
   {{ if .isTypeScript }}

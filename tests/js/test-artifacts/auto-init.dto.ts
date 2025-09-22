@@ -130,8 +130,7 @@ export class AutoInitClassDto {
          * @type {string}
          **/
         set email(value: string) {
-          const correctType = typeof value === "string";
-          this.#email = correctType ? value : "" + value;
+          this.#email = String(value);
         }
         setEmail(value: string) {
           this.email = value;
@@ -156,7 +155,7 @@ export class AutoInitClassDto {
         set phone(value: string | null | undefined) {
           const correctType =
             typeof value === "string" || value === undefined || value === null;
-          this.#phone = correctType ? value : "" + value;
+          this.#phone = correctType ? value : String(value);
         }
         setPhone(value: string | null | undefined) {
           this.phone = value;
@@ -242,14 +241,14 @@ export class AutoInitClassDto {
          * be constructed according to data types and nullability.
          **/
         static with(
-          partialDtoObject: Partial<AutoInitClassDtoType.Object1Type.Object2Type.ContactsType>,
+          partialDtoObject: PartialDeep<AutoInitClassDtoType.Object1Type.Object2Type.ContactsType>,
         ) {
           return new AutoInitClassDto.Object1.Object2.Contacts(
             partialDtoObject,
           );
         }
         copyWith(
-          partial: Partial<AutoInitClassDtoType.Object1Type.Object2Type.ContactsType>,
+          partial: PartialDeep<AutoInitClassDtoType.Object1Type.Object2Type.ContactsType>,
         ): InstanceType<typeof AutoInitClassDto.Object1.Object2.Contacts> {
           return new AutoInitClassDto.Object1.Object2.Contacts({
             ...this.toJSON(),
@@ -341,12 +340,12 @@ export class AutoInitClassDto {
        * be constructed according to data types and nullability.
        **/
       static with(
-        partialDtoObject: Partial<AutoInitClassDtoType.Object1Type.Object2Type>,
+        partialDtoObject: PartialDeep<AutoInitClassDtoType.Object1Type.Object2Type>,
       ) {
         return new AutoInitClassDto.Object1.Object2(partialDtoObject);
       }
       copyWith(
-        partial: Partial<AutoInitClassDtoType.Object1Type.Object2Type>,
+        partial: PartialDeep<AutoInitClassDtoType.Object1Type.Object2Type>,
       ): InstanceType<typeof AutoInitClassDto.Object1.Object2> {
         return new AutoInitClassDto.Object1.Object2({
           ...this.toJSON(),
@@ -444,11 +443,13 @@ export class AutoInitClassDto {
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
-    static with(partialDtoObject: Partial<AutoInitClassDtoType.Object1Type>) {
+    static with(
+      partialDtoObject: PartialDeep<AutoInitClassDtoType.Object1Type>,
+    ) {
       return new AutoInitClassDto.Object1(partialDtoObject);
     }
     copyWith(
-      partial: Partial<AutoInitClassDtoType.Object1Type>,
+      partial: PartialDeep<AutoInitClassDtoType.Object1Type>,
     ): InstanceType<typeof AutoInitClassDto.Object1> {
       return new AutoInitClassDto.Object1({ ...this.toJSON(), ...partial });
     }
@@ -540,11 +541,11 @@ export class AutoInitClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<AutoInitClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<AutoInitClassDtoType>) {
     return new AutoInitClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<AutoInitClassDtoType>,
+    partial: PartialDeep<AutoInitClassDtoType>,
   ): InstanceType<typeof AutoInitClassDto> {
     return new AutoInitClassDto({ ...this.toJSON(), ...partial });
   }
@@ -555,6 +556,13 @@ export class AutoInitClassDto {
 export abstract class AutoInitClassDtoFactory {
   abstract create(data: unknown): AutoInitClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for autoInitClassDto
  **/

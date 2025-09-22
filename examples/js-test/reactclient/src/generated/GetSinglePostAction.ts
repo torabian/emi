@@ -316,8 +316,7 @@ get body () { return this.#body }
   * @type {string}
   **/
 set body (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#body = correctType ? value : ('' + value);
+		this.#body = String(value);
 }
 setBody (value: string) {
 	this.body = value
@@ -398,10 +397,10 @@ setBody (value: string) {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<GetSinglePostActionResType>) {
+	static with(partialDtoObject: PartialDeep<GetSinglePostActionResType>) {
 		return new GetSinglePostActionRes(partialDtoObject);
 	}
-	copyWith(partial: Partial<GetSinglePostActionResType>): InstanceType<typeof GetSinglePostActionRes> {
+	copyWith(partial: PartialDeep<GetSinglePostActionResType>): InstanceType<typeof GetSinglePostActionRes> {
 		return new GetSinglePostActionRes ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof GetSinglePostActionRes> {
@@ -411,6 +410,13 @@ setBody (value: string) {
 export abstract class GetSinglePostActionResFactory {
 	abstract create(data: unknown): GetSinglePostActionRes;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 	/**
   * The base type definition for getSinglePostActionRes
   **/

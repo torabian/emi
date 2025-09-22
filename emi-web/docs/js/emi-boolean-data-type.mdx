@@ -51,8 +51,7 @@ export class MyBoolClassDto {
    * @type {boolean}
    **/
   set boolWithDefault(value: boolean) {
-    const correctType = value === true || value === false;
-    this.#boolWithDefault = correctType ? value : Boolean(value);
+    this.#boolWithDefault = Boolean(value);
   }
   setBoolWithDefault(value: boolean) {
     this.boolWithDefault = value;
@@ -75,8 +74,7 @@ export class MyBoolClassDto {
    * @type {boolean}
    **/
   set plainBool(value: boolean) {
-    const correctType = value === true || value === false;
-    this.#plainBool = correctType ? value : Boolean(value);
+    this.#plainBool = Boolean(value);
   }
   setPlainBool(value: boolean) {
     this.plainBool = value;
@@ -157,11 +155,11 @@ export class MyBoolClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyBoolClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyBoolClassDtoType>) {
     return new MyBoolClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyBoolClassDtoType>,
+    partial: PartialDeep<MyBoolClassDtoType>,
   ): InstanceType<typeof MyBoolClassDto> {
     return new MyBoolClassDto({ ...this.toJSON(), ...partial });
   }
@@ -172,6 +170,13 @@ export class MyBoolClassDto {
 export abstract class MyBoolClassDtoFactory {
   abstract create(data: unknown): MyBoolClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myBoolClassDto
  **/
@@ -347,11 +352,11 @@ export class MyBoolClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyBoolClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyBoolClassDtoType>) {
     return new MyBoolClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyBoolClassDtoType>,
+    partial: PartialDeep<MyBoolClassDtoType>,
   ): InstanceType<typeof MyBoolClassDto> {
     return new MyBoolClassDto({ ...this.toJSON(), ...partial });
   }
@@ -362,6 +367,13 @@ export class MyBoolClassDto {
 export abstract class MyBoolClassDtoFactory {
   abstract create(data: unknown): MyBoolClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myBoolClassDto
  **/

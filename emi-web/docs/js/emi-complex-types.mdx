@@ -252,11 +252,11 @@ export class SampleActionRes {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<SampleActionResType>) {
+  static with(partialDtoObject: PartialDeep<SampleActionResType>) {
     return new SampleActionRes(partialDtoObject);
   }
   copyWith(
-    partial: Partial<SampleActionResType>,
+    partial: PartialDeep<SampleActionResType>,
   ): InstanceType<typeof SampleActionRes> {
     return new SampleActionRes({ ...this.toJSON(), ...partial });
   }
@@ -267,6 +267,13 @@ export class SampleActionRes {
 export abstract class SampleActionResFactory {
   abstract create(data: unknown): SampleActionRes;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for sampleActionRes
  **/

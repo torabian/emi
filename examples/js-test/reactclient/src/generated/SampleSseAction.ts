@@ -212,8 +212,7 @@ get message () { return this.#message }
   * @type {string}
   **/
 set message (value: string) {
-	 	const correctType = typeof value === 'string';
-		this.#message = correctType ? value : ('' + value);
+		this.#message = String(value);
 }
 setMessage (value: string) {
 	this.message = value
@@ -285,10 +284,10 @@ setMessage (value: string) {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<SampleSseActionResType>) {
+	static with(partialDtoObject: PartialDeep<SampleSseActionResType>) {
 		return new SampleSseActionRes(partialDtoObject);
 	}
-	copyWith(partial: Partial<SampleSseActionResType>): InstanceType<typeof SampleSseActionRes> {
+	copyWith(partial: PartialDeep<SampleSseActionResType>): InstanceType<typeof SampleSseActionRes> {
 		return new SampleSseActionRes ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof SampleSseActionRes> {
@@ -298,6 +297,13 @@ setMessage (value: string) {
 export abstract class SampleSseActionResFactory {
 	abstract create(data: unknown): SampleSseActionRes;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 	/**
   * The base type definition for sampleSseActionRes
   **/

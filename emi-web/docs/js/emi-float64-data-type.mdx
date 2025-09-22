@@ -143,11 +143,11 @@ export class MyFloatClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyFloatClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyFloatClassDtoType>) {
     return new MyFloatClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyFloatClassDtoType>,
+    partial: PartialDeep<MyFloatClassDtoType>,
   ): InstanceType<typeof MyFloatClassDto> {
     return new MyFloatClassDto({ ...this.toJSON(), ...partial });
   }
@@ -158,6 +158,13 @@ export class MyFloatClassDto {
 export abstract class MyFloatClassDtoFactory {
   abstract create(data: unknown): MyFloatClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myFloatClassDto
  **/
@@ -328,11 +335,11 @@ export class MyFloatClassDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: Partial<MyFloatClassDtoType>) {
+  static with(partialDtoObject: PartialDeep<MyFloatClassDtoType>) {
     return new MyFloatClassDto(partialDtoObject);
   }
   copyWith(
-    partial: Partial<MyFloatClassDtoType>,
+    partial: PartialDeep<MyFloatClassDtoType>,
   ): InstanceType<typeof MyFloatClassDto> {
     return new MyFloatClassDto({ ...this.toJSON(), ...partial });
   }
@@ -343,6 +350,13 @@ export class MyFloatClassDto {
 export abstract class MyFloatClassDtoFactory {
   abstract create(data: unknown): MyFloatClassDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 /**
  * The base type definition for myFloatClassDto
  **/

@@ -93,10 +93,10 @@ setNumber (value: number) {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
-	static with(partialDtoObject: Partial<AverageDtoType>) {
+	static with(partialDtoObject: PartialDeep<AverageDtoType>) {
 		return new AverageDto(partialDtoObject);
 	}
-	copyWith(partial: Partial<AverageDtoType>): InstanceType<typeof AverageDto> {
+	copyWith(partial: PartialDeep<AverageDtoType>): InstanceType<typeof AverageDto> {
 		return new AverageDto ({ ...this.toJSON(), ...partial });
 	}
 	clone(): InstanceType<typeof AverageDto> {
@@ -106,6 +106,13 @@ setNumber (value: number) {
 export abstract class AverageDtoFactory {
 	abstract create(data: unknown): AverageDto;
 }
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends Array<infer U>
+    ? Array<PartialDeep<U>>
+    : T[P] extends object
+      ? PartialDeep<T[P]>
+      : T[P];
+};
 	/**
   * The base type definition for averageDto
   **/
