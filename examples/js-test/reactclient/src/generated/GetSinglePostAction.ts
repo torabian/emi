@@ -4,7 +4,6 @@ import { buildUrl } from './sdk/common/buildUrl';
 import { type UseMutationOptions, type UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import { useFetchxContext } from './sdk/react/useFetchx';
 import { useState } from 'react';
-import { withPrefix } from './sdk/common/withPrefix';
 /**
 * Action to communicate with the action getSinglePost
 */
@@ -43,16 +42,16 @@ export const useGetSinglePostActionQuery = (
 	) =>
 		{
 			setCompleteState(false);
-			GetSinglePostAction.Fetch(
+			return GetSinglePostAction.Fetch(
 					options.params,
 				options?.creatorFn,
 				options?.qs,
+				ctx,
 				{
 					headers: options?.headers,
 				},
 				options?.onMessage,
 				options?.overrideUrl,
-				ctx,
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -103,17 +102,17 @@ export const useGetSinglePostAction = (
 	) =>
 		{
 			setCompleteState(false);
-			GetSinglePostAction.Fetch(
+			return GetSinglePostAction.Fetch(
 					options.params,
 				options?.creatorFn,
 				options?.qs,
+				ctx,
 				{
 						body,
 					headers: options?.headers,
 				},
 				options?.onMessage,
 				options?.overrideUrl,
-				ctx,
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -335,7 +334,7 @@ setBody (value: string) {
 		}
 	}
 	#isJsonAppliable(obj: unknown) {
-		const g = globalThis as any
+		const g = globalThis as unknown as { Buffer: any; Blob: any };
 		const isBuffer =
 			typeof g.Buffer !== "undefined" &&
 			typeof g.Buffer.isBuffer === "function" &&

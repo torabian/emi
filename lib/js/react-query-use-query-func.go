@@ -24,11 +24,11 @@ type reactUseQueryOptions struct {
 }
 
 func ReactUseQueryOptionsFunction(useQueryOptions reactUseQueryOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
-	fn, err := reactQueryCommonFnFunction(reactQueryCommonFnOptions{
+	fn, extraDeps, err := reactQueryCommonFnFunction(reactQueryCommonFnOptions{
 		RequestClass:      useQueryOptions.RequestClass,
 		MetaDataClassName: useQueryOptions.MetaDataClassName,
 		HasPathParameters: useQueryOptions.HasPathParameters,
-	})
+	}, ctx)
 
 	if err != nil {
 		return nil, err
@@ -124,6 +124,8 @@ export const {{ .className }}Query = (
 			},
 		},
 	}
+
+	res.CodeChunkDependensies = append(res.CodeChunkDependensies, extraDeps...)
 
 	return res, nil
 }

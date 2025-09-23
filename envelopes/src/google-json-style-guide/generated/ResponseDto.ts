@@ -596,7 +596,7 @@ setTotalPages (value: number | null | undefined) {
 		}
 	}
 	#isJsonAppliable(obj: unknown) {
-		const g = globalThis as any
+		const g = globalThis as unknown as { Buffer: any; Blob: any };
 		const isBuffer =
 			typeof g.Buffer !== "undefined" &&
 			typeof g.Buffer.isBuffer === "function" &&
@@ -1003,7 +1003,7 @@ setSendReport (value: string | null | undefined) {
 		}
 	}
 	#isJsonAppliable(obj: unknown) {
-		const g = globalThis as any
+		const g = globalThis as unknown as { Buffer: any; Blob: any };
 		const isBuffer =
 			typeof g.Buffer !== "undefined" &&
 			typeof g.Buffer.isBuffer === "function" &&
@@ -1100,7 +1100,7 @@ setSendReport (value: string | null | undefined) {
 		}
 	}
 	#isJsonAppliable(obj: unknown) {
-		const g = globalThis as any
+		const g = globalThis as unknown as { Buffer: any; Blob: any };
 		const isBuffer =
 			typeof g.Buffer !== "undefined" &&
 			typeof g.Buffer.isBuffer === "function" &&
@@ -1192,7 +1192,7 @@ get errors() {
 		}
 	}
 	#isJsonAppliable(obj: unknown) {
-		const g = globalThis as any
+		const g = globalThis as unknown as { Buffer: any; Blob: any };
 		const isBuffer =
 			typeof g.Buffer !== "undefined" &&
 			typeof g.Buffer.isBuffer === "function" &&

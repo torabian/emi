@@ -104,7 +104,6 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
     let m = new AutoInitClassDto();
 
     // By default, the contents need to be an array, regardless.
-    console.log(10000, typeof m.object1);
     expect(m.object1.object2.contacts).to.be.an("array");
 
     m = AutoInitClassDto.from({ object1: { object2: { contacts: [] } } });

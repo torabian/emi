@@ -3,7 +3,6 @@ import { buildUrl } from './sdk/common/buildUrl';
 import { type UseMutationOptions, type UseQueryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import { useFetchxContext } from './sdk/react/useFetchx';
 import { useState } from 'react';
-import { withPrefix } from './sdk/common/withPrefix';
 /**
 * Action to communicate with the action sampleSse
 */
@@ -41,15 +40,15 @@ export const useSampleSseActionQuery = (
 	) =>
 		{
 			setCompleteState(false);
-			SampleSseAction.Fetch(
+			return SampleSseAction.Fetch(
 				options?.creatorFn,
 				options?.qs,
+				ctx,
 				{
 					headers: options?.headers,
 				},
 				options?.onMessage,
 				options?.overrideUrl,
-				ctx,
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -99,16 +98,16 @@ export const useSampleSseAction = (
 	) =>
 		{
 			setCompleteState(false);
-			SampleSseAction.Fetch(
+			return SampleSseAction.Fetch(
 				options?.creatorFn,
 				options?.qs,
+				ctx,
 				{
 						body,
 					headers: options?.headers,
 				},
 				options?.onMessage,
 				options?.overrideUrl,
-				ctx,
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -231,7 +230,7 @@ setMessage (value: string) {
 		}
 	}
 	#isJsonAppliable(obj: unknown) {
-		const g = globalThis as any
+		const g = globalThis as unknown as { Buffer: any; Blob: any };
 		const isBuffer =
 			typeof g.Buffer !== "undefined" &&
 			typeof g.Buffer.isBuffer === "function" &&

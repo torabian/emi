@@ -1,3 +1,4 @@
+import React from "react";
 import http from "http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { fileWriter } from "../../../emi-npm/bin/getPublicActions";
@@ -5,16 +6,30 @@ import { execSync } from "child_process";
 import {
   HttpActionAction,
   HttpActionActionRes,
-} from "../test-artifacts/http-envelop-test-output/HttpActionAction";
-import { GResponse } from "../test-artifacts/http-envelop-test-output/sdk/envelopes";
+  useHttpActionAction,
+  useHttpActionActionQuery,
+} from "../test-artifacts/http-emi-react-output/HttpActionAction";
+import { GResponse } from "../test-artifacts/http-emi-react-output/sdk/envelopes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, act, waitFor } from "@testing-library/react";
+import { FetchxContext } from "../test-artifacts/http-emi-react-output/sdk/common/fetchx";
+
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return ({ children }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 const sample1 = {
-  name: "emiHttpEnvelopTest",
+  name: "emi-react-test",
   actions: [
     {
       name: "httpAction",
       url: "http://localhost:8081 (for test we use override)",
-      method: "post",
+      method: "get",
       description:
         "A post request which would return an array, but enveloped in google json styleguide.",
       out: {
@@ -80,23 +95,23 @@ afterAll(async () => {
 
 describe("Generate the http sdk for it", () => {
   const content: string[] = [];
-  const genOutput = "./test-artifacts/http-envelop-test-output";
+  const genOutput = "./test-artifacts/http-emi-react-output";
   let files = [];
 
-  it("should generate and write the Emi JS module", async () => {
+  it("should generate and write the Emi react module", async () => {
     files = globalThis.jsGenModule(JSON.stringify(sample1), {
-      Tags: "typescript",
+      Tags: "typescript,react",
     });
     await fileWriter(files, genOutput);
   });
 
-  it("install dependencies", () => {
-    try {
-      execSync("npm install", { cwd: genOutput });
-    } catch (err) {
-      console.error(err);
-    }
-  });
+  // it("install dependencies", () => {
+  //   try {
+  //     execSync("npm install", { cwd: genOutput });
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // });
 
   it("expect the version field is set correctly when read from envelope", async () => {
     const { response: res } = await HttpActionAction.Fetch(
@@ -115,5 +130,32 @@ describe("Generate the http sdk for it", () => {
       expect(envelope.apiVersion).toBe(sampleVersion);
       expect(envelope.data.item.recordNumber).toBe(102);
     }
+  });
+});
+
+describe("React hooks for HttpActionAction", () => {
+  it("useHttpActionActionQuery should fetch data successfully", async () => {
+    const { result } = renderHook(
+      () =>
+        useHttpActionActionQuery({
+          overrideUrl: `http://localhost:${port}/json`,
+          ctx: new FetchxContext(""),
+        }),
+      { wrapper: createWrapper() }
+    );
+
+    // wait until query is settled
+    await result.current.refetch();
+
+    // wait until query is marked as success
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+
+    expect(result.current.isSuccess).toBe(true);
+    expect(
+      (result.current.data as unknown as GResponse<HttpActionActionRes>).data
+        .item.recordNumber
+    ).toBe(102);
   });
 });

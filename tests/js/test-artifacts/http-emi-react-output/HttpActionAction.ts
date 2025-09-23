@@ -3,15 +3,123 @@ import {
   fetchx,
   handleFetchResponse,
   type TypedRequestInit,
+  type TypedResponse,
 } from "./sdk/common/fetchx";
 import { GResponse } from "./sdk/envelopes/index";
 import { buildUrl } from "./sdk/common/buildUrl";
+import {
+  type UseMutationOptions,
+  type UseQueryOptions,
+  useMutation,
+  useQuery,
+} from "@tanstack/react-query";
+import { useFetchxContext } from "./sdk/react/useFetchx";
+import { useState } from "react";
 /**
  * Action to communicate with the action httpAction
  */
 export type HttpActionActionOptions = {
   queryKey?: unknown[];
   qs?: URLSearchParams;
+};
+export type HttpActionActionQueryOptions = Omit<
+  UseQueryOptions<unknown, unknown, HttpActionActionRes, unknown[]>,
+  "queryKey"
+> &
+  HttpActionActionOptions &
+  Partial<{
+    creatorFn: (item: unknown) => HttpActionActionRes;
+  }> & {
+    onMessage?: (ev: MessageEvent) => void;
+    overrideUrl?: string;
+    headers?: Headers;
+    ctx?: FetchxContext;
+  };
+export const useHttpActionActionQuery = (
+  options: HttpActionActionQueryOptions,
+) => {
+  const globalCtx = useFetchxContext();
+  const ctx = options?.ctx ?? globalCtx ?? undefined;
+  const [isCompleted, setCompleteState] = useState(false);
+  const [response, setResponse] = useState<TypedResponse<unknown>>();
+  const fn = () => {
+    setCompleteState(false);
+    return HttpActionAction.Fetch(
+      options?.creatorFn,
+      options?.qs,
+      ctx,
+      {
+        headers: options?.headers,
+      },
+      options?.onMessage,
+      options?.overrideUrl,
+    ).then((x) => {
+      x.done.then(() => {
+        setCompleteState(true);
+      });
+      setResponse(x.response);
+      return x.response.result;
+    });
+  };
+  const result = useQuery({
+    queryKey: [HttpActionAction.NewUrl(options?.qs)],
+    queryFn: fn,
+    ...(options || {}),
+  });
+  return {
+    ...result,
+    isCompleted,
+    response,
+  };
+};
+export type HttpActionActionMutationOptions = Omit<
+  UseMutationOptions<unknown, unknown, unknown, unknown>,
+  "mutationFn"
+> &
+  HttpActionActionOptions & {
+    ctx?: FetchxContext;
+    onMessage?: (ev: MessageEvent) => void;
+    overrideUrl?: string;
+    headers?: Headers;
+  } & Partial<{
+    creatorFn: (item: unknown) => HttpActionActionRes;
+  }>;
+export const useHttpActionAction = (
+  options?: HttpActionActionMutationOptions,
+) => {
+  const globalCtx = useFetchxContext();
+  const ctx = options?.ctx ?? globalCtx ?? undefined;
+  const [isCompleted, setCompleteState] = useState(false);
+  const [response, setResponse] = useState<TypedResponse<unknown>>();
+  const fn = (body: unknown) => {
+    setCompleteState(false);
+    return HttpActionAction.Fetch(
+      options?.creatorFn,
+      options?.qs,
+      ctx,
+      {
+        body,
+        headers: options?.headers,
+      },
+      options?.onMessage,
+      options?.overrideUrl,
+    ).then((x) => {
+      x.done.then(() => {
+        setCompleteState(true);
+      });
+      setResponse(x.response);
+      return x.response.result;
+    });
+  };
+  const result = useMutation({
+    mutationFn: fn,
+    ...(options || {}),
+  });
+  return {
+    ...result,
+    isCompleted,
+    response,
+  };
 };
 /**
  * HttpActionAction
@@ -20,7 +128,7 @@ export class HttpActionAction {
   static URL = "http://localhost:8081 (for test we use override)";
   static NewUrl = (qs?: URLSearchParams) =>
     buildUrl(HttpActionAction.URL, undefined, qs);
-  static Method = "post";
+  static Method = "get";
   static Fetch$ = async (
     qs?: URLSearchParams,
     ctx?: FetchxContext,
@@ -60,7 +168,7 @@ export class HttpActionAction {
   static Definition = {
     name: "httpAction",
     url: "http://localhost:8081 (for test we use override)",
-    method: "post",
+    method: "get",
     description:
       "A post request which would return an array, but enveloped in google json styleguide.",
     out: {

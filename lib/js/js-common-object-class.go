@@ -377,7 +377,8 @@ type PartialDeep<T> = {
 
 	if isTypeScript {
 		result = strings.ReplaceAll(string(result), "#isJsonAppliable(obj) {", "#isJsonAppliable(obj: unknown) {")
-		result = strings.ReplaceAll(string(result), "const g = globalThis", "const g = globalThis as any")
+		result = strings.ReplaceAll(string(result), "const g = globalThis", "const g = globalThis as unknown as { Buffer: any; Blob: any };")
+		// result = strings.ReplaceAll(string(result), "const g = globalThis", "const g = globalThis as any")
 		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data)", "constructor(data: unknown = undefined)"))
 		res.SuggestedExtension = ".ts"
 	} else {

@@ -87,10 +87,6 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 				Objects:  []string{"buildUrl"},
 				Location: INTERNAL_SDK_JS_LOCATION + "/buildUrl",
 			},
-			{
-				Objects:  []string{"withPrefix"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
-			},
 		},
 	}
 
