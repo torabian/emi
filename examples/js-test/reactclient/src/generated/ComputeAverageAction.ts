@@ -1,11 +1,10 @@
 import { AverageDto } from './AverageDto';
 import { ComputeDto } from './ComputeDto';
-import { FetchxContext, fetchx, handleFetchResponse, type TypedRequestInit } from './sdk/common/fetchx';
+import { FetchxContext, fetchx, handleFetchResponse, type TypedRequestInit, type TypedResponse } from './sdk/common/fetchx';
 import { buildUrl } from './sdk/common/buildUrl';
 import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
 import { useFetchxContext } from './sdk/react/useFetchx';
 import { useState } from 'react';
-import { withPrefix } from './sdk/common/withPrefix';
 /**
 * Action to communicate with the action computeAverage
 */
@@ -39,16 +38,16 @@ export const useComputeAverageAction = (
 	) =>
 		{
 			setCompleteState(false);
-			ComputeAverageAction.Fetch(
+			return ComputeAverageAction.Fetch(
 				options?.creatorFn,
 				options?.qs,
+				ctx,
 				{
 						body,
 					headers: options?.headers,
 				},
 				options?.onMessage,
 				options?.overrideUrl,
-				ctx,
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);

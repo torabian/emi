@@ -6,6 +6,8 @@ package js
 
 import (
 	"bytes"
+	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -18,14 +20,24 @@ type reactQueryCommonFnOptions struct {
 }
 
 // Creates the queryFn or mutationFn function only which can be placed inside multiple functions
-func reactQueryCommonFnFunction(options reactQueryCommonFnOptions) (string, error) {
+func reactQueryCommonFnFunction(options reactQueryCommonFnOptions, ctx core.MicroGenContext) (string, []core.CodeChunkDependency, error) {
+
+	claims := []core.JsFnArgument{
+		{
+			Key: "response.state",
+			Ts:  "<TypedResponse<unknown>>",
+			Js:  "",
+		},
+	}
+	claimsRendered := core.ClaimRender(claims, ctx)
+
 	const tmpl = `
 		
 	const globalCtx = useFetchxContext(); 
 	const ctx = options?.ctx ?? globalCtx ?? undefined;
 
 	const [isCompleted, setCompleteState] = useState(false);
-	const [response, setResponse] = useState<TypedResponse<unknown>>();
+	const [response, setResponse] = useState|@response.state|();
 
 	const fn = (
 		{{ if .hookOptions.RequestClass }}
@@ -34,12 +46,13 @@ func reactQueryCommonFnFunction(options reactQueryCommonFnOptions) (string, erro
 	) =>
 		{
 			setCompleteState(false);
-			{{ .hookOptions.MetaDataClassName }}.Fetch(
+			return {{ .hookOptions.MetaDataClassName }}.Fetch(
 				{{ if .hookOptions.HasPathParameters }}
 					options.params,
 				{{ end }}
 				options?.creatorFn,
 				options?.qs,
+				ctx,
 				{
 					{{ if .hookOptions.RequestClass }}
 						body,
@@ -48,7 +61,6 @@ func reactQueryCommonFnFunction(options reactQueryCommonFnOptions) (string, erro
 				},
 				options?.onMessage,
 				options?.overrideUrl,
-				ctx,
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -62,12 +74,26 @@ func reactQueryCommonFnFunction(options reactQueryCommonFnOptions) (string, erro
 	`
 
 	t := template.Must(template.New("react-query-commmon-fn-function").Funcs(core.CommonMap).Parse(tmpl))
+
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"hookOptions": options,
 	}); err != nil {
-		return "", err
+		return "", []core.CodeChunkDependency{}, err
 	}
 
-	return buf.String(), nil
+	templateResult := buf.String()
+	for key, value := range claimsRendered {
+		templateResult = strings.ReplaceAll(templateResult, fmt.Sprintf("|@%v|", key), value)
+	}
+
+	deps := []core.CodeChunkDependency{}
+	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	if isTypeScript {
+		deps = append(deps, core.CodeChunkDependency{
+			Objects:  []string{"type TypedResponse"},
+			Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
+		})
+	}
+	return templateResult, deps, nil
 }

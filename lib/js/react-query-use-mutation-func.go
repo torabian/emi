@@ -22,11 +22,11 @@ type reactUseMutationOptions struct {
 func ReactUseMutationFunction(useMutationOptions reactUseMutationOptions, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	tsValue := "options?: " + useMutationOptions.ActionMutationOptionsName
 
-	fn, err := reactQueryCommonFnFunction(reactQueryCommonFnOptions{
+	fn, extraDeps, err := reactQueryCommonFnFunction(reactQueryCommonFnOptions{
 		RequestClass:      useMutationOptions.RequestClass,
 		MetaDataClassName: useMutationOptions.MetaDataClassName,
 		HasPathParameters: useMutationOptions.HasPathParameters,
-	})
+	}, ctx)
 
 	if err != nil {
 		return nil, err
@@ -109,6 +109,8 @@ export const {{ .className }} = (
 			},
 		},
 	}
+
+	res.CodeChunkDependensies = append(res.CodeChunkDependensies, extraDeps...)
 
 	return res, nil
 }

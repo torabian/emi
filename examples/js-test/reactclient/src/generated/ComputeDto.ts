@@ -91,7 +91,7 @@ setCount (value: number) {
 		}
 	}
 	#isJsonAppliable(obj: unknown) {
-		const g = globalThis as any
+		const g = globalThis as unknown as { Buffer: any; Blob: any };
 		const isBuffer =
 			typeof g.Buffer !== "undefined" &&
 			typeof g.Buffer.isBuffer === "function" &&

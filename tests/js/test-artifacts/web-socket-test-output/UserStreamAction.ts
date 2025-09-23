@@ -1,6 +1,5 @@
 import { WebSocketX } from "./sdk/common/WebSocketX";
 import { buildUrl } from "./sdk/common/buildUrl";
-import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * Action to communicate with the action userStream
  */
@@ -163,7 +162,7 @@ export class UserStreamActionReq {
     }
   }
   #isJsonAppliable(obj: unknown) {
-    const g = globalThis as any;
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
     const isBuffer =
       typeof g.Buffer !== "undefined" &&
       typeof g.Buffer.isBuffer === "function" &&
@@ -318,7 +317,7 @@ export class UserStreamActionRes {
     }
   }
   #isJsonAppliable(obj: unknown) {
-    const g = globalThis as any;
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
     const isBuffer =
       typeof g.Buffer !== "undefined" &&
       typeof g.Buffer.isBuffer === "function" &&
