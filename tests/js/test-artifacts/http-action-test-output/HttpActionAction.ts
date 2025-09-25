@@ -36,14 +36,24 @@ export class HttpActionAction {
     );
   };
   static Fetch = async (
-    creatorFn: (item: unknown) => HttpActionActionRes = (item) =>
-      new HttpActionActionRes(item),
-    qs?: URLSearchParams,
-    ctx?: FetchxContext,
     init?: TypedRequestInit<HttpActionActionReq, unknown>,
-    onMessage?: (ev: MessageEvent) => void,
-    overrideUrl?: string,
+    {
+      creatorFn,
+      qs,
+      ctx,
+      onMessage,
+      overrideUrl,
+    }: {
+      creatorFn?: ((item: unknown) => HttpActionActionRes) | undefined;
+      qs?: URLSearchParams;
+      ctx?: FetchxContext;
+      onMessage?: (ev: MessageEvent) => void;
+      overrideUrl?: string;
+    } = {
+      creatorFn: (item) => new HttpActionActionRes(item),
+    },
   ) => {
+    creatorFn = creatorFn || ((item) => new HttpActionActionRes(item));
     const res = await HttpActionAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,

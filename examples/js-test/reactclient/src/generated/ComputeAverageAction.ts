@@ -39,15 +39,17 @@ export const useComputeAverageAction = (
 		{
 			setCompleteState(false);
 			return ComputeAverageAction.Fetch(
-				options?.creatorFn,
-				options?.qs,
-				ctx,
 				{
 						body,
 					headers: options?.headers,
 				},
-				options?.onMessage,
-				options?.overrideUrl,
+				{
+					creatorFn: options?.creatorFn,
+					qs: options?.qs,
+					ctx,
+					onMessage: options?.onMessage,
+					overrideUrl: options?.overrideUrl,
+				}
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -97,13 +99,24 @@ export class ComputeAverageAction {
 		)
 	}
 	static Fetch = async (
-			creatorFn: (item: unknown) => AverageDto = (item) => new AverageDto(item),
-		qs?: URLSearchParams,
-		ctx?: FetchxContext,
 		init?: TypedRequestInit<ComputeDto, unknown>,
-		onMessage?: (ev: MessageEvent) => void,
-		overrideUrl?: string,
+		{
+			creatorFn,
+			qs,
+			ctx,
+			onMessage,
+			overrideUrl
+		}: {
+				creatorFn?: ((item: unknown) => AverageDto) | undefined,
+			qs?: URLSearchParams,
+			ctx?: FetchxContext,
+			onMessage?: (ev: MessageEvent) => void,
+			overrideUrl?: string,		
+		} = {
+				creatorFn: (item) => new AverageDto(item),
+		}
 	) => {
+		creatorFn = creatorFn || ((item) => new AverageDto(item))
 		const res = await ComputeAverageAction.Fetch$(
 			qs,
 			ctx,

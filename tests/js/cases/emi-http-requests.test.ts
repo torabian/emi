@@ -114,56 +114,39 @@ describe("Generates the http action codes and classes", () => {
   });
 
   it("handles JSON response", async () => {
-    const res = await HttpActionAction.Fetch(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      `http://localhost:${port}/json`
-    );
+    const res = await HttpActionAction.Fetch(undefined, {
+      overrideUrl: `http://localhost:${port}/json`,
+    });
     expect(res.response.result).toBeInstanceOf(HttpActionActionRes);
     expect((res.response.result as HttpActionActionRes)?.number).toBe(42);
   });
 
   it("handles plain text", async () => {
-    const res = await HttpActionAction.Fetch(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      `http://localhost:${port}/text`
-    );
+    const res = await HttpActionAction.Fetch(undefined, {
+      overrideUrl: `http://localhost:${port}/text`,
+    });
     expect(res.response.result).toBe("plain text response");
   });
 
   it("handles attachment", async () => {
-    const res = await HttpActionAction.Fetch(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      `http://localhost:${port}/attachment`
-    );
+    const res = await HttpActionAction.Fetch(undefined, {
+      overrideUrl: `http://localhost:${port}/attachment`,
+    });
 
     const bodyText = await streamToString(res.response.result);
     expect(bodyText).toBe("BINARY_CONTENT");
   });
 
-  //   it("handles SSE", async () => {
-  //     let received = "";
-  //     await HttpActionAction.Fetch(
-  //       undefined,
-  //       undefined,
-  //       (ev) => {
-  //         received = ev.data;
-  //       },
-  //       `http://localhost:${port}/sse`
-  //     );
-  //     expect(received).toBe("first");
-  //   });
+  it("handles SSE", async () => {
+    let received = "";
+    await HttpActionAction.Fetch(undefined, {
+      overrideUrl: `http://localhost:${port}/sse`,
+      onMessage: (ev) => {
+        received = ev.data;
+      },
+    });
+    expect(received).toBe('{"number":10}');
+  });
 });
 
 async function streamToString(stream: ReadableStream | any) {

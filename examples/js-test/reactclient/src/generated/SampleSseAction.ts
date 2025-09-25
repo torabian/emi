@@ -41,14 +41,16 @@ export const useSampleSseActionQuery = (
 		{
 			setCompleteState(false);
 			return SampleSseAction.Fetch(
-				options?.creatorFn,
-				options?.qs,
-				ctx,
 				{
 					headers: options?.headers,
 				},
-				options?.onMessage,
-				options?.overrideUrl,
+				{
+					creatorFn: options?.creatorFn,
+					qs: options?.qs,
+					ctx,
+					onMessage: options?.onMessage,
+					overrideUrl: options?.overrideUrl,
+				}
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -99,15 +101,17 @@ export const useSampleSseAction = (
 		{
 			setCompleteState(false);
 			return SampleSseAction.Fetch(
-				options?.creatorFn,
-				options?.qs,
-				ctx,
 				{
 						body,
 					headers: options?.headers,
 				},
-				options?.onMessage,
-				options?.overrideUrl,
+				{
+					creatorFn: options?.creatorFn,
+					qs: options?.qs,
+					ctx,
+					onMessage: options?.onMessage,
+					overrideUrl: options?.overrideUrl,
+				}
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -157,13 +161,24 @@ export class SampleSseAction {
 		)
 	}
 	static Fetch = async (
-			creatorFn: (item: unknown) => SampleSseActionRes = (item) => new SampleSseActionRes(item),
-		qs?: URLSearchParams,
-		ctx?: FetchxContext,
 		init?: TypedRequestInit<unknown, unknown>,
-		onMessage?: (ev: MessageEvent) => void,
-		overrideUrl?: string,
+		{
+			creatorFn,
+			qs,
+			ctx,
+			onMessage,
+			overrideUrl
+		}: {
+				creatorFn?: ((item: unknown) => SampleSseActionRes) | undefined,
+			qs?: URLSearchParams,
+			ctx?: FetchxContext,
+			onMessage?: (ev: MessageEvent) => void,
+			overrideUrl?: string,		
+		} = {
+				creatorFn: (item) => new SampleSseActionRes(item),
+		}
 	) => {
+		creatorFn = creatorFn || ((item) => new SampleSseActionRes(item))
 		const res = await SampleSseAction.Fetch$(
 			qs,
 			ctx,

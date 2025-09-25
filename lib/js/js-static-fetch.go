@@ -71,7 +71,9 @@ func GetClassOrUnknown(value string) string {
 }
 
 type CreateFn struct {
-	ArgStatement string
+	DefinitionStatement string
+	CreatorStatement    string
+	ArgStatement        string
 
 	// When a return type is multiple different dtos, how can we know what is each instance?
 	// It's impossible. Then developer needs to be forced to provide tht.
@@ -90,21 +92,25 @@ func getCreatorFnInfo(fetchctx fetchStaticFunctionContext, isTypescript bool) *C
 	isAmbigousCreator = strings.Contains(fetchctx.ResponseClass, "|")
 
 	// universal instantiator :D
-	instantiator := fmt.Sprintf("= (item) => new %v(item)", fetchctx.ResponseClass)
+	instantiator := fmt.Sprintf("(item) => new %v(item)", fetchctx.ResponseClass)
 
 	// In case of ambigous creator, we do not have the instantiator, and developer needs to provide it.
 	if isAmbigousCreator {
-		instantiator = fmt.Sprintf(" = () => { throw 'Return type can be different types, you need to pass a function to determine, which class needs to be created: %v' }", fetchctx.ResponseClass)
+		instantiator = fmt.Sprintf("() => { throw 'Return type can be different types, you need to pass a function to determine, which class needs to be created: %v' }", fetchctx.ResponseClass)
 	}
 
 	statement := fmt.Sprintf("creatorFn %v", instantiator)
+	definition := fmt.Sprintf("(item: unknown) => %v", fetchctx.ResponseClass)
+
 	if isTypescript {
-		statement = fmt.Sprintf("creatorFn: (item: unknown) => %v %v", fetchctx.ResponseClass, instantiator)
+		statement = fmt.Sprintf("creatorFn: %v = %v", definition, instantiator)
 	}
 
 	return &CreateFn{
-		ArgStatement:      statement,
-		IsAmbigousCreator: isAmbigousCreator,
+		ArgStatement:        statement,
+		DefinitionStatement: definition,
+		CreatorStatement:    instantiator,
+		IsAmbigousCreator:   isAmbigousCreator,
 	}
 
 }
@@ -171,9 +177,13 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 		} else {
 
 			statement := `(data) => { 
-				return new %v<%v>()
-					.setCreator(creatorFn)
-					.inject(data);
+					const resp = new %v<%v>();
+					if (creatorFn) {
+						resp.setCreator(creatorFn);
+					}
+					resp.inject(data);
+
+					return resp;
 			
 			}`
 			seq := fmt.Sprintf(statement, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)
@@ -229,17 +239,31 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		{{ if .hasQueryParams }}
 			|@query.params|,
 		{{ end }}
-		 {{ if .creatorFn }}
-			{{ .creatorFn.ArgStatement }},
-		{{ end }}
-		|@fetch.qs|,
-		|@fetch.ctx|,
 		|@fetch.init|,
-		|@message.callback|,
-		|@fetch.overrideUrl|,
-	) => {
-	 
 
+		{
+			{{ if .creatorFn }}
+			creatorFn,
+			{{ end }}
+			qs,
+			ctx,
+			onMessage,
+			overrideUrl
+		}: {
+			{{ if .creatorFn }}
+				creatorFn?: ({{ .creatorFn.DefinitionStatement }}) | undefined,
+			{{ end }}
+			|@fetch.qs|,
+			|@fetch.ctx|,
+			|@message.callback|,
+			|@fetch.overrideUrl|,		
+		} = {
+		 	{{ if .creatorFn }}
+				creatorFn: {{ .creatorFn.CreatorStatement }},
+			{{ end }}
+		}
+	) => {
+		creatorFn = creatorFn || ({{ .creatorFn.CreatorStatement }})
 		const res = await {{ .fetchctx.NativeFetchFunction }}(
 			{{ if .hasQueryParams }}
 			params,

@@ -50,17 +50,19 @@ func reactQueryCommonFnFunction(options reactQueryCommonFnOptions, ctx core.Micr
 				{{ if .hookOptions.HasPathParameters }}
 					options.params,
 				{{ end }}
-				options?.creatorFn,
-				options?.qs,
-				ctx,
 				{
 					{{ if .hookOptions.RequestClass }}
 						body,
 					{{ end }}
 					headers: options?.headers,
 				},
-				options?.onMessage,
-				options?.overrideUrl,
+				{
+					creatorFn: options?.creatorFn,
+					qs: options?.qs,
+					ctx,
+					onMessage: options?.onMessage,
+					overrideUrl: options?.overrideUrl,
+				}
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);

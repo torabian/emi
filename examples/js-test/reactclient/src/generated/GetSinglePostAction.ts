@@ -44,14 +44,16 @@ export const useGetSinglePostActionQuery = (
 			setCompleteState(false);
 			return GetSinglePostAction.Fetch(
 					options.params,
-				options?.creatorFn,
-				options?.qs,
-				ctx,
 				{
 					headers: options?.headers,
 				},
-				options?.onMessage,
-				options?.overrideUrl,
+				{
+					creatorFn: options?.creatorFn,
+					qs: options?.qs,
+					ctx,
+					onMessage: options?.onMessage,
+					overrideUrl: options?.overrideUrl,
+				}
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -104,15 +106,17 @@ export const useGetSinglePostAction = (
 			setCompleteState(false);
 			return GetSinglePostAction.Fetch(
 					options.params,
-				options?.creatorFn,
-				options?.qs,
-				ctx,
 				{
 						body,
 					headers: options?.headers,
 				},
-				options?.onMessage,
-				options?.overrideUrl,
+				{
+					creatorFn: options?.creatorFn,
+					qs: options?.qs,
+					ctx,
+					onMessage: options?.onMessage,
+					overrideUrl: options?.overrideUrl,
+				}
 			).then((x) => {
 				x.done.then(() => {
 					setCompleteState(true);
@@ -172,13 +176,24 @@ export class GetSinglePostAction {
 	}
 	static Fetch = async (
 			params: GetSinglePostActionPathParameter,
-			creatorFn: (item: unknown) => GetSinglePostActionRes = (item) => new GetSinglePostActionRes(item),
-		qs?: URLSearchParams,
-		ctx?: FetchxContext,
 		init?: TypedRequestInit<unknown, unknown>,
-		onMessage?: (ev: MessageEvent) => void,
-		overrideUrl?: string,
+		{
+			creatorFn,
+			qs,
+			ctx,
+			onMessage,
+			overrideUrl
+		}: {
+				creatorFn?: ((item: unknown) => GetSinglePostActionRes) | undefined,
+			qs?: URLSearchParams,
+			ctx?: FetchxContext,
+			onMessage?: (ev: MessageEvent) => void,
+			overrideUrl?: string,		
+		} = {
+				creatorFn: (item) => new GetSinglePostActionRes(item),
+		}
 	) => {
+		creatorFn = creatorFn || ((item) => new GetSinglePostActionRes(item))
 		const res = await GetSinglePostAction.Fetch$(
 			params,
 			qs,

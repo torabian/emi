@@ -75,21 +75,34 @@ export class SampleAction {
     );
   };
   static Fetch = async (
-    creatorFn: (item: unknown) => SampleActionRes = (item) =>
-      new SampleActionRes(item),
-    qs?: URLSearchParams,
-    ctx?: FetchxContext,
     init?: TypedRequestInit<unknown, unknown>,
-    onMessage?: (ev: MessageEvent) => void,
-    overrideUrl?: string,
+    {
+      creatorFn,
+      qs,
+      ctx,
+      onMessage,
+      overrideUrl,
+    }: {
+      creatorFn?: ((item: unknown) => SampleActionRes) | undefined;
+      qs?: URLSearchParams;
+      ctx?: FetchxContext;
+      onMessage?: (ev: MessageEvent) => void;
+      overrideUrl?: string;
+    } = {
+      creatorFn: (item) => new SampleActionRes(item),
+    },
   ) => {
+    creatorFn = creatorFn || ((item) => new SampleActionRes(item));
     const res = await SampleAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,
       (data) => {
-        return new GResponse<SampleActionRes>()
-          .setCreator(creatorFn)
-          .inject(data);
+        const resp = new GResponse<SampleActionRes>();
+        if (creatorFn) {
+          resp.setCreator(creatorFn);
+        }
+        resp.inject(data);
+        return resp;
       },
       onMessage,
       init?.signal,

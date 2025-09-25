@@ -45,14 +45,16 @@ export const useHttpActionActionQuery = (
   const fn = () => {
     setCompleteState(false);
     return HttpActionAction.Fetch(
-      options?.creatorFn,
-      options?.qs,
-      ctx,
       {
         headers: options?.headers,
       },
-      options?.onMessage,
-      options?.overrideUrl,
+      {
+        creatorFn: options?.creatorFn,
+        qs: options?.qs,
+        ctx,
+        onMessage: options?.onMessage,
+        overrideUrl: options?.overrideUrl,
+      },
     ).then((x) => {
       x.done.then(() => {
         setCompleteState(true);
@@ -94,15 +96,17 @@ export const useHttpActionAction = (
   const fn = (body: unknown) => {
     setCompleteState(false);
     return HttpActionAction.Fetch(
-      options?.creatorFn,
-      options?.qs,
-      ctx,
       {
         body,
         headers: options?.headers,
       },
-      options?.onMessage,
-      options?.overrideUrl,
+      {
+        creatorFn: options?.creatorFn,
+        qs: options?.qs,
+        ctx,
+        onMessage: options?.onMessage,
+        overrideUrl: options?.overrideUrl,
+      },
     ).then((x) => {
       x.done.then(() => {
         setCompleteState(true);
@@ -145,21 +149,34 @@ export class HttpActionAction {
     );
   };
   static Fetch = async (
-    creatorFn: (item: unknown) => HttpActionActionRes = (item) =>
-      new HttpActionActionRes(item),
-    qs?: URLSearchParams,
-    ctx?: FetchxContext,
     init?: TypedRequestInit<unknown, unknown>,
-    onMessage?: (ev: MessageEvent) => void,
-    overrideUrl?: string,
+    {
+      creatorFn,
+      qs,
+      ctx,
+      onMessage,
+      overrideUrl,
+    }: {
+      creatorFn?: ((item: unknown) => HttpActionActionRes) | undefined;
+      qs?: URLSearchParams;
+      ctx?: FetchxContext;
+      onMessage?: (ev: MessageEvent) => void;
+      overrideUrl?: string;
+    } = {
+      creatorFn: (item) => new HttpActionActionRes(item),
+    },
   ) => {
+    creatorFn = creatorFn || ((item) => new HttpActionActionRes(item));
     const res = await HttpActionAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,
       (data) => {
-        return new GResponse<HttpActionActionRes>()
-          .setCreator(creatorFn)
-          .inject(data);
+        const resp = new GResponse<HttpActionActionRes>();
+        if (creatorFn) {
+          resp.setCreator(creatorFn);
+        }
+        resp.inject(data);
+        return resp;
       },
       onMessage,
       init?.signal,

@@ -99,14 +99,9 @@ describe("Generate the http sdk for it", () => {
   });
 
   it("expect the version field is set correctly when read from envelope", async () => {
-    const { response: res } = await HttpActionAction.Fetch(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      `http://localhost:${port}/json`
-    );
+    const { response: res } = await HttpActionAction.Fetch(undefined, {
+      overrideUrl: `http://localhost:${port}/json`,
+    });
 
     expect(res.result instanceof GResponse).toBeTruthy();
 
