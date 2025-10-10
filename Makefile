@@ -1,4 +1,5 @@
 build:
+	go build -ldflags "-s -w" -o ./emi ./cmd/emi && \
 	make build-js-sdks && \
 	make build-envelopes && \
 	go build -ldflags "-s -w" -o ./emi ./cmd/emi && \

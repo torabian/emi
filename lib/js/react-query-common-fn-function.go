@@ -28,6 +28,11 @@ func reactQueryCommonFnFunction(options reactQueryCommonFnOptions, ctx core.Micr
 			Ts:  "<TypedResponse<unknown>>",
 			Js:  "",
 		},
+		{
+			Key: "fn.body",
+			Ts:  "body: " + options.RequestClass,
+			Js:  "body",
+		},
 	}
 	claimsRendered := core.ClaimRender(claims, ctx)
 
@@ -41,7 +46,7 @@ func reactQueryCommonFnFunction(options reactQueryCommonFnOptions, ctx core.Micr
 
 	const fn = (
 		{{ if .hookOptions.RequestClass }}
-			body: {{ .hookOptions.RequestClass }},
+			|@fn.body|
 		{{ end }}
 	) =>
 		{
