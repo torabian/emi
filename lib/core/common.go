@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"path"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -320,4 +321,61 @@ func ClaimRender(claims []JsFnArgument, ctx MicroGenContext) map[string]string {
 		}
 	}
 	return rendered
+}
+
+func IsNullable(value string) bool {
+	return strings.Contains(value, "?")
+}
+
+func IsNumericDataType(value string) bool {
+	switch value {
+	case "int64?", "int32?", "int?", "float64?", "float32?", "int64", "int32", "int":
+		return true
+	default:
+		return false
+	}
+
+}
+
+// when developer says target: AnotherEntity or target: AnotherDto, we need
+// to import that. Here we search through the definition tree and extract them all
+func CollectTargets(fields []*EmiField) []string {
+	var result []string
+
+	var walk func(f []*EmiField)
+	walk = func(f []*EmiField) {
+		for _, field := range f {
+			if field.Target != "" {
+				result = append(result, field.Target)
+			}
+
+			if len(field.Fields) > 0 {
+				walk(field.Fields)
+			}
+		}
+	}
+
+	walk(fields)
+	return result
+}
+
+func ParseDtoPath(input string) (path string, className string) {
+	if input == "" {
+		return "./", ""
+	}
+
+	// normalize slashes
+	input = filepath.ToSlash(input)
+
+	dir := filepath.Dir(input)
+	base := filepath.Base(input)
+
+	if dir == "." {
+		path = "./" + base
+	} else {
+		path = filepath.ToSlash(filepath.Join(dir, base))
+	}
+
+	className = base
+	return
 }

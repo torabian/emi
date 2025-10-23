@@ -383,6 +383,7 @@ type PartialDeep<T> = {
 		res.SuggestedExtension = ".ts"
 	} else {
 		res.SuggestedExtension = ".js"
+		res.ActualScript = []byte(result)
 	}
 	res.SuggestedFileName = jsctx.RootClassName
 

@@ -21,6 +21,17 @@ fields:
     fields:
       - name: firstName
         type: string
+
+  - name: staticArray
+    type: array
+    fields:
+      - name: item12
+        type: string
+  - name: nullableArray
+    type: array?
+    fields:
+      - name: item5
+        type: string
   - name: staticObject
     type: object
     description: 
