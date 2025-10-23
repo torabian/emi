@@ -34,7 +34,7 @@ export const useComputeAverageAction = (
 	const [isCompleted, setCompleteState] = useState(false);
 	const [response, setResponse] = useState<TypedResponse<unknown>>();
 	const fn = (
-			body: ComputeDto,
+			body: ComputeDto
 	) =>
 		{
 			setCompleteState(false);
@@ -106,13 +106,15 @@ export class ComputeAverageAction {
 			ctx,
 			onMessage,
 			overrideUrl
-		}: {
+		} 
+			: {
 				creatorFn?: ((item: unknown) => AverageDto) | undefined,
 			qs?: URLSearchParams,
 			ctx?: FetchxContext,
 			onMessage?: (ev: MessageEvent) => void,
 			overrideUrl?: string,		
-		} = {
+		} 
+			 = {
 				creatorFn: (item) => new AverageDto(item),
 		}
 	) => {

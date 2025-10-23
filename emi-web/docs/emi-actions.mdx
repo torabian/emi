@@ -66,13 +66,9 @@ Depending on your use case, you might not need all features, or they might not b
 | `method` | `string` | HTTP method type including standard and Emi-specific methods |
 | `binaryType` | `string` | Text by default for websocket |
 | `qs` | `array` | Type-safe query parameters for CLI and HTTP requests |
-| `dataChannels` | `array` | Data channels in a typesafe mode in case of webrtc |
 | `description` | `string` | Action description used in API specs and documentation |
-| `format` | `string` | Higher-level request format such as POST_ONE PATCH_ONE |
 | `in` | `undefined` | Request body definition similar to HTTP request body |
 | `out` | `undefined` | Response body definition similar to HTTP response body |
-| `security` | `undefined` | Defines access control similar to middleware checking permissions |
-| `qsMode` | `string` | undefined |
 ## Action methods
 Emi allows for standard http methods, as well as some extra which will be converted to different protocols.
 Currently supported the actions and methods are the following: `post`, `patch`, `put`, `get`, `delete`, `webrtc`, `reactive`, `sse`. Calling for non-existing method, would resolve to http with the non-standard method.
