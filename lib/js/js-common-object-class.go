@@ -133,7 +133,7 @@ func hasClassesAsChildren(fields []*core.EmiField) bool {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
-			if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2ManyNullable || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeMany2Many {
+			if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeCollectionNullable || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeCollection {
 				result = true
 				break
 			}
@@ -382,6 +382,7 @@ type PartialDeep<T> = {
 		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data)", "constructor(data: unknown = undefined)"))
 		res.SuggestedExtension = ".ts"
 	} else {
+		res.ActualScript = []byte(result)
 		res.SuggestedExtension = ".js"
 	}
 	res.SuggestedFileName = jsctx.RootClassName

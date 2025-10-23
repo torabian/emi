@@ -55,82 +55,55 @@
         "type": {
           "type": "string",
           "enum": [
-            "object?",
-            "many2many?",
-            "one?",
+            "array",
+            "slice",
+            "one",
+            "collection",
+            "object",
+            "enum",
+            "string",
+            "bool",
+            "int",
+            "int32",
+            "int64",
+            "float32",
+            "float64",
             "array?",
+            "slice?",
+            "one?",
+            "collection?",
+            "object?",
+            "enum?",
             "string?",
-            "int?",
-            "any",
-            "complex",
-            "float64?",
-            "money?",
-            "xfile?",
-            "float32?",
             "bool?",
+            "int?",
             "int32?",
             "int64?",
-            "int",
-            "datetime",
-            "json",
-            "embed",
-            "datenano",
-            "html",
-            "text",
-            "date",
-            "daterange",
-            "many2many",
-            "arrayP",
-            "enum",
-            "bool",
-            "one",
-            "int64",
-            "float64",
-            "duration?",
-            "object",
-            "array",
-            "string"
+            "float32?",
+            "float64?",
+            "any",
+            "complex"
           ],
           "description": "Type of the field based on Emi types."
         },
         "primitive": {
           "type": "string",
-          "description": "Primitive type in golang when type: arrayP is set"
+          "description": "Primitive type in golang when type: slice is set"
         },
         "target": {
           "type": "string",
-          "description": "The entity in golang which will be operated on in case of type: one or type: many2many"
-        },
-        "validate": {
-          "type": "string",
-          "description": "The meta tag for validate library which will be checked on different operations"
-        },
-        "excerptSize": {
-          "type": "integer",
-          "description": "For the html and text fields there will be a automatic excerpt generated."
+          "description": "The entity in golang which will be operated on in case of type: one or type: collection"
         },
         "default": {
           "description": "Default value of the field which will be added to the meta tags"
         },
-        "translate": {
-          "type": "boolean",
-          "description": "If true adds the field into polyglot table for translations. Only works with the first leve"
-        },
-        "unsafe": {
-          "type": "boolean",
-          "description": "It would skip the sanitization for html field types allowing store anything as htm"
-        },
-        "allowCreate": {
-          "type": "boolean",
-          "description": "Allow create is a useful option to set true if the type one or many2many could be allowed to crea"
-        },
         "module": {
           "type": "string",
-          "description": "When using one or many2many types you need to set the module name here to import tha"
+          "description": "When using one or collection types you need to set the module name here to import tha"
         },
         "provider": {
           "type": "string",
-          "description": "The go project module of the important target for one or many2many fields if its from exte"
+          "description": "The go project module of the important target for one or collection fields if its from exte"
         },
         "json": {
           "type": "string",
@@ -151,10 +124,6 @@
           "type": "array",
           "description": "List of enum values in case of enum type for the field. Check EmiEnumInline for more d"
         },
-        "idFieldGorm": {
-          "type": "string",
-          "description": "When type is one there will be another field added with Id prefix. This tag will override gorm meta"
-        },
         "complex": {
           "type": "string",
           "description": "In case of complex data type"
@@ -165,14 +134,6 @@
           },
           "type": "array",
           "description": "On the json type this field will generate necessary code to cast it into different dtos"
-        },
-        "gorm": {
-          "type": "string",
-          "description": "Override the gorm meta tag generated for golang"
-        },
-        "sql": {
-          "type": "string",
-          "description": "Direct manipulation of the sql meta tag on the field."
         },
         "fields": {
           "items": {

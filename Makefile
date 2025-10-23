@@ -7,6 +7,8 @@ build:
 	./emi spec --output .vscode/ && \
 	./emi spec --output ./playground/public/
 
+win:
+	go build -ldflags "-s -w" -o ./emi.exe ./cmd/emi
 
 build-js-sdks:
 	cd js-sdk-kit && npm run build && rm -rf ../lib/js/ts-sdk && cp -R build ../lib/js/ts-sdk && \

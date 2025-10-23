@@ -96,7 +96,7 @@ export const useSampleSseAction = (
 	const [isCompleted, setCompleteState] = useState(false);
 	const [response, setResponse] = useState<TypedResponse<unknown>>();
 	const fn = (
-			body: unknown,
+			body: unknown
 	) =>
 		{
 			setCompleteState(false);
@@ -168,13 +168,15 @@ export class SampleSseAction {
 			ctx,
 			onMessage,
 			overrideUrl
-		}: {
+		} 
+			: {
 				creatorFn?: ((item: unknown) => SampleSseActionRes) | undefined,
 			qs?: URLSearchParams,
 			ctx?: FetchxContext,
 			onMessage?: (ev: MessageEvent) => void,
 			overrideUrl?: string,		
-		} = {
+		} 
+			 = {
 				creatorFn: (item) => new SampleSseActionRes(item),
 		}
 	) => {
