@@ -163,11 +163,7 @@
         },
         "binaryType": {
           "type": "string",
-          "enum": [
-            "text",
-            "arraybuffer",
-            "blob"
-          ],
+          "enum": ["text", "arraybuffer", "blob"],
           "description": "Text by default for websocket"
         },
         "qs": {
@@ -190,10 +186,7 @@
         },
         "format": {
           "type": "string",
-          "enum": [
-            "reactive",
-            "query"
-          ],
+          "enum": ["reactive", "query"],
           "description": "Higher-level request format such as POST_ONE PATCH_ONE"
         },
         "in": {
@@ -210,9 +203,7 @@
         },
         "qsMode": {
           "type": "string",
-          "enum": [
-            "reflect"
-          ]
+          "enum": ["reflect"]
         }
       },
       "additionalProperties": false,
@@ -453,10 +444,7 @@
         },
         "distinctBy": {
           "type": "string",
-          "enum": [
-            "workspace",
-            "user"
-          ],
+          "enum": ["workspace", "user"],
           "description": "You can ensure there is only one record of the entity per user or workspace using this option for example if you want only one credit card per workspace set distinctBy: workspace and it will do the job"
         },
         "features": {
@@ -497,10 +485,7 @@
         },
         "queryScope": {
           "type": "string",
-          "enum": [
-            "public",
-            "specific"
-          ],
+          "enum": ["public", "specific"],
           "description": "For entities"
         },
         "queries": {
@@ -544,9 +529,7 @@
       },
       "additionalProperties": false,
       "type": "object",
-      "required": [
-        "emi"
-      ]
+      "required": ["emi"]
     },
     "EmiEntityActionConfig": {
       "properties": {
@@ -668,7 +651,7 @@
           "type": "string",
           "enum": [
             "object?",
-            "many2many?",
+            "collection?",
             "one?",
             "array?",
             "string?",
@@ -691,8 +674,8 @@
             "text",
             "date",
             "daterange",
-            "many2many",
-            "arrayP",
+            "collection",
+            "slice",
             "enum",
             "bool",
             "one",
@@ -707,11 +690,11 @@
         },
         "primitive": {
           "type": "string",
-          "description": "Primitive type in golang when type: arrayP is set"
+          "description": "Primitive type in golang when type: slice is set"
         },
         "target": {
           "type": "string",
-          "description": "The entity in golang which will be operated on in case of type: one or type: many2many"
+          "description": "The entity in golang which will be operated on in case of type: one or type: collection"
         },
         "validate": {
           "type": "string",
@@ -734,15 +717,15 @@
         },
         "allowCreate": {
           "type": "boolean",
-          "description": "Allow create is a useful option to set true if the type one or many2many could be allowed to crea"
+          "description": "Allow create is a useful option to set true if the type one or collection could be allowed to crea"
         },
         "module": {
           "type": "string",
-          "description": "When using one or many2many types you need to set the module name here to import tha"
+          "description": "When using one or collection types you need to set the module name here to import tha"
         },
         "provider": {
           "type": "string",
-          "description": "The go project module of the important target for one or many2many fields if its from exte"
+          "description": "The go project module of the important target for one or collection fields if its from exte"
         },
         "json": {
           "type": "string",
@@ -815,12 +798,7 @@
         },
         "type": {
           "type": "string",
-          "enum": [
-            "string",
-            "int64",
-            "float64",
-            "bool"
-          ],
+          "enum": ["string", "int64", "float64", "bool"],
           "description": "Value type"
         },
         "description": {
@@ -835,9 +813,7 @@
       "properties": {
         "using": {
           "type": "string",
-          "enum": [
-            "eav"
-          ],
+          "enum": ["eav"],
           "description": "The macro name which you are using. Emi developers need to add the macros name here as reference."
         },
         "params": {
@@ -922,15 +898,7 @@
         },
         "method": {
           "type": "string",
-          "enum": [
-            "get",
-            "post",
-            "put",
-            "delete",
-            "patch",
-            "options",
-            "head"
-          ],
+          "enum": ["get", "post", "put", "delete", "patch", "options", "head"],
           "description": "Standard HTTP methods"
         },
         "url": {
@@ -1017,10 +985,7 @@
         },
         "resolveStrategy": {
           "type": "string",
-          "enum": [
-            "workspace",
-            "user"
-          ]
+          "enum": ["workspace", "user"]
         }
       },
       "additionalProperties": false,

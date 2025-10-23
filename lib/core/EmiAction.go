@@ -28,66 +28,21 @@ type EmiAction struct {
 	// Type-safe query strings for action
 	Query []*EmiField `yaml:"qs,omitempty" json:"qs,omitempty" jsonschema:"description=Type-safe query parameters for CLI and HTTP requests"`
 
-	// Data channels in a typesafe mode in case of webrtc
-	DataChannels []EmiWebRtcDataChannel `yaml:"dataChannels,omitempty" json:"dataChannels,omitempty" jsonschema:"description=Data channels in a typesafe mode in case of webrtc"`
+	// // Data channels in a typesafe mode in case of webrtc
+	// DataChannels []EmiWebRtcDataChannel `yaml:"dataChannels,omitempty" json:"dataChannels,omitempty" jsonschema:"description=Data channels in a typesafe mode in case of webrtc"`
 
 	// Action description used in API specs and documentation.
 	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Action description used in API specs and documentation"`
-
-	// Higher-level request format such as POST_ONE PATCH_ONE, QUERY, and PATCH_BULK.
-	Format string `yaml:"format,omitempty" json:"format,omitempty" jsonschema:"enum=reactive,enum=query,description=Higher-level request format such as POST_ONE PATCH_ONE, QUERY, and PATCH_BULK"`
 
 	// Request body definition similar to HTTP request body.
 	In *EmiActionBody `yaml:"in,omitempty" json:"in,omitempty" jsonschema:"description=Request body definition similar to HTTP request body"`
 
 	// Response body definition similar to HTTP response body.
 	Out *EmiActionBody `yaml:"out,omitempty" json:"out,omitempty" jsonschema:"description=Response body definition similar to HTTP response body"`
-
-	// Defines access control similar to middleware checking permissions, tokens, and roles.
-	SecurityModel *SecurityModel `yaml:"security,omitempty" json:"security,omitempty" jsonschema:"description=Defines access control similar to middleware checking permissions, tokens, and roles"`
-
-	// External function name used in generated code.
-	ExternFuncName string `yaml:"-" json:"-" jsonschema:"-"`
-
-	// Struct representing the request body used for generating RPC code.
-	RequestEntity any `yaml:"-" json:"-" jsonschema:"-"`
-
-	// Struct representing the response body used for generating RPC code.
-	ResponseEntity any `yaml:"-" json:"-" jsonschema:"-"`
-
-	// Function representing the action's implementation.
-	Action any `yaml:"-" json:"-" jsonschema:"-"`
-
-	// Pointer to the struct representing the entity being operated on.
-	TargetEntity any `yaml:"-" json:"-" jsonschema:"-"`
-
-	// Internal metadata for code generation.
-	RootModule *Emi `yaml:"-" json:"-" jsonschema:"-"`
-
-	// How the qs is being handled.
-	QsMode string `yaml:"qsMode,omitempty" json:"qsMode,omitempty" jsonschema:"enum=reflect"`
 }
 
 func (x EmiAction) MethodUpper() string {
 	return strings.ToUpper(x.Method)
-}
-
-func (x EmiAction) QSFields() []*EmiField {
-
-	// At the moment, the query string fields is only supported for query
-	if x.Format != "query" {
-		return nil
-	}
-
-	if x.QsMode == "reflect" && x.Out != nil && x.Out.Fields != nil {
-		return x.Out.Fields
-	}
-
-	if x.In != nil && x.In.Fields != nil {
-		return x.In.Fields
-	}
-
-	return nil
 }
 
 func (x EmiAction) GetName() string {
@@ -187,4 +142,8 @@ func (x EmiAction) GetResponseFields() []*EmiField {
 func (x EmiAction) GetDefinition() string {
 	m, _ := json.MarshalIndent(x, "", "  ")
 	return string(m)
+}
+
+func (x *EmiAction) Upper() string {
+	return ToUpper(x.Name)
 }

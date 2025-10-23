@@ -2,84 +2,15 @@ package core
 
 import (
 	"encoding/json"
-	"log"
 	"strings"
 
 	"github.com/invopop/jsonschema"
-	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
 func AppendEavCustomParams(schema *jsonschema.Schema) {
-
-	using := orderedmap.New[string, *jsonschema.Schema]()
-	using.Set("using", &jsonschema.Schema{
-		Const: "eav",
-	})
-
-	for key := range schema.Definitions {
-
-		if key == "EmiConfigField" {
-
-			jsonStr := `{
-				"anyOf": [
-					{
-					"if": {
-						"properties": {
-						"type": {
-							"const": "bool"
-						}
-						}
-					},
-					"then": {
-						"properties": {
-						"default": {
-							"type": "boolean"
-						}
-						}
-					}
-					},
-					{
-					"if": {
-						"properties": {
-						"type": {
-							"const": "string"
-						}
-						}
-					},
-					"then": {
-						"properties": {
-						"default": {
-							"type": "string"
-						}
-						}
-					}
-					}
-				]
-			}`
-
-			var schemaP jsonschema.Schema
-			err := json.Unmarshal([]byte(jsonStr), &schemaP)
-			if err != nil {
-				log.Fatalf("Error: %v", err)
-				return
-			}
-
-			var schemaEmpty jsonschema.Schema
-			json.Unmarshal([]byte("{}"), &schemaEmpty)
-
-			schema.Definitions[key].Properties.Set("default", &schemaEmpty)
-			schema.Definitions[key].AnyOf = schemaP.AnyOf
-		}
-	}
-
-	// // add the missing definitions
-	// reflector := jsonschema.Reflector{}
-	// schema2 := reflector.Reflect(&EavMacroParams{})
-
-	// for key := range schema2.Definitions {
-	// 	schema.Definitions[key] = schema2.Definitions[key]
-	// }
-
+	// Here you can modify the schema generated, append some stuff to it.
+	// Look in the fireback the same function name for an example.
+	// In emi, we don't need it, hopefully.
 }
 
 // When the type is module, we create the spec only for that.

@@ -78,7 +78,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		this.#{{.ctx.Name}} = value;
 	{{ end }}
 	
-	{{ if or (eq .ctx.Type "array") (eq .ctx.Type "array?") (eq .ctx.Type "many2many?") (eq .ctx.Type "many2many")}}
+	{{ if or (eq .ctx.Type "array") (eq .ctx.Type "array?") (eq .ctx.Type "collection?") (eq .ctx.Type "collection")}}
 	 	// For arrays, you only can pass arrays to the object
 	 	if (!Array.isArray(value)) {
 			return;

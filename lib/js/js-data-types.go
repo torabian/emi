@@ -43,7 +43,7 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 		return strings.Join(items, " | ")
 	case "json":
 		return TsCalcJsonField(field)
-	case "many2many", "many2many?":
+	case "collection", "collection?":
 		return field.Target + "[]"
 	case "int64?", "int32?", "int?", "float64?", "float32?":
 		return "number"
@@ -51,7 +51,7 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 		return "boolean"
 	case "array", "array?":
 		return field.PublicName() + "[]"
-	case "arrayP":
+	case "slice":
 		return TsPrimitive(field.Primitive) + "[]"
 	case "html":
 		return "string"
