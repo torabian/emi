@@ -1,3 +1,5 @@
+queries:
+
 complexes:
   - name: Money
     location: ../Money

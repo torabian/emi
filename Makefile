@@ -43,3 +43,5 @@ ci:
 compile-github:
 	rm -rf __webdir && cp -R emi-web/build __webdir && touch __webdir/.nojekyll && cp -R playground/dist __webdir/playground
 
+query:
+	./emi go:query --path examples/sql-query/queries.emi.yml --output examples/sql-query/output

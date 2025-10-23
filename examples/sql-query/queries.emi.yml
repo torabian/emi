@@ -1,0 +1,6 @@
+queries:
+  - name: getCount
+    vendors:
+      - mysql
+    query:  >-
+      select * from users;

@@ -902,9 +902,12 @@
           "type": "string",
           "description": "Description provides a detailed explanation of the query. It helps other developers or API consumers understand what the query does and its purpose."
         },
-        "columns": {
-          "$ref": "#/definitions/EmiActionBody",
-          "description": "Columns defines the structure of the result set returned by the query. It lists the expected columns in the result when the query is executed."
+        "vendors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Vendors which it would be working on"
         },
         "query": {
           "type": "string",

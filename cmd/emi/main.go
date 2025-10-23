@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/torabian/emi/lib/core"
+	gogen "github.com/torabian/emi/lib/go"
 	"github.com/torabian/emi/lib/js"
 
 	"github.com/urfave/cli"
@@ -19,6 +20,8 @@ func main() {
 		cliCommandFromTextActions(js.GetJsPublicActions().TextActions)...)
 	commands = append(commands,
 		cliCommandFromFileActions(js.GetJsPublicActions().FileActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(gogen.GetGoPublicActions().FileActions)...)
 
 	app := &cli.App{
 		Name:     "Emi compiler",

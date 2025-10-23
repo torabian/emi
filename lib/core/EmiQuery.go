@@ -13,9 +13,8 @@ type EmiQuery struct {
 	// developers or API consumers understand what the query does and its purpose.
 	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description provides a detailed explanation of the query. It helps other developers or API consumers understand what the query does and its purpose."`
 
-	// Columns defines the structure of the result set returned by the query.
-	// It lists the expected columns in the result when the query is executed.
-	Columns *EmiActionBody `yaml:"columns,omitempty" json:"columns,omitempty" jsonschema:"description=Columns defines the structure of the result set returned by the query. It lists the expected columns in the result when the query is executed."`
+	// Vendors which it would be working on, such as mysql, sqlite.
+	Vendors []string `yaml:"vendors,omitempty" json:"vendors,omitempty" jsonschema:"description=Vendors which it would be working on, such as mysql, sqlite.;itemsEnum=mysql,sqlite"`
 
 	// The actual SQL or VSQL query. There are some special placeholders and this is infact a golang template
 	// which will be converted in the end to SQL and will be sent to ORM.
