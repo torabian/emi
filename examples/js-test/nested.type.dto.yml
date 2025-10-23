@@ -3,7 +3,7 @@ emi: dto
 name: singleDto
 fields:
   - name: min
-    type: int
+    type: int?
     description: Minimum number which can be generated
   - name: max
     type: int

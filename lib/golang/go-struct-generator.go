@@ -196,7 +196,8 @@ func goComputedField(field *core.EmiField) string {
 	case "string", "text", "html", "enum":
 		return "string"
 	case "string?", "text?", "html?", "enum?":
-		return prefix + "String"
+		return prefix + "Nullable[string]"
+		// return prefix + "String"
 	case "duration?":
 		return prefix + "Duration"
 
@@ -207,8 +208,6 @@ func goComputedField(field *core.EmiField) string {
 		return field.Target
 	case "array":
 		return field.PublicName()
-	case "daterange":
-		return prefix + "XDate"
 	case "any":
 		return "interface{}"
 	case "many2many":
@@ -221,7 +220,7 @@ func goComputedField(field *core.EmiField) string {
 	case "int64", "int32", "int", "float64", "float32", "bool":
 		return string(field.Type)
 	case "int64?", "int32?", "int?", "float64?", "float32?", "bool?":
-		return prefix + strings.ReplaceAll(core.ToUpper(string(field.Type)), "?", "")
+		return prefix + "Nullable[" + strings.ReplaceAll(core.ToLower(string(field.Type)), "?", "") + "]"
 	case "Timestamp":
 		return "*string"
 	case "datenano":

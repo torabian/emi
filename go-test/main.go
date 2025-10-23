@@ -58,14 +58,14 @@ func main() {
 	fmt.Println("NullableObject.IsSet:", dto3.NullableObject.IsSet)
 	fmt.Println("NullableObject.Value:", dto3.NullableObject.Value)
 
-	r := gin.Default()
+	// r := gin.Default()
 
-	service := &MyGetUserService{}
+	// service := &MyGetUserService{}
 
-	// Wire route to generated handler
-	r.GET("/users/:id", GetUserHandler(service))
+	// // Wire route to generated handler
+	// r.GET("/users/:id", GetUserHandler(service))
 
-	r.Run(":8080")
+	// r.Run(":8080")
 
 }
 

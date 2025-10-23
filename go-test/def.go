@@ -7,7 +7,7 @@ import emi "test/goruntime"
 type SingleDto struct {
 
 	// Minimum number which can be generated
-	Min int `json:"min" yaml:"min"`
+	Min emi.Nullable[int] `json:"min" yaml:"min"`
 
 	// Maximum number which can be generated
 	Max int `json:"max" yaml:"max"`
