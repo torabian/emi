@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -rf build && tsc",
-    "compile": "rm -rf src/google-json-style-guide/generated && ../emi js:module --path src/google-json-style-guide/google-envelop.emi.yml --output src/google-json-style-guide/generated --tags typescript,no-envelope",
-    
+    "compile": "make compile",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

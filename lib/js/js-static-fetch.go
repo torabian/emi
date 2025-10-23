@@ -249,7 +249,8 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			ctx,
 			onMessage,
 			overrideUrl
-		}: {
+		} {{ if .isTypeScript }}
+			: {
 			{{ if .creatorFn }}
 				creatorFn?: ({{ .creatorFn.DefinitionStatement }}) | undefined,
 			{{ end }}
@@ -257,7 +258,8 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			|@fetch.ctx|,
 			|@message.callback|,
 			|@fetch.overrideUrl|,		
-		} = {
+		} 
+			{{ end }} = {
 		 	{{ if .creatorFn }}
 				creatorFn: {{ .creatorFn.CreatorStatement }},
 			{{ end }}
@@ -300,6 +302,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		"claims":         claimsRendered,
 		"creatorFn":      creatorFn,
 		"fetchctx":       fetchctx,
+		"isTypeScript":   isTypeScript,
 		"hasQueryParams": len(queryParams) > 0,
 	}); err != nil {
 		return nil, err

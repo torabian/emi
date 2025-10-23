@@ -44,6 +44,38 @@ export default function Home(): ReactNode {
       description="Emi compiler documents and playground"
     >
       <HomepageHeader />
+      <div className="container" style={{ textAlign: "center" }}>
+        <div style={{ margin: "40px 0" }}>
+          <strong>
+            You can learn about the emi in this playlist on youtube:{" "}
+            <a href="https://www.youtube.com/playlist?list=PLT2M-bOOx8oyAsIg4jdM-ErmlZ2MqE_SJ">
+              Emi Compiler Training
+            </a>
+          </strong>
+        </div>
+
+        <br />
+
+        <iframe
+          style={{ width: "100%", height: "50vh", marginBottom: "50px" }}
+          src="https://www.youtube.com/embed/p_hkbarIQjM"
+          title="YouTube video player"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        ></iframe>
+
+        <iframe
+          style={{ width: "100%", height: "50vh", marginBottom: "50px" }}
+          src="https://www.youtube.com/embed/4JwsYdvOAy4"
+          title="YouTube video player"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
+          allowFullScreen
+        ></iframe>
+      </div>
     </Layout>
   );
 }
