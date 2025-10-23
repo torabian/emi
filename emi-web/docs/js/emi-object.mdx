@@ -290,7 +290,7 @@ export class Anonymouse {
    * needs to satisfy the type requirement fully, otherwise typescript compile would
    * be complaining.
    **/
-  static from(possibleDtoObject: AnonymouseType) {
+  static from(possibleDtoObject) {
     return new Anonymouse(possibleDtoObject);
   }
   /**
@@ -298,25 +298,16 @@ export class Anonymouse {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: PartialDeep<AnonymouseType>) {
+  static with(partialDtoObject) {
     return new Anonymouse(partialDtoObject);
   }
-  copyWith(
-    partial: PartialDeep<AnonymouseType>,
-  ): InstanceType<typeof Anonymouse> {
+  copyWith(partial) {
     return new Anonymouse({ ...this.toJSON(), ...partial });
   }
-  clone(): InstanceType<typeof Anonymouse> {
+  clone() {
     return new Anonymouse(this.toJSON());
   }
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 
 ```
 As you see, there is a lot of details handled in such object generation, to make sure
