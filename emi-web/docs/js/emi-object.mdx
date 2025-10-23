@@ -109,6 +109,205 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
 
         
 ```ts
+/**
+ * The base class definition for anonymouse
+ **/
+export class Anonymouse {
+  /**
+   *
+   * @type {number}
+   **/
+  #userId = 0;
+  /**
+   *
+   * @returns {number}
+   **/
+  get userId() {
+    return this.#userId;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set userId(value) {
+    const correctType = typeof value === "number";
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#userId = parsedValue;
+    }
+  }
+  setUserId(value) {
+    this.userId = value;
+    return this;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  #id = 0;
+  /**
+   *
+   * @returns {number}
+   **/
+  get id() {
+    return this.#id;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set id(value) {
+    const correctType = typeof value === "number";
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#id = parsedValue;
+    }
+  }
+  setId(value) {
+    this.id = value;
+    return this;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  #title = "";
+  /**
+   *
+   * @returns {string}
+   **/
+  get title() {
+    return this.#title;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set title(value) {
+    this.#title = String(value);
+  }
+  setTitle(value) {
+    this.title = value;
+    return this;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  #body = "";
+  /**
+   *
+   * @returns {string}
+   **/
+  get body() {
+    return this.#body;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set body(value) {
+    this.#body = String(value);
+  }
+  setBody(value) {
+    this.body = value;
+    return this;
+  }
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj) {
+    const g = globalThis;
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data;
+    if (d.userId !== undefined) {
+      this.userId = d.userId;
+    }
+    if (d.id !== undefined) {
+      this.id = d.id;
+    }
+    if (d.title !== undefined) {
+      this.title = d.title;
+    }
+    if (d.body !== undefined) {
+      this.body = d.body;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      userId: this.#userId,
+      id: this.#id,
+      title: this.#title,
+      body: this.#body,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      userId: "userId",
+      id: "id",
+      title: "title",
+      body: "body",
+    };
+  }
+  /**
+   * Creates an instance of Anonymouse, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject) {
+    return new Anonymouse(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of Anonymouse, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject) {
+    return new Anonymouse(partialDtoObject);
+  }
+  copyWith(partial) {
+    return new Anonymouse({ ...this.toJSON(), ...partial });
+  }
+  clone() {
+    return new Anonymouse(this.toJSON());
+  }
+}
 
 ```
 As you see, there is a lot of details handled in such object generation, to make sure

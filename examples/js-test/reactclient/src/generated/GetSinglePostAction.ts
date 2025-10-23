@@ -100,7 +100,7 @@ export const useGetSinglePostAction = (
 	const [isCompleted, setCompleteState] = useState(false);
 	const [response, setResponse] = useState<TypedResponse<unknown>>();
 	const fn = (
-			body: unknown,
+			body: unknown
 	) =>
 		{
 			setCompleteState(false);
@@ -183,13 +183,15 @@ export class GetSinglePostAction {
 			ctx,
 			onMessage,
 			overrideUrl
-		}: {
+		} 
+			: {
 				creatorFn?: ((item: unknown) => GetSinglePostActionRes) | undefined,
 			qs?: URLSearchParams,
 			ctx?: FetchxContext,
 			onMessage?: (ev: MessageEvent) => void,
 			overrideUrl?: string,		
-		} = {
+		} 
+			 = {
 				creatorFn: (item) => new GetSinglePostActionRes(item),
 		}
 	) => {

@@ -184,7 +184,7 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	result := buf.String()
 
 	res.ActualScript = []byte(result)
-	res.SuggestedFileName = goctx.RootClassName
+	res.SuggestedFileName = goctx.RootClassName + ".go"
 
 	return res, nil
 }
@@ -210,12 +210,12 @@ func goComputedField(field *core.EmiField) string {
 		return field.PublicName()
 	case "any":
 		return "interface{}"
-	case "many2many":
+	case "collection":
 		if field.Module != "" {
 			return field.Module + "." + field.Target
 		}
 		return field.Target
-	case "arrayP":
+	case "slice":
 		return "[]" + field.Primitive
 	case "int64", "int32", "int", "float64", "float32", "bool":
 		return string(field.Type)

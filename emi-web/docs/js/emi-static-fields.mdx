@@ -86,5 +86,420 @@ pass number as many as you want, and it would replace [:i] statements to have pr
           
 ```ts
 import { withPrefix } from "./sdk/common/withPrefix";
+/**
+ * The base class definition for anonymouse
+ **/
+export class Anonymouse {
+  /**
+   *
+   * @type {string}
+   **/
+  #firstName = "";
+  /**
+   *
+   * @returns {string}
+   **/
+  get firstName() {
+    return this.#firstName;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set firstName(value) {
+    this.#firstName = String(value);
+  }
+  setFirstName(value) {
+    this.firstName = value;
+    return this;
+  }
+  /**
+   *
+   * @type {Anonymouse.LoginHistory}
+   **/
+  #loginHistory = [];
+  /**
+   *
+   * @returns {Anonymouse.LoginHistory}
+   **/
+  get loginHistory() {
+    return this.#loginHistory;
+  }
+  /**
+   *
+   * @type {Anonymouse.LoginHistory}
+   **/
+  set loginHistory(value) {
+    // For arrays, you only can pass arrays to the object
+    if (!Array.isArray(value)) {
+      return;
+    }
+    if (value.length > 0 && value[0] instanceof Anonymouse.LoginHistory) {
+      this.#loginHistory = value;
+    } else {
+      this.#loginHistory = value.map(
+        (item) => new Anonymouse.LoginHistory(item),
+      );
+    }
+  }
+  setLoginHistory(value) {
+    this.loginHistory = value;
+    return this;
+  }
+  /**
+   * The base class definition for loginHistory
+   **/
+  static LoginHistory = class LoginHistory {
+    /**
+     *
+     * @type {string}
+     **/
+    #time = "";
+    /**
+     *
+     * @returns {string}
+     **/
+    get time() {
+      return this.#time;
+    }
+    /**
+     *
+     * @type {string}
+     **/
+    set time(value) {
+      this.#time = String(value);
+    }
+    setTime(value) {
+      this.time = value;
+      return this;
+    }
+    /**
+     *
+     * @type {Anonymouse.LoginHistory.Data}
+     **/
+    #data;
+    /**
+     *
+     * @returns {Anonymouse.LoginHistory.Data}
+     **/
+    get data() {
+      return this.#data;
+    }
+    /**
+     *
+     * @type {Anonymouse.LoginHistory.Data}
+     **/
+    set data(value) {
+      // For objects, the sub type needs to always be instance of the sub class.
+      if (value instanceof Anonymouse.LoginHistory.Data) {
+        this.#data = value;
+      } else {
+        this.#data = new Anonymouse.LoginHistory.Data(value);
+      }
+    }
+    setData(value) {
+      this.data = value;
+      return this;
+    }
+    /**
+     * The base class definition for data
+     **/
+    static Data = class Data {
+      /**
+       *
+       * @type {string}
+       **/
+      #ipAddress = "";
+      /**
+       *
+       * @returns {string}
+       **/
+      get ipAddress() {
+        return this.#ipAddress;
+      }
+      /**
+       *
+       * @type {string}
+       **/
+      set ipAddress(value) {
+        this.#ipAddress = String(value);
+      }
+      setIpAddress(value) {
+        this.ipAddress = value;
+        return this;
+      }
+      constructor(data) {
+        if (data === null || data === undefined) {
+          return;
+        }
+        if (typeof data === "string") {
+          this.applyFromObject(JSON.parse(data));
+        } else if (this.#isJsonAppliable(data)) {
+          this.applyFromObject(data);
+        } else {
+          throw new Error(
+            "Instance cannot be created on an unknown value, check the content being passed. got: " +
+              typeof data,
+          );
+        }
+      }
+      #isJsonAppliable(obj) {
+        const g = globalThis;
+        const isBuffer =
+          typeof g.Buffer !== "undefined" &&
+          typeof g.Buffer.isBuffer === "function" &&
+          g.Buffer.isBuffer(obj);
+        const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+        return (
+          obj &&
+          typeof obj === "object" &&
+          !Array.isArray(obj) &&
+          !isBuffer &&
+          !(obj instanceof ArrayBuffer) &&
+          !isBlob
+        );
+      }
+      /**
+       * casts the fields of a javascript object into the class properties one by one
+       **/
+      applyFromObject(data = {}) {
+        const d = data;
+        if (d.ipAddress !== undefined) {
+          this.ipAddress = d.ipAddress;
+        }
+      }
+      /**
+       *	Special toJSON override, since the field are private,
+       *	Json stringify won't see them unless we mention it explicitly.
+       **/
+      toJSON() {
+        return {
+          ipAddress: this.#ipAddress,
+        };
+      }
+      toString() {
+        return JSON.stringify(this);
+      }
+      static get Fields() {
+        return {
+          ipAddress: "ipAddress",
+        };
+      }
+      /**
+       * Creates an instance of Anonymouse.LoginHistory.Data, and possibleDtoObject
+       * needs to satisfy the type requirement fully, otherwise typescript compile would
+       * be complaining.
+       **/
+      static from(possibleDtoObject) {
+        return new Anonymouse.LoginHistory.Data(possibleDtoObject);
+      }
+      /**
+       * Creates an instance of Anonymouse.LoginHistory.Data, and partialDtoObject
+       * needs to satisfy the type, but partially, and rest of the content would
+       * be constructed according to data types and nullability.
+       **/
+      static with(partialDtoObject) {
+        return new Anonymouse.LoginHistory.Data(partialDtoObject);
+      }
+      copyWith(partial) {
+        return new Anonymouse.LoginHistory.Data({
+          ...this.toJSON(),
+          ...partial,
+        });
+      }
+      clone() {
+        return new Anonymouse.LoginHistory.Data(this.toJSON());
+      }
+    };
+    constructor(data) {
+      if (data === null || data === undefined) {
+        this.#lateInitFields();
+        return;
+      }
+      if (typeof data === "string") {
+        this.applyFromObject(JSON.parse(data));
+      } else if (this.#isJsonAppliable(data)) {
+        this.applyFromObject(data);
+      } else {
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
+      }
+    }
+    #isJsonAppliable(obj) {
+      const g = globalThis;
+      const isBuffer =
+        typeof g.Buffer !== "undefined" &&
+        typeof g.Buffer.isBuffer === "function" &&
+        g.Buffer.isBuffer(obj);
+      const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
+    }
+    /**
+     * casts the fields of a javascript object into the class properties one by one
+     **/
+    applyFromObject(data = {}) {
+      const d = data;
+      if (d.time !== undefined) {
+        this.time = d.time;
+      }
+      if (d.data !== undefined) {
+        this.data = d.data;
+      }
+      this.#lateInitFields(data);
+    }
+    /**
+     * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+     **/
+    #lateInitFields(data = {}) {
+      const d = data;
+      if (!(d.data instanceof Anonymouse.LoginHistory.Data)) {
+        this.data = new Anonymouse.LoginHistory.Data(d.data || {});
+      }
+    }
+    /**
+     *	Special toJSON override, since the field are private,
+     *	Json stringify won't see them unless we mention it explicitly.
+     **/
+    toJSON() {
+      return {
+        time: this.#time,
+        data: this.#data,
+      };
+    }
+    toString() {
+      return JSON.stringify(this);
+    }
+    static get Fields() {
+      return {
+        time: "time",
+        data$: "data",
+        get data() {
+          return withPrefix(
+            "loginHistory.data",
+            Anonymouse.LoginHistory.Data.Fields,
+          );
+        },
+      };
+    }
+    /**
+     * Creates an instance of Anonymouse.LoginHistory, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject) {
+      return new Anonymouse.LoginHistory(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of Anonymouse.LoginHistory, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(partialDtoObject) {
+      return new Anonymouse.LoginHistory(partialDtoObject);
+    }
+    copyWith(partial) {
+      return new Anonymouse.LoginHistory({ ...this.toJSON(), ...partial });
+    }
+    clone() {
+      return new Anonymouse.LoginHistory(this.toJSON());
+    }
+  };
+  constructor(data) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj) {
+    const g = globalThis;
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data;
+    if (d.firstName !== undefined) {
+      this.firstName = d.firstName;
+    }
+    if (d.loginHistory !== undefined) {
+      this.loginHistory = d.loginHistory;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      firstName: this.#firstName,
+      loginHistory: this.#loginHistory,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      firstName: "firstName",
+      loginHistory$: "loginHistory",
+      get loginHistory() {
+        return withPrefix("loginHistory[:i]", Anonymouse.LoginHistory.Fields);
+      },
+    };
+  }
+  /**
+   * Creates an instance of Anonymouse, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject) {
+    return new Anonymouse(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of Anonymouse, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject) {
+    return new Anonymouse(partialDtoObject);
+  }
+  copyWith(partial) {
+    return new Anonymouse({ ...this.toJSON(), ...partial });
+  }
+  clone() {
+    return new Anonymouse(this.toJSON());
+  }
+}
 
 ```

@@ -122,21 +122,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		actionsRendered = append(actionsRendered, actionRendered)
 	}
 
-	var entitiesAndDtos []*core.CodeChunkCompiled
-	for _, entity := range module.Entities {
-		if config.Entities != nil && len(*config.Entities) > 0 && !slices.Contains(config.GetEntities(), entity.Name) {
-			continue
-		}
-
-		actionRendered, err := JsCommonObjectGenerator(entity.Fields, ctx, JsCommonObjectContext{
-			RootClassName:       entity.GetClassName(),
-			RecognizedComplexes: complexes,
-		})
-		if err != nil {
-			return nil, err
-		}
-		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
-	}
+	var dtos []*core.CodeChunkCompiled
 
 	for _, dto := range module.Dto {
 		if config.Dtos != nil && len(*config.Dtos) > 0 && !slices.Contains(config.GetDtos(), dto.Name) {
@@ -150,7 +136,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		if err != nil {
 			return nil, err
 		}
-		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
+		dtos = append(dtos, actionRendered)
 	}
 
 	internalUsage := []string{}
@@ -174,7 +160,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		})
 	}
 
-	for _, dtoItem := range entitiesAndDtos {
+	for _, dtoItem := range dtos {
 		for _, loc := range dtoItem.CodeChunkDependensies {
 			if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
 				internalUsage = append(internalUsage, loc.Location)

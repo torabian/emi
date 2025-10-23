@@ -54,7 +54,7 @@ func jsGetSafeFieldValue(field *core.EmiField) string {
 	}
 
 	switch field.Type {
-	case "array", "arrayP", "many2many":
+	case "array", "slice", "collection":
 		return "[]"
 	case "json", "object?", "embed", "computed", "any":
 		return "null"
@@ -202,7 +202,7 @@ func jsRenderField(
 	// for non-nullable fields which are late init, we need to make sure instance is being created.
 	isLateInit := !privateFieldToken.IsNullable && privateFieldToken.SafeDefaultValue == ""
 	lateInitStatement := ""
-	if isLateInit && field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeEmbed {
+	if isLateInit && field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne {
 		lateInitStatement = fmt.Sprintf(
 			"if (!(d.%v instanceof %v)) { this.%v = new %v(d.%v || {}) }",
 			field.Name, constructorClass, field.Name, constructorClass, field.Name,
@@ -211,7 +211,7 @@ func jsRenderField(
 
 	staticVariables := []string{}
 
-	if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many || field.Type == core.FieldTypeEmbed || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeMany2ManyNullable {
+	if field.Type == core.FieldTypeSlice || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeCollection || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeCollectionNullable {
 		staticVariables = append(
 			staticVariables,
 			fmt.Sprintf("%v$: '%v',", field.Name, field.Name),
@@ -219,7 +219,7 @@ func jsRenderField(
 
 		withArrayIndex := ""
 
-		if field.Type == core.FieldTypeArrayP || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2Many {
+		if field.Type == core.FieldTypeSlice || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeArray || field.Type == core.FieldTypeCollection {
 			withArrayIndex = "[:i]"
 		}
 
@@ -234,7 +234,7 @@ func jsRenderField(
 			classReference = field.Target
 		}
 
-		if field.Type != core.FieldTypeArrayP && field.Type != core.FieldTypeArrayPNullable {
+		if field.Type != core.FieldTypeSlice && field.Type != core.FieldTypeSliceNullable {
 			staticVariables = append(
 				staticVariables,
 				fmt.Sprintf(`get %v() {

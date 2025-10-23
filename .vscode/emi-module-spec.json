@@ -3,15 +3,6 @@
   "$id": "https://github.com/torabian/emi/lib/core/emi",
   "$ref": "#/definitions/Emi",
   "definitions": {
-    "ClickHouseReplicaInfo": {
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
     "Emi": {
       "properties": {
         "namespace": {
@@ -26,20 +17,9 @@
           "type": "string",
           "description": "Version of the module. Helpful for different code generation phases but it's not necessary."
         },
-        "meta-workspace": {
-          "type": "boolean",
-          "description": "Magic property for Emi EmiEmi.yml file. It's gonna be true only in a single file internally in Emi"
-        },
         "name": {
           "type": "string",
           "description": "Name of the module. Needs to be lower camel case and Module.go and Module.dyno.go will be generated based on this name."
-        },
-        "entities": {
-          "items": {
-            "$ref": "#/definitions/EmiEntity"
-          },
-          "type": "array",
-          "description": "List of entities that module contains. Entities are basically tables in database with their mapping on golang and general actions generated for them"
         },
         "enums": {
           "items": {
@@ -47,13 +27,6 @@
           },
           "type": "array",
           "description": "Module level enums which can be used across the other parts of generated code."
-        },
-        "tasks": {
-          "items": {
-            "$ref": "#/definitions/EmiTask"
-          },
-          "type": "array",
-          "description": "Tasks are actions which are triggered by a queue message or a cron job."
         },
         "dtos": {
           "items": {
@@ -76,51 +49,12 @@
           "type": "array",
           "description": "Actions are similar to controllers in other frameworks. They are custom functionality available via CLI or Http requests and developer need to implement their logic"
         },
-        "macros": {
-          "items": {
-            "$ref": "#/definitions/EmiMacro"
-          },
-          "type": "array",
-          "description": "Macros are extra definition or templates which will modify the module and able to add extra fields or tables before the codegen occures."
-        },
         "remotes": {
           "items": {
             "$ref": "#/definitions/EmiRemote"
           },
           "type": "array",
           "description": "Remotes are definition of external services which could be contacted via http and Emi developer can make them typesafe by defining them here."
-        },
-        "notifications": {
-          "items": {
-            "$ref": "#/definitions/EmiNotification"
-          },
-          "type": "array",
-          "description": "Notifications are end-user messages"
-        },
-        "events": {
-          "items": {
-            "$ref": "#/definitions/EmiEvent"
-          },
-          "type": "array",
-          "description": "Events are internal changes that can be triggered by different sources"
-        },
-        "queries": {
-          "items": {
-            "$ref": "#/definitions/EmiQuery"
-          },
-          "type": "array",
-          "description": "Queries are set of SQL queries that developer writes and Emi generates tools for fetching them from database to golang code."
-        },
-        "config": {
-          "items": {
-            "$ref": "#/definitions/EmiConfigField"
-          },
-          "type": "array",
-          "description": "An interesting way of defining env variables"
-        },
-        "messages": {
-          "$ref": "#/definitions/EmiMessage",
-          "description": "Messages are translatable strings which will be used as errors and other types of messages and become automatically picked via user locale."
         }
       },
       "additionalProperties": false,
@@ -177,24 +111,9 @@
           "type": "array",
           "description": "Type-safe query parameters for CLI and HTTP requests"
         },
-        "dataChannels": {
-          "items": {
-            "$ref": "#/definitions/EmiWebRtcDataChannel"
-          },
-          "type": "array",
-          "description": "Data channels in a typesafe mode in case of webrtc"
-        },
         "description": {
           "type": "string",
           "description": "Action description used in API specs and documentation"
-        },
-        "format": {
-          "type": "string",
-          "enum": [
-            "reactive",
-            "query"
-          ],
-          "description": "Higher-level request format such as POST_ONE PATCH_ONE"
         },
         "in": {
           "$ref": "#/definitions/EmiActionBody",
@@ -203,16 +122,6 @@
         "out": {
           "$ref": "#/definitions/EmiActionBody",
           "description": "Response body definition similar to HTTP response body"
-        },
-        "security": {
-          "$ref": "#/definitions/SecurityModel",
-          "description": "Defines access control similar to middleware checking permissions"
-        },
-        "qsMode": {
-          "type": "string",
-          "enum": [
-            "reflect"
-          ]
         }
       },
       "additionalProperties": false,
@@ -250,26 +159,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "EmiActionConfig": {
-      "properties": {
-        "qs": {
-          "items": {
-            "$ref": "#/definitions/EmiField"
-          },
-          "type": "array",
-          "description": "Typesafe query strings."
-        },
-        "headers": {
-          "items": {
-            "$ref": "#/definitions/EmiField"
-          },
-          "type": "array",
-          "description": "Typesafe headers."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
     "EmiComplex": {
       "properties": {
         "name": {
@@ -283,100 +172,6 @@
         "compiler": {
           "type": "string",
           "description": " Different compilers can import the definition from different locations"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiConfigField": {
-      "anyOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "bool"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "default": {
-                "type": "boolean"
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "string"
-              }
-            }
-          },
-          "then": {
-            "properties": {
-              "default": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      ],
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name is the identifier for the configuration field used both in Go code and the environment file. By default the name will be converted to uppercase with underscores to reference the environment variable unless overridden by the 'env' field."
-        },
-        "type": {
-          "type": "string",
-          "description": "Type defines the data type for the environment variable. It supports standard Go types such as string - bool - int64 - and others - along with custom Emi types. Ensure that the chosen type is supported."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description explains the purpose of the configuration field. It can be helpful for developers and also used in CLI for interactive configuration."
-        },
-        "default": true,
-        "hint": {
-          "type": "string",
-          "description": "Hint is the value that will be shown in auto complete or cli context as default value - but only to help user for understanding."
-        },
-        "env": {
-          "type": "string",
-          "description": "Env allows you to override the default environment variable name"
-        },
-        "fields": {
-          "items": {
-            "$ref": "#/definitions/EmiConfigField"
-          },
-          "type": "array",
-          "description": "Fields defines child configuration fields in case the current field represents an object or an array of subfields. Note that support for nested fields may be limited."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiDataFields": {
-      "properties": {
-        "essentials": {
-          "type": "boolean",
-          "description": "Essential is a set of the fields which Emi uses to give userId and workspaceId",
-          "default": true
-        },
-        "primaryId": {
-          "type": "boolean",
-          "description": "Adds a int primary key auto increment",
-          "default": true
-        },
-        "numericTimestamp": {
-          "type": "boolean",
-          "description": "adds created - updated - delete as nano seconds to the database",
-          "default": true
-        },
-        "dateTimestamp": {
-          "type": "boolean",
-          "description": "adds created - updated - deleted fields as timestamps",
-          "default": false
         }
       },
       "additionalProperties": false,
@@ -398,196 +193,6 @@
           },
           "type": "array",
           "description": "List of fields and body definitions of the dto"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiEntity": {
-      "properties": {
-        "emi": {
-          "type": "string",
-          "description": "Type of the emi content.;enum=entity"
-        },
-        "replicas": {
-          "$ref": "#/definitions/EmiEntityReplicas"
-        },
-        "notifications": {
-          "items": {
-            "$ref": "#/definitions/EmiNotification"
-          },
-          "type": "array",
-          "description": "Notifications are end-user messages"
-        },
-        "events": {
-          "items": {
-            "$ref": "#/definitions/EmiEvent"
-          },
-          "type": "array",
-          "description": "Events are internal changes that can be triggered by different sources"
-        },
-        "rpc": {
-          "$ref": "#/definitions/EmiEntityActionConfig"
-        },
-        "permRewrite": {
-          "$ref": "#/definitions/EmiEntityPermissionRewrite",
-          "description": "Rewrites the default permission generated value"
-        },
-        "permissions": {
-          "items": {
-            "$ref": "#/definitions/EmiPermission"
-          },
-          "type": "array",
-          "description": "Extra permissions that an entity might need. You can add extra permissions that you will need in your business logic related to entity in itself to make it easier become as a group and document later"
-        },
-        "actions": {
-          "items": {
-            "$ref": "#/definitions/EmiAction"
-          },
-          "type": "array",
-          "description": "Actions or extra actions (on top of default actions which automatically is generated) these are the same actions that you can define for a module but defining them on entity level make it easier to relate them and group them. Also permission might be added automatically (need to clearify)"
-        },
-        "name": {
-          "type": "string",
-          "description": "The entity name is crucial as it determines database table names and is used by Emi's Go and code generation tools; note that changing an entity name does not delete previously created entities requiring manual file deletion and only camelCase naming is supported."
-        },
-        "distinctBy": {
-          "type": "string",
-          "enum": [
-            "workspace",
-            "user"
-          ],
-          "description": "You can ensure there is only one record of the entity per user or workspace using this option for example if you want only one credit card per workspace set distinctBy: workspace and it will do the job"
-        },
-        "features": {
-          "$ref": "#/definitions/EmiEntityFeatures",
-          "description": "Customize the features generated for entity"
-        },
-        "table": {
-          "type": "string",
-          "description": "Changes the default table name based on project prefix and entity name useful for times that you want to connect project to an existing database"
-        },
-        "useFields": {
-          "$ref": "#/definitions/EmiDataFields",
-          "description": "Use fields allows you to customize the entity default generated fields."
-        },
-        "security": {
-          "$ref": "#/definitions/EntitySecurityModel",
-          "description": "Manages the entity models"
-        },
-        "prependScript": {
-          "type": "string",
-          "description": "Adds a golang code to the geenrated code in very top location of the file after imports and before any code."
-        },
-        "messages": {
-          "$ref": "#/definitions/EmiMessage",
-          "description": "Messages are translatable strings which will be used as errors and other types of messages and become automatically picked via user locale."
-        },
-        "prependCreateScript": {
-          "type": "string",
-          "description": "Adds a extra code before the create action in the entity. This is pure golang code. Use it with caution such meta codes make module unreadable overtime. You can add script on non-dyno file of the entity."
-        },
-        "prependUpdateScript": {
-          "type": "string",
-          "description": "Adds a extra code before the update action in the entity. This is pure golang code. Use it with caution such meta codes make module unreadable overtime. You can add script on non-dyno file of the entity."
-        },
-        "access": {
-          "type": "string",
-          "description": "Access is a method of limiting which type offunctionality will be created for the entity. For example access read will remove all create functionality from code and public API."
-        },
-        "queryScope": {
-          "type": "string",
-          "enum": [
-            "public",
-            "specific"
-          ],
-          "description": "For entities"
-        },
-        "queries": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "A list of extra queries that Emi can generate for the the entity. Emi might offer some extra queries to be generated so they will be listed here."
-        },
-        "gormMap": {
-          "$ref": "#/definitions/GormOverrideMap",
-          "description": "Override the some default Emi generated fields gorm configuration."
-        },
-        "fields": {
-          "items": {
-            "$ref": "#/definitions/EmiField"
-          },
-          "type": "array",
-          "description": "Define the fields that this entity will have both in golang and database columns."
-        },
-        "cliName": {
-          "type": "string",
-          "description": "The name of the entity which will appear in CLI. By default the name of the entity will be used with dashes."
-        },
-        "cliShort": {
-          "type": "string",
-          "description": "The alternative shortcut in the CLI. By default it's empty and only the entity name or CliName."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description about the purpose of the entity. It will be used in CLI and codegen documentation."
-        },
-        "cte": {
-          "type": "boolean",
-          "description": "CTE is a common recursive feature of an entity; enabling it generates SQL for recursive parent-child CTE queries and makes it available in Golang."
-        },
-        "postFormatter": {
-          "type": "string",
-          "description": "The name of the golang function which will recieve entity pointer to make some modification upon query"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "required": [
-        "emi"
-      ]
-    },
-    "EmiEntityActionConfig": {
-      "properties": {
-        "query": {
-          "$ref": "#/definitions/EmiActionConfig",
-          "description": "Modify the query rpc code."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiEntityFeatures": {
-      "properties": {
-        "mock": {
-          "type": "boolean"
-        },
-        "msync": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiEntityPermissionRewrite": {
-      "properties": {
-        "replace": {
-          "type": "string",
-          "description": "The value to be replaced"
-        },
-        "with": {
-          "type": "string",
-          "description": "The value to be replaced"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiEntityReplicas": {
-      "properties": {
-        "clickhouse": {
-          "$ref": "#/definitions/ClickHouseReplicaInfo"
         }
       },
       "additionalProperties": false,
@@ -624,32 +229,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "EmiEvent": {
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the event which will be generated in golang and used as key to trigger or subscribe"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the event (developer visible only)"
-        },
-        "payload": {
-          "$ref": "#/definitions/EmiActionBody",
-          "description": "Payload of the event"
-        },
-        "security": {
-          "$ref": "#/definitions/SecurityModel",
-          "description": "Security model of the event"
-        },
-        "cacheKey": {
-          "type": "string",
-          "description": "Mechanism to trigger a cache refresh on clients"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
     "EmiField": {
       "properties": {
         "name": {
@@ -667,82 +246,55 @@
         "type": {
           "type": "string",
           "enum": [
-            "object?",
-            "many2many?",
-            "one?",
+            "array",
+            "slice",
+            "one",
+            "collection",
+            "object",
+            "enum",
+            "string",
+            "bool",
+            "int",
+            "int32",
+            "int64",
+            "float32",
+            "float64",
             "array?",
+            "slice?",
+            "one?",
+            "collection?",
+            "object?",
+            "enum?",
             "string?",
-            "int?",
-            "any",
-            "complex",
-            "float64?",
-            "money?",
-            "xfile?",
-            "float32?",
             "bool?",
+            "int?",
             "int32?",
             "int64?",
-            "int",
-            "datetime",
-            "json",
-            "embed",
-            "datenano",
-            "html",
-            "text",
-            "date",
-            "daterange",
-            "many2many",
-            "arrayP",
-            "enum",
-            "bool",
-            "one",
-            "int64",
-            "float64",
-            "duration?",
-            "object",
-            "array",
-            "string"
+            "float32?",
+            "float64?",
+            "any",
+            "complex"
           ],
           "description": "Type of the field based on Emi types."
         },
         "primitive": {
           "type": "string",
-          "description": "Primitive type in golang when type: arrayP is set"
+          "description": "Primitive type in golang when type: slice is set"
         },
         "target": {
           "type": "string",
-          "description": "The entity in golang which will be operated on in case of type: one or type: many2many"
-        },
-        "validate": {
-          "type": "string",
-          "description": "The meta tag for validate library which will be checked on different operations"
-        },
-        "excerptSize": {
-          "type": "integer",
-          "description": "For the html and text fields there will be a automatic excerpt generated."
+          "description": "The entity in golang which will be operated on in case of type: one or type: collection"
         },
         "default": {
           "description": "Default value of the field which will be added to the meta tags"
         },
-        "translate": {
-          "type": "boolean",
-          "description": "If true adds the field into polyglot table for translations. Only works with the first leve"
-        },
-        "unsafe": {
-          "type": "boolean",
-          "description": "It would skip the sanitization for html field types allowing store anything as htm"
-        },
-        "allowCreate": {
-          "type": "boolean",
-          "description": "Allow create is a useful option to set true if the type one or many2many could be allowed to crea"
-        },
         "module": {
           "type": "string",
-          "description": "When using one or many2many types you need to set the module name here to import tha"
+          "description": "When using one or collection types you need to set the module name here to import tha"
         },
         "provider": {
           "type": "string",
-          "description": "The go project module of the important target for one or many2many fields if its from exte"
+          "description": "The go project module of the important target for one or collection fields if its from exte"
         },
         "json": {
           "type": "string",
@@ -763,10 +315,6 @@
           "type": "array",
           "description": "List of enum values in case of enum type for the field. Check EmiEnumInline for more d"
         },
-        "idFieldGorm": {
-          "type": "string",
-          "description": "When type is one there will be another field added with Id prefix. This tag will override gorm meta"
-        },
         "complex": {
           "type": "string",
           "description": "In case of complex data type"
@@ -777,14 +325,6 @@
           },
           "type": "array",
           "description": "On the json type this field will generate necessary code to cast it into different dtos"
-        },
-        "gorm": {
-          "type": "string",
-          "description": "Override the gorm meta tag generated for golang"
-        },
-        "sql": {
-          "type": "string",
-          "description": "Direct manipulation of the sql meta tag on the field."
         },
         "fields": {
           "items": {
@@ -831,89 +371,6 @@
       "additionalProperties": false,
       "type": "object"
     },
-    "EmiMacro": {
-      "properties": {
-        "using": {
-          "type": "string",
-          "enum": [
-            "eav"
-          ],
-          "description": "The macro name which you are using. Emi developers need to add the macros name here as reference."
-        },
-        "params": {
-          "description": "Params are the macro configuration which are dynamically set based on each macro itself. They will be passed as interface{} to macro and function itself will decide what to do next."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiMessage": {
-      "additionalProperties": {
-        "additionalProperties": {
-          "type": "string"
-        },
-        "type": "object"
-      },
-      "type": "object"
-    },
-    "EmiNotification": {
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the notification which will be generated in golang and used as key to trigger or subscribe"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the event (developer visible only)"
-        },
-        "payload": {
-          "$ref": "#/definitions/EmiActionBody",
-          "description": "Payload of the notification"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiPermission": {
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the permission which will be used in golang and external ui"
-        },
-        "key": {
-          "type": "string",
-          "description": "Key of the permission"
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the permission for developers or users. Not translated at this moment."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiQuery": {
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name is the identifier for the query. It will be used to generate controller code and should uniquely identify the query."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description provides a detailed explanation of the query. It helps other developers or API consumers understand what the query does and its purpose."
-        },
-        "columns": {
-          "$ref": "#/definitions/EmiActionBody",
-          "description": "Columns defines the structure of the result set returned by the query. It lists the expected columns in the result when the query is executed."
-        },
-        "query": {
-          "type": "string",
-          "description": "The actual SQL or VSQL query. There are some special placeholders and this is infact a golang template which will be converted in the end to SQL and will be sent to ORM."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
     "EmiRemote": {
       "properties": {
         "name": {
@@ -951,123 +408,6 @@
           },
           "type": "array",
           "description": "Query params for the address if you want to define them in Golang dynamically instead of URL."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiTask": {
-      "properties": {
-        "triggers": {
-          "items": {
-            "$ref": "#/definitions/EmiTrigger"
-          },
-          "type": "array",
-          "description": "List of triggers such as cronjobs which can make this task run automatically."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the task is general identifier and golang functions will be generated based on it."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the task useful for developers and generated documentations."
-        },
-        "in": {
-          "$ref": "#/definitions/EmiActionBody",
-          "description": "Parameters that can be sent to this task. Since tasks are runnable in the golang as well they can get parameters in go and cli if necessary. For cronjobs might make no sense."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiTrigger": {
-      "properties": {
-        "cron": {
-          "type": "string",
-          "description": "The 5-6 star standard cronjob described in https://en.wikipedia.org/wiki/Cron"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiWebRtcDataChannel": {
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Name of the data channel in the webrtc"
-        },
-        "in": {
-          "$ref": "#/definitions/EmiActionBody",
-          "description": "Channel data which will be sent to"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EntitySecurityModel": {
-      "properties": {
-        "writeOnRoot": {
-          "type": "boolean",
-          "description": "Only users which belong to root and actively selected the root workspace can write to this entity from Emi default functionality. Read mechanism won't be affected."
-        },
-        "readOnRoot": {
-          "type": "boolean",
-          "description": "Only users which belong to root and actively selected the root workspace can read from entity from Emi default functionality. Write mechanism is not affected."
-        },
-        "resolveStrategy": {
-          "type": "string",
-          "enum": [
-            "workspace",
-            "user"
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "GormOverrideMap": {
-      "properties": {
-        "workspaceId": {
-          "type": "string",
-          "description": "Override the workspace id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Override the user id configuration for gorm instead of default config. Useful for adding extra constraints or indexes."
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "PermissionInfo": {
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "completeKey": {
-          "type": "string"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "SecurityModel": {
-      "properties": {
-        "allowOnRoot": {
-          "type": "boolean"
-        },
-        "requires": {
-          "items": {
-            "$ref": "#/definitions/PermissionInfo"
-          },
-          "type": "array"
-        },
-        "resolveStrategy": {
-          "type": "string"
         }
       },
       "additionalProperties": false,

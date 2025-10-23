@@ -17,6 +17,7 @@ type jsRenderedDataClass struct {
 	LateInitFields       []jsRenderedField
 	Signature            string
 	JsDoc                string
+	IsTypeScript         bool
 	SubClasses           []jsRenderedDataClass
 	ClassTypePath        string
 	ClassNamePath        string
@@ -63,6 +64,7 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 		ClassTypePath:       treeAsType(treeLocation),
 		LateInitFields:      lateInitFields,
 		JsDoc:               jsdoc.String(),
+		IsTypeScript:        isTypeScript,
 		Signature:           signature,
 		DataSourceStatement: "const d = data;",
 	}
@@ -133,7 +135,7 @@ func hasClassesAsChildren(fields []*core.EmiField) bool {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
-			if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeMany2ManyNullable || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeMany2Many {
+			if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeCollectionNullable || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeCollection {
 				result = true
 				break
 			}
@@ -321,7 +323,12 @@ export abstract class %vFactory {
 	* needs to satisfy the type requirement fully, otherwise typescript compile would
 	* be complaining.
 	**/
+	
+	{{ if .IsTypeScript }}
 	static from(possibleDtoObject: {{ .ClassTypePath }}) {
+	{{ else }}
+	static from(possibleDtoObject) {
+	{{ end }}
 		return new {{ .ClassNamePath }}(possibleDtoObject);
 	}
 
@@ -330,15 +337,28 @@ export abstract class %vFactory {
 	* needs to satisfy the type, but partially, and rest of the content would
 	* be constructed according to data types and nullability.
 	**/
+
+	{{ if .IsTypeScript }}
 	static with(partialDtoObject: PartialDeep<{{ .ClassTypePath }}>) {
+	{{ else }}
+	static with(partialDtoObject) {
+	{{ end }}
 		return new {{ .ClassNamePath }}(partialDtoObject);
 	}
 
+	{{ if .IsTypeScript }}
 	copyWith(partial: PartialDeep<{{ .ClassTypePath }}>): InstanceType<typeof {{ .ClassNamePath }}> {
+	{{ else }}
+	copyWith(partial) {
+	{{ end }}
 		return new {{ .ClassNamePath }} ({ ...this.toJSON(), ...partial });
 	}
 
+	{{ if .IsTypeScript }}
 	clone(): InstanceType<typeof {{ .ClassNamePath }}> {
+	{{ else }}
+	clone() {
+	{{ end }}
 		return new {{ .ClassNamePath }}(this.toJSON());
 	}
 
@@ -353,6 +373,7 @@ export abstract class %vFactory {
 	{{ .abstractFactoryClass }}
 {{ end }}
 
+{{ if .isTypeScript }}
 type PartialDeep<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
     ? Array<PartialDeep<U>>
@@ -360,6 +381,7 @@ type PartialDeep<T> = {
       ? PartialDeep<T[P]>
       : T[P];
 };
+{{ end }}
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
@@ -382,6 +404,8 @@ type PartialDeep<T> = {
 		res.ActualScript = []byte(strings.ReplaceAll(result, "constructor(data)", "constructor(data: unknown = undefined)"))
 		res.SuggestedExtension = ".ts"
 	} else {
+
+		res.ActualScript = []byte(result)
 		res.SuggestedExtension = ".js"
 		res.ActualScript = []byte(result)
 	}
