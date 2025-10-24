@@ -1,4 +1,3 @@
-# As you see, by defining emi: dto, now the file is only dto instead of a full module.
 emi: dto
 name: singleDto
 fields:

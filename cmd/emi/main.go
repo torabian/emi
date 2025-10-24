@@ -7,6 +7,7 @@ import (
 	"path"
 
 	"github.com/torabian/emi/lib/core"
+	"github.com/torabian/emi/lib/golang"
 	"github.com/torabian/emi/lib/js"
 
 	"github.com/urfave/cli"
@@ -19,6 +20,11 @@ func main() {
 		cliCommandFromTextActions(js.GetJsPublicActions().TextActions)...)
 	commands = append(commands,
 		cliCommandFromFileActions(js.GetJsPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(golang.GetGolangPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(golang.GetGolangPublicActions().FileActions)...)
 
 	app := &cli.App{
 		Name:     "Emi compiler",
@@ -91,7 +97,7 @@ var commonFlags []cli.Flag = []cli.Flag{
 	},
 }
 
-func createCliContext(c *cli.Context) (core.MicroGenContext, error) {
+func createCliContext(c *cli.Context, flags []core.FlagDef) (core.MicroGenContext, error) {
 	ctx := core.MicroGenContext{
 		Tags:   c.String("tags"),
 		Output: c.String("output"),
@@ -103,6 +109,16 @@ func createCliContext(c *cli.Context) (core.MicroGenContext, error) {
 	// 	return core.MicroGenContext{}, err
 	// }
 
+	var m map[string]string = map[string]string{}
+
+	for _, flag := range flags {
+		fmt.Println("Flag:", flag.Name, c.String(flag.Name))
+		m[flag.Name] = c.String(flag.Name)
+	}
+
+	res, _ := json.Marshal(m)
+
+	ctx.Flags = string(res)
 	ctx.Content = string(content)
 
 	return ctx, nil
@@ -121,7 +137,7 @@ func cliCommandFromTextAction(a core.ActionText) cli.Command {
 		Usage:       a.Description,
 		Flags:       flags,
 		Action: func(c *cli.Context) error {
-			ctx, err := createCliContext(c)
+			ctx, err := createCliContext(c, a.Flags)
 			if err != nil {
 				return err
 			}
@@ -162,7 +178,7 @@ func cliCommandFromFileAction(a core.ActionFile) cli.Command {
 		Usage:       a.Description,
 		Flags:       flags,
 		Action: func(c *cli.Context) error {
-			ctx, err := createCliContext(c)
+			ctx, err := createCliContext(c, a.Flags)
 			if err != nil {
 				return err
 			}

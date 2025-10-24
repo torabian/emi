@@ -10,4 +10,13 @@ type EmiHeader struct {
 
 	// Description of the value and reason usually to developers, http specs and cli
 	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description of the value and reason usually to developers, http specs and cli"`
+
+	// In case of complex data type, it would be using this as class or struct name
+	Complex string `yaml:"complex,omitempty" json:"complex,omitempty" jsonschema:"description=In case of complex data type, it would be using this as class or struct name"`
+
+	// Complex namespace means the prefix which the complex is available for example math.Vector3 the 'math' section is the namespace
+	ComplexNamespace string `yaml:"complexNamespace,omitempty" json:"complexNamespace,omitempty" jsonschema:"description=Complex namespace means the prefix which the complex is available for example math.Vector3 the 'math' section is the namespace"`
+
+	// The import location, in node world, can be npm package name, or in golang github.com/package/go
+	ComplexLocation string `yaml:"complexLocation,omitempty" json:"complexNamespace,omitempty" jsonschema:"description=Complex namespace means the prefix which the complex is available for example math.Vector3 the 'math' section is the namespace"`
 }

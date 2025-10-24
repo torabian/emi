@@ -5,6 +5,7 @@ import (
 	"syscall/js"
 
 	"github.com/torabian/emi/lib/core"
+	"github.com/torabian/emi/lib/golang"
 	emijs "github.com/torabian/emi/lib/js"
 )
 
@@ -17,6 +18,14 @@ func main() {
 	}
 
 	for _, fileAction := range emijs.GetJsPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range golang.GetGolangPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range golang.GetGolangPublicActions().FileActions {
 		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
 	}
 
@@ -85,25 +94,30 @@ func StringOutFactory(
 
 // Converts Go PublicAPIActions into a JS-friendly object
 func getPublicActions(this js.Value, args []js.Value) any {
-	actions := emijs.GetJsPublicActions() // from your js package
-	return publicAPIActionsToJS(actions)
+	actionsJs := emijs.GetJsPublicActions() // from your js package
+	actionsGolang := golang.GetGolangPublicActions()
+	return publicAPIActionsToJS([]core.PublicAPIActions{actionsGolang, actionsJs})
 }
 
 // Helper to convert PublicAPIActions to JS object
-func publicAPIActionsToJS(actions core.PublicAPIActions) js.Value {
+func publicAPIActionsToJS(actions []core.PublicAPIActions) js.Value {
 	obj := js.Global().Get("Object").New()
 
 	// TextActions
 	textArr := js.Global().Get("Array").New()
-	for _, a := range actions.TextActions {
-		textArr.Call("push", actionToJS(a.BaseAction))
+	for _, action := range actions {
+		for _, a := range action.TextActions {
+			textArr.Call("push", actionToJS(a.BaseAction))
+		}
 	}
 	obj.Set("TextActions", textArr)
 
 	// FileActions
 	fileArr := js.Global().Get("Array").New()
-	for _, a := range actions.FileActions {
-		fileArr.Call("push", actionToJS(a.BaseAction))
+	for _, action := range actions {
+		for _, a := range action.FileActions {
+			fileArr.Call("push", actionToJS(a.BaseAction))
+		}
 	}
 	obj.Set("FileActions", fileArr)
 
