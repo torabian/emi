@@ -3,7 +3,9 @@ package golang
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"slices"
+	"sort"
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
@@ -16,19 +18,75 @@ func GetGolangPublicActions() core.PublicAPIActions {
 				Name:             "go:dto",
 				Description:      "Generates dto, for golang, both as client and server",
 				WasmFunctionName: "goGenObject",
+				Flags: []core.FlagDef{
+					{
+						Name:     "package",
+						Type:     core.FlagString,
+						Usage:    "Package name of the golang",
+						Required: true,
+					},
+					{
+						Name:  "emi-runtime",
+						Type:  core.FlagString,
+						Usage: "Location of the emi runtime",
+					},
+				},
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
+
+				var m map[string]string = map[string]string{}
+				json.Unmarshal([]byte(ctx.Flags), &m)
 
 				emiDto, err := core.StringToEmiDto(ctx.Content)
 				if err != nil {
 					return "", err
 				}
 
-				res, err := GoCommonStructGenerator(emiDto.Fields, ctx, GoCommonStructContext{RootClassName: emiDto.Name})
+				emiLocation := ""
+				if val, ok := m["emi-runtime"]; ok && val != "" && val != "<nil>" {
+					emiLocation = val
+				}
+
+				res, err := GoCommonStructGenerator(emiDto.Fields, ctx, GoCommonStructContext{RootClassName: emiDto.Name, EmiLocation: emiLocation})
 				if err != nil {
 					return "", err
 				}
-				return string(res.ActualScript), nil
+
+				return AsFullDocument(res, m["package"]), nil
+
+			},
+		}, {
+			BaseAction: core.BaseAction{
+				Name:             "go:headers",
+				Description:      "Generates headers, for golang, both as client and server",
+				WasmFunctionName: "goGenObject",
+				Flags: []core.FlagDef{
+					{
+						Name:     "package",
+						Type:     core.FlagString,
+						Usage:    "Package name of the golang",
+						Required: true,
+					},
+				},
+			},
+			Run: func(ctx core.MicroGenContext) (string, error) {
+
+				var m map[string]string = map[string]string{}
+
+				json.Unmarshal([]byte(ctx.Flags), &m)
+				headers, err := core.StringToEmiHeaders(ctx.Content)
+				if err != nil {
+					return "", err
+				}
+
+				res, err := GoHeaderStruct(
+					goHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
+					ctx,
+				)
+				if err != nil {
+					return "", err
+				}
+				return AsFullDocument(res, m["package"]), nil
 
 			},
 		},
@@ -136,18 +194,47 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		files = append(files, core.VirtualFile{
 			Name:         dtoItem.SuggestedFileName,
 			Extension:    dtoItem.SuggestedExtension,
-			ActualScript: AsFullDocument(dtoItem),
+			ActualScript: AsFullDocument(dtoItem, "unknownpackage"),
 		})
 	}
 
 	return files, nil
 }
 
-func AsFullDocument(x *core.CodeChunkCompiled) string {
-	// importsList := CombineImportsJsWorld(*x)
-	importsList := ""
-	var finalContent string = importsList + "\r\n" + string(x.ActualScript)
+func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
+	importsList := CombineGoImports(*x)
+	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + string(x.ActualScript)
 
 	finalContent = string(core.EscapeLines([]byte(finalContent)))
 	return finalContent
+}
+func CombineGoImports(chunk core.CodeChunkCompiled) string {
+	statements := map[string]struct{}{}
+
+	// Collect unique import statements
+	for _, dep := range chunk.CodeChunkDependensies {
+		statement := ""
+		if len(dep.Objects) > 0 {
+			statement = fmt.Sprintf(`%v "%v"`, dep.Objects[0], dep.Location)
+		} else {
+			statement = fmt.Sprintf(`"%v"`, dep.Location)
+		}
+		statements[statement] = struct{}{}
+	}
+
+	// Sort statements for deterministic output
+	var sorted []string
+	for stmt := range statements {
+		sorted = append(sorted, stmt)
+	}
+	sort.Strings(sorted)
+
+	// Combine into final import block
+	if len(sorted) == 0 {
+		return ""
+	} else if len(sorted) == 1 {
+		return "import " + sorted[0]
+	} else {
+		return "import (\n" + strings.Join(sorted, "\n") + "\n)"
+	}
 }

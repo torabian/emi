@@ -44,6 +44,10 @@ type GoCommonStructContext struct {
 
 	// List of allowed complexes type to be used on fields
 	RecognizedComplexes []RecognizedComplex
+
+	// the package location of the emi runtime.
+	// If the project wants to copy that and override we use this
+	EmiLocation string
 }
 
 func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx GoCommonStructContext) []goRenderedStruct {
@@ -146,9 +150,9 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 
 	const tmpl = `
 
-	package main
-
-	import emi "test/goruntime"
+{{ if .emiRuntimeLocation }}
+	import emi "{{ .emiRuntimeLocation }}"
+{{ end }}
 
 {{ define "printClass" }}
 {{ .GoDoc }}
@@ -176,7 +180,8 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"renderedClasses": renderedClasses,
+		"renderedClasses":    renderedClasses,
+		"emiRuntimeLocation": goctx.EmiLocation,
 	}); err != nil {
 		return nil, err
 	}

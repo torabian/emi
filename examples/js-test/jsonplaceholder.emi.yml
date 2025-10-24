@@ -27,6 +27,9 @@ actions:
   - name: computeAverage
     in:
       dto: ComputeDto
+      headers:
+        - name: content-type
+          type: string
     out:
       dto: AverageDto
       

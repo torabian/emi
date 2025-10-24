@@ -1,0 +1,21 @@
+# In this example, we just convert an array of EmiHeader into
+# Golang code. That's it. We should have primitives work, also how you can define
+# custom complex types, such as Vector3, and big.Float
+- name: content-type
+  type: string
+  description: A simple string in header, common as everywhere else.
+- name: cache-expire
+  type: int
+  description: int, how the golang converts int to make it easy for developer
+- name: position
+  complex: Vector3
+  type: complex
+  complexNamespace: mathlib
+  complexLocation: "test.com/emi-go-header-demo/mathlib"
+  description: Fully custom defined type, which would be able to access as Vector3
+- name: energy
+  complex: BigFloat
+  type: complex
+  description: Wrapping go internal big.Float into complex, and using it in the headers
+  complexNamespace: mathlib
+  complexLocation: "test.com/emi-go-header-demo/mathlib"
