@@ -1,5 +1,5 @@
 // original: https://github.com/sosodev/duration/blob/main/duration.go
-package goruntime
+package emigo
 
 import (
 	"encoding/json"

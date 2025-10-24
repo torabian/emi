@@ -1,4 +1,4 @@
-package goruntime
+package emigo
 
 import "encoding/json"
 

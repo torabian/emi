@@ -1,4 +1,4 @@
-package goruntime
+package emigo
 
 import (
 	"database/sql"
@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-// Int32 struct for nullable int32
-type Int32 struct {
+// Int struct for nullable int
+type Int struct {
 	sql.NullInt32
 	Present bool // Whether the field was present in JSON or YAML
 }
 
 // UnmarshalJSON handles JSON deserialization
-func (m *Int32) UnmarshalJSON(data []byte) error {
+func (m *Int) UnmarshalJSON(data []byte) error {
 	m.Present = true
 	if string(data) == "null" {
 		m.Valid = false
@@ -24,7 +24,7 @@ func (m *Int32) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON ensures correct JSON representation
-func (m Int32) MarshalJSON() ([]byte, error) {
+func (m Int) MarshalJSON() ([]byte, error) {
 	if !m.Valid {
 		return []byte("null"), nil
 	}
@@ -32,10 +32,10 @@ func (m Int32) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalYAML handles YAML deserialization
-func (m *Int32) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (m *Int) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	m.Present = true
 
-	var val *int32
+	var val *int
 	if err := unmarshal(&val); err != nil {
 		return err
 	}
@@ -44,49 +44,49 @@ func (m *Int32) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		m.Valid = false
 	} else {
 		m.Valid = true
-		m.Int32 = *val
+		m.Int32 = int32(*val)
 	}
 	return nil
 }
 
 // MarshalYAML ensures correct YAML representation
-func (m Int32) MarshalYAML() (interface{}, error) {
+func (m Int) MarshalYAML() (interface{}, error) {
 	if !m.Valid {
 		return nil, nil
 	}
-	return m.Int32, nil
+	return int(m.Int32), nil
 }
 
 // GormDataType returns the GORM data type
-func (Int32) GormDataType() string {
+func (Int) GormDataType() string {
 	return "integer"
 }
 
-// NewInt32 creates a new Int32 instance with a value
-func NewInt32(value int32) Int32 {
-	return Int32{
-		NullInt32: sql.NullInt32{Int32: value, Valid: true},
+// NewInt creates a new Int instance with a value
+func NewInt(value int) Int {
+	return Int{
+		NullInt32: sql.NullInt32{Int32: int32(value), Valid: true},
 		Present:   true,
 	}
 }
 
-// NewInt32AutoNull creates an Int32 instance, setting null when the input is explicitly "null"
-func NewInt32AutoNull(value string) Int32 {
+// NewIntAutoNull creates an Int instance, setting null when the input is explicitly "null"
+func NewIntAutoNull(value string) Int {
 	if value == "null" {
-		return NewInt32Null()
+		return NewIntNull()
 	}
 
-	var intValue int32
+	var intValue int
 	if _, err := fmt.Sscanf(value, "%d", &intValue); err == nil {
-		return NewInt32(intValue)
+		return NewInt(intValue)
 	}
 
-	return NewInt32Null()
+	return NewIntNull()
 }
 
-// NewInt32Null creates a null Int32 instance
-func NewInt32Null() Int32 {
-	return Int32{
+// NewIntNull creates a null Int instance
+func NewIntNull() Int {
+	return Int{
 		NullInt32: sql.NullInt32{Valid: false},
 		Present:   true,
 	}

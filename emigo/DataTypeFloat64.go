@@ -1,4 +1,4 @@
-package goruntime
+package emigo
 
 import (
 	"database/sql"
@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-// Float32 struct for nullable float32
-type Float32 struct {
+// Float64 struct for nullable float64
+type Float64 struct {
 	sql.NullFloat64
 	Present bool // Whether the field was present in JSON or YAML
 }
 
 // UnmarshalJSON handles JSON deserialization
-func (m *Float32) UnmarshalJSON(data []byte) error {
+func (m *Float64) UnmarshalJSON(data []byte) error {
 	m.Present = true
 	if string(data) == "null" {
 		m.Valid = false
@@ -24,7 +24,7 @@ func (m *Float32) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON ensures correct JSON representation
-func (m Float32) MarshalJSON() ([]byte, error) {
+func (m Float64) MarshalJSON() ([]byte, error) {
 	if !m.Valid {
 		return []byte("null"), nil
 	}
@@ -32,7 +32,7 @@ func (m Float32) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalYAML handles YAML deserialization
-func (m *Float32) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (m *Float64) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	m.Present = true
 
 	var val *float64
@@ -50,43 +50,43 @@ func (m *Float32) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 // MarshalYAML ensures correct YAML representation
-func (m Float32) MarshalYAML() (interface{}, error) {
+func (m Float64) MarshalYAML() (interface{}, error) {
 	if !m.Valid {
 		return nil, nil
 	}
-	return float32(m.Float64), nil
+	return m.Float64, nil
 }
 
 // GormDataType returns the GORM data type
-func (Float32) GormDataType() string {
-	return "float"
+func (Float64) GormDataType() string {
+	return "double"
 }
 
-// NewFloat32 creates a new Float32 instance with a value
-func NewFloat32(value float32) Float32 {
-	return Float32{
-		NullFloat64: sql.NullFloat64{Float64: float64(value), Valid: true},
+// NewFloat64 creates a new Float64 instance with a value
+func NewFloat64(value float64) Float64 {
+	return Float64{
+		NullFloat64: sql.NullFloat64{Float64: value, Valid: true},
 		Present:     true,
 	}
 }
 
-// NewFloat32AutoNull creates a Float32 instance, setting null when the input is explicitly "null"
-func NewFloat32AutoNull(value string) Float32 {
+// NewFloat64AutoNull creates a Float64 instance, setting null when the input is explicitly "null"
+func NewFloat64AutoNull(value string) Float64 {
 	if value == "null" {
-		return NewFloat32Null()
+		return NewFloat64Null()
 	}
 
-	var floatValue float32
+	var floatValue float64
 	if _, err := fmt.Sscanf(value, "%f", &floatValue); err == nil {
-		return NewFloat32(floatValue)
+		return NewFloat64(floatValue)
 	}
 
-	return NewFloat32Null()
+	return NewFloat64Null()
 }
 
-// NewFloat32Null creates a null Float32 instance
-func NewFloat32Null() Float32 {
-	return Float32{
+// NewFloat64Null creates a null Float64 instance
+func NewFloat64Null() Float64 {
+	return Float64{
 		NullFloat64: sql.NullFloat64{Valid: false},
 		Present:     true,
 	}
