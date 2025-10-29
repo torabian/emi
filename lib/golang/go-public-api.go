@@ -198,6 +198,22 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		})
 	}
 
+	// var actionsRendered []*core.CodeChunkCompiled
+
+	for _, action := range module.Actions {
+
+		output, err := GoActionRender(action, ctx, complexes)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, core.VirtualFile{
+			Name:         output.SuggestedFileName,
+			Extension:    output.SuggestedExtension,
+			ActualScript: AsFullDocument(output, "unknownpackage"),
+		})
+	}
+
 	return files, nil
 }
 

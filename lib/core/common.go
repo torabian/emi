@@ -379,3 +379,16 @@ func ParseDtoPath(input string) (path string, className string) {
 	className = base
 	return
 }
+
+func FindTokenByName(realms []GeneratedScriptToken, name string) *GeneratedScriptToken {
+
+	for _, item := range realms {
+		if item.Name == name {
+			return &item
+		}
+	}
+
+	return nil
+}
+
+var TOKEN_ORIGINAL_NAME = "root.original.name"

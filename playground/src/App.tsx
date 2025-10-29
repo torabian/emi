@@ -15,8 +15,8 @@ function App() {
     setFeatures,
     features,
     ready,
-    // setAssemblyFunction,
-    // assemblyFunction,
+    setAssemblyFunction,
+    assemblyFunction,
   } = usePlaygroundPresenter();
 
   const yamlDoc: VirtualFile = {
@@ -70,6 +70,11 @@ function App() {
               setSelected={(value) => setFeatures(value)}
               selected={features}
             />
+
+            <button onClick={() => setAssemblyFunction("goGen")}>Golang</button>
+            <button onClick={() => setAssemblyFunction("jsGenModule")}>
+              JS/TS
+            </button>
           </div>
           <button
             style={{ marginBottom: "5px" }}
