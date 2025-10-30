@@ -14,6 +14,10 @@ func main() {
 	unknownpackage.SampleSseAction(r, func(ssar unknownpackage.SampleSseActionRequest) (*unknownpackage.SampleSseActionResponse, error) {
 		c := ssar.C
 
+		return &unknownpackage.SampleSseActionResponse{
+			Payload: make(chan string),
+		}, nil
+
 		// Set SSE headers
 		c.Writer.Header().Set("Content-Type", "text/event-stream")
 		c.Writer.Header().Set("Cache-Control", "no-cache")
