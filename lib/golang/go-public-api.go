@@ -112,7 +112,9 @@ func GetGolangPublicActions() core.PublicAPIActions {
 						return nil, err
 					}
 
-					return GoModuleFull(&emiModule, ctx)
+					files, err := GoModuleFull(&emiModule, ctx)
+
+					return files, err
 				}
 
 				return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
@@ -203,6 +205,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	for _, action := range module.Actions {
 
 		output, err := GoActionRender(action, ctx, complexes)
+
 		if err != nil {
 			return nil, err
 		}

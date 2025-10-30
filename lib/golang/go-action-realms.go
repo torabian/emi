@@ -24,11 +24,18 @@ func GoActionRealms(
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 
-) (*goActionRealms, []core.CodeChunkDependency, error) {
-	deps := []core.CodeChunkDependency{}
+) (goActionRealms, []core.CodeChunkDependency, error) {
+	deps := []core.CodeChunkDependency{
+		{
+			Location: "net/http",
+		},
+		{
+			Location: "github.com/gin-gonic/gin",
+		},
+	}
 	realms := goActionRealms{
 		ActionName: action.GetName(),
 	}
 
-	return &realms, deps, nil
+	return realms, deps, nil
 }
