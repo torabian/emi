@@ -9,6 +9,7 @@ import (
 	"github.com/torabian/emi/lib/core"
 	"github.com/torabian/emi/lib/golang"
 	"github.com/torabian/emi/lib/js"
+	"github.com/torabian/emi/lib/kotlin"
 
 	"github.com/urfave/cli"
 )
@@ -25,6 +26,11 @@ func main() {
 		cliCommandFromTextActions(golang.GetGolangPublicActions().TextActions)...)
 	commands = append(commands,
 		cliCommandFromFileActions(golang.GetGolangPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(kotlin.GetKotlinPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(kotlin.GetKotlinPublicActions().FileActions)...)
 
 	app := &cli.App{
 		Name:     "Emi compiler",
