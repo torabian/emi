@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
                         // Top: Attitude Indicator, takes most of the space
                         val (yaw, pitch, roll) = useGyroscopeStatus(calibrationOffset)
 
-                        val status = StreamYokeAction("http://10.0.2.2:8080", Triple(yaw, pitch, roll))
+                        val status = StreamYokeAction("http://192.168.1.52:8080", Triple(yaw, pitch, roll))
 
                         // Bottom: Calibration slider
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {

@@ -1,15 +1,14 @@
 package unknownpackage
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
 
-/**
-* Action to communicate with the action SubscribeYokeAction
- */
+// Meta info for introspection
 func SubscribeYokeActionMeta() struct {
 	Name   string
 	URL    string
@@ -26,36 +25,46 @@ func SubscribeYokeActionMeta() struct {
 	}
 }
 
-// WebSocket upgrader (you can reuse a global one)
 var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool { return true }, // you can restrict origin later
+	CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-// SubscribeYokeActionRequest provides access to both gin context and websocket connection
+// Request object
 type SubscribeYokeActionRequest struct {
 	C  *gin.Context
 	WS *websocket.Conn
 }
 
-// SubscribeYokeActionHandler sets up a typed WebSocket handler
+// Core handler wrapper
 func SubscribeYokeActionHandler(
 	handler func(req SubscribeYokeActionRequest),
 ) (method, url string, h gin.HandlerFunc) {
 	meta := SubscribeYokeActionMeta()
 	return meta.Method, meta.URL, func(c *gin.Context) {
+		fmt.Println("[SubscribeYokeAction] Incoming connection from:", c.ClientIP())
+
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
-			c.String(http.StatusBadRequest, "Failed to upgrade: %v", err)
+			fmt.Println("[SubscribeYokeAction] Upgrade failed:", err)
+			c.String(http.StatusBadRequest, "WebSocket upgrade failed")
 			return
 		}
-		defer conn.Close()
+		fmt.Println("[SubscribeYokeAction] WebSocket connection established")
 
+		defer func() {
+			conn.Close()
+			fmt.Println("[SubscribeYokeAction] Connection closed")
+		}()
+
+		fmt.Println("[SubscribeYokeAction] Invoking user handler")
 		handler(SubscribeYokeActionRequest{C: c, WS: conn})
+		fmt.Println("[SubscribeYokeAction] Handler returned cleanly")
 	}
 }
 
-// SubscribeYokeAction auto-registers the WebSocket route
+// Route registration helper
 func SubscribeYokeAction(r gin.IRoutes, handler func(SubscribeYokeActionRequest)) {
 	method, url, h := SubscribeYokeActionHandler(handler)
+	fmt.Printf("[SubscribeYokeAction] Route registered: %s %s\n", method, url)
 	r.Handle(method, url, h)
 }
