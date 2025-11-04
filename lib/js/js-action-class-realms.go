@@ -35,14 +35,14 @@ func JsActionManifestRealms(
 ) (*jsActionRealms, []core.CodeChunkDependency, error) {
 	deps := []core.CodeChunkDependency{}
 	actionRealms := jsActionRealms{
-		ActionName: core.NormaliseKey(action.GetName()),
+		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
 		HttpMethod: action.MethodUpper(),
 	}
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 
 	if action.HasRequestHeaders() {
 		reqheaderctx := jsHeaderClassContext{
-			ClassName: fmt.Sprintf("%vReqHeaders", core.ToUpper(action.GetName())),
+			ClassName: fmt.Sprintf("%vReqHeaders", actionRealms.ActionName),
 		}
 
 		reqheaderctx.Columns = action.GetRequestHeaders()
@@ -62,7 +62,7 @@ func JsActionManifestRealms(
 	if action.HasResponseHeaders() {
 
 		resheaderctx := jsHeaderClassContext{
-			ClassName: fmt.Sprintf("%vResHeaders", core.ToUpper(action.GetName())),
+			ClassName: fmt.Sprintf("%vResHeaders", actionRealms.ActionName),
 		}
 
 		if action.HasResponseHeaders() {
@@ -96,7 +96,7 @@ func JsActionManifestRealms(
 	// Options type, the type which defines how many different things can go
 	// into this request.
 	optionsctx := jsActionOptionsContext{
-		ActionName:  action.GetName(),
+		ActionName:  actionRealms.ActionName,
 		QsClassName: "URLSearchParams",
 	}
 
@@ -151,7 +151,7 @@ func JsActionManifestRealms(
 	// Action request (in)
 	if action.HasRequestFields() {
 		fields, err := JsCommonObjectGenerator(action.GetRequestFields(), ctx, JsCommonObjectContext{
-			RootClassName:       action.GetName() + "Req",
+			RootClassName:       actionRealms.ActionName + "Req",
 			RecognizedComplexes: complexes,
 		})
 
@@ -168,7 +168,7 @@ func JsActionManifestRealms(
 
 	// Action response (out)
 	if action.HasResponseFields() {
-		outClassName := action.GetName() + "Res"
+		outClassName := actionRealms.ActionName + "Res"
 		fields, err := JsCommonObjectGenerator(action.GetResponseFields(), ctx, JsCommonObjectContext{
 			RootClassName:       outClassName,
 			RecognizedComplexes: complexes,

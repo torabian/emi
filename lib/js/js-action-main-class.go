@@ -25,7 +25,7 @@ func findTokenByName(realms []core.GeneratedScriptToken, name string) *core.Gene
 
 func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, ctx core.MicroGenContext) (*core.CodeChunkCompiled, fetchStaticFunctionContext, error) {
 
-	className := action.GetName()
+	className := realms.ActionName
 	fetchctx := fetchStaticFunctionContext{
 		DefaultUrlVariable:  fmt.Sprintf("%v.URL", className),
 		UrlCreatorFunction:  fmt.Sprintf("%v.NewUrl", className),
@@ -157,7 +157,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
  */
 
 
-export class {{ .className }} {
+export class {{ .className }} { //
   static URL = '{{ .action.Url }}';
 
   static NewUrl = (

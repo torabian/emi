@@ -65,6 +65,10 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 		return "string"
 	case "date":
 		return "Date"
+	case "map":
+		return "{[key: string]: any}"
+	case "map?":
+		return "{[key: string]: any}"
 	case "double":
 		return "number"
 	case "object", "object?", "embed":

@@ -34,7 +34,7 @@ func GoActionRealms(
 		},
 	}
 	realms := goActionRealms{
-		ActionName: action.GetName(),
+		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
 	}
 
 	return realms, deps, nil

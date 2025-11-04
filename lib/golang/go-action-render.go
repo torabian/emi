@@ -21,7 +21,7 @@ func GoActionRender(
 		Tokens: []core.GeneratedScriptToken{
 			{
 				Name:  core.TOKEN_ORIGINAL_NAME,
-				Value: action.GetName(),
+				Value: realms.ActionName,
 			},
 		},
 	}
@@ -132,7 +132,7 @@ func {{ .realms.ActionName }}(r gin.IRoutes, handler func({{ .realms.ActionName 
 	}
 
 	res.ActualScript = buf.Bytes()
-	res.SuggestedFileName = action.GetName()
+	res.SuggestedFileName = realms.ActionName
 	res.SuggestedExtension = ".go"
 	res.CodeChunkDependensies = deps
 

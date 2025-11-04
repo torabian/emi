@@ -60,8 +60,8 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				res, err := UnrealHeaderStruct(
-					unrealHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
+				res, err := KotlinHeaderStruct(
+					kotlinHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
 					ctx,
 				)
 				if err != nil {
@@ -185,7 +185,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 
 	for _, action := range module.Actions {
 
-		output, err := GoActionRender(action, ctx, complexes)
+		output, err := KotlinActionRender(action, ctx, complexes)
 
 		if err != nil {
 			return nil, err

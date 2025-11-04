@@ -33,8 +33,9 @@ func GetActionRealms(
 			Location: "github.com/gin-gonic/gin",
 		},
 	}
+
 	realms := actionRealms{
-		ActionName: action.GetName(),
+		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
 	}
 
 	return realms, deps, nil

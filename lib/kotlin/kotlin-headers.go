@@ -22,7 +22,7 @@ type renderedHeader struct {
 	Dependencies []core.CodeChunkDependency
 }
 
-type unrealHeaderStructContext struct {
+type kotlinHeaderStructContext struct {
 	ClassName   string
 	Columns     []core.EmiHeader
 	PackageName string
@@ -91,8 +91,8 @@ var GEN_TYPESCRIPT_COMPATIBILITY string = "typescript"
 var GEN_SKIP_ENVELOPES string = "no-envelope"
 var GEN_REACT_COMPATIBILITY string = "react"
 
-func UnrealHeaderStruct(
-	headerctx unrealHeaderStructContext,
+func KotlinHeaderStruct(
+	headerctx kotlinHeaderStructContext,
 	ctx core.MicroGenContext,
 ) (*core.CodeChunkCompiled, error) {
 
