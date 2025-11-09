@@ -57,12 +57,7 @@ func {{ .realms.ActionName }}Meta() struct {
 {{ end }}
 
 
-// {{ .realms.ActionName }}Request wraps the current Gin context.
-// It can be extended later to include typed request data (headers, body, params, etc.)
-// so developers can access both the raw context and strongly typed fields.
-type {{ .realms.ActionName }}Request struct {
-	C *gin.Context
-}
+
 
 type {{ .realms.ActionName }}Response struct {
 	StatusCode int
@@ -77,17 +72,35 @@ func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	r.Handle(meta.Method, meta.URL, handlers...)
 }
 
+{{- define "ginFn" -}}
+	func(c {{ .ActionName }}Request, gin *gin.Context) (*{{ .ActionName }}Response, error)
+{{- end -}}
+
+
+
 // {{ .realms.ActionName }}Handler returns the HTTP method, route URL, and a typed Gin handler for the {{ .realms.ActionName }} action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func {{ .realms.ActionName }}Handler(
-	handler func(c {{ .realms.ActionName }}Request) (*{{ .realms.ActionName }}Response, error),
+	handler {{template "ginFn" .realms -}},
 ) (method, url string, h gin.HandlerFunc) {
 	meta := {{ .realms.ActionName }}Meta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
-		req := {{ .realms.ActionName }}Request{C: m}
+		var body {{ .realms.ActionName }}Req
+		if err := m.ShouldBindJSON(&body); err != nil {
+			m.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
+			return
+		}
 
-		resp, err := handler(req)
+		// Build typed request wrapper
+		req := {{ .realms.ActionName }}Request{
+			Body:        body,
+			QueryParams: m.Request.URL.Query(),
+			Headers:     m.Request.Header,
+		}
+
+
+		resp, err := handler(req, m)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -120,7 +133,7 @@ func {{ .realms.ActionName }}Handler(
 // {{ .realms.ActionName }} is a high-level convenience wrapper around {{ .realms.ActionName }}Handler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func {{ .realms.ActionName }}(r gin.IRoutes, handler func({{ .realms.ActionName }}Request) (*{{ .realms.ActionName }}Response, error)) {
+func {{ .realms.ActionName }}(r gin.IRoutes, handler {{template "ginFn" .realms -}},) {
 	method, url, h := {{ .realms.ActionName }}Handler(handler)
 	r.Handle(method, url, h)
 }
@@ -132,7 +145,7 @@ type {{ .realms.ActionName }}Query struct {
 	url.Values
 }
 
-type {{ .realms.ActionName }}Context struct {
+type {{ .realms.ActionName }}Request struct {
 	Body {{ .realms.ActionName }}Req
 	QueryParams interface{}
 	Headers http.Header
@@ -146,32 +159,39 @@ type {{ .realms.ActionName }}Result struct {
 
 
 func {{ .realms.ActionName }}Call(
-	req {{ .realms.ActionName }}Context,
+	req {{ .realms.ActionName }}Request,
+	httpr *http.Request, // optional pre-built request
 ) (*{{ .realms.ActionName }}Result, error) {
-	meta := {{ .realms.ActionName }}Meta()
 
-	baseURL := meta.URL
+	var httpReq *http.Request
+	if httpr == nil {
+		meta := {{ .realms.ActionName }}Meta()
+		baseURL := meta.URL
 
-	// Build final URL with query string
-	u, err := url.Parse(baseURL)
-	if err != nil {
-		return nil, err
+		// Build final URL with query string
+		u, err := url.Parse(baseURL)
+		if err != nil {
+			return nil, err
+		}
+		// if UrlValues present, encode and append
+		if len(req.UrlValues.Values) > 0 {
+			u.RawQuery = req.UrlValues.Encode()
+		}
+		bodyBytes, err := json.Marshal(req)
+		if err != nil {
+			return nil, err
+		}
+
+		req, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+		if err != nil {
+			return nil, err
+		}
+
+		httpReq = req
+	} else {
+		httpReq = httpr
 	}
-
-	// if UrlValues present, encode and append
-	if len(req.UrlValues.Values) > 0 {
-		u.RawQuery = req.UrlValues.Encode()
-	}
-
-	bodyBytes, err := json.Marshal(req)
-	if err != nil {
-		return nil, err
-	}
-
-	httpReq, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
+ 
 	httpReq.Header = req.Headers
 
 	resp, err := http.DefaultClient.Do(httpReq)
