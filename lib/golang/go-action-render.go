@@ -147,7 +147,7 @@ type {{ .realms.ActionName }}Query struct {
 
 type {{ .realms.ActionName }}Request struct {
 	Body {{ .realms.ActionName }}Req
-	QueryParams interface{}
+	QueryParams url.Values
 	Headers http.Header
 	UrlValues   {{ .realms.ActionName }}Query
 }
@@ -177,17 +177,17 @@ func {{ .realms.ActionName }}Call(
 		if len(req.UrlValues.Values) > 0 {
 			u.RawQuery = req.UrlValues.Encode()
 		}
-		bodyBytes, err := json.Marshal(req)
+		bodyBytes, err := json.Marshal(req.Body)
 		if err != nil {
 			return nil, err
 		}
 
-		req, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+		req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
 		if err != nil {
 			return nil, err
 		}
 
-		httpReq = req
+		httpReq = req0
 	} else {
 		httpReq = httpr
 	}

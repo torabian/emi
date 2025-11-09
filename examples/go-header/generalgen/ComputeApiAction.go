@@ -136,7 +136,7 @@ func ComputeApiActionCall(
 		if len(req.UrlValues.Values) > 0 {
 			u.RawQuery = req.UrlValues.Encode()
 		}
-		bodyBytes, err := json.Marshal(req)
+		bodyBytes, err := json.Marshal(req.Body)
 		if err != nil {
 			return nil, err
 		}
