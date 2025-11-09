@@ -2,36 +2,22 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+
+	"github.com/gin-gonic/gin"
+	unknownpackage "test.com/emi-go-header-demo/generalgen"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	h := NewAnonymouse()
-
-	// Automatically populate from incoming HTTP headers
-	h.PopulateFromHTTP(r.Header)
-
-	pos, err := h.Position()
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	fmt.Printf("Received Position: %+v\n", pos)
-
-	// Modify headers
-	pos.X += 1
-	pos.Y += 2
-	pos.Z += 3
-	h.SetPosition(pos)
-
-	h.WriteToHTTP(w)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Headers processed\n"))
-}
-
 func main() {
-	http.HandleFunc("/", handler)
+	r := gin.Default()
+
+	unknownpackage.ComputeApiAction(r,
+		func(req unknownpackage.ComputeApiActionRequest) (*unknownpackage.ComputeApiActionResponse, error) {
+
+			req.C.JSON(200, "hi")
+			return nil, nil
+		},
+	)
+
 	fmt.Println("Server running on :8080")
-	http.ListenAndServe(":8080", nil)
+	r.Run(":8080")
 }

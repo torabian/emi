@@ -48,6 +48,14 @@ func {{ .realms.ActionName }}Meta() struct {
 }
 
 
+{{ if .realms.RequestClass }}
+	{{ b2s .realms.RequestClass.ActualScript }}
+{{ end }}
+
+{{ if .realms.ResponseClass }}
+	{{ b2s .realms.ResponseClass.ActualScript }}
+{{ end }}
+
 
 // {{ .realms.ActionName }}Request wraps the current Gin context.
 // It can be extended later to include typed request data (headers, body, params, etc.)
@@ -116,6 +124,79 @@ func {{ .realms.ActionName }}(r gin.IRoutes, handler func({{ .realms.ActionName 
 	method, url, h := {{ .realms.ActionName }}Handler(handler)
 	r.Handle(method, url, h)
 }
+
+
+// Using in client code.
+
+type {{ .realms.ActionName }}Query struct {
+	url.Values
+}
+
+type {{ .realms.ActionName }}Context struct {
+	Body {{ .realms.ActionName }}Req
+	QueryParams interface{}
+	Headers http.Header
+	UrlValues   {{ .realms.ActionName }}Query
+}
+
+type {{ .realms.ActionName }}Result struct {
+	*http.Response                      // embed original response
+	Payload interface{}
+}
+
+
+func {{ .realms.ActionName }}Call(
+	req {{ .realms.ActionName }}Context,
+) (*{{ .realms.ActionName }}Result, error) {
+	meta := {{ .realms.ActionName }}Meta()
+
+	baseURL := meta.URL
+
+	// Build final URL with query string
+	u, err := url.Parse(baseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	// if UrlValues present, encode and append
+	if len(req.UrlValues.Values) > 0 {
+		u.RawQuery = req.UrlValues.Encode()
+	}
+
+	bodyBytes, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	httpReq.Header = req.Headers
+
+	resp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("request failed: %s", respBody)
+	}
+
+	var result {{ .realms.ActionName }}Result
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 
 
 `

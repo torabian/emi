@@ -1,0 +1,23 @@
+actions:
+  - name: computeApi
+    description: An API, which computes two vectors
+    method: post
+    qs:
+      - name: action
+        type: string
+      - name: snapPoints
+        type: slice
+        primitive: int
+    in:
+      fields:
+        - name: initialVector1
+          type: slice
+          primitive: int
+        - name: initialVector2
+          type: slice
+          primitive: int
+    out:
+      fields:
+        - name: outputVector
+          type: slice
+          primitive: int
