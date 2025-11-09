@@ -98,7 +98,15 @@ func GetGolangPublicActions() core.PublicAPIActions {
 				Name:             "go",
 				Description:      "Compiles golang from .emi catalog spec file",
 				WasmFunctionName: "goGen",
-				Flags:            []core.FlagDef{},
+				Flags: []core.FlagDef{
+					core.FlagDef{
+						Name:     "emigo",
+						Usage:    "Add location to emigo path folder, can be also github.com/torabian/emi/emigo if you wanted to",
+						Required: false,
+						Type:     core.FlagString,
+						Default:  "github.com/torabian/emi/emigo",
+					},
+				},
 			},
 			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 				type_, err := core.DetectEmiStringContentType(ctx.Content)
@@ -158,6 +166,14 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
+	type Flags struct {
+		Emigo string `json:"emigo"`
+	}
+	var f Flags
+	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
+		panic(err)
+	}
+
 	complexes := discoverComplexes(module)
 	files := []core.VirtualFile{}
 
@@ -174,6 +190,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		actionRendered, err := GoCommonStructGenerator(dto.Fields, ctx, GoCommonStructContext{
 			RootClassName:       dto.GetClassName(),
 			RecognizedComplexes: complexes,
+			EmiLocation:         f.Emigo,
 		})
 		if err != nil {
 			return nil, err

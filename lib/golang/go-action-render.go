@@ -160,11 +160,11 @@ type {{ .realms.ActionName }}Result struct {
 
 func {{ .realms.ActionName }}Call(
 	req {{ .realms.ActionName }}Request,
-	httpr *http.Request, // optional pre-built request
+	config *emigo.APIClient, // optional pre-built request
 ) (*{{ .realms.ActionName }}Result, error) {
 
 	var httpReq *http.Request
-	if httpr == nil {
+	if config == nil || config.Httpr == nil {
 		meta := {{ .realms.ActionName }}Meta()
 		baseURL := meta.URL
 
@@ -189,7 +189,7 @@ func {{ .realms.ActionName }}Call(
 
 		httpReq = req0
 	} else {
-		httpReq = httpr
+		httpReq = config.Httpr
 	}
  
 	httpReq.Header = req.Headers

@@ -195,7 +195,7 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 }
 
 func goComputedField(field *core.EmiField) string {
-	prefix := "emi."
+	prefix := "emigo."
 	switch field.Type {
 
 	case "string", "text", "html", "enum":

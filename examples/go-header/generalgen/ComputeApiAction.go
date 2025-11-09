@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/gin-gonic/gin"
+	"test.com/emi-go-header-demo/generalgen/emigo"
 )
 
 /**
@@ -32,8 +33,9 @@ func ComputeApiActionMeta() struct {
 
 // The base class definition for computeApiActionReq
 type ComputeApiActionReq struct {
-	InitialVector1 []int `json:"initialVector1" yaml:"initialVector1"`
-	InitialVector2 []int `json:"initialVector2" yaml:"initialVector2"`
+	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
+	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
+	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
 }
 
 // The base class definition for computeApiActionRes
@@ -119,14 +121,14 @@ type ComputeApiActionResult struct {
 	Payload interface{}
 }
 
-func (c *APIClient) ComputeApiActionCall(
+func ComputeApiActionCall(
 	req ComputeApiActionRequest,
-	httpr *http.Request, // optional pre-built request
+	config *emigo.APIClient, // optional pre-built request
 ) (*ComputeApiActionResult, error) {
 	var httpReq *http.Request
-	if httpr == nil {
+	if config == nil || config.Httpr == nil {
 		meta := ComputeApiActionMeta()
-		baseURL := c.BaseURL + meta.URL
+		baseURL := meta.URL
 		// Build final URL with query string
 		u, err := url.Parse(baseURL)
 		if err != nil {
@@ -146,7 +148,7 @@ func (c *APIClient) ComputeApiActionCall(
 		}
 		httpReq = req0
 	} else {
-		httpReq = httpr
+		httpReq = config.Httpr
 	}
 	httpReq.Header = req.Headers
 	resp, err := http.DefaultClient.Do(httpReq)

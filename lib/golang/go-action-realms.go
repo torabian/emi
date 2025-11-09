@@ -1,6 +1,8 @@
 package golang
 
 import (
+	"encoding/json"
+
 	"github.com/torabian/emi/lib/core"
 )
 
@@ -27,12 +29,24 @@ func GoActionRealms(
 	complexes []RecognizedComplex,
 
 ) (goActionRealms, []core.CodeChunkDependency, error) {
+
+	type Flags struct {
+		Emigo string `json:"emigo"`
+	}
+	var f Flags
+	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
+		panic(err)
+	}
+
 	deps := []core.CodeChunkDependency{
 		{
 			Location: "net/http",
 		},
 		{
 			Location: "github.com/gin-gonic/gin",
+		},
+		{
+			Location: f.Emigo,
 		},
 	}
 

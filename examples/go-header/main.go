@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	unknownpackage "test.com/emi-go-header-demo/generalgen"
+	"test.com/emi-go-header-demo/generalgen/emigo"
 )
 
 func main() {
@@ -27,18 +28,16 @@ func main() {
 	go func() {
 		time.Sleep(500 * time.Millisecond) // give server time to start
 
-		client := &unknownpackage.APIClient{
-			BaseURL:    "http://localhost:8080",
-			Headers:    http.Header{"Authorization": {"Bearer token"}},
-			HTTPClient: &http.Client{},
-		}
-
-		res, err := client.ComputeApiActionCall(unknownpackage.ComputeApiActionRequest{
+		res, err := unknownpackage.ComputeApiActionCall(unknownpackage.ComputeApiActionRequest{
 			Body: unknownpackage.ComputeApiActionReq{
 				InitialVector1: []int{1, 2, 3},
 				InitialVector2: []int{4, 5, 6},
 			},
-		}, nil)
+		}, &emigo.APIClient{
+			BaseURL:    "http://localhost:8080",
+			Headers:    http.Header{"Authorization": {"Bearer token"}},
+			HTTPClient: &http.Client{},
+		})
 
 		if err != nil {
 			fmt.Println("Client error:", err)

@@ -13,6 +13,8 @@ actions:
         - name: initialVector1
           type: slice
           primitive: int
+        - name: value
+          type: string?
         - name: initialVector2
           type: slice
           primitive: int
