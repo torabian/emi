@@ -43,7 +43,7 @@ func {{ .realms.ActionName }}Meta() struct {
     }{
         Name:   "{{ .realms.ActionName }}",
         URL:    "{{ .action.Url }}",
-        Method: "{{ .action.Method }}",
+        Method: "{{ UPPER .action.Method }}",
     }
 }
 
@@ -153,7 +153,7 @@ type {{ .realms.ActionName }}Request struct {
 }
 
 type {{ .realms.ActionName }}Result struct {
-	*http.Response                      // embed original response
+	resp *http.Response                      // embed original response
 	Payload interface{}
 }
 
@@ -198,20 +198,26 @@ func {{ .realms.ActionName }}Call(
 	if err != nil {
 		return nil, err
 	}
+
+
+	var result {{ .realms.ActionName }}Result
+	result.resp = resp
+
+
 	defer resp.Body.Close()
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return &result, err
 	}
 
 	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("request failed: %s", respBody)
+		return &result, fmt.Errorf("request failed: %s", respBody)
 	}
 
-	var result {{ .realms.ActionName }}Result
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return nil, err
+
+	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
+		return &result, err
 	}
 
 	return &result, nil

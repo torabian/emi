@@ -26,7 +26,7 @@ func ComputeApiActionMeta() struct {
 	}{
 		Name:   "ComputeApiAction",
 		URL:    "",
-		Method: "post",
+		Method: "POST",
 	}
 }
 
@@ -110,23 +110,23 @@ type ComputeApiActionQuery struct {
 }
 type ComputeApiActionRequest struct {
 	Body        ComputeApiActionReq
-	QueryParams interface{}
+	QueryParams url.Values
 	Headers     http.Header
 	UrlValues   ComputeApiActionQuery
 }
 type ComputeApiActionResult struct {
-	*http.Response // embed original response
-	Payload        interface{}
+	resp    *http.Response // embed original response
+	Payload interface{}
 }
 
-func ComputeApiActionCall(
+func (c *APIClient) ComputeApiActionCall(
 	req ComputeApiActionRequest,
 	httpr *http.Request, // optional pre-built request
 ) (*ComputeApiActionResult, error) {
 	var httpReq *http.Request
 	if httpr == nil {
 		meta := ComputeApiActionMeta()
-		baseURL := meta.URL
+		baseURL := c.BaseURL + meta.URL
 		// Build final URL with query string
 		u, err := url.Parse(baseURL)
 		if err != nil {
@@ -140,11 +140,11 @@ func ComputeApiActionCall(
 		if err != nil {
 			return nil, err
 		}
-		req, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+		req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
 		if err != nil {
 			return nil, err
 		}
-		httpReq = req
+		httpReq = req0
 	} else {
 		httpReq = httpr
 	}
@@ -153,17 +153,18 @@ func ComputeApiActionCall(
 	if err != nil {
 		return nil, err
 	}
+	var result ComputeApiActionResult
+	result.resp = resp
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return &result, err
 	}
 	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("request failed: %s", respBody)
+		return &result, fmt.Errorf("request failed: %s", respBody)
 	}
-	var result ComputeApiActionResult
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return nil, err
+	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
+		return &result, err
 	}
 	return &result, nil
 }

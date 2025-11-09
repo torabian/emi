@@ -84,6 +84,7 @@ var CommonMap = template.FuncMap{
 	"join":              strings.Join,
 	"b2s":               func(b []byte) string { return string(b) },
 	"trim":              strings.TrimSpace,
+	"UPPER":             strings.ToUpper,
 	"upper":             ToUpper,
 	"lower":             ToLower,
 	"snakeUpper":        ToSnakeUpper,
