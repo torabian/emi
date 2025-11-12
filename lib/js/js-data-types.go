@@ -31,7 +31,6 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 	case "daterange":
 		return "any"
 	case "enum":
-
 		if field.Target != "" {
 			return field.Target
 		}
