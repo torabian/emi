@@ -6,7 +6,6 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
-import GiantDto "./GiantDto"
 /**
  * Action to communicate with the action ModifyGiantDtoAction
  */

@@ -1,9 +1,13 @@
 package unknownpackage
-  // The base class definition for giantDto
+
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+
+
 @Serializable
 data class GiantDto (
-		@SerialName("firstName") val firstName: string,
+		@SerialName("firstName") val firstName: String,
 		@SerialName("firstNameNullable") val firstNameNullable: String?,
-		@SerialName("array") val array: List<GiantDtoArray>,
-		@SerialName("arrayNullable") val arrayNullable: List<GiantDtoArrayNullable>,
+		@SerialName("array") val array: List<String>,
+		@SerialName("arrayNullable") val arrayNullable: List<String>,
 )

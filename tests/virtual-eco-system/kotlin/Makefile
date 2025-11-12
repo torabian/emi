@@ -1,2 +1,2 @@
 compile:
-	./gradlew build
+	./gradlew clean build
