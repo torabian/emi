@@ -1,0 +1,2 @@
+compile:
+	./gradlew build

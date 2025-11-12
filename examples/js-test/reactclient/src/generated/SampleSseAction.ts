@@ -133,7 +133,7 @@ export const useSampleSseAction = (
 	/**
  * SampleSseAction
  */
-export class SampleSseAction {
+export class SampleSseAction { //
   static URL = 'http://localhost:3000/stream';
   static NewUrl = (
 	qs?: URLSearchParams

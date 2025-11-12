@@ -144,7 +144,7 @@ export type GetSinglePostActionPathParameter = {
 	/**
  * GetSinglePostAction
  */
-export class GetSinglePostAction {
+export class GetSinglePostAction { //
   static URL = 'https://jsonplaceholder.typicode.com/posts/:id';
   static NewUrl = (
 	params: GetSinglePostActionPathParameter,

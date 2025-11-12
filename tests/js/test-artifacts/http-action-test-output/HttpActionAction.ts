@@ -16,6 +16,7 @@ export type HttpActionActionOptions = {
  * HttpActionAction
  */
 export class HttpActionAction {
+  //
   static URL = "http://localhost:8081 (for test we use override)";
   static NewUrl = (qs?: URLSearchParams) =>
     buildUrl(HttpActionAction.URL, undefined, qs);

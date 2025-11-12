@@ -3,7 +3,6 @@ package js
 import (
 	"embed"
 	"errors"
-	"fmt"
 	"path"
 	"slices"
 	"strings"
@@ -202,7 +201,6 @@ func detectUsedFilesAndImports(
 	sdkFiles := core.FsEmbedToVirtualFile(sdkEmbedContent, "sdk")
 
 	for _, sdkFile := range sdkFiles {
-		fmt.Println(sdkFile)
 		actual := "./" + path.Join(sdkFile.Location, sdkFile.Name, sdkFile.Extension)
 		actual = strings.TrimSuffix(actual, ".ts")
 		actual = strings.TrimSuffix(actual, ".js")

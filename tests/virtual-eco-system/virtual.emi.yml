@@ -1,0 +1,24 @@
+name: virtual
+description: Virtual eco system of actions, dtos, which covers entire 
+  features of the compiler for different languages.
+
+dtos:
+  - name: giant
+    fields:
+      - name: firstName
+        type: string
+      - name: firstNameNullable
+        type: string?
+      - name: array
+        type: array
+      - name: arrayNullable
+        type: array?
+
+actions:
+  - name: modifyGiantDto
+    method: post
+    url: /modify/dto
+    in:
+      dto: GiantDto
+    out:
+      dto: GiantDto

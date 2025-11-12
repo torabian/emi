@@ -43,6 +43,9 @@ jobs:
       - name: Javascript tests
         run: cd tests/js && npm i -f && npx vitest run
       
+      - name: The the virtual ecosystem
+        run: cd tests/virtual-eco-system && make build
+      
 
       - name: Compile the web veresion (docs, and only after running tests because they create document)
         run: cd emi-web && npm i -f && npm run build
