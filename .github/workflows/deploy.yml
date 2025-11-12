@@ -34,6 +34,9 @@ jobs:
       - name: Make wasm
         run: make wasm
         
+      - name: Make standard binary
+        run: make
+        
       - name: Build Playground
         run: cd playground && npm run build
         
