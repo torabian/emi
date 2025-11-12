@@ -156,11 +156,11 @@ func KotlinCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenConte
 
 {{ define "printClass" }}
 {{ .GoDoc }}
-{{ .Signature  }} {
+{{ .Signature  }} (
 	{{ range .Fields }}
-		{{ .PrivateField }}
+		{{ .PrivateField }},
 	{{ end }}
-}
+)
 
 	{{ range .SubClasses }}
 		{{ template "printClass" . }}
@@ -195,17 +195,12 @@ func KotlinCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenConte
 }
 
 func goComputedField(field *core.EmiField) string {
-	prefix := "emi."
 	switch field.Type {
 
 	case "string", "text", "html", "enum":
 		return "string"
 	case "string?", "text?", "html?", "enum?":
-		return prefix + "Nullable[string]"
-		// return prefix + "String"
-	case "duration?":
-		return prefix + "Duration"
-
+		return "String?"
 	case "one":
 		if field.Module != "" {
 			return field.Module + "." + field.Target
@@ -221,11 +216,11 @@ func goComputedField(field *core.EmiField) string {
 		}
 		return field.Target
 	case "slice":
-		return "[]" + field.Primitive
+		return fmt.Sprintf("List<%v>", core.ToUpper(field.Primitive))
 	case "int64", "int32", "int", "float64", "float32", "bool":
 		return string(field.Type)
 	case "int64?", "int32?", "int?", "float64?", "float32?", "bool?":
-		return prefix + "Nullable[" + strings.ReplaceAll(core.ToLower(string(field.Type)), "?", "") + "]"
+		return strings.ReplaceAll(core.ToLower(string(field.Type)), "?", "") + "?"
 	case "Timestamp":
 		return "*string"
 	case "datenano":
@@ -238,12 +233,8 @@ func goComputedField(field *core.EmiField) string {
 		return field.PublicName()
 	case "json":
 		return "JSON"
-	case "date":
-		return prefix + "XDate"
-	case "datetime":
-		return "*" + prefix + "XDateTime"
 	default:
-		return "interface{}"
+		return "Any"
 	}
 }
 
@@ -256,11 +247,11 @@ func goFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 	case core.FieldTypeObject:
 		return fmt.Sprintf(" %v", prefix)
 	case core.FieldTypeArray:
-		return fmt.Sprintf("[]%v", prefix)
+		return fmt.Sprintf("List<%v>", prefix)
 	case core.FieldTypeObjectNullable:
-		return fmt.Sprintf("emi.Nullable[%v]", prefix)
+		return fmt.Sprintf("List<%v>", prefix)
 	case core.FieldTypeArrayNullable:
-		return fmt.Sprintf("emi.Nullable[[]%v]", prefix)
+		return fmt.Sprintf("List<%v>", prefix)
 	default:
 		return goComputedField(field)
 	}

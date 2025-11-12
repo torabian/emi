@@ -202,13 +202,13 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 }
 
 func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
-	importsList := CombineGoImports(*x)
+	importsList := CombineJavaImport(*x)
 	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + string(x.ActualScript)
 
 	finalContent = string(core.EscapeLines([]byte(finalContent)))
 	return finalContent
 }
-func CombineGoImports(chunk core.CodeChunkCompiled) string {
+func CombineJavaImport(chunk core.CodeChunkCompiled) string {
 	statements := map[string]struct{}{}
 
 	// Collect unique import statements
@@ -217,7 +217,7 @@ func CombineGoImports(chunk core.CodeChunkCompiled) string {
 		if len(dep.Objects) > 0 {
 			statement = fmt.Sprintf(`%v "%v"`, dep.Objects[0], dep.Location)
 		} else {
-			statement = fmt.Sprintf(`"%v"`, dep.Location)
+			statement = fmt.Sprintf(`%v`, dep.Location)
 		}
 		statements[statement] = struct{}{}
 	}
@@ -229,12 +229,10 @@ func CombineGoImports(chunk core.CodeChunkCompiled) string {
 	}
 	sort.Strings(sorted)
 
-	// Combine into final import block
-	if len(sorted) == 0 {
-		return ""
-	} else if len(sorted) == 1 {
-		return "import " + sorted[0]
-	} else {
-		return "import (\n" + strings.Join(sorted, "\n") + "\n)"
+	statementsX := []string{}
+	for v := range statements {
+		statementsX = append(statementsX, fmt.Sprintf("import %v", v))
 	}
+
+	return strings.Join(statementsX, "\r\n")
 }

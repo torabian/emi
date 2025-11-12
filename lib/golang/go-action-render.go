@@ -223,8 +223,6 @@ func {{ .realms.ActionName }}Call(
 	return &result, nil
 }
 
-
-
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))

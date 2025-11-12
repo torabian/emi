@@ -36,7 +36,7 @@ data class {{ .realms.ActionName }}Meta(
     val method: String = "{{ .action.Method }}"
 )
 
-data class {{ .realms.ActionName }}Request(val call: io.ktor.server.application.ApplicationCall)
+/*data class {{ .realms.ActionName }}Request(val call: io.ktor.server.application.ApplicationCall)*/
 
 data class {{ .realms.ActionName }}Response(
     val statusCode: Int = 200,
@@ -44,23 +44,40 @@ data class {{ .realms.ActionName }}Response(
     val payload: Any? = null
 )
 
-// Registers a raw route for {{ .realms.ActionName }} using Ktor routing
-fun {{ .realms.ActionName }}Raw(route: io.ktor.server.routing.Route, handler: suspend ({{ .realms.ActionName }}Request) -> {{ .realms.ActionName }}Response) {
-    val meta = {{ .realms.ActionName }}Meta()
-    route.route(meta.url, io.ktor.server.routing.HttpMethod.valueOf(meta.method)) {
-        handle {
-            val req = {{ .realms.ActionName }}Request(call)
-            val resp = handler(req)
-            resp.headers.forEach { (k, v) -> call.response.headers.append(k, v) }
-            call.respond(resp.statusCode, resp.payload ?: "")
+object {{ .realms.ActionName }}Client {
+    private val client = OkHttpClient()
+    private val jsonType = "application/json".toMediaType()
+
+    suspend fun compute(jsonPayload: String): {{ .realms.ActionName }}Response =
+        withContext(Dispatchers.IO) {
+            val meta = {{ .realms.ActionName }}Meta()
+            val body = jsonPayload.toRequestBody(jsonType)
+
+            val request = Request.Builder()
+                .url(meta.url)
+                .method(meta.method, body)
+                .addHeader("Accept", "application/json")
+                .build()
+
+            client.newCall(request).execute().use { resp ->
+                {{ .realms.ActionName }}Response(
+                    statusCode = resp.code,
+                    // body = resp.body?.string().orEmpty(),
+                    headers = resp.headers.toMap()
+                )
+            }
         }
-    }
 }
 
-// Convenience wrapper for route registration
-fun {{ .realms.ActionName }}(route: io.ktor.server.routing.Route, handler: suspend ({{ .realms.ActionName }}Request) -> {{ .realms.ActionName }}Response) {
-    {{ .realms.ActionName }}Raw(route, handler)
-}
+{{ if .realms.RequestClass }}
+	{{ b2s .realms.RequestClass.ActualScript }}
+{{ end }}
+
+{{ if .realms.ResponseClass }}
+	{{ b2s .realms.ResponseClass.ActualScript }}
+{{ end }}
+
+
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
