@@ -35,7 +35,7 @@ jobs:
         run: make wasm
         
       - name: Make standard binary file
-        run: make
+        run: make unix
         
       - name: Build Playground
         run: cd playground && npm run build

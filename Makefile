@@ -10,6 +10,9 @@ build:
 win:
 	go build -ldflags "-s -w" -o ./emi.exe ./cmd/emi
 
+unix:
+	go build -ldflags "-s -w" -o ./emi ./cmd/emi
+
 build-js-sdks:
 	cd js-sdk-kit && npm run build && rm -rf ../lib/js/ts-sdk && cp -R build ../lib/js/ts-sdk && \
 	cd - && \
