@@ -16,7 +16,6 @@ function App() {
     features,
     ready,
     setAssemblyFunction,
-    assemblyFunction,
   } = usePlaygroundPresenter();
 
   const yamlDoc: VirtualFile = {
