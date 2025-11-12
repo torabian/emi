@@ -34,7 +34,7 @@ jobs:
       - name: Make wasm
         run: make wasm
         
-      - name: Make standard binary
+      - name: Make standard binary file
         run: make
         
       - name: Build Playground
