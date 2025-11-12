@@ -215,7 +215,7 @@ func CombineJavaImport(chunk core.CodeChunkCompiled) string {
 	for _, dep := range chunk.CodeChunkDependensies {
 		statement := ""
 		if len(dep.Objects) > 0 {
-			statement = fmt.Sprintf(`%v "%v"`, dep.Objects[0], dep.Location)
+			statement = fmt.Sprintf(`%v "%v" //x`, dep.Objects[0], dep.Location)
 		} else {
 			statement = fmt.Sprintf(`%v`, dep.Location)
 		}

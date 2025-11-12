@@ -67,7 +67,8 @@ func GetActionRealms(
 		realms.RequestClass = fields
 	} else if action.HasRequestDto() {
 		realms.RequestClass = castDtoNameToCodeChunk(action.GetRequestDto())
-		deps = append(deps, realms.RequestClass.CodeChunkDependensies...)
+		// For the java/kotlin it's not needed?
+		//deps = append(deps, realms.RequestClass.CodeChunkDependensies...)
 	}
 
 	// Action response (out)
@@ -84,7 +85,8 @@ func GetActionRealms(
 		realms.ResponseClass = fields
 	} else if action.HasResponseDto() {
 		realms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
-		deps = append(deps, realms.ResponseClass.CodeChunkDependensies...)
+		// For the java/kotlin it's not needed?
+		// deps = append(deps, realms.ResponseClass.CodeChunkDependensies...)
 	}
 
 	return realms, deps, nil

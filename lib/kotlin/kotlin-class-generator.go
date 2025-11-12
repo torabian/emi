@@ -119,7 +119,14 @@ func findComplexLocation(complexName string, goctx commonClassContext) string {
 func KotlinCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, goctx commonClassContext) (*core.CodeChunkCompiled, error) {
 
 	res := &core.CodeChunkCompiled{
-		CodeChunkDependensies: []core.CodeChunkDependency{},
+		CodeChunkDependensies: []core.CodeChunkDependency{
+			{
+				Location: "kotlinx.serialization.*",
+			},
+			{
+				Location: "kotlinx.serialization.json.*",
+			},
+		},
 	}
 
 	usedComplexes := CollectComplexClasses(fields)
@@ -192,67 +199,4 @@ func KotlinCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenConte
 	res.SuggestedFileName = goctx.RootClassName + ".kt"
 
 	return res, nil
-}
-
-func goComputedField(field *core.EmiField) string {
-	switch field.Type {
-
-	case "string", "text", "html", "enum":
-		return "string"
-	case "string?", "text?", "html?", "enum?":
-		return "String?"
-	case "one":
-		if field.Module != "" {
-			return field.Module + "." + field.Target
-		}
-		return field.Target
-	case "array":
-		return field.PublicName()
-	case "any":
-		return "interface{}"
-	case "collection":
-		if field.Module != "" {
-			return field.Module + "." + field.Target
-		}
-		return field.Target
-	case "slice":
-		return fmt.Sprintf("List<%v>", core.ToUpper(field.Primitive))
-	case "int64", "int32", "int", "float64", "float32", "bool":
-		return string(field.Type)
-	case "int64?", "int32?", "int?", "float64?", "float32?", "bool?":
-		return strings.ReplaceAll(core.ToLower(string(field.Type)), "?", "") + "?"
-	case "Timestamp":
-		return "*string"
-	case "datenano":
-		return "int64"
-	case "boolean":
-		return "*bool"
-	case "double":
-		return "*float64"
-	case "object", "embed":
-		return field.PublicName()
-	case "json":
-		return "JSON"
-	default:
-		return "Any"
-	}
-}
-
-func goFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string {
-	if field == nil {
-		return ""
-	}
-	prefix := core.ToUpper(parentChain) + core.ToUpper(field.Name)
-	switch field.Type {
-	case core.FieldTypeObject:
-		return fmt.Sprintf(" %v", prefix)
-	case core.FieldTypeArray:
-		return fmt.Sprintf("List<%v>", prefix)
-	case core.FieldTypeObjectNullable:
-		return fmt.Sprintf("List<%v>", prefix)
-	case core.FieldTypeArrayNullable:
-		return fmt.Sprintf("List<%v>", prefix)
-	default:
-		return goComputedField(field)
-	}
 }

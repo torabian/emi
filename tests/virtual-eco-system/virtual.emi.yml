@@ -11,8 +11,14 @@ dtos:
         type: string?
       - name: array
         type: array
+        fields:
+          - name: subItem1
+            type: int
       - name: arrayNullable
         type: array?
+        fields:
+          - name: subItemNullable1
+            type: int?
 
 actions:
   - name: modifyGiantDto
