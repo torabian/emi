@@ -9,10 +9,7 @@ import (
 type goActionRealms struct {
 	ActionName           string
 	HttpMethod           string
-	UseQueryFunction     *core.CodeChunkCompiled
-	ReactQueryOptions    *core.CodeChunkCompiled
 	PathParameter        *core.CodeChunkCompiled
-	OptionsType          *core.CodeChunkCompiled
 	FetchMetaClass       *core.CodeChunkCompiled
 	RequestClass         *core.CodeChunkCompiled
 	ResponseClass        *core.CodeChunkCompiled
@@ -54,12 +51,15 @@ func GoActionRealms(
 	if GENERATE_GO_CLINET {
 		deps = append(
 			deps,
-			core.CodeChunkDependency{Location: "bytes"},
 			core.CodeChunkDependency{Location: "encoding/json"},
 			core.CodeChunkDependency{Location: "fmt"},
 			core.CodeChunkDependency{Location: "io"},
 			core.CodeChunkDependency{Location: "net/url"},
 		)
+
+		if action.MethodUpper() != "GET" {
+			deps = append(deps, core.CodeChunkDependency{Location: "bytes"})
+		}
 	}
 
 	realms := goActionRealms{

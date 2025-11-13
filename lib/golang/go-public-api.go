@@ -20,7 +20,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 				WasmFunctionName: "goGenObject",
 				Flags: []core.FlagDef{
 					{
-						Name:     "package",
+						Name:     "pkg",
 						Type:     core.FlagString,
 						Usage:    "Package name of the golang",
 						Required: true,
@@ -52,41 +52,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				return AsFullDocument(res, m["package"]), nil
-
-			},
-		}, {
-			BaseAction: core.BaseAction{
-				Name:             "go:headers",
-				Description:      "Generates headers, for golang, both as client and server",
-				WasmFunctionName: "goGenObject",
-				Flags: []core.FlagDef{
-					{
-						Name:     "package",
-						Type:     core.FlagString,
-						Usage:    "Package name of the golang",
-						Required: true,
-					},
-				},
-			},
-			Run: func(ctx core.MicroGenContext) (string, error) {
-
-				var m map[string]string = map[string]string{}
-
-				json.Unmarshal([]byte(ctx.Flags), &m)
-				headers, err := core.StringToEmiHeaders(ctx.Content)
-				if err != nil {
-					return "", err
-				}
-
-				res, err := GoHeaderStruct(
-					goHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
-					ctx,
-				)
-				if err != nil {
-					return "", err
-				}
-				return AsFullDocument(res, m["package"]), nil
+				return AsFullDocument(res, m["pkg"]), nil
 
 			},
 		},
@@ -99,12 +65,17 @@ func GetGolangPublicActions() core.PublicAPIActions {
 				Description:      "Compiles golang from .emi catalog spec file",
 				WasmFunctionName: "goGen",
 				Flags: []core.FlagDef{
-					core.FlagDef{
+					{
 						Name:     "emigo",
 						Usage:    "Add location to emigo path folder, can be also github.com/torabian/emi/emigo if you wanted to",
 						Required: false,
 						Type:     core.FlagString,
 						Default:  "github.com/torabian/emi/emigo",
+					},
+					{
+						Name:  "pkg",
+						Type:  core.FlagString,
+						Usage: "Package name of the golang",
 					},
 				},
 			},
@@ -167,9 +138,13 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	globalPacakges := []string{"qs", "@types/qs"}
 
 	type Flags struct {
-		Emigo string `json:"emigo"`
+		Emigo       string `json:"emigo,omitempty"`
+		PackageName string `json:"pkg,omitempty"`
 	}
-	var f Flags
+	var f Flags = Flags{
+		Emigo:       "github.com/torabian/emi/emigo",
+		PackageName: "unk",
+	}
 	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
 		panic(err)
 	}
@@ -213,7 +188,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		files = append(files, core.VirtualFile{
 			Name:         dtoItem.SuggestedFileName,
 			Extension:    dtoItem.SuggestedExtension,
-			ActualScript: AsFullDocument(dtoItem, "unknownpackage"),
+			ActualScript: AsFullDocument(dtoItem, f.PackageName),
 		})
 	}
 
@@ -230,7 +205,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		files = append(files, core.VirtualFile{
 			Name:         output.SuggestedFileName,
 			Extension:    output.SuggestedExtension,
-			ActualScript: AsFullDocument(output, "unknownpackage"),
+			ActualScript: AsFullDocument(output, f.PackageName),
 		})
 	}
 

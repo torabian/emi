@@ -1,43 +1,48 @@
-package unknownpackage
+package unk
+
 import (
-"bytes"
-"encoding/json"
-"fmt"
-"github.com/gin-gonic/gin"
-"io"
-"net/http"
-"net/url"
-"test/emi/emigo"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"test/emi/emigo"
+
+	"github.com/gin-gonic/gin"
 )
+
 /**
 * Action to communicate with the action ModifyGiantDtoAction
-*/
+ */
 func ModifyGiantDtoActionMeta() struct {
-    Name   string
-    URL    string
-    Method string
+	Name   string
+	URL    string
+	Method string
 } {
-    return struct {
-        Name   string
-        URL    string
-        Method string
-    }{
-        Name:   "ModifyGiantDtoAction",
-        URL:    "/modify/dto",
-        Method: "POST",
-    }
+	return struct {
+		Name   string
+		URL    string
+		Method string
+	}{
+		Name:   "ModifyGiantDtoAction",
+		URL:    "/modify/dto",
+		Method: "POST",
+	}
 }
+
 type ModifyGiantDtoActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
 }
+
 // ModifyGiantDtoActionRaw registers a raw Gin route for the ModifyGiantDtoAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func ModifyGiantDtoActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ModifyGiantDtoActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-}// ModifyGiantDtoActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ModifyGiantDtoAction action.
+} // ModifyGiantDtoActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ModifyGiantDtoAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ModifyGiantDtoActionHandler(
@@ -81,27 +86,30 @@ func ModifyGiantDtoActionHandler(
 		}
 	}
 }
+
 // ModifyGiantDtoAction is a high-level convenience wrapper around ModifyGiantDtoActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ModifyGiantDtoAction(r gin.IRoutes, handler func(c ModifyGiantDtoActionRequest, gin *gin.Context) (*ModifyGiantDtoActionResponse, error),) {
+func ModifyGiantDtoAction(r gin.IRoutes, handler func(c ModifyGiantDtoActionRequest, gin *gin.Context) (*ModifyGiantDtoActionResponse, error)) {
 	method, url, h := ModifyGiantDtoActionHandler(handler)
 	r.Handle(method, url, h)
 }
+
 // Using in client code.
 type ModifyGiantDtoActionQuery struct {
 	url.Values
 }
 type ModifyGiantDtoActionRequest struct {
-	Body GiantDto
+	Body        GiantDto
 	QueryParams url.Values
-	Headers http.Header
+	Headers     http.Header
 	UrlValues   ModifyGiantDtoActionQuery
 }
 type ModifyGiantDtoActionResult struct {
-	resp *http.Response                      // embed original response
+	resp    *http.Response // embed original response
 	Payload interface{}
 }
+
 func ModifyGiantDtoActionCall(
 	req ModifyGiantDtoActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -119,11 +127,11 @@ func ModifyGiantDtoActionCall(
 		if len(req.UrlValues.Values) > 0 {
 			u.RawQuery = req.UrlValues.Encode()
 		}
-			bodyBytes, err := json.Marshal(req.Body)
-			if err != nil {
-				return nil, err
-			}
-			req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+		bodyBytes, err := json.Marshal(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
 		if err != nil {
 			return nil, err
 		}

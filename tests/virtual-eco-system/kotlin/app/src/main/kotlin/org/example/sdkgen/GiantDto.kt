@@ -1,6 +1,6 @@
 package unknownpackage
-import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import kotlinx.serialization.*
   // The base class definition for giantDto
 @Serializable
 data class GiantDto (

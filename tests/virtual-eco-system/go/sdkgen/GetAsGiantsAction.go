@@ -1,4 +1,4 @@
-package unknownpackage
+package unk
 
 import (
 	"encoding/json"
