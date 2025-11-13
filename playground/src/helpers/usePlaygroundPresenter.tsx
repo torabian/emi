@@ -6,7 +6,14 @@ import type { VirtualFile } from "../definitions";
 export const usePlaygroundPresenter = () => {
   const { ready } = useGoWasm({ wasmPath: "emi-compiler.wasm" });
   const [value, setValue$] = useState(sampleDocument);
-  const [assemblyFunction, setAssemblyFunction] = useState("jsGenModule");
+  const [assemblyFunction, setAssemblyFunction$] = useState("jsGenModule");
+
+  const setAssemblyFunction = (play: string) => {
+    setAssemblyFunction$(play);
+
+    rerender(value, play);
+  };
+
   const [features, setFeatures] = useState<string[]>([
     "nestjs",
     "typescript",
@@ -14,23 +21,27 @@ export const usePlaygroundPresenter = () => {
   ]);
   const [files, setOutput] = useState<VirtualFile[]>([]);
 
-  const rerender = (data: any) => {
+  const rerender = (data: any, func = "") => {
     try {
-      const res = (window as any)[assemblyFunction](data, {
+      const res = (window as any)[func](data, {
         Tags: features.join(","),
       });
 
+      console.log(func, res);
+
       const formattedPromises = res.map(async (item: any) => {
         try {
-          item.ActualScript = await (window as any).prettier.format(
-            item.ActualScript,
-            {
-              parser: "typescript",
-              plugins: (window as any).prettierPlugins,
-            }
-          );
+          if (item.Name.endsWith(".ts") || item.Name.endsWith(".js")) {
+            item.ActualScript = await (window as any).prettier.format(
+              item.ActualScript,
+              {
+                parser: "typescript",
+                plugins: (window as any).prettierPlugins,
+              }
+            );
+          }
         } catch (e) {
-          console.error("Formatting failed for item:", item, e);
+          console.error("Formatting failed for item:", item.Name, e);
         }
         return item;
       });
@@ -57,14 +68,14 @@ export const usePlaygroundPresenter = () => {
   };
 
   const setValue = (data: string) => {
-    rerender(data);
+    rerender(data, assemblyFunction);
     setValue$(data);
   };
 
   useEffect(() => {
     if (ready) {
       setTimeout(() => {
-        rerender(value);
+        rerender(value, assemblyFunction);
       }, 100);
     }
   }, [ready, features]);

@@ -1,0 +1,238 @@
+package kotlin
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"slices"
+	"sort"
+	"strings"
+
+	"github.com/torabian/emi/lib/core"
+)
+
+func GetKotlinPublicActions() core.PublicAPIActions {
+	textActions := []core.ActionText{
+		{
+			BaseAction: core.BaseAction{
+				Name:             "kotlin:dto",
+				Description:      "Generate kotin dto objects",
+				WasmFunctionName: "genKotlinDto",
+				Flags:            []core.FlagDef{},
+			},
+			Run: func(ctx core.MicroGenContext) (string, error) {
+
+				var m map[string]string = map[string]string{}
+				json.Unmarshal([]byte(ctx.Flags), &m)
+
+				emiDto, err := core.StringToEmiDto(ctx.Content)
+				if err != nil {
+					return "", err
+				}
+
+				emiLocation := ""
+				if val, ok := m["emi-runtime"]; ok && val != "" && val != "<nil>" {
+					emiLocation = val
+				}
+
+				res, err := KotlinCommonStructGenerator(emiDto.Fields, ctx, commonClassContext{RootClassName: emiDto.Name, EmiLocation: emiLocation})
+				if err != nil {
+					return "", err
+				}
+
+				return AsFullDocument(res, m["package"]), nil
+
+			},
+		}, {
+			BaseAction: core.BaseAction{
+				Name:             "kotlin:headers",
+				Description:      "Generates headers, for kotlin, which can be used in client and server",
+				WasmFunctionName: "kotlinGenHeader",
+				Flags:            []core.FlagDef{},
+			},
+			Run: func(ctx core.MicroGenContext) (string, error) {
+
+				var m map[string]string = map[string]string{}
+
+				json.Unmarshal([]byte(ctx.Flags), &m)
+				headers, err := core.StringToEmiHeaders(ctx.Content)
+				if err != nil {
+					return "", err
+				}
+
+				res, err := KotlinHeaderStruct(
+					kotlinHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
+					ctx,
+				)
+				if err != nil {
+					return "", err
+				}
+				return AsFullDocument(res, m["package"]), nil
+
+			},
+		},
+	}
+
+	fileActions := []core.ActionFile{
+		{
+			BaseAction: core.BaseAction{
+				Name:             "kotlin",
+				Description:      "Compiles kotlin module",
+				WasmFunctionName: "kotlinGen",
+				Flags:            []core.FlagDef{},
+			},
+			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+				type_, err := core.DetectEmiStringContentType(ctx.Content)
+				if err != nil {
+					return nil, err
+				}
+
+				if type_ == "module" {
+					emiModule, err := core.StringToEmi(ctx.Content)
+					if err != nil {
+						return nil, err
+					}
+
+					files, err := GoModuleFull(&emiModule, ctx)
+
+					return files, err
+				}
+
+				return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
+			},
+		},
+	}
+
+	return core.PublicAPIActions{
+		TextActions: textActions,
+		FileActions: fileActions,
+	}
+}
+
+// Finds the ts/js compatible types.
+func discoverComplexes(module *core.Emi) []RecognizedComplex {
+	items := []RecognizedComplex{}
+	for _, complex := range module.Complexes {
+
+		// only pick general or js/ts specific complexes for js-modules
+		if complex.Compiler == "go" {
+			items = append(items, RecognizedComplex{
+				Symbol:         complex.Name,
+				ImportLocation: complex.Location,
+			})
+		}
+	}
+
+	return items
+}
+
+type GoModuleGenerationFlags struct {
+	Dtos *string `json:"dtos"`
+}
+
+func (x GoModuleGenerationFlags) GetDtos() []string {
+	return strings.Split(*x.Dtos, ",")
+}
+
+// Combines entire features for a module, and creates a virtual map of the files
+// which is necessary to run entire modules
+func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+	globalPacakges := []string{"qs", "@types/qs"}
+
+	complexes := discoverComplexes(module)
+	files := []core.VirtualFile{}
+
+	config := GoModuleGenerationFlags{}
+	json.Unmarshal([]byte(ctx.Flags), &config)
+
+	var entitiesAndDtos []*core.CodeChunkCompiled
+
+	for _, dto := range module.Dto {
+		if config.Dtos != nil && len(*config.Dtos) > 0 && !slices.Contains(config.GetDtos(), dto.Name) {
+			continue
+		}
+
+		actionRendered, err := KotlinCommonStructGenerator(dto.Fields, ctx, commonClassContext{
+			RootClassName:       dto.GetClassName(),
+			RecognizedComplexes: complexes,
+		})
+		if err != nil {
+			return nil, err
+		}
+		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
+	}
+
+	// internalUsage := []string{}
+
+	for _, dtoItem := range entitiesAndDtos {
+		for _, loc := range dtoItem.CodeChunkDependensies {
+			// I don't remember this
+			// if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
+			// 	internalUsage = append(internalUsage, loc.Location)
+			// 	continue
+			// }
+			globalPacakges = append(globalPacakges, loc.Location)
+		}
+
+		files = append(files, core.VirtualFile{
+			Name:         dtoItem.SuggestedFileName,
+			Extension:    dtoItem.SuggestedExtension,
+			ActualScript: AsFullDocument(dtoItem, "unknownpackage"),
+		})
+	}
+
+	// var actionsRendered []*core.CodeChunkCompiled
+
+	for _, action := range module.Actions {
+
+		output, err := KotlinActionRender(action, ctx, complexes)
+
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, core.VirtualFile{
+			Name:         output.SuggestedFileName,
+			Extension:    output.SuggestedExtension,
+			ActualScript: AsFullDocument(output, "unknownpackage"),
+		})
+	}
+
+	return files, nil
+}
+
+func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
+	importsList := CombineJavaImport(*x)
+	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + string(x.ActualScript)
+
+	finalContent = string(core.EscapeLines([]byte(finalContent)))
+	return finalContent
+}
+func CombineJavaImport(chunk core.CodeChunkCompiled) string {
+	statements := map[string]struct{}{}
+
+	// Collect unique import statements
+	for _, dep := range chunk.CodeChunkDependensies {
+		statement := ""
+		if len(dep.Objects) > 0 {
+			statement = fmt.Sprintf(`%v "%v" //x`, dep.Objects[0], dep.Location)
+		} else {
+			statement = fmt.Sprintf(`%v`, dep.Location)
+		}
+		statements[statement] = struct{}{}
+	}
+
+	// Sort statements for deterministic output
+	var sorted []string
+	for stmt := range statements {
+		sorted = append(sorted, stmt)
+	}
+	sort.Strings(sorted)
+
+	statementsX := []string{}
+	for v := range statements {
+		statementsX = append(statementsX, fmt.Sprintf("import %v", v))
+	}
+
+	return strings.Join(statementsX, "\r\n")
+}

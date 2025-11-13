@@ -265,7 +265,9 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 			{{ end }}
 		}
 	) => {
+	 	{{ if .creatorFn }}
 		creatorFn = creatorFn || ({{ .creatorFn.CreatorStatement }})
+		{{ end }}
 		const res = await {{ .fetchctx.NativeFetchFunction }}(
 			{{ if .hasQueryParams }}
 			params,

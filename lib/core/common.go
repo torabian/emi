@@ -84,6 +84,7 @@ var CommonMap = template.FuncMap{
 	"join":              strings.Join,
 	"b2s":               func(b []byte) string { return string(b) },
 	"trim":              strings.TrimSpace,
+	"UPPER":             strings.ToUpper,
 	"upper":             ToUpper,
 	"lower":             ToLower,
 	"snakeUpper":        ToSnakeUpper,
@@ -339,14 +340,17 @@ func IsNumericDataType(value string) bool {
 
 // when developer says target: AnotherEntity or target: AnotherDto, we need
 // to import that. Here we search through the definition tree and extract them all
-func CollectTargets(fields []*EmiField) []string {
+// current name is the current object, so we skip if the field name is equal
+func CollectTargets(fields []*EmiField, currentName string) []string {
 	var result []string
 
 	var walk func(f []*EmiField)
 	walk = func(f []*EmiField) {
 		for _, field := range f {
 			if field.Target != "" {
-				result = append(result, field.Target)
+				if field.Target != currentName {
+					result = append(result, field.Target)
+				}
 			}
 
 			if len(field.Fields) > 0 {
@@ -379,3 +383,16 @@ func ParseDtoPath(input string) (path string, className string) {
 	className = base
 	return
 }
+
+func FindTokenByName(realms []GeneratedScriptToken, name string) *GeneratedScriptToken {
+
+	for _, item := range realms {
+		if item.Name == name {
+			return &item
+		}
+	}
+
+	return nil
+}
+
+var TOKEN_ORIGINAL_NAME = "root.original.name"

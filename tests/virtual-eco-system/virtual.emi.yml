@@ -1,0 +1,108 @@
+name: virtual
+description: Virtual eco system of actions, dtos, which covers entire 
+  features of the compiler for different languages.
+
+
+dtos:
+  - name: giant
+    fields:
+      - name: firstName
+        type: string
+      - name: firstNameNullable
+        type: string?
+      - name: array
+        type: array
+        fields:
+          - name: subItem1
+            type: int
+      - name: arrayNullable
+        type: array?
+        fields:
+          - name: subItemNullable1
+            type: int?
+      - name: booleanField
+        type: bool
+      - name: booleanFieldNullable
+        type: bool?
+      
+      - name: collectionItems
+        type: collection
+        target: GiantDto
+      - name: collectionItemsNullable
+        type: collection?
+        target: GiantDto
+      - name: dateObject
+        type: complex
+        complex: Date
+      - name: singleRefNullable
+        type: one?
+        target: GiantDto
+      - name: enumeration
+        type: enum
+        of:
+          - k: Key3
+          - k: Key4
+      - name: enumerationNullable
+        type: enum?
+        of:
+          - k: Key1
+          - k: Key2
+      - name: floatingPoint32
+        type: float32
+      - name: floatingPoint32Nullable
+        type: float32?
+      - name: floatingPoint64
+        type: float64
+      - name: floatingPoint64Nullable
+        type: float64?
+      - name: integerValue
+        type: int
+      - name: integer32ValueNullable
+        type: int32?
+      - name: integer32Value
+        type: int32
+      - name: integer64ValueNullable
+        type: int64?
+      - name: integer64Value
+        type: int64
+      - name: mapValue
+        type: map
+      - name: mapValueNullable
+        type: map?
+      - name: sliceValue
+        type: slice
+        primitive: string
+      - name: sliceValueNullable
+        primitive: string
+        type: slice?
+      - name: objectValue
+        type: object
+        fields:
+          - name: innerObject
+            type: object?
+            fields:
+              - name: innerObjText
+                type: string
+
+
+actions:
+  - name: modifyGiantDto
+    method: post
+    url: /modify/dto
+    in:
+      dto: GiantDto
+    out:
+      dto: GiantDto
+
+  - name: getAsGiants
+    method: get
+    url: /get/giant/:id
+    out:
+      dto: GiantDto
+  
+  - name: patchGiant
+    method: patch
+    url: /get/giant/:id
+    in:
+      dto: GiantDto
+  
