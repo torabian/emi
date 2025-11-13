@@ -247,6 +247,8 @@
           "type": "string",
           "enum": [
             "array",
+            "map?",
+            "map",
             "slice",
             "one",
             "collection",
@@ -276,6 +278,15 @@
             "complex"
           ],
           "description": "Type of the field based on Emi types."
+        },
+        "mapKey": {
+          "type": "string",
+          "enum": [
+            "string",
+            "int",
+            "any"
+          ],
+          "description": "When the field type is map or map? you can modify the key type."
         },
         "primitive": {
           "type": "string",
@@ -366,6 +377,14 @@
         "description": {
           "type": "string",
           "description": "Description of the value and reason usually to developers"
+        },
+        "complex": {
+          "type": "string",
+          "description": "In case of complex data type"
+        },
+        "complexNamespace": {
+          "type": "string",
+          "description": "Complex namespace means the prefix which the complex is available for example math.Vector3 the 'math' section is the namespace"
         }
       },
       "additionalProperties": false,
