@@ -2,6 +2,7 @@ package golang
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/torabian/emi/lib/core"
 )
@@ -29,11 +30,15 @@ func GoActionRealms(
 ) (goActionRealms, []core.CodeChunkDependency, error) {
 
 	type Flags struct {
-		Emigo string `json:"emigo"`
+		Emigo       string `json:"emigo,omitempty"`
+		PackageName string `json:"pkg,omitempty"`
 	}
-	var f Flags
+	var f Flags = Flags{
+		Emigo:       "github.com/torabian/emi/emigo",
+		PackageName: "unk",
+	}
 	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		panic(err)
+		fmt.Println("Flags provided are not corrrect:", ctx.Flags)
 	}
 
 	deps := []core.CodeChunkDependency{

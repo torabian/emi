@@ -16,6 +16,7 @@ function App() {
     features,
     ready,
     setAssemblyFunction,
+    assemblyFunction,
   } = usePlaygroundPresenter();
 
   const yamlDoc: VirtualFile = {
@@ -64,16 +65,22 @@ function App() {
             <span className="wasm-status">
               WASM Runtime: {ready ? "✅ Ready" : "⏳ Initializing..."}
             </span>
-            <FeatureSelector
-              options={["nestjs", "typescript", "react"]}
-              setSelected={(value) => setFeatures(value)}
-              selected={features}
-            />
 
             <button onClick={() => setAssemblyFunction("goGen")}>Golang</button>
+            <button onClick={() => setAssemblyFunction("kotlinGen")}>
+              Kotlin
+            </button>
             <button onClick={() => setAssemblyFunction("jsGenModule")}>
               JS/TS
             </button>
+
+            {assemblyFunction === "jsGenModule" ? (
+              <FeatureSelector
+                options={["nestjs", "typescript", "react"]}
+                setSelected={(value) => setFeatures(value)}
+                selected={features}
+              />
+            ) : null}
           </div>
           <button
             style={{ marginBottom: "5px" }}

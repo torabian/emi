@@ -146,7 +146,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		PackageName: "unk",
 	}
 	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		panic(err)
+		fmt.Println("Flags provided are not corrrect:", ctx.Flags)
 	}
 
 	complexes := discoverComplexes(module)
