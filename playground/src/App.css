@@ -1,9 +1,12 @@
 body {
   padding: 0;
   display: block;
-  min-height: initial;
+  min-height: 100vh;
 }
- 
+
+#root {
+  height: 100vh;
+}
 
 .left-pane {
   border-right: 1px solid #ccc;
@@ -15,19 +18,36 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
-}
-/* Light mode (default) */
-.tabs {
+}.tabs {
   display: flex;
   border-bottom: 1px solid #ccc;
   overflow-x: auto;
+  scroll-behavior: smooth; /* smooth scrolling */
+  -webkit-overflow-scrolling: touch; /* smooth on iOS */
   max-width: calc(100vw - 50px);
   background: #fafafa;
+
+  /* optional: hide scrollbar but keep scroll */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #ccc transparent;
+}
+
+.tabs::-webkit-scrollbar {
+  height: 6px; /* horizontal scrollbar height */
+}
+
+.tabs::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}
+
+.tabs::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .tab {
-  padding: 4px 8px;
-  min-width: 100px;
+  padding: 8px 12px;
+  min-width: 130px;
   font-size: 13px;
   cursor: pointer;
   border-right: 1px solid #e0e0e0;
@@ -35,13 +55,15 @@ body {
   max-width: 230px;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background 0.2s;
-}
+  transition: background 0.2s, transform 0.2s;
 
+  /* optional: hover effect */
+}
 .tab:hover {
-  background: #eaeaea;
+  background: #f0f0f0;
+  transform: scale(1.03);
 }
-
+ 
 .tab.active {
   background-color: #ddd;
   font-weight: 600;
@@ -81,18 +103,20 @@ body {
 
 /* Intro section */
 .intro {
-  padding: 0 10px;
   margin:  0;
+  padding: 0;
   font-family: sans-serif;
+  background-color: rgba(39, 40, 44, 1);
+  color: white;
 }
 
 .intro h1 {
-  font-size: 1.5rem;
-  margin-bottom: 0;
+  font-size: 16px;
+  margin: 0;
 }
 
 .intro p {
   font-size: 1.1rem;
-  color: #555;
+  color: white;
   margin-bottom: 0;
 }

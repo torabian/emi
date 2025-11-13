@@ -17,7 +17,9 @@
     "monaco-yaml": "^5.4.0",
     "prettier": "^3.6.2",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "react-dropdown": "^1.11.0",
+    "react-resizable-panels": "^3.0.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

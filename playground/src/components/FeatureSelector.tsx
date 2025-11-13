@@ -23,13 +23,13 @@ export default function FeatureSelector({
   return (
     <div className="feature-selector">
       {options.map((feature) => (
-        <label key={feature} style={{ marginRight: 12, cursor: "pointer" }}>
+        <label key={feature}>
           <input
             type="checkbox"
             checked={selected.includes(feature)}
             onChange={() => handleToggle(feature)}
           />
-          {feature}
+          <span>{feature}</span>
         </label>
       ))}
     </div>

@@ -24,8 +24,7 @@ a:hover {
 
 body {
   margin: 0;
-  min-height: 100vh;
-}
+ }
 
 h1 {
   font-size: 3.2em;
@@ -63,3 +62,12 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+
+@media (max-width: 568px) { /* adjust breakpoint as needed */
+  .feature-selector {
+    display: none; /* show on small screens */
+  }
+}
+
+

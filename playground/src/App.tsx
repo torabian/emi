@@ -1,11 +1,18 @@
 import { useState } from "react";
+import Dropdown from "react-dropdown";
+import "react-dropdown/style.css";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import "./App.css";
 import FeatureSelector from "./components/FeatureSelector";
 import TypescriptEditor from "./components/YamlEditor/TypescriptEditor";
 import YamlEditor from "./components/YamlEditor/YamlEditor";
-import type { VirtualFile } from "./definitions";
 import { usePlaygroundPresenter } from "./helpers/usePlaygroundPresenter";
 import { downloadZip } from "./helpers/zipTools";
+const options = [
+  { value: "goGen", label: "Golang" },
+  { value: "kotlinGen", label: "Kotlin" },
+  { value: "jsGenModule", label: "JavaScript" },
+];
 
 function App() {
   const {
@@ -19,16 +26,9 @@ function App() {
     assemblyFunction,
   } = usePlaygroundPresenter();
 
-  const yamlDoc: VirtualFile = {
-    ActualScript: "",
-    Extension: "",
-    Location: "",
-    MimeType: "yaml",
-    Name: "definition",
-  };
-
-  const files = [yamlDoc, ...(generatedFiles || [])];
+  const files = generatedFiles || [];
   const [activeTab, setActiveTab] = useState(files?.[0]?.Name || "");
+  const [direction, setDirection] = useState<any>("horizontal");
 
   // Update active tab if files change
   if (files?.length && !files.find((f) => f.Name === activeTab)) {
@@ -39,41 +39,62 @@ function App() {
 
   return (
     <>
-      <header className="intro">
+      <header className="intro" style={{}}>
         <div
           style={{
             display: "flex",
             flexDirection: "row",
             justifyContent: "space-between",
+            padding: "10px 15px",
+            alignItems: "center",
           }}
         >
-          <h1>🔥 EMI Compiler</h1>
-          <p>
-            A WebAssembly-powered playground for generating code dynamically.
-          </p>
+          <h1>EMI Compiler</h1>
+          <span>
+            <a target="_blank" href="https://github.com/torabian/emi">
+              Github
+            </a>
+            <span style={{ marginLeft: "20px" }} className="wasm-status">
+              {ready ? "✅" : "⏳"}
+            </span>
+          </span>
         </div>
         <div
           style={{
             display: "flex",
-            justifyItems: "center",
+            backgroundColor: "gray",
+            padding: "3px 15px",
+            alignContent: "center",
             alignItems: "center",
-            marginBottom: "20px",
-            justifyContent: "space-between",
           }}
         >
+          <div style={{ width: "150px" }}>
+            <Dropdown
+              options={options}
+              onChange={(value) => {
+                setAssemblyFunction(value.value);
+              }}
+              value={assemblyFunction}
+              placeholder="Select an option"
+            />
+          </div>
+          <button
+            style={{ borderRadius: 0, height: "41px", marginLeft: "5px" }}
+            onClick={() => void downloadZip(files)}
+          >
+            Download ({files?.length || 0})
+          </button>
+          <button
+            style={{ borderRadius: 0, height: "41px", marginLeft: "5px" }}
+            onClick={() =>
+              setDirection((direction: string) =>
+                direction === "horizontal" ? "vertical" : "horizontal"
+              )
+            }
+          >
+            {direction === "horizontal" ? "V" : "H"}
+          </button>
           <div style={{ display: "flex" }}>
-            <span className="wasm-status">
-              WASM Runtime: {ready ? "✅ Ready" : "⏳ Initializing..."}
-            </span>
-
-            <button onClick={() => setAssemblyFunction("goGen")}>Golang</button>
-            <button onClick={() => setAssemblyFunction("kotlinGen")}>
-              Kotlin
-            </button>
-            <button onClick={() => setAssemblyFunction("jsGenModule")}>
-              JS/TS
-            </button>
-
             {assemblyFunction === "jsGenModule" ? (
               <FeatureSelector
                 options={["nestjs", "typescript", "react"]}
@@ -82,54 +103,48 @@ function App() {
               />
             ) : null}
           </div>
-          <button
-            style={{ marginBottom: "5px" }}
-            onClick={() => void downloadZip(files)}
-          >
-            Download the sdk ({files?.length || 0})
-          </button>
         </div>
-        {/* <LanguageSelector onChange={setAssemblyFunction} /> */}
       </header>
-
-      <div className="app-container">
-        {files?.length > 0 && (
-          <div className="right-pane">
-            <div className="tabs">
-              {files.map((file) => (
-                <div
-                  key={file.Name}
-                  className={`tab ${file.Name === activeTab ? "active" : ""}`}
-                  onClick={() => setActiveTab(file.Name)}
-                >
-                  {file.Location ? file.Location + "/" : ""}
-                  {file.Name}
-                  {file.Extension ? "" + file.Extension : ""}
-                </div>
-              ))}
-            </div>
-
-            {activeFile ? (
-              <div className="tab-content">
-                {activeFile && activeFile.Name == "definition" ? (
-                  <YamlEditor value={value} onChange={setValue} />
-                ) : (
-                  <TypescriptEditor
-                    key={activeFile.Name + activeFile.ActualScript} // force remount when content changes
-                    allFiles={files}
-                    value={activeFile.ActualScript}
-                    onChange={(newValue) => {
-                      // Update the corresponding file content
-                      activeFile.ActualScript = newValue;
-                    }}
-                    file={activeFile}
-                  />
-                )}
+      <PanelGroup
+        direction={direction}
+        style={{ height: "calc(100vh - 100px)" }}
+      >
+        <Panel defaultSize={50} minSize={10}>
+          <YamlEditor value={value} onChange={setValue} />
+        </Panel>
+        <PanelResizeHandle>
+          <div style={{ width: 5, background: "gray", cursor: "col-resize" }} />
+        </PanelResizeHandle>
+        <Panel defaultSize={50} minSize={10}>
+          <div className="tabs">
+            {files.map((file) => (
+              <div
+                key={file.Name}
+                className={`tab ${file.Name === activeTab ? "active" : ""}`}
+                onClick={() => setActiveTab(file.Name)}
+              >
+                {file.Location ? file.Location + "/" : ""}
+                {file.Name}
+                {file.Extension ? "" + file.Extension : ""}
               </div>
-            ) : null}
+            ))}
           </div>
-        )}
-      </div>
+          {activeFile ? (
+            <>
+              <TypescriptEditor
+                key={activeFile.Name + activeFile.ActualScript} // force remount when content changes
+                allFiles={files}
+                value={activeFile.ActualScript}
+                onChange={(newValue) => {
+                  // Update the corresponding file content
+                  activeFile.ActualScript = newValue;
+                }}
+                file={activeFile}
+              />
+            </>
+          ) : null}
+        </Panel>
+      </PanelGroup>
     </>
   );
 }
