@@ -34,6 +34,9 @@ jobs:
       - name: Make wasm
         run: make wasm
         
+      - name: Make standard binary file
+        run: make unix
+        
       - name: Build Playground
         run: cd playground && npm run build
         
@@ -42,6 +45,9 @@ jobs:
 
       - name: Javascript tests
         run: cd tests/js && npm i -f && npx vitest run
+      
+      - name: The the virtual ecosystem
+        run: cd tests/virtual-eco-system && make build
       
 
       - name: Compile the web veresion (docs, and only after running tests because they create document)

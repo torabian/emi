@@ -7,6 +7,7 @@ import (
 	"github.com/torabian/emi/lib/core"
 	"github.com/torabian/emi/lib/golang"
 	emijs "github.com/torabian/emi/lib/js"
+	"github.com/torabian/emi/lib/kotlin"
 )
 
 func main() {
@@ -26,6 +27,14 @@ func main() {
 	}
 
 	for _, fileAction := range golang.GetGolangPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range kotlin.GetKotlinPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range kotlin.GetKotlinPublicActions().FileActions {
 		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
 	}
 

@@ -1,0 +1,27 @@
+dtos:
+  - name: yokeMessage
+    description: The message, containing the yoke information. This is a useful dto, which would be
+      used on different places.
+
+    fields:
+      - name: pitch
+        type: float64
+      - name: role
+        type: float64
+
+actions:
+  - name: streamYoke
+    url: /stream-yoke
+    description: 
+      Used by the kotlin to golang, to send the yoke information
+    method: reactive
+    in:
+      dto: YokeMessageDto
+
+  - name: subscribeYoke
+    url: /subscribe-yoke
+    method: reactive
+    description: 
+      Used by the unreal engine, to fetch the yoke information and moving the elements.
+    out:
+      dto: YokeMessageDto

@@ -20,7 +20,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 				WasmFunctionName: "goGenObject",
 				Flags: []core.FlagDef{
 					{
-						Name:     "package",
+						Name:     "pkg",
 						Type:     core.FlagString,
 						Usage:    "Package name of the golang",
 						Required: true,
@@ -52,41 +52,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				return AsFullDocument(res, m["package"]), nil
-
-			},
-		}, {
-			BaseAction: core.BaseAction{
-				Name:             "go:headers",
-				Description:      "Generates headers, for golang, both as client and server",
-				WasmFunctionName: "goGenObject",
-				Flags: []core.FlagDef{
-					{
-						Name:     "package",
-						Type:     core.FlagString,
-						Usage:    "Package name of the golang",
-						Required: true,
-					},
-				},
-			},
-			Run: func(ctx core.MicroGenContext) (string, error) {
-
-				var m map[string]string = map[string]string{}
-
-				json.Unmarshal([]byte(ctx.Flags), &m)
-				headers, err := core.StringToEmiHeaders(ctx.Content)
-				if err != nil {
-					return "", err
-				}
-
-				res, err := GoHeaderStruct(
-					goHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
-					ctx,
-				)
-				if err != nil {
-					return "", err
-				}
-				return AsFullDocument(res, m["package"]), nil
+				return AsFullDocument(res, m["pkg"]), nil
 
 			},
 		},
@@ -98,7 +64,20 @@ func GetGolangPublicActions() core.PublicAPIActions {
 				Name:             "go",
 				Description:      "Compiles golang from .emi catalog spec file",
 				WasmFunctionName: "goGen",
-				Flags:            []core.FlagDef{},
+				Flags: []core.FlagDef{
+					{
+						Name:     "emigo",
+						Usage:    "Add location to emigo path folder, can be also github.com/torabian/emi/emigo if you wanted to",
+						Required: false,
+						Type:     core.FlagString,
+						Default:  "github.com/torabian/emi/emigo",
+					},
+					{
+						Name:  "pkg",
+						Type:  core.FlagString,
+						Usage: "Package name of the golang",
+					},
+				},
 			},
 			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 				type_, err := core.DetectEmiStringContentType(ctx.Content)
@@ -112,7 +91,9 @@ func GetGolangPublicActions() core.PublicAPIActions {
 						return nil, err
 					}
 
-					return GoModuleFull(&emiModule, ctx)
+					files, err := GoModuleFull(&emiModule, ctx)
+
+					return files, err
 				}
 
 				return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
@@ -156,6 +137,18 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
+	type Flags struct {
+		Emigo       string `json:"emigo,omitempty"`
+		PackageName string `json:"pkg,omitempty"`
+	}
+	var f Flags = Flags{
+		Emigo:       "github.com/torabian/emi/emigo",
+		PackageName: "unk",
+	}
+	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
+		fmt.Println("Flags provided are not corrrect:", ctx.Flags)
+	}
+
 	complexes := discoverComplexes(module)
 	files := []core.VirtualFile{}
 
@@ -172,6 +165,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		actionRendered, err := GoCommonStructGenerator(dto.Fields, ctx, GoCommonStructContext{
 			RootClassName:       dto.GetClassName(),
 			RecognizedComplexes: complexes,
+			EmiLocation:         f.Emigo,
 		})
 		if err != nil {
 			return nil, err
@@ -194,7 +188,24 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		files = append(files, core.VirtualFile{
 			Name:         dtoItem.SuggestedFileName,
 			Extension:    dtoItem.SuggestedExtension,
-			ActualScript: AsFullDocument(dtoItem, "unknownpackage"),
+			ActualScript: AsFullDocument(dtoItem, f.PackageName),
+		})
+	}
+
+	// var actionsRendered []*core.CodeChunkCompiled
+
+	for _, action := range module.Actions {
+
+		output, err := GoActionRender(action, ctx, complexes)
+
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, core.VirtualFile{
+			Name:         output.SuggestedFileName,
+			Extension:    output.SuggestedExtension,
+			ActualScript: AsFullDocument(output, f.PackageName),
 		})
 	}
 

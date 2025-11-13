@@ -24,18 +24,18 @@ func JsActionManifest(
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	isReact := strings.Contains(ctx.Tags, GEN_REACT_COMPATIBILITY)
 
+	actionRealms, jsDependencies, err := JsActionManifestRealms(action, ctx, complexes)
+	if err != nil {
+		return nil, err
+	}
+
 	res := &core.CodeChunkCompiled{
 		Tokens: []core.GeneratedScriptToken{
 			{
 				Name:  TOKEN_ORIGINAL_NAME,
-				Value: action.GetName(),
+				Value: actionRealms.ActionName,
 			},
 		},
-	}
-
-	actionRealms, jsDependencies, err := JsActionManifestRealms(action, ctx, complexes)
-	if err != nil {
-		return nil, err
 	}
 	res.CodeChunkDependensies = append(res.CodeChunkDependensies, jsDependencies...)
 
@@ -140,13 +140,13 @@ func JsActionManifest(
 		"reactQuery":      reactQuery,
 		"nestjsDecorator": nestJsDecorator,
 		"realms":          actionRealms,
-		"className":       action.GetName(),
+		"className":       actionRealms.ActionName,
 	}); err != nil {
 		return nil, err
 	}
 
 	res.ActualScript = buf.Bytes()
-	res.SuggestedFileName = action.GetName()
+	res.SuggestedFileName = actionRealms.ActionName
 	res.SuggestedExtension = ".js"
 
 	if isTypeScript {

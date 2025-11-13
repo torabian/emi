@@ -23,6 +23,7 @@ const (
 	FieldTypeInt64      FieldType = "int64"
 	FieldTypeFloat32    FieldType = "float32"
 	FieldTypeFloat64    FieldType = "float64"
+	FieldTypeMap        FieldType = "map"
 
 	FieldTypeArrayNullable      FieldType = "array?"
 	FieldTypeSliceNullable      FieldType = "slice?"
@@ -37,6 +38,7 @@ const (
 	FieldTypeInt64Nullable      FieldType = "int64?"
 	FieldTypeFloat32Nullable    FieldType = "float32?"
 	FieldTypeFloat64Nullable    FieldType = "float64?"
+	FieldTypeMapNullable        FieldType = "map?"
 
 	// Non-nullable fields, which doesn't matter will go here.
 	FieldTypeAny     FieldType = "any"
@@ -66,6 +68,7 @@ func GetEmiFieldTypeCatalog() FieldSupportCatalog {
 			FieldTypeInt64,
 			FieldTypeFloat32,
 			FieldTypeFloat64,
+			FieldTypeMap,
 		},
 		DtoNullableFieldTypes: []FieldType{
 			FieldTypeArrayNullable,
@@ -81,6 +84,7 @@ func GetEmiFieldTypeCatalog() FieldSupportCatalog {
 			FieldTypeInt64Nullable,
 			FieldTypeFloat32Nullable,
 			FieldTypeFloat64Nullable,
+			FieldTypeMapNullable,
 		},
 	}
 }

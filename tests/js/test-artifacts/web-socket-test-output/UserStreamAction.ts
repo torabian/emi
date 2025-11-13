@@ -11,6 +11,7 @@ export type UserStreamActionOptions = {
  * UserStreamAction
  */
 export class UserStreamAction {
+  //
   static URL = "ws://localhost:8081";
   static NewUrl = (qs?: URLSearchParams) =>
     buildUrl(UserStreamAction.URL, undefined, qs);

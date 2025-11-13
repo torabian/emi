@@ -20,7 +20,7 @@ export const useWebSocketOrgEchoAction = (options?: {
 	/**
  * WebSocketOrgEchoAction
  */
-export class WebSocketOrgEchoAction {
+export class WebSocketOrgEchoAction { //
   static URL = 'wss://echo.websocket.org/.ws';
   static NewUrl = (
 	qs?: URLSearchParams
