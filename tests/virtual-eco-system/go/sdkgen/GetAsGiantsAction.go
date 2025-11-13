@@ -1,48 +1,43 @@
 package unk
-
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-	"strings"
-	"test/emi/emigo"
-
-	"github.com/gin-gonic/gin"
+"encoding/json"
+"fmt"
+"github.com/gin-gonic/gin"
+"io"
+"net/http"
+"net/url"
+"strings"
+"test/emi/emigo"
 )
-
 /**
 * Action to communicate with the action GetAsGiantsAction
- */
+*/
 func GetAsGiantsActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+    Name   string
+    URL    string
+    Method string
 } {
-	return struct {
-		Name   string
-		URL    string
-		Method string
-	}{
-		Name:   "GetAsGiantsAction",
-		URL:    "/get/giant/:id",
-		Method: "GET",
-	}
+    return struct {
+        Name   string
+        URL    string
+        Method string
+    }{
+        Name:   "GetAsGiantsAction",
+        URL:    "/get/giant/:id",
+        Method: "GET",
+    }
 }
-
 type GetAsGiantsActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
 }
-
 // GetAsGiantsActionRaw registers a raw Gin route for the GetAsGiantsAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func GetAsGiantsActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := GetAsGiantsActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // GetAsGiantsActionHandler returns the HTTP method, route URL, and a typed Gin handler for the GetAsGiantsAction action.
+}// GetAsGiantsActionHandler returns the HTTP method, route URL, and a typed Gin handler for the GetAsGiantsAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func GetAsGiantsActionHandler(
@@ -52,7 +47,7 @@ func GetAsGiantsActionHandler(
 	return meta.Method, meta.URL, func(m *gin.Context) {
 		// Build typed request wrapper
 		req := GetAsGiantsActionRequest{
-			Params:      GetAsGiantsActionPathParameterFromGin(m),
+			Params: GetAsGiantsActionPathParameterFromGin(m),
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
 		}
@@ -81,51 +76,44 @@ func GetAsGiantsActionHandler(
 		}
 	}
 }
-
 // GetAsGiantsAction is a high-level convenience wrapper around GetAsGiantsActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func GetAsGiantsAction(r gin.IRoutes, handler func(c GetAsGiantsActionRequest, gin *gin.Context) (*GetAsGiantsActionResponse, error)) {
+func GetAsGiantsAction(r gin.IRoutes, handler func(c GetAsGiantsActionRequest, gin *gin.Context) (*GetAsGiantsActionResponse, error),) {
 	method, url, h := GetAsGiantsActionHandler(handler)
 	r.Handle(method, url, h)
 }
-
 // Using in client code.
 type GetAsGiantsActionQuery struct {
 	url.Values
 }
-
-/**
+	/**
  * Path parameters for GetAsGiantsAction
  */
 type GetAsGiantsActionPathParameter struct {
 	Id string
 }
-
 // Converts a placeholder url, and applies the parameters to it.
 func GetAsGiantsActionPathParameterApply(params GetAsGiantsActionPathParameter, templateUrl string) string {
-	templateUrl = strings.ReplaceAll(templateUrl, "id", params.Id)
+		templateUrl = strings.ReplaceAll(templateUrl, "id", params.Id)
 	return templateUrl
 }
-
 // Creates the parameters from the gin
 func GetAsGiantsActionPathParameterFromGin(g *gin.Context) GetAsGiantsActionPathParameter {
 	res := GetAsGiantsActionPathParameter{}
-	res.Id = g.Param("id")
+		res.Id = g.Param("id")
 	return res
 }
-
 type GetAsGiantsActionRequest struct {
-	Params      GetAsGiantsActionPathParameter
+	Params GetAsGiantsActionPathParameter
 	QueryParams url.Values
-	Headers     http.Header
+	Headers http.Header
 	UrlValues   GetAsGiantsActionQuery
 }
 type GetAsGiantsActionResult struct {
-	resp    *http.Response // embed original response
+	resp *http.Response                      // embed original response
 	Payload interface{}
 }
-
 func GetAsGiantsActionCall(
 	req GetAsGiantsActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -143,7 +131,7 @@ func GetAsGiantsActionCall(
 		if len(req.UrlValues.Values) > 0 {
 			u.RawQuery = req.UrlValues.Encode()
 		}
-		req0, err := http.NewRequest(meta.Method, u.String(), nil)
+			req0, err := http.NewRequest(meta.Method, u.String(), nil)
 		if err != nil {
 			return nil, err
 		}

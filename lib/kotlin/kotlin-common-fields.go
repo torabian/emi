@@ -38,7 +38,12 @@ func (x fieldVariable) Compile() string {
 		sequence = append(sequence, x.GoDoc)
 	}
 
-	sequence = append(sequence, fmt.Sprintf(`@SerialName("%v") val %v: %v`, core.ToLower(x.Name), core.ToLower(x.Name), x.ComputedType))
+	otherFlags := ""
+	if x.ComputedType == "Any" {
+		otherFlags += " @Contextual "
+	}
+
+	sequence = append(sequence, fmt.Sprintf(`@SerialName("%v") %v val %v: %v`, core.ToLower(x.Name), otherFlags, core.ToLower(x.Name), x.ComputedType))
 
 	return strings.Join(sequence, " ")
 }
