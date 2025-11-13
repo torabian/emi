@@ -19,6 +19,7 @@ type goActionRealms struct {
 	QueryStringClass     *core.CodeChunkCompiled
 	RequestHeadersClass  *core.CodeChunkCompiled
 	ResponseHeadersClass *core.CodeChunkCompiled
+	RequestClassName     string
 }
 
 var GENERATE_GO_CLINET = true
@@ -65,6 +66,17 @@ func GoActionRealms(
 		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
 	}
 
+	// Header is the http headers, extending the Headers class from standard javascript
+	pathParameter, err := GoActionPathParams(action)
+	if err != nil {
+		return realms, nil, err
+	}
+
+	if pathParameter != nil {
+		deps = append(deps, pathParameter.CodeChunkDependensies...)
+		realms.PathParameter = pathParameter
+	}
+
 	if action.HasRequestFields() {
 		fields, err := GoCommonStructGenerator(action.GetRequestFields(), ctx, GoCommonStructContext{
 			RootClassName:       realms.ActionName + "Req",
@@ -79,7 +91,8 @@ func GoActionRealms(
 		realms.RequestClass = fields
 	} else if action.HasRequestDto() {
 		realms.RequestClass = castDtoNameToCodeChunk(action.GetRequestDto())
-		deps = append(deps, realms.RequestClass.CodeChunkDependensies...)
+		// Not sure if this is needed in golang
+		// deps = append(deps, realms.RequestClass.CodeChunkDependensies...)
 	}
 
 	// Action response (out)
@@ -96,7 +109,14 @@ func GoActionRealms(
 		realms.ResponseClass = fields
 	} else if action.HasResponseDto() {
 		realms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
-		deps = append(deps, realms.ResponseClass.CodeChunkDependensies...)
+		// Not sure if this is needed in golang
+		// deps = append(deps, realms.ResponseClass.CodeChunkDependensies...)
+	}
+
+	if realms.RequestClass != nil {
+		if token := core.FindTokenByName(realms.RequestClass.Tokens, TOKEN_ROOT_CLASS); token != nil {
+			realms.RequestClassName = token.Value
+		}
 	}
 
 	return realms, deps, nil

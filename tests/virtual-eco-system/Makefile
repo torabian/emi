@@ -14,7 +14,7 @@ clean:
 	rm -rf ./js/sdkgen && rm -rf ./ts/sdkgen && rm -rf ./kotlin/app/src/main/kotlin/org/example/sdkgen && rm -rf ./go/sdkgen
 
 gengo:
-	../../emi go --path ./virtual.emi.yml --output ./go/sdkgen
+	../../emi go --path ./virtual.emi.yml --output ./go/sdkgen  --emigo test/emi/emigo
 
 buildsdk:
 	cd kotlin && make

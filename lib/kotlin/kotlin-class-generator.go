@@ -72,11 +72,11 @@ func renderClasses(fields []*core.EmiField, className, treeLocation string, fiel
 	for _, f := range fields {
 		if f != nil && (f.Type == core.FieldTypeObject || f.Type == core.FieldTypeObjectNullable || f.Type == core.FieldTypeArray || f.Type == core.FieldTypeArrayNullable) {
 			childName := core.ToUpper(f.Name)
-			newDepth := fieldDepth + "." + f.Name
+			newDepth := fieldDepth + f.Name
 			if fieldDepth == "" {
 				newDepth = f.Name
 			}
-			currentClass.SubClasses = append(currentClass.SubClasses, renderClasses(f.Fields, childName, treeLocation+"."+childName, newDepth, prefixName+childName, ctx, goctx)...)
+			currentClass.SubClasses = append(currentClass.SubClasses, renderClasses(f.Fields, childName, treeLocation+childName, newDepth, prefixName+childName, ctx, goctx)...)
 		}
 	}
 
@@ -143,7 +143,7 @@ func KotlinCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenConte
 		})
 	}
 
-	collectTargets := core.CollectTargets(fields)
+	collectTargets := core.CollectTargets(fields, goctx.RootClassName)
 	for _, item := range collectTargets {
 		m := castDtoNameToCodeChunk(item)
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, m.CodeChunkDependensies...)

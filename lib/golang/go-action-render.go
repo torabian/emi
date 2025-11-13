@@ -86,15 +86,22 @@ func {{ .realms.ActionName }}Handler(
 ) (method, url string, h gin.HandlerFunc) {
 	meta := {{ .realms.ActionName }}Meta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
-		var body {{ .realms.ActionName }}Req
+		{{ if .realms.RequestClassName }}
+		var body {{ .realms.RequestClassName }}
 		if err := m.ShouldBindJSON(&body); err != nil {
 			m.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
 			return
 		}
+		{{ end }}
 
 		// Build typed request wrapper
 		req := {{ .realms.ActionName }}Request{
+			{{ if .realms.RequestClassName }}
 			Body:        body,
+			{{ end }}
+			{{ if .realms.PathParameter }}
+			Params: {{ .realms.ActionName }}PathParameterFromGin(m),
+			{{ end }}
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
 		}
@@ -145,8 +152,18 @@ type {{ .realms.ActionName }}Query struct {
 	url.Values
 }
 
+
+{{ if .realms.PathParameter }}
+	{{ b2s .realms.PathParameter.ActualScript }}
+{{ end }}
+ 
 type {{ .realms.ActionName }}Request struct {
-	Body {{ .realms.ActionName }}Req
+	{{ if .realms.RequestClassName }}
+	Body {{ .realms.RequestClassName }}
+	{{ end }}
+	{{ if .realms.PathParameter }}
+	Params {{ .realms.ActionName }}PathParameter
+	{{ end }}
 	QueryParams url.Values
 	Headers http.Header
 	UrlValues   {{ .realms.ActionName }}Query
@@ -177,12 +194,16 @@ func {{ .realms.ActionName }}Call(
 		if len(req.UrlValues.Values) > 0 {
 			u.RawQuery = req.UrlValues.Encode()
 		}
-		bodyBytes, err := json.Marshal(req.Body)
-		if err != nil {
-			return nil, err
-		}
 
-		req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+		{{ if .realms.RequestClass }}
+			bodyBytes, err := json.Marshal(req.Body)
+			if err != nil {
+				return nil, err
+			}
+			req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+		{{ else }}
+			req0, err := http.NewRequest(meta.Method, u.String(), nil)
+		{{ end }}
 		if err != nil {
 			return nil, err
 		}

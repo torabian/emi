@@ -15,16 +15,21 @@ func goComputedField(field *core.EmiField) string {
 		return "String?"
 	case "one":
 		if field.Module != "" {
-			return field.Module + "." + field.Target
+			return field.Module + field.Target
 		}
 		return field.Target
 	case "array":
 		return field.PublicName()
 	case "collection":
 		if field.Module != "" {
-			return field.Module + "." + field.Target
+			return field.Module + field.Target
 		}
-		return field.Target
+		return fmt.Sprintf("List<%s>", field.Target)
+	case "collection?":
+		if field.Module != "" {
+			return field.Module + field.Target
+		}
+		return fmt.Sprintf("List<%s>?", field.Target)
 	case "slice":
 		return fmt.Sprintf("List<%v>", core.ToUpper(field.Primitive))
 	case "int64":

@@ -1,9 +1,7 @@
 package unknownpackage
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import GiantDto "./GiantDto" //x
-// The base class definition for giantDto
-
+  // The base class definition for giantDto
 @Serializable
 data class GiantDto (
 		@SerialName("firstName") val firstName: String,
@@ -12,10 +10,9 @@ data class GiantDto (
 		@SerialName("arrayNullable") val arrayNullable: List<GiantDtoArrayNullable>,
 		@SerialName("booleanField") val booleanField: Boolean,
 		@SerialName("booleanFieldNullable") val booleanFieldNullable: Boolean?,
-		@SerialName("collectionItems") val collectionItems: GiantDto,
-		@SerialName("collectionItemsNullable") val collectionItemsNullable: Any,
+		@SerialName("collectionItems") val collectionItems: List<GiantDto>,
+		@SerialName("collectionItemsNullable") val collectionItemsNullable: List<GiantDto>?,
 		@SerialName("dateObject") val dateObject: Any,
-		@SerialName("singleRef") val singleRef: GiantDto,
 		@SerialName("singleRefNullable") val singleRefNullable: Any,
 		@SerialName("enumeration") val enumeration: String,
 		@SerialName("enumerationNullable") val enumerationNullable: String?,
@@ -30,7 +27,7 @@ data class GiantDto (
 		@SerialName("integer64Value") val integer64Value: Long,
 		@SerialName("mapValue") val mapValue: Any,
 		@SerialName("mapValueNullable") val mapValueNullable: Any,
-		@SerialName("sliceValue") val sliceValue: List<>,
+		@SerialName("sliceValue") val sliceValue: List<String>,
 		@SerialName("sliceValueNullable") val sliceValueNullable: Any,
 		@SerialName("objectValue") val objectValue:  GiantDtoObjectValue,
 )

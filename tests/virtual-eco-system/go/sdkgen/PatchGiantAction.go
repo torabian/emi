@@ -1,49 +1,55 @@
 package unknownpackage
+
 import (
-"bytes"
-"encoding/json"
-"fmt"
-"github.com/gin-gonic/gin"
-"io"
-"net/http"
-"net/url"
-"test/emi/emigo"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+	"test/emi/emigo"
+
+	"github.com/gin-gonic/gin"
 )
+
 /**
-* Action to communicate with the action ModifyGiantDtoAction
-*/
-func ModifyGiantDtoActionMeta() struct {
-    Name   string
-    URL    string
-    Method string
+* Action to communicate with the action PatchGiantAction
+ */
+func PatchGiantActionMeta() struct {
+	Name   string
+	URL    string
+	Method string
 } {
-    return struct {
-        Name   string
-        URL    string
-        Method string
-    }{
-        Name:   "ModifyGiantDtoAction",
-        URL:    "/modify/dto",
-        Method: "POST",
-    }
+	return struct {
+		Name   string
+		URL    string
+		Method string
+	}{
+		Name:   "PatchGiantAction",
+		URL:    "/get/giant/:id",
+		Method: "PATCH",
+	}
 }
-type ModifyGiantDtoActionResponse struct {
+
+type PatchGiantActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
 }
-// ModifyGiantDtoActionRaw registers a raw Gin route for the ModifyGiantDtoAction action.
+
+// PatchGiantActionRaw registers a raw Gin route for the PatchGiantAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
-func ModifyGiantDtoActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
-	meta := ModifyGiantDtoActionMeta()
+func PatchGiantActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
+	meta := PatchGiantActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-}// ModifyGiantDtoActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ModifyGiantDtoAction action.
+} // PatchGiantActionHandler returns the HTTP method, route URL, and a typed Gin handler for the PatchGiantAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
-func ModifyGiantDtoActionHandler(
-	handler func(c ModifyGiantDtoActionRequest, gin *gin.Context) (*ModifyGiantDtoActionResponse, error),
+func PatchGiantActionHandler(
+	handler func(c PatchGiantActionRequest, gin *gin.Context) (*PatchGiantActionResponse, error),
 ) (method, url string, h gin.HandlerFunc) {
-	meta := ModifyGiantDtoActionMeta()
+	meta := PatchGiantActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
 		var body GiantDto
 		if err := m.ShouldBindJSON(&body); err != nil {
@@ -51,8 +57,9 @@ func ModifyGiantDtoActionHandler(
 			return
 		}
 		// Build typed request wrapper
-		req := ModifyGiantDtoActionRequest{
+		req := PatchGiantActionRequest{
 			Body:        body,
+			Params:      PatchGiantActionPathParameterFromGin(m),
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
 		}
@@ -81,34 +88,59 @@ func ModifyGiantDtoActionHandler(
 		}
 	}
 }
-// ModifyGiantDtoAction is a high-level convenience wrapper around ModifyGiantDtoActionHandler.
+
+// PatchGiantAction is a high-level convenience wrapper around PatchGiantActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ModifyGiantDtoAction(r gin.IRoutes, handler func(c ModifyGiantDtoActionRequest, gin *gin.Context) (*ModifyGiantDtoActionResponse, error),) {
-	method, url, h := ModifyGiantDtoActionHandler(handler)
+func PatchGiantAction(r gin.IRoutes, handler func(c PatchGiantActionRequest, gin *gin.Context) (*PatchGiantActionResponse, error)) {
+	method, url, h := PatchGiantActionHandler(handler)
 	r.Handle(method, url, h)
 }
+
 // Using in client code.
-type ModifyGiantDtoActionQuery struct {
+type PatchGiantActionQuery struct {
 	url.Values
 }
-type ModifyGiantDtoActionRequest struct {
-	Body GiantDto
-	QueryParams url.Values
-	Headers http.Header
-	UrlValues   ModifyGiantDtoActionQuery
+
+/**
+ * Path parameters for PatchGiantAction
+ */
+type PatchGiantActionPathParameter struct {
+	Id string
 }
-type ModifyGiantDtoActionResult struct {
-	resp *http.Response                      // embed original response
+
+// Converts a placeholder url, and applies the parameters to it.
+func PatchGiantActionPathParameterApply(params PatchGiantActionPathParameter, templateUrl string) string {
+	templateUrl = strings.ReplaceAll(templateUrl, "id", params.Id)
+	return templateUrl
+}
+
+// Creates the parameters from the gin
+func PatchGiantActionPathParameterFromGin(g *gin.Context) PatchGiantActionPathParameter {
+	res := PatchGiantActionPathParameter{}
+	res.Id = g.Param("id")
+	return res
+}
+
+type PatchGiantActionRequest struct {
+	Body        GiantDto
+	Params      PatchGiantActionPathParameter
+	QueryParams url.Values
+	Headers     http.Header
+	UrlValues   PatchGiantActionQuery
+}
+type PatchGiantActionResult struct {
+	resp    *http.Response // embed original response
 	Payload interface{}
 }
-func ModifyGiantDtoActionCall(
-	req ModifyGiantDtoActionRequest,
+
+func PatchGiantActionCall(
+	req PatchGiantActionRequest,
 	config *emigo.APIClient, // optional pre-built request
-) (*ModifyGiantDtoActionResult, error) {
+) (*PatchGiantActionResult, error) {
 	var httpReq *http.Request
 	if config == nil || config.Httpr == nil {
-		meta := ModifyGiantDtoActionMeta()
+		meta := PatchGiantActionMeta()
 		baseURL := meta.URL
 		// Build final URL with query string
 		u, err := url.Parse(baseURL)
@@ -119,11 +151,11 @@ func ModifyGiantDtoActionCall(
 		if len(req.UrlValues.Values) > 0 {
 			u.RawQuery = req.UrlValues.Encode()
 		}
-			bodyBytes, err := json.Marshal(req.Body)
-			if err != nil {
-				return nil, err
-			}
-			req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+		bodyBytes, err := json.Marshal(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +168,7 @@ func ModifyGiantDtoActionCall(
 	if err != nil {
 		return nil, err
 	}
-	var result ModifyGiantDtoActionResult
+	var result PatchGiantActionResult
 	result.resp = resp
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)

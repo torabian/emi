@@ -2,6 +2,7 @@ name: virtual
 description: Virtual eco system of actions, dtos, which covers entire 
   features of the compiler for different languages.
 
+
 dtos:
   - name: giant
     fields:
@@ -33,9 +34,6 @@ dtos:
       - name: dateObject
         type: complex
         complex: Date
-      - name: singleRef
-        type: one
-        target: GiantDto
       - name: singleRefNullable
         type: one?
         target: GiantDto
@@ -73,7 +71,9 @@ dtos:
         type: map?
       - name: sliceValue
         type: slice
+        primitive: string
       - name: sliceValueNullable
+        primitive: string
         type: slice?
       - name: objectValue
         type: object
@@ -93,3 +93,16 @@ actions:
       dto: GiantDto
     out:
       dto: GiantDto
+
+  - name: getAsGiants
+    method: get
+    url: /get/giant/:id
+    out:
+      dto: GiantDto
+  
+  - name: patchGiant
+    method: patch
+    url: /get/giant/:id
+    in:
+      dto: GiantDto
+  

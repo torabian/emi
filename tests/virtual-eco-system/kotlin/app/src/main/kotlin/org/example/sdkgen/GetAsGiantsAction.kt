@@ -1,31 +1,31 @@
 package unknownpackage
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 /**
- * Action to communicate with the action ModifyGiantDtoAction
+ * Action to communicate with the action GetAsGiantsAction
  */
-data class ModifyGiantDtoActionMeta(
-    val name: String = "ModifyGiantDtoAction",
-    val url: String = "/modify/dto",
-    val method: String = "post"
+data class GetAsGiantsActionMeta(
+    val name: String = "GetAsGiantsAction",
+    val url: String = "/get/giant/:id",
+    val method: String = "get"
 )
-/*data class ModifyGiantDtoActionRequest(val call: io.ktor.server.application.ApplicationCall)*/
-data class ModifyGiantDtoActionResponse(
+/*data class GetAsGiantsActionRequest(val call: io.ktor.server.application.ApplicationCall)*/
+data class GetAsGiantsActionResponse(
     val statusCode: Int = 200,
     val headers: Map<String, String> = emptyMap(),
     val payload: Any? = null
 )
-object ModifyGiantDtoActionClient {
+object GetAsGiantsActionClient {
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
-    suspend fun compute(jsonPayload: String): ModifyGiantDtoActionResponse =
+    suspend fun compute(jsonPayload: String): GetAsGiantsActionResponse =
         withContext(Dispatchers.IO) {
-            val meta = ModifyGiantDtoActionMeta()
+            val meta = GetAsGiantsActionMeta()
             val body = jsonPayload.toRequestBody(jsonType)
             val request = Request.Builder()
                 .url(meta.url)
@@ -33,7 +33,7 @@ object ModifyGiantDtoActionClient {
                 .addHeader("Accept", "application/json")
                 .build()
             client.newCall(request).execute().use { resp ->
-                ModifyGiantDtoActionResponse(
+                GetAsGiantsActionResponse(
                     statusCode = resp.code,
                     // body = resp.body?.string().orEmpty(),
                     headers = resp.headers.toMap()
