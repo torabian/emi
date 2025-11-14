@@ -53,6 +53,17 @@ func GetActionRealms(
 		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
 	}
 
+	// Header is the http headers, extending the Headers class from standard javascript
+	pathParameter, err := KotlinActionPathParams(action)
+	if err != nil {
+		return realms, nil, err
+	}
+
+	if pathParameter != nil {
+		deps = append(deps, pathParameter.CodeChunkDependensies...)
+		realms.PathParameter = pathParameter
+	}
+
 	if action.HasRequestFields() {
 		fields, err := KotlinCommonStructGenerator(action.GetRequestFields(), ctx, commonClassContext{
 			RootClassName:       realms.ActionName + "Req",

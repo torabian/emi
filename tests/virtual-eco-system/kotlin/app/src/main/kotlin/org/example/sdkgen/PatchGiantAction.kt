@@ -1,11 +1,11 @@
 package unknownpackage
-import kotlinx.serialization.json.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 /**
  * Action to communicate with the action PatchGiantAction
  */
@@ -20,6 +20,18 @@ data class PatchGiantActionResponse(
     val headers: Map<String, String> = emptyMap(),
     val payload: Any? = null
 )
+	/**
+ * Path parameters for PatchGiantAction
+ */
+data class PatchGiantActionPathParameter (
+	var Id: String
+)
+// Converts a placeholder url, and applies the parameters to it.
+fun PatchGiantActionPathParameterApply(params: PatchGiantActionPathParameter, templateUrl: String): String {
+	var url = templateUrl
+		url = url.replace("id", params.Id)
+	return url
+}
 object PatchGiantActionClient {
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()

@@ -36,6 +36,7 @@ data class {{ .realms.ActionName }}Meta(
     val method: String = "{{ .action.Method }}"
 )
 
+
 /*data class {{ .realms.ActionName }}Request(val call: io.ktor.server.application.ApplicationCall)*/
 
 data class {{ .realms.ActionName }}Response(
@@ -44,6 +45,11 @@ data class {{ .realms.ActionName }}Response(
     val payload: Any? = null
 )
 
+
+{{ if .realms.PathParameter }}
+	{{ b2s .realms.PathParameter.ActualScript }}
+{{ end }}
+ 
 object {{ .realms.ActionName }}Client {
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
