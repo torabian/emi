@@ -1,36 +1,84 @@
 package unknownpackage
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-  // The base class definition for giantDto
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
+
+
 @Serializable
-data class GiantDto (
-		@SerialName("firstName")  val firstName: String,
-		@SerialName("firstNameNullable")  val firstNameNullable: String?,
-		@SerialName("array")  val array: List<GiantDtoArray>,
-		@SerialName("arrayNullable")  val arrayNullable: List<GiantDtoArrayNullable>,
-		@SerialName("booleanField")  val booleanField: Boolean,
-		@SerialName("booleanFieldNullable")  val booleanFieldNullable: Boolean?,
-		@SerialName("collectionItems")  val collectionItems: List<GiantDto>,
-		@SerialName("collectionItemsNullable")  val collectionItemsNullable: List<GiantDto>?,
-		@SerialName("dateObject")  @Contextual  val dateObject: Any,
-		@SerialName("singleRefNullable")  @Contextual  val singleRefNullable: Any,
-		@SerialName("enumeration")  val enumeration: String,
-		@SerialName("enumerationNullable")  val enumerationNullable: String?,
-		@SerialName("floatingPoint32")  val floatingPoint32: Float,
-		@SerialName("floatingPoint32Nullable")  val floatingPoint32Nullable: Float?,
-		@SerialName("floatingPoint64")  val floatingPoint64: Double,
-		@SerialName("floatingPoint64Nullable")  val floatingPoint64Nullable: Double?,
-		@SerialName("integerValue")  val integerValue: Int,
-		@SerialName("integer32ValueNullable")  val integer32ValueNullable: Int?,
-		@SerialName("integer32Value")  val integer32Value: Int,
-		@SerialName("integer64ValueNullable")  val integer64ValueNullable: Long?,
-		@SerialName("integer64Value")  val integer64Value: Long,
-		@SerialName("mapValue")  @Contextual  val mapValue: Any,
-		@SerialName("mapValueNullable")  @Contextual  val mapValueNullable: Any,
-		@SerialName("sliceValue")  val sliceValue: List<String>,
-		@SerialName("sliceValueNullable")  @Contextual  val sliceValueNullable: Any,
-		@SerialName("objectValue")  val objectValue:  GiantDtoObjectValue,
-)
+sealed class Maybe<out T> {
+    @Serializable
+    @SerialName("absent")
+    data object Absent : Maybe<Nothing>()
+
+    @Serializable
+    @SerialName("null")
+    data object Null : Maybe<Nothing>()
+
+    @Serializable
+    @SerialName("value")
+    data class Value<T>(val v: T) : Maybe<T>()
+}
+
+object MaybeFieldSerializer : KSerializer<MaybeField<Any?>> {
+    override val descriptor: SerialDescriptor =
+        buildClassSerialDescriptor("MaybeField")
+
+    override fun serialize(encoder: Encoder, value: MaybeField<Any?>) {
+        val jsonEncoder = encoder as? JsonEncoder ?: error("JsonEncoder required")
+
+        when (val v = value.value) {
+            Maybe.Absent -> return   // <--- key will be omitted
+            Maybe.Null -> jsonEncoder.encodeJsonElement(JsonNull)
+            is Maybe.Value<*> -> {
+                val el = v.v as? JsonElement ?: JsonPrimitive(v.v.toString())
+                jsonEncoder.encodeJsonElement(el)
+            }
+        }
+    }
+
+    override fun deserialize(decoder: Decoder): MaybeField<Any?> {
+        val jsonDecoder = decoder as? JsonDecoder ?: error("JsonDecoder required")
+        val element = jsonDecoder.decodeJsonElement()
+        val maybe = if (element is JsonNull) Maybe.Null else Maybe.Value(element)
+        return MaybeField(maybe)
+    }
+}
+
+
+
+
+// 2️⃣ Field wrapper with serializer
+@Serializable(with = MaybeFieldSerializer::class)
+data class MaybeField<T>(val value: Maybe<T> = Maybe.Absent) {
+	override fun toString(): String = when (value) {
+        is Maybe.Absent -> ""              // optional: treat absent as empty string
+        is Maybe.Null -> "null"            // optional
+        is Maybe.Value -> value.v.toString()
+    }
+}
+
+// The base class definition for giantDto
+@Serializable
+data class GiantDto(
+    @SerialName("firstName") var firstName: MaybeField<String> = MaybeField(Maybe.Absent)
+) {
+	fun toJson(pretty: Boolean = false): String {
+        val json = Json {
+            encodeDefaults = false      // omit Maybe.Absent
+            prettyPrint = pretty
+        }
+        return json.encodeToString(this)
+    }
+
+	override fun toString(): String {
+		return this.toJson()
+	}
+
+}
   // The base class definition for array
 @Serializable
 data class GiantDtoArray (

@@ -12,7 +12,7 @@ import kotlinx.serialization.json.*
 data class GetAsGiantsActionMeta(
     val name: String = "GetAsGiantsAction",
     val url: String = "/get/giant/:id",
-    val method: String = "get"
+    val method: String = "PATCH"
 )
 /*data class GetAsGiantsActionRequest(val call: io.ktor.server.application.ApplicationCall)*/
 data class GetAsGiantsActionResponse(
@@ -20,6 +20,7 @@ data class GetAsGiantsActionResponse(
     val headers: Map<String, String> = emptyMap(),
     val payload: Any? = null
 )
+
 object GetAsGiantsActionClient {
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
@@ -28,7 +29,7 @@ object GetAsGiantsActionClient {
             val meta = GetAsGiantsActionMeta()
             val body = jsonPayload.toRequestBody(jsonType)
             val request = Request.Builder()
-                .url(meta.url)
+                .url("http://localhost:8080" + meta.url)
                 .method(meta.method, body)
                 .addHeader("Accept", "application/json")
                 .build()

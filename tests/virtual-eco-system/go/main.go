@@ -13,11 +13,16 @@ func main() {
 
 	// Register the endpoint
 	unknownpackage.PatchGiantAction(r, func(c unknownpackage.PatchGiantActionRequest, gin *gin.Context) (*unknownpackage.PatchGiantActionResponse, error) {
-
 		return &unknownpackage.PatchGiantActionResponse{
 			Payload: &unknownpackage.GiantDto{
 				FirstName: "asdasd",
 			},
+		}, nil
+	})
+
+	unknownpackage.GetAsGiantsAction(r, func(c unknownpackage.GetAsGiantsActionRequest, gin *gin.Context) (*unknownpackage.GetAsGiantsActionResponse, error) {
+		return &unknownpackage.GetAsGiantsActionResponse{
+			Payload: c.Params.Id,
 		}, nil
 	})
 
