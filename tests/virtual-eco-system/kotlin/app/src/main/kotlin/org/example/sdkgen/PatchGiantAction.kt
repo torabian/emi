@@ -1,11 +1,11 @@
 package unknownpackage
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 /**
  * Action to communicate with the action PatchGiantAction
  */
@@ -24,7 +24,7 @@ data class PatchGiantActionResponse(
  * Path parameters for PatchGiantAction
  */
 data class PatchGiantActionPathParameter (
-	var Id: String
+	var Id: String,
 )
 // Converts a placeholder url, and applies the parameters to it.
 fun PatchGiantActionPathParameterApply(params: PatchGiantActionPathParameter, templateUrl: String): String {

@@ -19,6 +19,7 @@ type fieldVariable struct {
 	Type             string
 	ConstructorClass string
 	ComplexClass     string
+	DefaultValue     string
 	ComputedType     string
 	IsNullable       bool
 	IsNumeric        bool
@@ -43,7 +44,19 @@ func (x fieldVariable) Compile() string {
 		otherFlags += " @Contextual "
 	}
 
-	sequence = append(sequence, fmt.Sprintf(`@SerialName("%v") %v val %v: %v`, core.ToLower(x.Name), otherFlags, core.ToLower(x.Name), x.ComputedType))
+	defaultStatement := ""
+	if x.DefaultValue != "" {
+		defaultStatement = " = " + x.DefaultValue
+	}
+
+	sequence = append(sequence, fmt.Sprintf(
+		`@SerialName("%v") %v val %v: %v %v`,
+		core.ToLower(x.Name),
+		otherFlags,
+		core.ToLower(x.Name),
+		x.ComputedType,
+		defaultStatement,
+	))
 
 	return strings.Join(sequence, " ")
 }
@@ -67,6 +80,7 @@ func renderField(
 		Type:         string(field.Type),
 		ComputedType: computedType,
 		IsNumeric:    core.IsNumericDataType(string(field.Type)),
+		DefaultValue: KotlinSafeDefaultValue(field),
 	}
 
 	if field.Complex != "" {

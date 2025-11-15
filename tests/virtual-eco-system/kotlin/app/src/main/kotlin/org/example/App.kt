@@ -3,24 +3,11 @@
  */
 package org.example
 import unknownpackage.GiantDto
-import unknownpackage.Maybe
-import unknownpackage.MaybeField
+import emikot.*
 import unknownpackage.GetAsGiantsActionClient
 import kotlinx.coroutines.runBlocking
 fun stringValue(v: String?): Maybe<String> = if (v == null) Maybe.Null else Maybe.Value(v)
 
-class App {
-    val greeting: String
-        get() {
-            var dto = GiantDto(
-                MaybeField(stringValue("asdasd"))
-            )
-
-            // How to do this? I want now set undefiend.
-            dto.firstName = MaybeField(Maybe.Absent)
-            return "Hello World @!" + dto.toJson()
-        }
-}
 
 fun main() = runBlocking {
     

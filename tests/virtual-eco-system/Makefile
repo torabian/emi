@@ -21,6 +21,5 @@ buildsdk:
 
 
 build:
-	make clean && \
 	make genall && \
 	cd kotlin && make
