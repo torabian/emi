@@ -36,10 +36,16 @@ func GetActionRealms(
 			Location: "okhttp3.RequestBody.Companion.toRequestBody",
 		},
 		{
+			Location: "okhttp3.HttpUrl.Companion.toHttpUrl",
+		},
+		{
 			Location: "kotlinx.coroutines.Dispatchers",
 		},
 		{
 			Location: "kotlinx.coroutines.withContext",
+		},
+		{
+			Location: "emikot.ClientContext",
 		},
 		{
 			Location: "kotlinx.serialization.*",
@@ -51,6 +57,17 @@ func GetActionRealms(
 
 	realms := actionRealms{
 		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
+	}
+
+	// Header is the http headers, extending the Headers class from standard javascript
+	pathParameter, err := KotlinActionPathParams(action)
+	if err != nil {
+		return realms, nil, err
+	}
+
+	if pathParameter != nil {
+		deps = append(deps, pathParameter.CodeChunkDependensies...)
+		realms.PathParameter = pathParameter
 	}
 
 	if action.HasRequestFields() {

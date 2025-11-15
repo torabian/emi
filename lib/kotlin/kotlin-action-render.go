@@ -36,6 +36,7 @@ data class {{ .realms.ActionName }}Meta(
     val method: String = "{{ .action.Method }}"
 )
 
+
 /*data class {{ .realms.ActionName }}Request(val call: io.ktor.server.application.ApplicationCall)*/
 
 data class {{ .realms.ActionName }}Response(
@@ -44,18 +45,57 @@ data class {{ .realms.ActionName }}Response(
     val payload: Any? = null
 )
 
+
+{{ if .realms.PathParameter }}
+	{{ b2s .realms.PathParameter.ActualScript }}
+{{ end }}
+
 object {{ .realms.ActionName }}Client {
+
+	public var context: ClientContext? = null
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
 
-    suspend fun compute(jsonPayload: String): {{ .realms.ActionName }}Response =
+    fun buildUrl(base: String, path: String, query: Map<String, String>): String {
+        val baseUrl = base.toHttpUrl()   // parses full URL like "http://asdasda/"
+
+        val urlBuilder = baseUrl
+            .newBuilder()
+            .encodedPath(path)
+
+        query.forEach { (k, v) ->
+            urlBuilder.addQueryParameter(k, v)
+        }
+
+        return urlBuilder.build().toString()
+    }
+
+
+    suspend fun compute(
+		{{ if .realms.PathParameter }}
+		path: {{ .realms.ActionName}}PathParameter,
+		{{ end }}
+		query: Map<String, String> = emptyMap(),
+		headers: Map<String, String> = emptyMap(),
+		body: String? = null
+	): {{ .realms.ActionName }}Response =
         withContext(Dispatchers.IO) {
             val meta = {{ .realms.ActionName }}Meta()
-            val body = jsonPayload.toRequestBody(jsonType)
+
+            var baseUrl = context?.baseUrl ?: ""
+            var url = buildUrl(baseUrl, meta.url, query)
+
+			{{ if .realms.PathParameter }}
+            	url = {{ .realms.ActionName }}PathParameterApply(path, url)
+			{{ end }}
+
+            println(  url)
+
+            val body0 = body?.toRequestBody(jsonType)
 
             val request = Request.Builder()
-                .url(meta.url)
-                .method(meta.method, body)
+                .url(url)
+                .method(meta.method, body0)
                 .addHeader("Accept", "application/json")
                 .build()
 

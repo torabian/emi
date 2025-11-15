@@ -2,10 +2,12 @@ package unknownpackage
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import kotlinx.coroutines.Dispatchers
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import kotlinx.coroutines.Dispatchers
+import emikot.ClientContext
+import kotlinx.serialization.*
 /**
  * Action to communicate with the action GetAsGiantsAction
  */
@@ -20,16 +22,48 @@ data class GetAsGiantsActionResponse(
     val headers: Map<String, String> = emptyMap(),
     val payload: Any? = null
 )
+	/**
+ * Path parameters for GetAsGiantsAction
+ */
+data class GetAsGiantsActionPathParameter (
+	var Id: String,
+)
+// Converts a placeholder url, and applies the parameters to it.
+fun GetAsGiantsActionPathParameterApply(params: GetAsGiantsActionPathParameter, templateUrl: String): String {
+	var url = templateUrl
+		url = url.replace(":id", params.Id)
+	return url
+}
 object GetAsGiantsActionClient {
+	public var context: ClientContext? = null
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
-    suspend fun compute(jsonPayload: String): GetAsGiantsActionResponse =
+    fun buildUrl(base: String, path: String, query: Map<String, String>): String {
+        val baseUrl = base.toHttpUrl()   // parses full URL like "http://asdasda/"
+        val urlBuilder = baseUrl
+            .newBuilder()
+            .encodedPath(path)
+        query.forEach { (k, v) ->
+            urlBuilder.addQueryParameter(k, v)
+        }
+        return urlBuilder.build().toString()
+    }
+    suspend fun compute(
+		path: GetAsGiantsActionPathParameter,
+		query: Map<String, String> = emptyMap(),
+		headers: Map<String, String> = emptyMap(),
+		body: String? = null
+	): GetAsGiantsActionResponse =
         withContext(Dispatchers.IO) {
             val meta = GetAsGiantsActionMeta()
-            val body = jsonPayload.toRequestBody(jsonType)
+            var baseUrl = context?.baseUrl ?: ""
+            var url = buildUrl(baseUrl, meta.url, query)
+            	url = GetAsGiantsActionPathParameterApply(path, url)
+            println(  url)
+            val body0 = body?.toRequestBody(jsonType)
             val request = Request.Builder()
-                .url(meta.url)
-                .method(meta.method, body)
+                .url(url)
+                .method(meta.method, body0)
                 .addHeader("Accept", "application/json")
                 .build()
             client.newCall(request).execute().use { resp ->

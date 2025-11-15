@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
+	KotlinInclude "github.com/torabian/emi/lib/kotlin/kotlin-include"
 )
 
 func GetKotlinPublicActions() core.PublicAPIActions {
@@ -197,6 +198,9 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 			ActualScript: AsFullDocument(output, "unknownpackage"),
 		})
 	}
+
+	// Append the sdk include files
+	files = append(files, core.GenMoveIncludeDir(&KotlinInclude.KotlinInclude)...)
 
 	return files, nil
 }

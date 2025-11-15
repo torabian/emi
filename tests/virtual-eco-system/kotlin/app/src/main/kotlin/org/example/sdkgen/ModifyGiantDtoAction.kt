@@ -1,11 +1,13 @@
 package unknownpackage
-import kotlinx.serialization.json.*
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import emikot.ClientContext
 import kotlinx.serialization.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import kotlinx.serialization.json.*
+import okhttp3.*
+import okhttp3.RequestBody.Companion.toRequestBody
 /**
  * Action to communicate with the action ModifyGiantDtoAction
  */
@@ -21,15 +23,33 @@ data class ModifyGiantDtoActionResponse(
     val payload: Any? = null
 )
 object ModifyGiantDtoActionClient {
+	public var context: ClientContext? = null
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
-    suspend fun compute(jsonPayload: String): ModifyGiantDtoActionResponse =
+    fun buildUrl(base: String, path: String, query: Map<String, String>): String {
+        val baseUrl = base.toHttpUrl()   // parses full URL like "http://asdasda/"
+        val urlBuilder = baseUrl
+            .newBuilder()
+            .encodedPath(path)
+        query.forEach { (k, v) ->
+            urlBuilder.addQueryParameter(k, v)
+        }
+        return urlBuilder.build().toString()
+    }
+    suspend fun compute(
+		query: Map<String, String> = emptyMap(),
+		headers: Map<String, String> = emptyMap(),
+		body: String? = null
+	): ModifyGiantDtoActionResponse =
         withContext(Dispatchers.IO) {
             val meta = ModifyGiantDtoActionMeta()
-            val body = jsonPayload.toRequestBody(jsonType)
+            var baseUrl = context?.baseUrl ?: ""
+            var url = buildUrl(baseUrl, meta.url, query)
+            println(  url)
+            val body0 = body?.toRequestBody(jsonType)
             val request = Request.Builder()
-                .url(meta.url)
-                .method(meta.method, body)
+                .url(url)
+                .method(meta.method, body0)
                 .addHeader("Accept", "application/json")
                 .build()
             client.newCall(request).execute().use { resp ->
