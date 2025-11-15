@@ -49,19 +49,40 @@ data class {{ .realms.ActionName }}Response(
 {{ if .realms.PathParameter }}
 	{{ b2s .realms.PathParameter.ActualScript }}
 {{ end }}
- 
+
 object {{ .realms.ActionName }}Client {
+
+	public var context: ClientContext? = null
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
 
-    suspend fun compute(jsonPayload: String): {{ .realms.ActionName }}Response =
+	fun buildUrl(base: String, path: String, query: Map<String, String>): String {
+		val httpUrl = HttpUrl.Builder()
+			.scheme("http")    // or dynamic
+			.host("localhost") // or dynamic
+			.encodedPath(path)
+
+		query.forEach { (k, v) -> httpUrl.addQueryParameter(k, v) }
+
+		return httpUrl.build().toString()
+	}
+
+
+    suspend fun compute(
+		{{ if .realms.PathParameter }}
+		path: {{ .realms.ActionName}}PathParameter,
+		{{ end }}
+		query: Map<String, String> = emptyMap(),
+		headers: Map<String, String> = emptyMap(),
+		body: String? = null
+	): {{ .realms.ActionName }}Response =
         withContext(Dispatchers.IO) {
             val meta = {{ .realms.ActionName }}Meta()
-            val body = jsonPayload.toRequestBody(jsonType)
+            val body0 = body?.toRequestBody(jsonType)
 
             val request = Request.Builder()
                 .url(meta.url)
-                .method(meta.method, body)
+                .method(meta.method, body0)
                 .addHeader("Accept", "application/json")
                 .build()
 

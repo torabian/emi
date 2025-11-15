@@ -1,11 +1,12 @@
 package unknownpackage
+import kotlinx.coroutines.withContext
+import emikot.ClientContext
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 /**
  * Action to communicate with the action ModifyGiantDtoAction
  */
@@ -21,15 +22,28 @@ data class ModifyGiantDtoActionResponse(
     val payload: Any? = null
 )
 object ModifyGiantDtoActionClient {
+	public var context: ClientContext? = null
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
-    suspend fun compute(jsonPayload: String): ModifyGiantDtoActionResponse =
+	fun buildUrl(base: String, path: String, query: Map<String, String>): String {
+		val httpUrl = HttpUrl.Builder()
+			.scheme("http")    // or dynamic
+			.host("localhost") // or dynamic
+			.encodedPath(path)
+		query.forEach { (k, v) -> httpUrl.addQueryParameter(k, v) }
+		return httpUrl.build().toString()
+	}
+    suspend fun compute(
+		query: Map<String, String> = emptyMap(),
+		headers: Map<String, String> = emptyMap(),
+		body: String? = null
+	): ModifyGiantDtoActionResponse =
         withContext(Dispatchers.IO) {
             val meta = ModifyGiantDtoActionMeta()
-            val body = jsonPayload.toRequestBody(jsonType)
+            val body0 = body?.toRequestBody(jsonType)
             val request = Request.Builder()
                 .url(meta.url)
-                .method(meta.method, body)
+                .method(meta.method, body0)
                 .addHeader("Accept", "application/json")
                 .build()
             client.newCall(request).execute().use { resp ->

@@ -42,6 +42,9 @@ func GetActionRealms(
 			Location: "kotlinx.coroutines.withContext",
 		},
 		{
+			Location: "emikot.ClientContext",
+		},
+		{
 			Location: "kotlinx.serialization.*",
 		},
 		{

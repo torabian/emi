@@ -5,18 +5,20 @@ package org.example
 import unknownpackage.GiantDto
 import emikot.*
 import unknownpackage.GetAsGiantsActionClient
+import unknownpackage.GetAsGiantsActionPathParameter
 import kotlinx.coroutines.runBlocking
-fun stringValue(v: String?): Maybe<String> = if (v == null) Maybe.Null else Maybe.Value(v)
 
+fun stringValue(v: String?): Maybe<String> = if (v == null) Maybe.Null else Maybe.Value(v)
 
 fun main() = runBlocking {
     
     val dto = GiantDto(firstName = MaybeField(Maybe.Value("Ali")))
-
     println(dto)
 
+    GetAsGiantsActionClient.context = ClientContext(baseUrl = "http://localhost:8080")
+
     try {
-        val response = GetAsGiantsActionClient.compute(dto.toString())
+        val response = GetAsGiantsActionClient.compute(GetAsGiantsActionPathParameter(Id = "asd"))
         println(response)
     } catch (e: Exception) {
         println(e.message)

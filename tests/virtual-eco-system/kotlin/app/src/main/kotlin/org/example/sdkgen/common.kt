@@ -49,7 +49,11 @@ object MaybeFieldSerializer : KSerializer<MaybeField<Any?>> {
     }
 }
 
-
+// Common configuration for the API calls, such as baseurl
+data class ClientContext(
+    val baseUrl: String = "",
+    val defaultHeaders: Map<String, String> = emptyMap()
+)
 
 
 // 2️⃣ Field wrapper with serializer
