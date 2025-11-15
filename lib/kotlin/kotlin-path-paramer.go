@@ -48,7 +48,7 @@ data class {{ .TypeName }} (
 fun {{ .TypeName }}Apply(params: {{ .TypeName }}, templateUrl: String): String {
 	var url = templateUrl
 	{{- range .Params }}
-		url = url.replace("{{ .PlaceHolderValue }}", params.{{.GolangFieldName}})
+		url = url.replace(":{{ .PlaceHolderValue }}", params.{{.GolangFieldName}})
 	{{- end }}
 
 	return url

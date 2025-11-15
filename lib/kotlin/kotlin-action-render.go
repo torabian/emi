@@ -56,16 +56,19 @@ object {{ .realms.ActionName }}Client {
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
 
-	fun buildUrl(base: String, path: String, query: Map<String, String>): String {
-		val httpUrl = HttpUrl.Builder()
-			.scheme("http")    // or dynamic
-			.host("localhost") // or dynamic
-			.encodedPath(path)
+    fun buildUrl(base: String, path: String, query: Map<String, String>): String {
+        val baseUrl = base.toHttpUrl()   // parses full URL like "http://asdasda/"
 
-		query.forEach { (k, v) -> httpUrl.addQueryParameter(k, v) }
+        val urlBuilder = baseUrl
+            .newBuilder()
+            .encodedPath(path)
 
-		return httpUrl.build().toString()
-	}
+        query.forEach { (k, v) ->
+            urlBuilder.addQueryParameter(k, v)
+        }
+
+        return urlBuilder.build().toString()
+    }
 
 
     suspend fun compute(
@@ -78,10 +81,20 @@ object {{ .realms.ActionName }}Client {
 	): {{ .realms.ActionName }}Response =
         withContext(Dispatchers.IO) {
             val meta = {{ .realms.ActionName }}Meta()
+
+            var baseUrl = context?.baseUrl ?: ""
+            var url = buildUrl(baseUrl, meta.url, query)
+
+			{{ if .realms.PathParameter }}
+            	url = {{ .realms.ActionName }}PathParameterApply(path, url)
+			{{ end }}
+
+            println(  url)
+
             val body0 = body?.toRequestBody(jsonType)
 
             val request = Request.Builder()
-                .url(meta.url)
+                .url(url)
                 .method(meta.method, body0)
                 .addHeader("Accept", "application/json")
                 .build()

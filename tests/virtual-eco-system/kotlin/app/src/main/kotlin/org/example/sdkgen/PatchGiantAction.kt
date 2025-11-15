@@ -1,12 +1,13 @@
 package unknownpackage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import emikot.ClientContext
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.*
+import okhttp3.*
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import kotlinx.coroutines.Dispatchers
+import emikot.ClientContext
+import kotlinx.serialization.json.*
 /**
  * Action to communicate with the action PatchGiantAction
  */
@@ -30,21 +31,23 @@ data class PatchGiantActionPathParameter (
 // Converts a placeholder url, and applies the parameters to it.
 fun PatchGiantActionPathParameterApply(params: PatchGiantActionPathParameter, templateUrl: String): String {
 	var url = templateUrl
-		url = url.replace("id", params.Id)
+		url = url.replace(":id", params.Id)
 	return url
 }
 object PatchGiantActionClient {
 	public var context: ClientContext? = null
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
-	fun buildUrl(base: String, path: String, query: Map<String, String>): String {
-		val httpUrl = HttpUrl.Builder()
-			.scheme("http")    // or dynamic
-			.host("localhost") // or dynamic
-			.encodedPath(path)
-		query.forEach { (k, v) -> httpUrl.addQueryParameter(k, v) }
-		return httpUrl.build().toString()
-	}
+    fun buildUrl(base: String, path: String, query: Map<String, String>): String {
+        val baseUrl = base.toHttpUrl()   // parses full URL like "http://asdasda/"
+        val urlBuilder = baseUrl
+            .newBuilder()
+            .encodedPath(path)
+        query.forEach { (k, v) ->
+            urlBuilder.addQueryParameter(k, v)
+        }
+        return urlBuilder.build().toString()
+    }
     suspend fun compute(
 		path: PatchGiantActionPathParameter,
 		query: Map<String, String> = emptyMap(),
@@ -53,9 +56,13 @@ object PatchGiantActionClient {
 	): PatchGiantActionResponse =
         withContext(Dispatchers.IO) {
             val meta = PatchGiantActionMeta()
+            var baseUrl = context?.baseUrl ?: ""
+            var url = buildUrl(baseUrl, meta.url, query)
+            	url = PatchGiantActionPathParameterApply(path, url)
+            println(  url)
             val body0 = body?.toRequestBody(jsonType)
             val request = Request.Builder()
-                .url(meta.url)
+                .url(url)
                 .method(meta.method, body0)
                 .addHeader("Accept", "application/json")
                 .build()

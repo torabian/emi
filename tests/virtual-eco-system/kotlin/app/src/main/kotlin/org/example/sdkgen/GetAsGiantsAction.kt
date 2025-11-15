@@ -1,14 +1,13 @@
 package unknownpackage
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import kotlinx.coroutines.Dispatchers
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.*
+import kotlinx.coroutines.Dispatchers
 import emikot.ClientContext
 import kotlinx.serialization.*
-import okhttp3.HttpUrl.Companion.toHttpUrl
-
-import kotlinx.serialization.json.*
-import okhttp3.*
 /**
  * Action to communicate with the action GetAsGiantsAction
  */
@@ -39,22 +38,16 @@ object GetAsGiantsActionClient {
 	public var context: ClientContext? = null
     private val client = OkHttpClient()
     private val jsonType = "application/json".toMediaType()
-
     fun buildUrl(base: String, path: String, query: Map<String, String>): String {
         val baseUrl = base.toHttpUrl()   // parses full URL like "http://asdasda/"
-
         val urlBuilder = baseUrl
             .newBuilder()
             .encodedPath(path)
-
         query.forEach { (k, v) ->
             urlBuilder.addQueryParameter(k, v)
         }
-
         return urlBuilder.build().toString()
     }
-
-
     suspend fun compute(
 		path: GetAsGiantsActionPathParameter,
 		query: Map<String, String> = emptyMap(),
@@ -65,13 +58,11 @@ object GetAsGiantsActionClient {
             val meta = GetAsGiantsActionMeta()
             var baseUrl = context?.baseUrl ?: ""
             var url = buildUrl(baseUrl, meta.url, query)
-            
-            url = GetAsGiantsActionPathParameterApply(path, url)
+            	url = GetAsGiantsActionPathParameterApply(path, url)
             println(  url)
-
             val body0 = body?.toRequestBody(jsonType)
             val request = Request.Builder()
-                .url(meta.url)
+                .url(url)
                 .method(meta.method, body0)
                 .addHeader("Accept", "application/json")
                 .build()

@@ -36,6 +36,9 @@ func GetActionRealms(
 			Location: "okhttp3.RequestBody.Companion.toRequestBody",
 		},
 		{
+			Location: "okhttp3.HttpUrl.Companion.toHttpUrl",
+		},
+		{
 			Location: "kotlinx.coroutines.Dispatchers",
 		},
 		{
