@@ -127,7 +127,10 @@ func KotlinCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenConte
 				Location: "kotlinx.serialization.json.*",
 			},
 			{
-				Location: "emitkot.*",
+				Location: "emikot.MaybeField",
+			},
+			{
+				Location: "emikot.Maybe",
 			},
 		},
 	}

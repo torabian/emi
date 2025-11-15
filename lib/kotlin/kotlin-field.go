@@ -111,12 +111,14 @@ func KotlinSafeDefaultValue(field *core.EmiField) string {
 	switch field.Type {
 	case "array", "slice", "collection":
 		return "emptyList()"
-	case "json", "object?", "embed", "computed", "any":
-		return "null"
+	case "object?":
+		return "MaybeField(Maybe.Absent)"
 	case "string", "text":
 		return `""`
-	case "float", "float32", "float64": //"float?", "float32?", "float64?":
+	case "float", "float32": //"float?", "float32?", "float64?":
 		return "0.0f"
+	case core.FieldTypeFloat64:
+		return "0.0"
 	case "int", "int32", "int64": // "int?", "int32?", "int64?":
 		return "0"
 	default:
