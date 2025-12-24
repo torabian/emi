@@ -4,17 +4,11 @@ import (
 	"fmt"
 	"os"
 	"path"
+
+	"github.com/torabian/emi/lib/core"
 )
 
-type VirtualFile struct {
-	Name         string
-	MimeType     string
-	Location     string
-	ActualScript string
-	Extension    string
-}
-
-func WriteToDisk(directory string, files []VirtualFile) error {
+func WriteToDisk(directory string, files []core.VirtualFile) error {
 	for _, file := range files {
 
 		filePath := path.Join(directory, file.Location, file.Name+file.Extension)

@@ -1,4 +1,4 @@
-package artifacts
+package {{ .GoPackageName }}
 
 import "database/sql"
 

@@ -48,3 +48,6 @@ ci:
 compile-github:
 	rm -rf __webdir && cp -R emi-web/build __webdir && touch __webdir/.nojekyll && cp -R playground/dist __webdir/playground
 
+
+qpsamples:
+	./emi qp dir --path examples/query-predict/queries-source --output examples/query-predict/output

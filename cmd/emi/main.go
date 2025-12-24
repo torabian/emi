@@ -39,6 +39,11 @@ func main() {
 		cliCommandFromFileActions(js.GetJsPublicActions().FileActions)...)
 
 	commands = append(commands,
+		cliCommandFromTextActions(querypredict.GetQPPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(querypredict.GetQPPublicActions().FileActions)...)
+
+	commands = append(commands,
 		cliCommandFromTextActions(golang.GetGolangPublicActions().TextActions)...)
 	commands = append(commands,
 		cliCommandFromFileActions(golang.GetGolangPublicActions().FileActions)...)
@@ -320,7 +325,7 @@ var DirCommand = cli.Command{
 	Flags:       commonFlags,
 	Action: func(c *cli.Context) error {
 
-		files := []querypredict.VirtualFile{}
+		files := []core.VirtualFile{}
 		doc := querypredict.QueryDocument{}
 
 		err2 := ReadSQLFiles(DiskFS{Root: c.String("path")}, ".", 1, func(filePath string, data []byte) error {

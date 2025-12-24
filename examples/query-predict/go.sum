@@ -1,0 +1,4 @@
+github.com/h22rana/jsonlogic2sql v1.0.0 h1:ENvoEVGHzy76YudSQYjKyt6Nes+iuKtU7/YHeR0Ou2U=
+github.com/h22rana/jsonlogic2sql v1.0.0/go.mod h1:ZeEsrqOkKM+3pv86mtR4jpKkCfOQtT240T5TVtpMV5A=
+github.com/mattn/go-sqlite3 v1.14.32 h1:JD12Ag3oLy1zQA+BNn74xRgaBbdhbNIDYvQUEuuErjs=
+github.com/mattn/go-sqlite3 v1.14.32/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=

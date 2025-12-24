@@ -8,6 +8,8 @@ import (
 	"strings"
 	"text/template"
 	"unicode"
+
+	"github.com/torabian/emi/lib/core"
 )
 
 //go:embed query.tpl manifest.tpl exec.tpl shared.tpl
@@ -20,11 +22,11 @@ type Field struct {
 }
 
 type QueryData struct {
-	FuncName string
-	SQL      string
-	Fields   []Field
-	Params   string // e.g., "active bool"
-
+	FuncName      string
+	SQL           string
+	Fields        []Field
+	Params        string // e.g., "active bool"
+	GoPackageName string
 }
 
 // helper for template: detect last element
@@ -88,13 +90,16 @@ type ManifestItem struct {
 }
 
 type Manifest struct {
-	Items []ManifestItem
+	Items         []ManifestItem
+	GoPackageName string
 }
 
 // ProcessQueryPredicts generates Go code files in memory
-func ProcessQueryPredicts(document QueryDocument) ([]VirtualFile, error) {
-	files := []VirtualFile{}
-	manifest := Manifest{}
+func ProcessQueryPredicts(document QueryDocument) ([]core.VirtualFile, error) {
+	files := []core.VirtualFile{}
+	manifest := Manifest{
+		GoPackageName: "xxx",
+	}
 
 	queryTpl, err := LoadTemplate("query.tpl")
 	if err != nil {
@@ -109,17 +114,25 @@ func ProcessQueryPredicts(document QueryDocument) ([]VirtualFile, error) {
 	for _, spec := range document.Queries {
 		var buf bytes.Buffer
 		data := QueryData{
-			FuncName: spec.Name,
+			FuncName:      MakeValidGoField(spec.Name),
+			GoPackageName: "xxx",
 		}
 
+		// Check if query contains --skip, then we do not parse it at all.
+		skipParsing := strings.Contains(spec.Query, "--skip")
+
 		sel, err := GetSelectStatementFromQuery(spec.Query)
-		if err != nil && err.Error() != "not a SELECT statement" {
+		if !skipParsing && (err != nil && err.Error() != "not a SELECT statement") {
 			if !spec.Force {
 				return files, err
 			}
 		}
 
-		if err == nil {
+		if err != nil {
+			skipParsing = true
+		}
+
+		if err == nil && !skipParsing {
 			/// It means the statement is not a select - then we render exec.tpl instead
 			fields := []Field{}
 			fields2, err := ExtractColumnsFromSqlSelect(sel)
@@ -159,10 +172,10 @@ func ProcessQueryPredicts(document QueryDocument) ([]VirtualFile, error) {
 			}
 
 			manifest.Items = append(manifest.Items, ManifestItem{
-				Name:       spec.Name,
-				CtxName:    spec.Name + "Context",
-				Return:     "[]" + spec.Name + "Row",
-				ErrorValue: fmt.Sprintf("[]%vRow{}", spec.Name),
+				Name:       data.FuncName,
+				CtxName:    data.FuncName + "Context",
+				Return:     "[]" + data.FuncName + "Row",
+				ErrorValue: fmt.Sprintf("[]%vRow{}", data.FuncName),
 			})
 		} else {
 			data.SQL = spec.Query
@@ -171,14 +184,14 @@ func ProcessQueryPredicts(document QueryDocument) ([]VirtualFile, error) {
 			}
 
 			manifest.Items = append(manifest.Items, ManifestItem{
-				Name:       spec.Name,
-				CtxName:    spec.Name + "Context",
+				Name:       data.FuncName,
+				CtxName:    data.FuncName + "Context",
 				Return:     "sql.Result",
 				ErrorValue: "nil",
 			})
 		}
 
-		file := VirtualFile{
+		file := core.VirtualFile{
 			Name:         spec.Name,
 			ActualScript: buf.String(),
 			Extension:    ".go",
@@ -205,7 +218,7 @@ func ProcessQueryPredicts(document QueryDocument) ([]VirtualFile, error) {
 		return nil, err
 	}
 
-	files = append(files, VirtualFile{
+	files = append(files, core.VirtualFile{
 		Name:         "manifest",
 		ActualScript: manifestBuf.String(),
 		Extension:    ".go",
