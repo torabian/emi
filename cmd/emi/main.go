@@ -1,26 +1,47 @@
 package main
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/torabian/emi/lib/core"
 	"github.com/torabian/emi/lib/golang"
 	"github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
+	"github.com/torabian/emi/lib/querypredict"
 
 	"github.com/urfave/cli"
 )
 
 func main() {
 
-	commands := []cli.Command{}
+	commands := []cli.Command{
+		{
+			Name:      "querypredict",
+			ShortName: "qp",
+			Aliases:   []string{"qp"},
+			Usage:     "Query predict sql tools and transformation",
+			Subcommands: cli.Commands{
+				DirCommand,
+				GenerateCommand,
+			},
+		},
+	}
 	commands = append(commands,
 		cliCommandFromTextActions(js.GetJsPublicActions().TextActions)...)
 	commands = append(commands,
 		cliCommandFromFileActions(js.GetJsPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(querypredict.GetQPPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(querypredict.GetQPPublicActions().FileActions)...)
 
 	commands = append(commands,
 		cliCommandFromTextActions(golang.GetGolangPublicActions().TextActions)...)
@@ -129,6 +150,40 @@ func createCliContext(c *cli.Context, flags []core.FlagDef) (core.MicroGenContex
 	return ctx, nil
 }
 
+type MicroGenContext struct {
+	Tags     string // Tags/features to enable or disable
+	Output   string // Output file or directory
+	Flags    string
+	Content  string
+	Document querypredict.QueryDocument
+}
+
+func createCliContextQp(c *cli.Context) (MicroGenContext, error) {
+	ctx := MicroGenContext{
+		Tags:   c.String("tags"),
+		Output: c.String("output"),
+	}
+
+	content, _ := os.ReadFile(c.String("path"))
+	var m map[string]string = map[string]string{}
+
+	document, err := querypredict.LoadQueriesFromString(string(content))
+
+	if err != nil {
+		fmt.Printf("expected no error, got %v", err)
+		return ctx, err
+	}
+
+	ctx.Document = *document
+
+	res, _ := json.Marshal(m)
+
+	ctx.Flags = string(res)
+	ctx.Content = string(content)
+
+	return ctx, nil
+}
+
 func cliCommandFromTextAction(a core.ActionText) cli.Command {
 
 	// The action definition might ask for some flags,
@@ -168,6 +223,36 @@ func cliCommandFromTextAction(a core.ActionText) cli.Command {
 			return nil
 		},
 	}
+}
+
+var GenerateCommand = cli.Command{
+	Name:        "gen",
+	Description: "Generate the query predict golang files from a query predict yaml definition",
+	Usage:       "Generate the query predict golang files from a query predict yaml definition",
+	Flags:       commonFlags,
+	Action: func(c *cli.Context) error {
+		ctx, err := createCliContextQp(c)
+		if err != nil {
+			return err
+		}
+
+		files, err := querypredict.ProcessQueryPredicts(ctx.Document)
+		if err != nil {
+			return err
+		}
+
+		for _, file := range files {
+
+			filePath := path.Join(ctx.Output, file.Location, file.Name+file.Extension)
+			os.MkdirAll(path.Dir(filePath), os.ModePerm)
+
+			if err := os.WriteFile(filePath, []byte(file.ActualScript), 0644); err != nil {
+				return fmt.Errorf("error on writing file to disk: %v, %v, %w", file.Location, file.Name, err)
+			}
+		}
+
+		return nil
+	},
 }
 
 func cliCommandFromFileAction(a core.ActionFile) cli.Command {
@@ -231,4 +316,123 @@ func cliCommandFromFileAction(a core.ActionFile) cli.Command {
 			return nil
 		},
 	}
+}
+
+var DirCommand = cli.Command{
+	Name:        "dir",
+	Description: "Searches for .sql files in given directory, considering maximum depth, and would generate querypredict golang files in output ",
+	Usage:       "Searches for .sql files in given directory, considering maximum depth, and would generate querypredict golang files in output ",
+	Flags:       commonFlags,
+	Action: func(c *cli.Context) error {
+
+		files := []core.VirtualFile{}
+		doc := querypredict.QueryDocument{}
+
+		err2 := ReadSQLFiles(DiskFS{Root: c.String("path")}, ".", 1, func(filePath string, data []byte) error {
+
+			doc.Queries = append(doc.Queries, querypredict.QuerySpec{
+
+				Name:  strings.ReplaceAll(path.Base(filePath), ".sql", ""),
+				Query: string(data),
+			})
+
+			return nil
+		})
+
+		if err2 != nil {
+			return err2
+		}
+
+		files, err := querypredict.ProcessQueryPredicts(doc)
+		if err != nil {
+			return err
+		}
+
+		for _, file := range files {
+
+			filePath := path.Join(c.String("output"), file.Location, file.Name+file.Extension)
+			os.MkdirAll(path.Dir(filePath), os.ModePerm)
+
+			if err := os.WriteFile(filePath, []byte(file.ActualScript), 0644); err != nil {
+				return fmt.Errorf("error on writing file to disk: %v, %v, %w", file.Location, file.Name, err)
+			}
+		}
+
+		for _, file := range files {
+
+			filePath := path.Join(c.String("output"), file.Location, file.Name+file.Extension)
+			os.MkdirAll(path.Dir(filePath), os.ModePerm)
+
+			if err := os.WriteFile(filePath, []byte(file.ActualScript), 0644); err != nil {
+				return fmt.Errorf("error on writing file to disk: %v, %v, %w", file.Location, file.Name, err)
+			}
+		}
+
+		return nil
+	},
+}
+
+// FS defines minimal interface for reading files and walking directories
+type FS interface {
+	ReadDir(dirname string) ([]fs.DirEntry, error)
+	ReadFile(name string) ([]byte, error)
+}
+
+// DiskFS implements FS for the OS file system
+type DiskFS struct {
+	Root string
+}
+
+func (d DiskFS) ReadDir(dirname string) ([]fs.DirEntry, error) {
+	return os.ReadDir(filepath.Join(d.Root, dirname))
+}
+
+func (d DiskFS) ReadFile(name string) ([]byte, error) {
+	return os.ReadFile(filepath.Join(d.Root, name))
+}
+
+// EmbedFS implements FS for embed.FS
+type EmbedFS struct {
+	FS   embed.FS
+	Root string
+}
+
+func (e EmbedFS) ReadDir(dirname string) ([]fs.DirEntry, error) {
+	return e.FS.ReadDir(filepath.Join(e.Root, dirname))
+}
+
+func (e EmbedFS) ReadFile(name string) ([]byte, error) {
+	return e.FS.ReadFile(filepath.Join(e.Root, name))
+}
+
+// ReadSQLFiles walks the FS and reads all .sql files up to maxDepth
+func ReadSQLFiles(fsys FS, root string, maxDepth int, reader func(path string, data []byte) error) error {
+	var walk func(path string, depth int) error
+	walk = func(path string, depth int) error {
+		if maxDepth >= 0 && depth > maxDepth {
+			return nil
+		}
+		entries, err := fsys.ReadDir(path)
+		if err != nil {
+			return err
+		}
+		for _, e := range entries {
+			p := filepath.Join(path, e.Name())
+			if e.IsDir() {
+				if err := walk(p, depth+1); err != nil {
+					return err
+				}
+			} else if strings.HasSuffix(e.Name(), ".sql") {
+				data, err := fsys.ReadFile(p)
+				if err != nil {
+					return err
+				}
+				if err := reader(p, data); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+	return walk(root, 0)
 }

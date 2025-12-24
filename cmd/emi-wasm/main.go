@@ -8,6 +8,7 @@ import (
 	"github.com/torabian/emi/lib/golang"
 	emijs "github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
+	"github.com/torabian/emi/lib/querypredict"
 )
 
 func main() {
@@ -27,6 +28,14 @@ func main() {
 	}
 
 	for _, fileAction := range golang.GetGolangPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range querypredict.GetQPPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range querypredict.GetQPPublicActions().FileActions {
 		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
 	}
 

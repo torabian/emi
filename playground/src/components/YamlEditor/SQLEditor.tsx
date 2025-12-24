@@ -3,7 +3,7 @@ import { configureMonacoYaml } from "monaco-yaml";
 import * as monaco from "monaco-editor";
 import { useSystemTheme } from "../../helpers/useSystemTheme";
 
-export default function YamlEditor({
+export default function SQLEditor({
   onChange,
   value,
 }: {
@@ -29,7 +29,7 @@ export default function YamlEditor({
 
   return (
     <Editor
-      path="config.yaml"
+      path="query.sql"
       options={{
         quickSuggestions: true, // show on typing
         suggestOnTriggerCharacters: true, // e.g. after ":" etc.
@@ -40,7 +40,7 @@ export default function YamlEditor({
       onChange={(value) => {
         onChange(value as string);
       }}
-      defaultLanguage="yaml"
+      defaultLanguage="sql"
       defaultValue={value}
       theme={theme}
       beforeMount={beforeMount}

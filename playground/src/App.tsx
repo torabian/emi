@@ -8,10 +8,12 @@ import TypescriptEditor from "./components/YamlEditor/TypescriptEditor";
 import YamlEditor from "./components/YamlEditor/YamlEditor";
 import { usePlaygroundPresenter } from "./helpers/usePlaygroundPresenter";
 import { downloadZip } from "./helpers/zipTools";
+import SQLEditor from "./components/YamlEditor/SQLEditor";
 const options = [
   { value: "goGen", label: "Golang" },
   { value: "kotlinGen", label: "Kotlin" },
   { value: "jsGenModule", label: "JavaScript" },
+  { value: "sqlQueryPredict", label: "QueryPredict(SQL)" },
 ];
 
 function App() {
@@ -110,7 +112,11 @@ function App() {
         style={{ height: "calc(100vh - 100px)" }}
       >
         <Panel defaultSize={50} minSize={10}>
-          <YamlEditor value={value} onChange={setValue} />
+          {"sqlQueryPredict" === assemblyFunction ? (
+            <SQLEditor value={value} onChange={setValue} />
+          ) : (
+            <YamlEditor value={value} onChange={setValue} />
+          )}
         </Panel>
         <PanelResizeHandle>
           <div style={{ width: 5, background: "gray", cursor: "col-resize" }} />
