@@ -98,7 +98,7 @@ type Manifest struct {
 func ProcessQueryPredicts(document QueryDocument) ([]core.VirtualFile, error) {
 	files := []core.VirtualFile{}
 	manifest := Manifest{
-		GoPackageName: "xxx",
+		GoPackageName: "queries",
 	}
 
 	queryTpl, err := LoadTemplate("query.tpl")
@@ -115,7 +115,7 @@ func ProcessQueryPredicts(document QueryDocument) ([]core.VirtualFile, error) {
 		var buf bytes.Buffer
 		data := QueryData{
 			FuncName:      MakeValidGoField(spec.Name),
-			GoPackageName: "xxx",
+			GoPackageName: "queries",
 		}
 
 		// Check if query contains --skip, then we do not parse it at all.
