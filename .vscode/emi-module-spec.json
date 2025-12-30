@@ -89,9 +89,7 @@
             "put",
             "get",
             "delete",
-            "webrtc",
-            "reactive",
-            "sse"
+            "reactive"
           ],
           "description": "HTTP method type including standard and Emi-specific methods"
         },
@@ -106,7 +104,7 @@
         },
         "qs": {
           "items": {
-            "$ref": "#/definitions/EmiField"
+            "$ref": "#/definitions/EmiQueryField"
           },
           "type": "array",
           "description": "Type-safe query parameters for CLI and HTTP requests"
@@ -390,6 +388,47 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "EmiQueryField": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the field in camel case. Will be upper case automatically when necessary"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description about the field for developers and generated documents."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "array",
+            "slice",
+            "object",
+            "string",
+            "int",
+            "bool",
+            "int32",
+            "int64",
+            "float32",
+            "float64"
+          ],
+          "description": "Type of the field based on Emi types."
+        },
+        "primitive": {
+          "type": "string",
+          "description": "Primitive type in golang when type: slice is set"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "For types such as array or object children fields can be defined and will separate struct with name prefixed to parent"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "EmiRemote": {
       "properties": {
         "name": {
@@ -423,7 +462,7 @@
         },
         "query": {
           "items": {
-            "$ref": "#/definitions/EmiField"
+            "$ref": "#/definitions/EmiQueryField"
           },
           "type": "array",
           "description": "Query params for the address if you want to define them in Golang dynamically instead of URL."

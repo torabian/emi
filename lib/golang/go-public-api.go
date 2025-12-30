@@ -143,10 +143,11 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	}
 	var f Flags = Flags{
 		Emigo:       "github.com/torabian/emi/emigo",
-		PackageName: "unk",
+		PackageName: DEFAULT_GO_PACKAGE,
 	}
+
 	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		fmt.Println("Flags provided are not corrrect:", ctx.Flags)
+		fmt.Println("Flags provided are not correct:", ctx.Flags)
 	}
 
 	complexes := discoverComplexes(module)

@@ -8,7 +8,7 @@ type EmiRpcAction interface {
 	MethodUpper() string
 	Upper() string
 
-	GetQuery() []*EmiField
+	GetQuery() []*EmiQueryField
 
 	HasRequest() bool
 	HasRequestHeaders() bool

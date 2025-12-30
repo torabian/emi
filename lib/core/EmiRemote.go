@@ -29,14 +29,14 @@ type EmiRemote struct {
 	In *EmiActionBody `yaml:"in,omitempty" json:"in,omitempty" jsonschema:"description=Standard EmiActionBody object. Could have fields entity dto as content and you can define the input parameters as struct in Go and Emi will convert it into json."`
 
 	// Query params for the address if you want to define them in Golang dynamically instead of URL
-	Query []*EmiField `yaml:"query,omitempty" json:"query,omitempty" jsonschema:"description=Query params for the address if you want to define them in Golang dynamically instead of URL."`
+	Query []*EmiQueryField `yaml:"query,omitempty" json:"query,omitempty" jsonschema:"description=Query params for the address if you want to define them in Golang dynamically instead of URL."`
 }
 
 func (x EmiRemote) GetName() string {
 	return ToUpper(x.Name) + "Remote"
 }
 
-func (x EmiRemote) GetQuery() []*EmiField {
+func (x EmiRemote) GetQuery() []*EmiQueryField {
 	return x.Query
 }
 

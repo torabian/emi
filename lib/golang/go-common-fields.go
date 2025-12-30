@@ -54,33 +54,42 @@ func (x goFieldVariable) Compile() string {
 	return strings.Join(sequence, " ")
 }
 
+type fieldLike interface {
+	GetType() core.FieldType
+	GetModule() string
+	PublicName() string
+	GetTarget() string
+	GetName() string
+	GetComplex() string
+	GetDescription() string
+	GetPrimitive() string
+}
+
 func goRenderField(
-	field *core.EmiField,
+	field fieldLike,
 	parentChain string,
-	fieldDepth string,
-	ctx core.MicroGenContext,
 ) goRenderedField {
 	computedType := goFieldTypeOnNestedClasses(field, parentChain)
-	isFieldNullable := core.IsNullable(string(field.Type))
+	isFieldNullable := core.IsNullable(string(field.GetType()))
 
 	GoDoc := NewGoDoc("  ")
-	GoDoc.Add(field.Description)
+	GoDoc.Add(field.GetDescription())
 
 	privateFieldToken := goFieldVariable{
 		Name:         field.PublicName(),
 		GoDoc:        GoDoc.String(),
 		IsNullable:   isFieldNullable,
-		Type:         string(field.Type),
+		Type:         string(field.GetType()),
 		ComputedType: computedType,
-		IsNumeric:    core.IsNumericDataType(string(field.Type)),
+		IsNumeric:    core.IsNumericDataType(string(field.GetType())),
 	}
 
-	if field.Complex != "" {
+	if field.GetComplex() != "" {
 		privateFieldToken.Type = "complex"
 
 		// This means type is complex, can be instantiated.
-		if strings.Contains(field.Complex, "+") {
-			privateFieldToken.ComplexClass = strings.ReplaceAll(field.Complex, "+", "")
+		if strings.Contains(field.GetComplex(), "+") {
+			privateFieldToken.ComplexClass = strings.ReplaceAll(field.GetComplex(), "+", "")
 		}
 	}
 
@@ -89,8 +98,8 @@ func goRenderField(
 	privateField := privateFieldToken.Compile()
 
 	return goRenderedField{
-		Name:         field.Name,
-		Type:         string(field.Type),
+		Name:         field.GetName(),
+		Type:         string(field.GetType()),
 		PrivateField: privateField,
 	}
 }
@@ -98,14 +107,12 @@ func goRenderField(
 func goRenderFieldsShallow(
 	fields []*core.EmiField,
 	parentChain string,
-	fieldDepth string,
-	ctx core.MicroGenContext,
-	goctx GoCommonStructContext,
+
 ) []goRenderedField {
 	out := make([]goRenderedField, 0, len(fields))
 	for _, f := range fields {
 		if f != nil {
-			out = append(out, goRenderField(f, parentChain, fieldDepth, ctx))
+			out = append(out, goRenderField(f, parentChain))
 		}
 	}
 	return out

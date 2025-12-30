@@ -1,4 +1,4 @@
-name: Deploy React App
+name: Emi general testing and deployment
 
 on:
   pull_request:   # run on every PR

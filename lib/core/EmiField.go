@@ -60,3 +60,31 @@ func (x *EmiField) PublicName() string {
 func (x *EmiField) PrivateName() string {
 	return x.Name
 }
+
+func (x *EmiField) GetType() FieldType {
+	return x.Type
+}
+
+func (x *EmiField) GetModule() string {
+	return x.Module
+}
+
+func (x *EmiField) GetTarget() string {
+	return x.Target
+}
+
+func (x *EmiField) GetPrimitive() string {
+	return x.Primitive
+}
+
+func (x *EmiField) GetName() string {
+	return x.Name
+}
+
+func (x *EmiField) GetComplex() string {
+	return x.Complex
+}
+
+func (x *EmiField) GetDescription() string {
+	return x.Description
+}

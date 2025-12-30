@@ -1,4 +1,13 @@
 actions:
+  - name: reactiveApi
+    description: 
+      Example of the reactive api.
+    method: reactive
+    in:
+      fields:
+        - name: float64Value
+          type: float64?
+
   - name: computeApi
     description: An API, which computes two vectors
     method: post

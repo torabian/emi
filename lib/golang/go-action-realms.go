@@ -9,12 +9,14 @@ import (
 
 type goActionRealms struct {
 	ActionName           string
+	SafeUrl              string
 	HttpMethod           string
 	PathParameter        *core.CodeChunkCompiled
 	FetchMetaClass       *core.CodeChunkCompiled
 	RequestClass         *core.CodeChunkCompiled
 	ResponseClass        *core.CodeChunkCompiled
 	QueryStringClass     *core.CodeChunkCompiled
+	QueryParams          *core.CodeChunkCompiled
 	RequestHeadersClass  *core.CodeChunkCompiled
 	ResponseHeadersClass *core.CodeChunkCompiled
 	RequestClassName     string
@@ -26,7 +28,6 @@ func GoActionRealms(
 	action core.EmiRpcAction,
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
-
 ) (goActionRealms, []core.CodeChunkDependency, error) {
 
 	type Flags struct {
@@ -35,15 +36,18 @@ func GoActionRealms(
 	}
 	var f Flags = Flags{
 		Emigo:       "github.com/torabian/emi/emigo",
-		PackageName: "unk",
+		PackageName: DEFAULT_GO_PACKAGE,
 	}
 	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		fmt.Println("Flags provided are not corrrect:", ctx.Flags)
+		fmt.Println("Flags provided are not correct:", ctx.Flags)
 	}
 
 	deps := []core.CodeChunkDependency{
 		{
 			Location: "net/http",
+		},
+		{
+			Location: "bytes",
 		},
 		{
 			Location: "github.com/gin-gonic/gin",
@@ -69,17 +73,25 @@ func GoActionRealms(
 
 	realms := goActionRealms{
 		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
+		SafeUrl:    core.RemoveTypeAnnotations(action.GetUrl()),
 	}
 
-	// Header is the http headers, extending the Headers class from standard javascript
 	pathParameter, err := GoActionPathParams(action)
 	if err != nil {
 		return realms, nil, err
 	}
-
 	if pathParameter != nil {
 		deps = append(deps, pathParameter.CodeChunkDependensies...)
 		realms.PathParameter = pathParameter
+	}
+
+	queryParams, err := GoActionQueryParams(action)
+	if err != nil {
+		return realms, nil, err
+	}
+	if queryParams != nil {
+		deps = append(deps, queryParams.CodeChunkDependensies...)
+		realms.QueryParams = queryParams
 	}
 
 	if action.HasRequestFields() {
