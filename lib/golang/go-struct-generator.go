@@ -58,7 +58,7 @@ func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fi
 	GoDoc := NewGoDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("type %v struct", prefixName)
 
-	fieldsRendered := goRenderFieldsShallow(fields, treeLocation, fieldDepth, ctx, goctx)
+	fieldsRendered := goRenderFieldsShallow(fields, treeLocation)
 
 	currentClass := goRenderedStruct{
 		ClassName:     core.ToUpper(className),
@@ -103,6 +103,27 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	return result
 }
 
+func DetectIfEmiGoIsUsed(fields []*core.EmiField) bool {
+	var result bool = false
+
+	var walk func(f []*core.EmiField)
+	walk = func(f []*core.EmiField) {
+		for _, field := range f {
+			// At least in this case, a nullable value has been used.
+			if strings.Contains(string(field.Type), "?") {
+				result = true
+				break
+			}
+			if len(field.Fields) > 0 {
+				walk(field.Fields)
+			}
+		}
+	}
+
+	walk(fields)
+	return result
+}
+
 func findComplexLocation(complexName string, goctx GoCommonStructContext) string {
 
 	for _, item := range goctx.RecognizedComplexes {
@@ -120,6 +141,13 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependensies: []core.CodeChunkDependency{},
+	}
+
+	includeEmiGo := DetectIfEmiGoIsUsed(fields)
+	emiLocation := ""
+
+	if includeEmiGo {
+		emiLocation = goctx.EmiLocation
 	}
 
 	usedComplexes := CollectComplexClasses(fields)
@@ -182,7 +210,7 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"renderedClasses":    renderedClasses,
-		"emiRuntimeLocation": goctx.EmiLocation,
+		"emiRuntimeLocation": emiLocation,
 	}); err != nil {
 		return nil, err
 	}
@@ -203,36 +231,36 @@ func goPrimitiveDetect(fieldType string) string {
 		return "string"
 	case "string?", "text?", "html?", "enum?":
 		return prefix + "Nullable[string]"
-	case "int64", "int32", "int", "float64", "float32", "bool":
+	case "int64", "int32", "int", "float64", "float32", "bool", "uint", "uint32", "uint64", "uint8", "uint16":
 		return string(fieldType)
-	case "int64?", "int32?", "int?", "float64?", "float32?", "bool?":
+	case "int64?", "int32?", "int?", "float64?", "float32?", "bool?", "uint?", "uint32?", "uint64?", "uint8?", "uint16?":
 		return prefix + "Nullable[" + strings.ReplaceAll(core.ToLower(string(fieldType)), "?", "") + "]"
 	}
 
 	return ""
 }
 
-func goListAndObjectTypes(field *core.EmiField) string {
+func goListAndObjectTypes(field fieldLike) string {
 
 	prefix := "emigo."
-	switch field.Type {
+	switch field.GetType() {
 
 	case core.FieldTypeOne:
-		if field.Module != "" {
-			return field.Module + "." + field.Target
+		if field.GetModule() != "" {
+			return field.GetModule() + "." + field.GetTarget()
 		}
-		return field.Target
+		return field.GetTarget()
 	case core.FieldTypeArray:
 		return field.PublicName()
 	case core.FieldTypeCollection:
-		if field.Module != "" {
-			return "[]" + field.Module + "." + field.Target
+		if field.GetModule() != "" {
+			return "[]" + field.GetModule() + "." + field.GetTarget()
 		}
-		return "[]" + field.Target
+		return "[]" + field.GetTarget()
 	case core.FieldTypeSlice:
-		return "[]" + goPrimitiveDetect(field.Primitive)
+		return "[]" + goPrimitiveDetect(field.GetPrimitive())
 	case core.FieldTypeSliceNullable:
-		return prefix + "Nullable[[]" + goPrimitiveDetect(field.Primitive) + "]"
+		return prefix + "Nullable[[]" + goPrimitiveDetect(field.GetPrimitive()) + "]"
 	case core.FieldTypeObject:
 		return field.PublicName()
 	default:
@@ -240,14 +268,14 @@ func goListAndObjectTypes(field *core.EmiField) string {
 	}
 }
 
-func goComputedField(field *core.EmiField) string {
+func goComputedField(field fieldLike) string {
 
-	if goprimitive := goPrimitiveDetect(string(field.Type)); goprimitive != "" {
+	if goprimitive := goPrimitiveDetect(string(field.GetType())); goprimitive != "" {
 		return goprimitive
 	}
 
 	if computedType := goListAndObjectTypes(field); computedType != "" {
-		if core.IsNullable(string(field.Type)) {
+		if core.IsNullable(string(field.GetType())) {
 			return fmt.Sprintf("emigo.Nullable[%v]", computedType)
 		} else {
 			return computedType
@@ -257,12 +285,12 @@ func goComputedField(field *core.EmiField) string {
 	return "interface{}"
 }
 
-func goFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string {
+func goFieldTypeOnNestedClasses(field fieldLike, parentChain string) string {
 	if field == nil {
 		return ""
 	}
-	prefix := core.ToUpper(parentChain) + core.ToUpper(field.Name)
-	switch field.Type {
+	prefix := core.ToUpper(parentChain) + core.ToUpper(field.GetName())
+	switch field.GetType() {
 	case core.FieldTypeObject:
 		return fmt.Sprintf(" %v", prefix)
 	case core.FieldTypeArray:

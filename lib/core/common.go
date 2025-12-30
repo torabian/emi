@@ -218,18 +218,46 @@ func FsEmbedToVirtualFile(template *embed.FS, predir string) []VirtualFile {
 // URL Utilities
 // ====================
 
+type PlaceHolderInfo struct {
+	Original string
+	Type     string
+}
+
 // ExtractPlaceholdersInUrl extracts path placeholders from a URL (e.g., "/:id").
-func ExtractPlaceholdersInUrl(url string) []string {
-	re := regexp.MustCompile(`/+:([A-Za-z0-9_]+)`)
+func ExtractPlaceholdersInUrl(url string) []PlaceHolderInfo {
+	re := regexp.MustCompile(`/+:([A-Za-z0-9_ \?]+)`)
 	matches := re.FindAllStringSubmatch(url, -1)
 
-	var result []string
+	var result []PlaceHolderInfo
 	for _, m := range matches {
 		if len(m) > 1 {
-			result = append(result, m[1])
+			fieldType := "string"
+			fieldName := m[1]
+			// an space is convention to add a type
+			if strings.Contains(fieldName, " ") {
+				sections := strings.Split(fieldName, " ")
+				fieldName = sections[0]
+				fieldType = sections[1]
+			}
+
+			result = append(result, PlaceHolderInfo{
+				Original: fieldName,
+
+				// Detect the type
+				Type: fieldType,
+			})
 		}
 	}
 	return result
+}
+
+func RemoveTypeAnnotations(url string) string {
+	re := regexp.MustCompile(`/+:([A-Za-z0-9_ ]+)`)
+	return re.ReplaceAllStringFunc(url, func(match string) string {
+		placeholder := match[1:] // skip the leading "/"
+		parts := strings.Fields(placeholder)
+		return "/" + parts[0] // only keep the name
+	})
 }
 
 // ====================

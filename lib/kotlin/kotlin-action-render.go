@@ -45,6 +45,10 @@ data class {{ .realms.ActionName }}Response(
     val payload: Any? = null
 )
 
+{{ if .realms.QueryParams }}
+	{{ b2s .realms.QueryParams.ActualScript }}
+{{ end }}
+
 
 {{ if .realms.PathParameter }}
 	{{ b2s .realms.PathParameter.ActualScript }}

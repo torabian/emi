@@ -16,6 +16,10 @@ func JsActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, erro
 		return nil, nil // nothing to generate
 	}
 
+	for i, item := range placeholders {
+		placeholders[i].Type = TsPrimitive(item.Type)
+	}
+
 	className := action.GetName()
 	typeName := fmt.Sprintf("%vPathParameter", className)
 
@@ -25,7 +29,7 @@ func JsActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, erro
  */
 export type {{ .TypeName }} = {
 {{- range .Params }}
-	{{ . }}: string | number | boolean;
+	{{ .Original }}: {{ . Type}};
 {{- end }}
 }
 `

@@ -51,3 +51,9 @@ compile-github:
 
 qpsamples:
 	./emi qp dir --path examples/query-predict/queries-source --output examples/query-predict/output
+
+win:
+	go build -ldflags "-s -w" -o ./emi.exe ./cmd/emi
+go:
+
+	./emi.exe go --path ./examples/fullstack/definitions.emi.yml --output ./examples/fullstack/sdk --emigo github.com/torabian/emi/examples/fullstack/emigo

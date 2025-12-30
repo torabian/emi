@@ -26,8 +26,8 @@ func KotlinActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, 
 	placeholders := []KotlinPathParamer{}
 	for _, item := range placeholders0 {
 		placeholders = append(placeholders, KotlinPathParamer{
-			PlaceHolderValue: item,
-			GolangFieldName:  core.ToUpper(item),
+			PlaceHolderValue: item.Original,
+			GolangFieldName:  core.ToUpper(item.Original),
 		})
 	}
 

@@ -1,0 +1,124 @@
+dtos:
+  - name: commonVectorCompute
+    fields:
+      - name: initialVector1
+        type: slice
+        primitive: int
+      - name: value
+        type: string?
+      - name: initialVector2
+        type: slice
+        primitive: int
+  - name: commonVectorResponse
+    fields:
+      - name: outputVector
+        type: slice
+        primitive: int
+
+actions:
+  - name: computeReactive
+    description:
+      Reactive compute elsasements.
+    method: reactive
+    url: /compute/reactive/:id int32/:age int32
+    qs:
+      - name: queryParam1
+        type: string
+      - name: securityToken
+        type: string
+      - name: object1
+        type: object
+        fields:
+          - name: field1
+            type: string
+          - name: field2
+            type: string
+      - name: intSlice
+        primitive: int
+        type: slice
+      - name: inlineArray
+        type: array
+        fields:
+          - name: slice1num
+            type: int
+          - name: innerSlice
+            type: slice
+            primitive: float64
+  - name: computeReactiveNoPath
+    description:
+      Reactive compute elsasements.
+    method: reactive
+    url: /compute/reactive
+    qs:
+      - name: queryParam1
+        type: string
+      - name: securityToken
+        type: string
+        
+  - name: computeApiSseChannel
+    description: 
+      We use a helper in order to send SSE, instead of pure code in gin.
+    method: get
+    url: /compute/sse/ch
+    in:
+      fields:
+        - name: initialVector1
+          type: slice
+          primitive: int
+        - name: value
+          type: string?
+        - name: initialVector2
+          type: slice
+          primitive: int
+    out:
+      fields:
+        - name: outputVector
+          type: slice
+          primitive: int
+  - name: computeApiSse
+    description: 
+      The same compute api, but it would return the response as SSE.
+    method: get
+    url: /compute/sse
+    in:
+      fields:
+        - name: initialVector1
+          type: slice
+          primitive: int
+        - name: value
+          type: string?
+        - name: initialVector2
+          type: slice
+          primitive: int
+    out:
+      fields:
+        - name: outputVector
+          type: slice
+          primitive: int
+
+  - name: computeApi
+    description: An API, which computes two vectors
+    url: /compute/api
+    method: post
+    qs:
+      - name: action
+        type: string
+      - name: snapPoints
+        type: slice
+        primitive: int
+    in:
+      fields:
+        - name: initialVector1
+          type: slice
+          primitive: int
+        - name: value
+          type: string?
+        - name: initialVector2
+          type: slice
+          primitive: int
+    out:
+      fields:
+        - name: outputVector
+          type: slice
+          primitive: int
+      

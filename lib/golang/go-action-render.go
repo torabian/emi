@@ -12,6 +12,11 @@ func GoActionRender(
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 ) (*core.CodeChunkCompiled, error) {
+
+	if action.GetMethod() == "reactive" {
+		return GoActionRenderReactive(action, ctx, complexes)
+	}
+
 	realms, deps, err := GoActionRealms(action, ctx, complexes)
 	if err != nil {
 		return nil, err
@@ -42,7 +47,7 @@ func {{ .realms.ActionName }}Meta() struct {
         Method string
     }{
         Name:   "{{ .realms.ActionName }}",
-        URL:    "{{ .action.Url }}",
+        URL:    "{{ .realms.SafeUrl }}",
         Method: "{{ UPPER .action.Method }}",
     }
 }
@@ -146,15 +151,12 @@ func {{ .realms.ActionName }}(r gin.IRoutes, handler {{template "ginFn" .realms 
 }
 
 
-// Using in client code.
-
-type {{ .realms.ActionName }}Query struct {
-	url.Values
-}
-
-
 {{ if .realms.PathParameter }}
 	{{ b2s .realms.PathParameter.ActualScript }}
+{{ end }}
+
+{{ if .realms.QueryParams }}
+	{{ b2s .realms.QueryParams.ActualScript }}
 {{ end }}
  
 type {{ .realms.ActionName }}Request struct {
@@ -166,7 +168,6 @@ type {{ .realms.ActionName }}Request struct {
 	{{ end }}
 	QueryParams url.Values
 	Headers http.Header
-	UrlValues   {{ .realms.ActionName }}Query
 }
 
 type {{ .realms.ActionName }}Result struct {
@@ -191,8 +192,8 @@ func {{ .realms.ActionName }}Call(
 			return nil, err
 		}
 		// if UrlValues present, encode and append
-		if len(req.UrlValues.Values) > 0 {
-			u.RawQuery = req.UrlValues.Encode()
+		if len(req.QueryParams) > 0 {
+			u.RawQuery = req.QueryParams.Encode()
 		}
 
 		{{ if .realms.RequestClass }}

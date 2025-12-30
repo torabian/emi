@@ -20,13 +20,13 @@ type EmiAction struct {
 	Url string `yaml:"url,omitempty" json:"url,omitempty" jsonschema:"description=HTTP route of the action; if not specified the action is CLI-only"`
 
 	// HTTP method type including standard and Emi-specific methods.
-	Method string `yaml:"method,omitempty" json:"method,omitempty" jsonschema:"enum=post,enum=patch,enum=put,enum=get,enum=delete,enum=webrtc,enum=reactive,enum=sse,description=HTTP method type including standard and Emi-specific methods"`
+	Method string `yaml:"method,omitempty" json:"method,omitempty" jsonschema:"enum=post,enum=patch,enum=put,enum=get,enum=delete,enum=reactive,description=HTTP method type including standard and Emi-specific methods"`
 
 	// Text by default for websocket, can be changed to arraybuffer or blob.
 	BinaryType string `yaml:"binaryType,omitempty" json:"binaryType,omitempty" jsonschema:"enum=text,enum=arraybuffer,enum=blob,description=Text by default for websocket, can be changed to arraybuffer or blob"`
 
 	// Type-safe query strings for action
-	Query []*EmiField `yaml:"qs,omitempty" json:"qs,omitempty" jsonschema:"description=Type-safe query parameters for CLI and HTTP requests"`
+	Query []*EmiQueryField `yaml:"qs,omitempty" json:"qs,omitempty" jsonschema:"description=Type-safe query parameters for CLI and HTTP requests"`
 
 	// // Data channels in a typesafe mode in case of webrtc
 	// DataChannels []EmiWebRtcDataChannel `yaml:"dataChannels,omitempty" json:"dataChannels,omitempty" jsonschema:"description=Data channels in a typesafe mode in case of webrtc"`
@@ -49,7 +49,7 @@ func (x EmiAction) GetName() string {
 	return ToUpper(x.Name) + "Action"
 }
 
-func (x EmiAction) GetQuery() []*EmiField {
+func (x EmiAction) GetQuery() []*EmiQueryField {
 	return x.Query
 }
 
