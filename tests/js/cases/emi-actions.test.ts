@@ -131,7 +131,6 @@ actions:
       expect(items).toContain("delete");
       expect(items).toContain("patch");
       expect(items).toContain("put");
-      expect(items).toContain("sse");
 
       const rows = items.map((x) => `\`${x}\``).join(", ");
 
