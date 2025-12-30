@@ -29,7 +29,7 @@ func JsActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, erro
  */
 export type {{ .TypeName }} = {
 {{- range .Params }}
-	{{ .Original }}: {{ . Type}};
+	{{ .Original }}: {{ .Type }};
 {{- end }}
 }
 `
