@@ -139,7 +139,7 @@ export const useGetSinglePostAction = (
  * Path parameters for GetSinglePostAction
  */
 export type GetSinglePostActionPathParameter = {
-	id: string | number | boolean;
+	id: string;
 }
 	/**
  * GetSinglePostAction

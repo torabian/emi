@@ -1,0 +1,1750 @@
+actions:
+  - name: Create offer based on product
+    method: post
+    url: https://api.{environment}/sale/product-offers
+    in:
+      fields:
+        - name: name
+          type: string
+          description: Offer title
+        - name: language
+          type: string
+          description: Offer language code (e.g., pl-PL)
+
+        - name: category
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: productSet
+          type: array
+          description: Product details and associated quantities
+          fields:
+            - name: product
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: idType
+                  type: string
+                - name: name
+                  type: string
+                - name: category
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                - name: parameters
+                  type: array
+                  fields:
+                    - name: id
+                      type: string
+                    - name: name
+                      type: string
+                    - name: rangeValue
+                      type: object
+                      fields:
+                        - name: from
+                          type: string
+                        - name: to
+                          type: string
+                    - name: values
+                      type: slice
+                      primitive: string
+                    - name: valuesIds
+                      type: slice
+                      primitive: string
+                - name: images
+                  type: slice
+                  primitive: string
+            - name: quantity
+              type: object
+              fields:
+                - name: value
+                  type: int
+            - name: responsiblePerson
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+            - name: responsibleProducer
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: type
+                  type: string
+            - name: safetyInformation
+              type: object
+              fields:
+                - name: type
+                  type: string
+                - name: description
+                  type: string
+            - name: marketedBeforeGPSRObligation
+              type: bool
+            - name: deposits
+              type: array
+              fields:
+                - name: id
+                  type: string
+                - name: quantity
+                  type: int
+
+        - name: stock
+          type: object
+          fields:
+            - name: available
+              type: int
+            - name: unit
+              type: string
+
+        - name: sellingMode
+          type: object
+          fields:
+            - name: format
+              type: string
+            - name: price
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+            - name: minimalPrice
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+            - name: startingPrice
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+
+        - name: payments
+          type: object
+          fields:
+            - name: invoice
+              type: string
+
+        - name: delivery
+          type: object
+          fields:
+            - name: handlingTime
+              type: string
+            - name: additionalInfo
+              type: string
+            - name: shipmentDate
+              type: string
+            - name: shippingRates
+              type: object
+              description: Optional; may be null
+              fields:
+                - name: id
+                  type: string
+
+        - name: publication
+          type: object
+          fields:
+            - name: duration
+              type: string
+            - name: startingAt
+              type: string
+            - name: endingAt
+              type: string
+            - name: status
+              type: string
+            - name: republish
+              type: bool
+
+        - name: additionalMarketplaces
+          type: map?
+          mapKey: string
+          fields:
+            - name: sellingMode
+              type: object
+              fields:
+                - name: price
+                  type: object
+                  fields:
+                    - name: amount
+                      type: string
+                    - name: currency
+                      type: string
+
+        - name: compatibilityList
+          type: object
+          fields:
+            - name: items
+              type: array
+              fields:
+                - name: type
+                  type: string
+                - name: text
+                  type: string
+
+        - name: images
+          type: slice
+          primitive: string
+
+        - name: description
+          type: object
+          fields:
+            - name: sections
+              type: array
+              fields:
+                - name: items
+                  type: array
+                  fields:
+                    - name: type
+                      type: string
+
+        - name: b2b
+          type: object
+          fields:
+            - name: buyableOnlyByBusiness
+              type: bool
+
+        - name: attachments
+          type: array
+          fields:
+            - name: id
+              type: string
+
+        - name: fundraisingCampaign
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+
+        - name: additionalServices
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+
+        - name: afterSalesServices
+          type: object
+          fields:
+            - name: impliedWarranty
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+            - name: returnPolicy
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+            - name: warranty
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+
+        - name: sizeTable
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+
+        - name: contact
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+
+        - name: discounts
+          type: object
+          fields:
+            - name: wholesalePriceList
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+
+        - name: location
+          type: object
+          fields:
+            - name: city
+              type: string
+            - name: countryCode
+              type: string
+            - name: postCode
+              type: string
+            - name: province
+              type: string
+
+        - name: external
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: taxSettings
+          type: object
+          fields:
+            - name: subject
+              type: string
+            - name: exemption
+              type: string
+            - name: rates
+              type: array
+              fields:
+                - name: rate
+                  type: string
+                - name: countryCode
+                  type: string
+
+        - name: messageToSellerSettings
+          type: object
+          fields:
+            - name: mode
+              type: string
+            - name: hint
+              type: string
+ 
+  - name: Edit an offer
+    description: >-
+      Use this resource to edit offer. This resource allows you to edit each field independently, so use it if you want to change only, for example, the price or the quantity in an offer. Read more: PL / EN. Note that requests may be limited.
+    url: https://api.{environment}/sale/product-offers/{offerId}
+    method: patch
+    in:
+      fields:
+        - name: name
+          type: string
+        - name: language
+          type: string
+
+        - name: category
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: productSet
+          type: array
+          fields:
+            - name: product
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: idType
+                  type: string
+                - name: name
+                  type: string
+                - name: category
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                - name: parameters
+                  type: array
+                  fields:
+                    - name: id
+                      type: string
+                    - name: name
+                      type: string
+                    - name: rangeValue
+                      type: object
+                      fields:
+                        - name: from
+                          type: string
+                        - name: to
+                          type: string
+                    - name: values
+                      type: slice
+                      primitive: string
+                    - name: valuesIds
+                      type: slice
+                      primitive: string
+                - name: images
+                  type: slice
+                  primitive: string
+            - name: quantity
+              type: object
+              fields:
+                - name: value
+                  type: int
+            - name: responsiblePerson
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+            - name: responsibleProducer
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: type
+                  type: string
+            - name: safetyInformation
+              type: object
+              fields:
+                - name: type
+                  type: string
+                - name: description
+                  type: string
+            - name: marketedBeforeGPSRObligation
+              type: bool
+            - name: deposits
+              type: array
+              fields:
+                - name: id
+                  type: string
+                - name: quantity
+                  type: int
+
+        - name: stock
+          type: object
+          fields:
+            - name: available
+              type: int
+            - name: unit
+              type: string
+
+        - name: sellingMode
+          type: object
+          fields:
+            - name: format
+              type: string
+            - name: price
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+            - name: minimalPrice
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+            - name: startingPrice
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+
+        - name: payments
+          type: object
+          fields:
+            - name: invoice
+              type: string
+
+        - name: delivery
+          type: object
+          fields:
+            - name: handlingTime
+              type: string
+            - name: additionalInfo
+              type: string
+            - name: shipmentDate
+              type: string
+            - name: shippingRates
+              type: object
+              fields:
+                - name: id
+                  type: string
+
+        - name: publication
+          type: object
+          fields:
+            - name: duration
+              type: string
+            - name: startingAt
+              type: string
+            - name: endingAt
+              type: string
+            - name: status
+              type: string
+            - name: republish
+              type: bool
+
+        - name: additionalMarketplaces
+          type: map
+          fields:
+            - name: sellingMode
+              type: object
+              fields:
+                - name: price
+                  type: object
+                  fields:
+                    - name: amount
+                      type: string
+                    - name: currency
+                      type: string
+
+        - name: compatibilityList
+          type: object
+          fields:
+            - name: items
+              type: array
+              fields:
+                - name: type
+                  type: string
+                - name: text
+                  type: string
+
+        - name: images
+          type: slice
+          primitive: string
+
+        - name: description
+          type: object
+          fields:
+            - name: sections
+              type: array
+              fields:
+                - name: items
+                  type: array
+                  fields:
+                    - name: type
+                      type: string
+
+        - name: b2b
+          type: object
+          fields:
+            - name: buyableOnlyByBusiness
+              type: bool
+
+        - name: attachments
+          type: array
+          fields:
+            - name: id
+              type: string
+
+        - name: fundraisingCampaign
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+
+        - name: additionalServices
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+
+        - name: afterSalesServices
+          type: object
+          fields:
+            - name: impliedWarranty
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+            - name: returnPolicy
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+            - name: warranty
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+
+        - name: sizeTable
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+
+        - name: contact
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+
+        - name: discounts
+          type: object
+          fields:
+            - name: wholesalePriceList
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+
+        - name: location
+          type: object
+          fields:
+            - name: city
+              type: string
+            - name: countryCode
+              type: string
+            - name: postCode
+              type: string
+            - name: province
+              type: string
+
+        - name: external
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: taxSettings
+          type: object
+          fields:
+            - name: subject
+              type: string
+            - name: exemption
+              type: string
+            - name: rates
+              type: array
+              fields:
+                - name: rate
+                  type: string
+                - name: countryCode
+                  type: string
+
+        - name: messageToSellerSettings
+          type: object
+          fields:
+            - name: mode
+              type: string
+            - name: hint
+              type: string
+    out:
+      fields:
+        - name: id
+          type: string
+        - name: name
+          type: string
+        - name: language
+          type: string
+
+        - name: category
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: productSet
+          type: array
+          fields:
+            - name: quantity
+              type: object
+              fields:
+                - name: value
+                  type: int
+            - name: product
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: isAiCoCreated
+                  type: bool
+                - name: publication
+                  type: object
+                  fields:
+                    - name: status
+                      type: string
+                - name: parameters
+                  type: array
+                  fields:
+                    - name: id
+                      type: string
+                    - name: name
+                      type: string
+                    - name: rangeValue
+                      type: object
+                      fields:
+                        - name: from
+                          type: string
+                        - name: to
+                          type: string
+                    - name: values
+                      type: slice
+                      primitive: string
+                    - name: valuesIds
+                      type: slice
+                      primitive: string
+            - name: responsiblePerson
+              type: object
+              fields:
+                - name: id
+                  type: string
+            - name: responsibleProducer
+              type: object
+              fields:
+                - name: id
+                  type: string
+            - name: safetyInformation
+              type: object
+              fields:
+                - name: type
+                  type: string
+                - name: description
+                  type: string
+            - name: marketedBeforeGPSRObligation
+              type: bool
+            - name: deposits
+              type: array
+              fields:
+                - name: id
+                  type: string
+                - name: quantity
+                  type: int
+
+        - name: stock
+          type: object
+          fields:
+            - name: available
+              type: int
+            - name: unit
+              type: string
+
+        - name: payments
+          type: object
+          fields:
+            - name: invoice
+              type: string
+
+        - name: sellingMode
+          type: object
+          fields:
+            - name: format
+              type: string
+            - name: price
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+            - name: minimalPrice
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+            - name: startingPrice
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+
+        - name: delivery
+          type: object
+          fields:
+            - name: handlingTime
+              type: string
+            - name: additionalInfo
+              type: string
+            - name: shipmentDate
+              type: string
+            - name: shippingRates
+              type: object
+              fields:
+                - name: id
+                  type: string
+
+        - name: publication
+          type: object
+          fields:
+            - name: duration
+              type: string
+            - name: startingAt
+              type: string
+            - name: endingAt
+              type: string
+            - name: endedBy
+              type: string
+            - name: status
+              type: string
+            - name: republish
+              type: bool
+            - name: marketplaces
+              type: object
+              fields:
+                - name: base
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                - name: additional
+                  type: array
+                  fields:
+                    - name: id
+                      type: string
+        - name: additionalMarketplaces
+          type: object
+          fields:
+            - name: sellingMode
+              type: object
+              fields:
+                - name: price
+                  type: object
+                  fields:
+                    - name: amount
+                      type: string
+                    - name: currency
+                      type: string
+            - name: publication
+              type: object
+              fields:
+                - name: state
+                  type: string
+                - name: refusalReasons
+                  type: array
+                  fields:
+                    - name: code
+                      type: string
+                    - name: userMessage
+                      type: string
+                    - name: parameters
+                      type: object
+                      fields:
+                        - name: maxAllowedPriceDecreasePercent
+                          type: slice
+                          primitive: string
+
+        - name: b2b
+          type: object
+          fields:
+            - name: buyableOnlyByBusiness
+              type: bool
+
+        - name: compatibilityList
+          type: object
+          fields:
+            - name: type
+              type: string
+
+        - name: validation
+          type: object
+          fields:
+            - name: validatedAt
+              type: string
+            - name: errors
+              type: array
+              fields:
+                - name: code
+                  type: string
+                - name: details
+                  type: string
+                - name: message
+                  type: string
+                - name: path
+                  type: string
+                - name: userMessage
+                  type: string
+                - name: metadata
+                  type: object
+                  fields:
+                    - name: productId
+                      type: string
+            - name: warnings
+              type: array
+              fields:
+                - name: code
+                  type: string
+                - name: details
+                  type: string
+                - name: message
+                  type: string
+                - name: path
+                  type: string
+                - name: userMessage
+                  type: string
+                - name: metadata
+                  type: object
+                  fields:
+                    - name: productId
+                      type: string
+
+        - name: warnings
+          type: slice
+          primitive: string
+
+        - name: afterSalesServices
+          type: object
+          fields:
+            - name: impliedWarranty
+              type: object
+              fields:
+                - name: id
+                  type: string
+            - name: returnPolicy
+              type: object
+              fields:
+                - name: id
+                  type: string
+            - name: warranty
+              type: object
+              fields:
+                - name: id
+                  type: string
+
+        - name: discounts
+          type: object
+          fields:
+            - name: wholesalePriceList
+              type: object
+              fields:
+                - name: id
+                  type: string
+
+        - name: contact
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: attachments
+          type: array
+          fields:
+            - name: id
+              type: string
+
+        - name: fundraisingCampaign
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: additionalServices
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: sizeTable
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: location
+          type: object
+          fields:
+            - name: city
+              type: string
+            - name: countryCode
+              type: string
+            - name: postCode
+              type: string
+            - name: province
+              type: string
+
+        - name: external
+          type: object
+          fields:
+            - name: id
+              type: string
+
+        - name: taxSettings
+          type: object
+          fields:
+            - name: subject
+              type: string
+            - name: exemption
+              type: string
+            - name: rates
+              type: array
+              fields:
+                - name: rate
+                  type: string
+                - name: countryCode
+                  type: string
+
+        - name: messageToSellerSettings
+          type: object
+          fields:
+            - name: mode
+              type: string
+            - name: hint
+              type: string
+
+        - name: createdAt
+          type: string
+        - name: updatedAt
+          type: string
+
+        - name: images
+          type: slice
+          primitive: string
+
+        - name: description
+          type: object
+          fields:
+            - name: sections
+              type: array
+              fields:
+                - name: items
+                  type: array
+                  fields:
+                    - name: type
+                      type: string
+
+
+  - name: Check the processing status of a POST or PATCH request
+    description: >-
+      The URI for the resource given by Location header of POST /sale/product-offers and PATCH /sale/product-offers/{offerId}. Use this resource to check processing status of a POST or PATCH request. Read more: PL / EN.
+    method: get
+    url: https://api.{environment}/sale/product-offers/{offerId}/operations/{operationId}
+    out:
+      fields:
+        - name: offer
+          type: object
+          fields:
+            - name: id
+              type: string
+        - name: operation
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: status
+              type: string
+            - name: startedAt
+              type: string
+  - name: Delete a draft offer
+    method: delete
+    url: https://api.{environment}/sale/offers/{offerId}
+    description: >-
+      Use this resource to delete a draft offer. Read more: PL / EN.
+
+  - name: Modify the Buy Now price in an offer
+    method: put
+    url: https://api.{environment}/offers/{offerId}/change-price-commands/{commandId}
+    description: >-
+      Use this resource to change the Buy Now price in a single offer. Read more: PL / EN.
+    in:
+      fields:
+        - name: id
+          type: string
+        - name: input
+          type: object
+          fields:
+            - name: buyNowPrice
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+    out:
+      fields:
+        - name: id
+          type: string
+        - name: input
+          type: object
+          fields:
+            - name: buyNowPrice
+              type: object
+              fields:
+                - name: amount
+                  type: string
+                - name: currency
+                  type: string
+        - name: output
+          type: object
+          fields:
+            - name: status
+              type: string
+            - name: errors
+              type: array
+              fields:
+                - name: code
+                  type: string
+                - name: details
+                  type: string
+                - name: message
+                  type: string
+                - name: path
+                  type: string
+                - name: userMessage
+                  type: string
+                - name: metadata
+                  type: object
+                  fields:
+                    - name: productId
+                      type: string
+
+  - name: Batch offer publish / unpublish
+    method: put
+    url: https://api.{environment}/sale/offer-publication-commands/{commandId}
+    description: >-
+      Use this resource to modify multiple offers publication at once. Read more: PL / EN. This resource is rate limited to 250 000 offer changes per hour or 9000 offer changes per minute.
+
+    in:
+      fields:
+        - name: offerCriteria
+          type: array
+          fields:
+            - name: offers
+              type: array
+              fields:
+                - name: id
+                  type: string
+            - name: type
+              type: string
+        - name: publication
+          type: object
+          fields:
+            - name: action
+              type: string
+            - name: scheduledFor
+              type: string
+    out:
+      fields:
+        - name: id
+          type: string
+        - name: createdAt
+          type: string
+        - name: completedAt
+          type: string
+        - name: taskCount
+          type: object
+          fields:
+            - name: failed
+              type: int
+            - name: success
+              type: int
+            - name: total
+              type: int
+  - name: Publish command summary
+    method: get
+    url: https://api.{environment}/sale/offer-publication-commands/{commandId}
+    description: >-
+      Use this resource to retrieve information about the offer listing statuses. 
+      You will receive a summary with a number of correctly listed offers and errors. 
+      Read more: PL / EN. This resource is rate limited to retrieving information about 270 000 offer changes per minute.
+    out:
+      fields:
+        - name: id
+          type: string
+        - name: createdAt
+          type: string
+        - name: completedAt
+          type: string
+        - name: taskCount
+          type: object
+          fields:
+            - name: failed
+              type: int
+            - name: success
+              type: int
+            - name: total
+              type: int
+  - name: Publish command detailed report
+    method: get
+    url: https://api.{environment}/sale/offer-publication-commands/{commandId}/tasks
+    description: >-
+      Use this resource to retrieve information about the offer statuses on the site (Defaults: limit = 100, offset = 0). Read more: PL / EN. This resource is rate limited to retrieving information about 270 000 offer changes per minute.
+    out:
+      fields:
+        - name: tasks
+          type: array
+          fields:
+          - name: field
+            type: string
+          - name: message
+            type: string
+          - name: offer
+            type: object
+            fields:
+              - name: id
+                type: string
+          - name: status
+            type: string
+          - name: errors
+            type: array
+            fields:
+              - name: code
+                type: string
+              - name: details
+                type: string
+              - name: message
+                type: string
+              - name: path
+                type: string
+              - name: userMessage
+                type: string
+              - name: metadata
+                type: object
+                fields:
+                  - name: productId
+                    type: string
+
+  - name: Get all available offer promotion packages
+    method: get
+    url: https://api.{environment}/sale/offer-promotion-packages
+    description: >-
+      Use this resource to retrieve all available offer promotion packages. Read more: PL / EN.
+    out:
+      fields:
+        - name: marketplaceId
+          type: string
+        - name: basePackages
+          type: array
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+            - name: cycleDuration
+              type: string
+        - name: extraPackages
+          type: array
+          fields:
+            - name: id
+              type: string
+            - name: name
+              type: string
+            - name: cycleDuration
+              type: string
+        - name: additionalMarketplaces
+          type: array
+          fields:
+            - name: marketplaceId
+              type: string
+            - name: basePackages
+              type: array
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+                - name: cycleDuration
+                  type: string
+            - name: extraPackages
+              type: array
+              fields:
+                - name: id
+                  type: string
+                - name: name
+                  type: string
+                - name: cycleDuration
+                  type: string
+  - name: Modify offer promotion packages
+    url: https://api.{environment}/sale/offers/{offerId}/promo-options-modification
+    method: post
+    description: >-
+      Use this resource to modify offer promotion packages. Read more: PL / EN.
+    in:
+      fields:
+        - name: modifications
+          type: array
+          fields:
+            - name: modificationType
+              type: string
+            - name: packageType
+              type: string
+            - name: packageId
+              type: string
+        - name: additionalMarketplaces
+          type: array
+          fields:
+            - name: marketplaceId
+              type: string
+            - name: modifications
+              type: array
+              fields:
+                - name: modificationType
+                  type: string
+                - name: packageType
+                  type: string
+                - name: packageId
+                  type: string
+    out:
+      fields:
+      - name: offerId
+        type: string
+      - name: marketplaceId
+        type: string
+      - name: basePackage
+        type: object
+        fields:
+          - name: id
+            type: string
+          - name: validFrom
+            type: string
+          - name: validTo
+            type: string
+          - name: nextCycleDate
+            type: string
+      - name: extraPackages
+        type: array
+        fields:
+          - name: id
+            type: string
+          - name: validFrom
+            type: string
+          - name: validTo
+            type: string
+          - name: nextCycleDate
+            type: string
+      - name: pendingChanges
+        type: object
+        fields:
+          - name: basePackage
+            type: object
+            fields:
+              - name: id
+                type: string
+              - name: validFrom
+                type: string
+              - name: validTo
+                type: string
+              - name: nextCycleDate
+                type: string
+      - name: additionalMarketplaces
+        type: array
+        fields:
+          - name: marketplaceId
+            type: string
+          - name: basePackage
+            type: object
+            fields:
+              - name: id
+                type: string
+              - name: validFrom
+                type: string
+              - name: validTo
+                type: string
+              - name: nextCycleDate
+                type: string
+          - name: extraPackages
+            type: array
+            fields:
+              - name: id
+                type: string
+              - name: validFrom
+                type: string
+              - name: validTo
+                type: string
+              - name: nextCycleDate
+                type: string
+          - name: pendingChanges
+            type: object
+            fields:
+              - name: basePackage
+                type: object
+                fields:
+                  - name: id
+                    type: string
+                  - name: validFrom
+                    type: string
+                  - name: validTo
+                    type: string
+                  - name: nextCycleDate
+                    type: string
+  - name: Get offer promotion packages
+    url: https://api.{environment}/sale/offers/{offerId}/promo-options
+    method: get
+    out:
+      fields:
+        - name: offerId
+          type: string
+        - name: marketplaceId
+          type: string
+        - name: basePackage
+          type: object
+          fields:
+            - name: id
+              type: string
+            - name: validFrom
+              type: string
+            - name: validTo
+              type: string
+            - name: nextCycleDate
+              type: string
+        - name: extraPackages
+          type: array
+          fields:
+            - name: id
+              type: string
+            - name: validFrom
+              type: string
+            - name: validTo
+              type: string
+            - name: nextCycleDate
+              type: string
+        - name: pendingChanges
+          type: object
+          fields:
+            - name: basePackage
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: validFrom
+                  type: string
+                - name: validTo
+                  type: string
+                - name: nextCycleDate
+                  type: string
+        - name: additionalMarketplaces
+          type: array
+          fields:
+            - name: marketplaceId
+              type: string
+            - name: basePackage
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: validFrom
+                  type: string
+                - name: validTo
+                  type: string
+                - name: nextCycleDate
+                  type: string
+            - name: extraPackages
+              type: array
+              fields:
+                - name: id
+                  type: string
+                - name: validFrom
+                  type: string
+                - name: validTo
+                  type: string
+                - name: nextCycleDate
+                  type: string
+            - name: pendingChanges
+              type: object
+              fields:
+                - name: basePackage
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                    - name: validFrom
+                      type: string
+                    - name: validTo
+                      type: string
+                    - name: nextCycleDate
+                      type: string
+  - name: Get promo options for seller's offers
+    method: get
+    url: https://api.{environment}/sale/offers/promo-options
+    description: >-
+      Use this resource to retrieve promo options for seller offers. Read more: PL / EN.
+    out:
+      fields:
+        - name: promoOptions
+          type: array
+          fields:
+            - name: offerId
+              type: string
+            - name: marketplaceId
+              type: string
+            - name: basePackage
+              type: object
+              fields:
+                - name: id
+                  type: string
+                - name: validFrom
+                  type: string
+                - name: validTo
+                  type: string
+                - name: nextCycleDate
+                  type: string
+            - name: extraPackages
+              type: array
+              fields:
+                - name: id
+                  type: string
+                - name: validFrom
+                  type: string
+                - name: validTo
+                  type: string
+                - name: nextCycleDate
+                  type: string
+            - name: pendingChanges
+              type: object
+              fields:
+                - name: basePackage
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                    - name: validFrom
+                      type: string
+                    - name: validTo
+                      type: string
+                    - name: nextCycleDate
+                      type: string
+            - name: additionalMarketplaces
+              type: array
+              fields:
+                - name: marketplaceId
+                  type: string
+                - name: basePackage
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                    - name: validFrom
+                      type: string
+                    - name: validTo
+                      type: string
+                    - name: nextCycleDate
+                      type: string
+                - name: extraPackages
+                  type: array
+                  fields:
+                    - name: id
+                      type: string
+                    - name: validFrom
+                      type: string
+                    - name: validTo
+                      type: string
+                    - name: nextCycleDate
+                      type: string
+                - name: pendingChanges
+                  type: object
+                  fields:
+                    - name: basePackage
+                      type: object
+                      fields:
+                        - name: id
+                          type: string
+                        - name: validFrom
+                          type: string
+                        - name: validTo
+                          type: string
+                        - name: nextCycleDate
+                          type: string
+        - name: count
+          type: int
+        - name: totalCount
+          type: int
+  - name: Batch offer promotion package modification
+    url: https://api.{environment}/sale/offers/promo-options-commands/{commandId}
+    method: put
+    description: >-
+      Use this resource to modify promotion packages on multiple offers at once. Read more: PL / EN.
+
+    in:
+      fields:
+        - name: offerCriteria
+          type: array
+          fields:
+            - name: offers
+              type: array
+              fields:
+                - name: id
+                  type: string
+            - name: type
+              type: string
+        - name: modification
+          type: object
+          fields:
+            - name: basePackage
+              type: object
+              fields:
+                - name: id
+                  type: string
+            - name: extraPackages
+              type: array
+              fields:
+                - name: id
+                  type: string
+            - name: modificationTime
+              type: string
+        - name: additionalMarketplaces
+          type: array
+          fields:
+            - name: marketplaceId
+              type: string
+            - name: modification
+              type: object
+              fields:
+                - name: basePackage
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                - name: extraPackages
+                  type: array
+                  fields:
+                    - name: id
+                      type: string
+                - name: modificationTime
+                  type: string
+    out:
+      fields:
+        - name: id
+          type: string
+        - name: taskCount
+          type: object
+          fields:
+            - name: failed
+              type: int
+            - name: success
+              type: int
+            - name: total
+              type: int
+  - name: Modification command summary
+    method: get
+    url: https://api.{environment}/sale/offers/promo-options-commands/{commandId}
+    description: >-
+      Use this resource to find out how many offers were edited within one {commandId}. You will receive a summary with a number of successfully edited offers and errors. Read more: PL / EN.
+    out:
+      fields:
+        - name: id
+          type: string
+        - name: taskCount
+          type: object
+          fields:
+            - name: failed
+              type: int
+            - name: success
+              type: int
+            - name: total
+              type: int
+  - name: Modification command detailed result
+    method: get
+    url: https://api.{environment}/sale/offers/promo-options-commands/{commandId}/tasks
+    out:
+      fields:
+        - name: tasks
+          type: array
+          fields:
+            - name: offer
+              type: object
+              fields:
+                - name: id
+                  type: string
+            - name: marketplaceId
+              type: string
+            - name: scheduledAt
+              type: string
+            - name: finishedAt
+              type: string
+            - name: status
+              type: string
+            - name: errors
+              type: array
+              fields:
+                - name: code
+                  type: string
+                - name: details
+                  type: string
+                - name: message
+                  type: string
+                - name: path
+                  type: string
+                - name: userMessage
+                  type: string
+                - name: metadata
+                  type: object
+                  fields:
+                    - name: productId
+                      type: string
+        - name: modification
+          type: object
+          fields:
+            - name: basePackage
+              type: object
+              fields:
+                - name: id
+                  type: string
+            - name: extraPackages
+              type: array
+              fields:
+                - name: id
+                  type: string
+            - name: modificationTime
+              type: string
+        - name: additionalMarketplaces
+          type: array
+          fields:
+            - name: marketplaceId
+              type: string
+            - name: modification
+              type: object
+              fields:
+                - name: basePackage
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                - name: extraPackages
+                  type: array
+                  fields:
+                    - name: id
+                      type: string
+                - name: modificationTime
+                  type: string
+  - name: Get offers with missing parameters
+    url: https://api.{environment}/sale/offers/unfilled-parameters
+    method: get
+    description: >-
+      Use this resource to get information about required parameters or parameters scheduled to become required that are not filled in offers. Read more: PL / EN.
+    out:
+      fields:
+        - name: offers
+          type: array
+          fields:
+            - name: id
+              type: string
+            - name: parameters
+              type: array
+              fields:
+                - name: id
+                  type: string
+            - name: category
+              type: object
+              fields:
+                - name: id
+                  type: string
+        - name: count
+          type: int
+        - name: totalCount
+          type: int

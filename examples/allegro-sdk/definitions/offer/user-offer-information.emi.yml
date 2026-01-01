@@ -1,0 +1,757 @@
+actions:
+
+  - name: Get all data of the particular product-offer
+    url: https://api.{environment}/sale/product-offers/{offerId}
+    method: get
+    description: Full response model returned by GET /sale/product-offers/{offerId}
+    out:
+      fields:
+      - name: id
+        type: string
+        description: Unique offer identifier
+      - name: name
+        type: string
+        description: Offer title
+      - name: language
+        type: string
+        description: Offer language code (e.g. pl-PL)
+      - name: createdAt
+        type: string
+        description: Offer creation timestamp (ISO8601)
+      - name: updatedAt
+        type: string
+        description: Offer last update timestamp (ISO8601)
+
+      - name: category
+        type: object
+        fields:
+          - name: id
+            type: string
+
+      - name: stock
+        type: object
+        fields:
+          - name: available
+            type: int
+          - name: unit
+            type: string
+
+      - name: contact
+        type: object
+        fields:
+          - name: id
+            type: string
+
+      - name: publication
+        type: object
+        fields:
+          - name: duration
+            type: string
+          - name: startingAt
+            type: string
+          - name: endingAt
+            type: string
+          - name: endedBy
+            type: string
+          - name: status
+            type: string
+          - name: republish
+            type: bool
+          - name: marketplaces
+            type: object
+            fields:
+              - name: base
+                type: object
+                fields:
+                  - name: id
+                    type: string
+              - name: additional
+                type: array
+                fields:
+                  - name: id
+                    type: string
+
+      - name: sellingMode
+        type: object
+        fields:
+          - name: format
+            type: string
+          - name: price
+            type: object
+            fields:
+              - name: amount
+                type: string
+              - name: currency
+                type: string
+          - name: minimalPrice
+            type: object
+            fields:
+              - name: amount
+                type: string
+              - name: currency
+                type: string
+          - name: startingPrice
+            type: object
+            fields:
+              - name: amount
+                type: string
+              - name: currency
+                type: string
+
+      - name: payments
+        type: object
+        fields:
+          - name: invoice
+            type: string
+
+      - name: delivery
+        type: object
+        fields:
+          - name: handlingTime
+            type: string
+          - name: additionalInfo
+            type: string
+          - name: shipmentDate
+            type: string
+          - name: shippingRates
+            type: object
+            fields:
+              - name: id
+                type: string
+
+      - name: afterSalesServices
+        type: object
+        fields:
+          - name: impliedWarranty
+            type: object
+            fields:
+              - name: id
+                type: string
+          - name: returnPolicy
+            type: object
+            fields:
+              - name: id
+                type: string
+          - name: warranty
+            type: object
+            fields:
+              - name: id
+                type: string
+
+      - name: discounts
+        type: object
+        fields:
+          - name: wholesalePriceList
+            type: object
+            fields:
+              - name: id
+                type: string
+
+      - name: description
+        type: object
+        fields:
+          - name: sections
+            type: array
+            fields:
+              - name: items
+                type: array
+                fields:
+                  - name: type
+                    type: string
+
+      - name: images
+        type: slice
+        primitive: string
+
+      - name: productSet
+        type: array
+        fields:
+          - name: quantity
+            type: object
+            fields:
+              - name: value
+                type: int
+          - name: product
+            type: object
+            fields:
+              - name: id
+                type: string
+              - name: isAiCoCreated
+                type: bool
+              - name: publication
+                type: object
+                fields:
+                  - name: status
+                    type: string
+              - name: parameters
+                type: array
+                fields:
+                  - name: id
+                    type: string
+                  - name: name
+                    type: string
+                  - name: rangeValue
+                    type: object
+                    fields:
+                      - name: from
+                        type: string
+                      - name: to
+                        type: string
+                  - name: values
+                    type: array
+                    primitive: string
+                  - name: valuesIds
+                    type: array
+                    primitive: string
+          - name: responsiblePerson
+            type: object
+            fields:
+              - name: id
+                type: string
+          - name: responsibleProducer
+            type: object
+            fields:
+              - name: id
+                type: string
+          - name: safetyInformation
+            type: object
+            fields:
+              - name: type
+                type: string
+              - name: description
+                type: string
+          - name: marketedBeforeGPSRObligation
+            type: bool
+          - name: deposits
+            type: array
+            fields:
+              - name: id
+                type: string
+              - name: quantity
+                type: int
+
+      - name: attachments
+        type: array
+        fields:
+          - name: id
+            type: string
+
+      - name: fundraisingCampaign
+        type: object
+        fields:
+          - name: id
+            type: string
+
+      - name: additionalServices
+        type: object
+        fields:
+          - name: id
+            type: string
+
+      - name: additionalMarketplaces
+        type: map?
+        fields:
+          - name: sellingMode
+            type: object
+            fields:
+              - name: price
+                type: object
+                fields:
+                  - name: amount
+                    type: string
+                  - name: currency
+                    type: string
+          - name: publication
+            type: object
+            fields:
+              - name: state
+                type: string
+              - name: refusalReasons
+                type: array
+                fields:
+                  - name: code
+                    type: string
+                  - name: userMessage
+                    type: string
+                  - name: parameters
+                    type: object
+                    fields:
+                      - name: maxAllowedPriceDecreasePercent
+                        type: array
+                        primitive: string
+
+      - name: b2b
+        type: object
+        fields:
+          - name: buyableOnlyByBusiness
+            type: bool
+
+      - name: compatibilityList
+        type: object
+        fields:
+          - name: type
+            type: string
+
+      - name: validation
+        type: object
+        fields:
+          - name: validatedAt
+            type: string
+          - name: errors
+            type: array
+            fields:
+              - name: code
+                type: string
+              - name: details
+                type: string
+              - name: message
+                type: string
+              - name: path
+                type: string
+              - name: userMessage
+                type: string
+              - name: metadata
+                type: object
+                fields:
+                  - name: productId
+                    type: string
+          - name: warnings
+            type: array
+            fields:
+              - name: code
+                type: string
+              - name: details
+                type: string
+              - name: message
+                type: string
+              - name: path
+                type: string
+              - name: userMessage
+                type: string
+              - name: metadata
+                type: object
+                fields:
+                  - name: productId
+                    type: string
+
+      - name: external
+        type: object
+        fields:
+          - name: id
+            type: string
+
+      - name: sizeTable
+        type: object
+        fields:
+          - name: id
+            type: string
+
+      - name: taxSettings
+        type: object
+        fields:
+          - name: subject
+            type: string
+          - name: exemption
+            type: string
+          - name: rates
+            type: array
+            fields:
+              - name: rate
+                type: string
+              - name: countryCode
+                type: string
+
+      - name: messageToSellerSettings
+        type: object
+        fields:
+          - name: mode
+            type: string
+          - name: hint
+            type: string
+
+  
+
+  - name: Get selected data of the particular product-offer
+
+    url: https://api.{environment}/sale/product-offers/{offerId}/parts
+    method: get
+    description:
+      Use this resource to retrieve selected data of the particular product-offer. The model and functionality is a subset of the full product offer get endpoint (GET /sale/product-offers/{offerId}), but it is faster and more reliable.
+    out:
+      fields:
+          - name: id
+            type: string
+            description: Unique offer identifier
+
+          - name: stock
+            type: object
+            fields:
+              - name: available
+                type: int
+                description: Number of available items in stock
+
+          - name: sellingMode
+            type: object
+            fields:
+              - name: price
+                type: object
+                fields:
+                  - name: amount
+                    type: string
+                  - name: currency
+                    type: string
+
+          - name: additionalMarketplaces
+            type: object
+            description: Marketplace-specific price information
+            fields:
+              - name: marketplaceId1
+                type: object
+                fields:
+                  - name: sellingMode
+                    type: object
+                    fields:
+                      - name: price
+                        type: object
+                        fields:
+                          - name: amount
+                            type: string
+                          - name: currency
+                            type: string
+              - name: marketplaceId2
+                type: object
+                fields:
+                  - name: sellingMode
+                    type: object
+                    fields:
+                      - name: price
+                        type: object
+                        fields:
+                          - name: amount
+                            type: string
+                          - name: currency
+                            type: string
+
+
+  - name: Get sellers offers
+    url: https://api.{environment}/sale/offers
+    method: get
+    description: >-
+      Use this resource to get the list of the seller's offers. You can use different query parameters to filter the list. Read more: PL / EN.
+    out: 
+      fields: 
+        - name: count
+          type: int
+          description: Number of offers in this page
+        - name: totalCount
+          type: int
+          description: Total number of offers available
+        - name: offers
+          type: array
+          fields:
+            - name: id
+              type: string
+              description: Offer identifier
+            - name: name
+              type: string
+              description: Offer name or title
+
+            - name: category
+              type: object
+              fields:
+                - name: id
+                  type: string
+
+            - name: primaryImage
+              type: object
+              fields:
+                - name: url
+                  type: string
+
+            - name: sellingMode
+              type: object
+              fields:
+                - name: format
+                  type: string
+                - name: price
+                  type: object
+                  fields:
+                    - name: amount
+                      type: string
+                    - name: currency
+                      type: string
+                - name: priceAutomation
+                  type: object
+                  fields:
+                    - name: rule
+                      type: object
+                      fields:
+                        - name: id
+                          type: string
+                - name: minimalPrice
+                  type: object
+                  fields:
+                    - name: amount
+                      type: string
+                    - name: currency
+                      type: string
+                - name: startingPrice
+                  type: object
+                  fields:
+                    - name: amount
+                      type: string
+                    - name: currency
+                      type: string
+
+            - name: saleInfo
+              type: object
+              fields:
+                - name: currentPrice
+                  type: object
+                  fields:
+                    - name: amount
+                      type: string
+                    - name: currency
+                      type: string
+                - name: biddersCount
+                  type: int
+
+            - name: stock
+              type: object
+              fields:
+                - name: available
+                  type: int
+                - name: sold
+                  type: int
+
+            - name: stats
+              type: object
+              fields:
+                - name: watchersCount
+                  type: int
+                - name: visitsCount
+                  type: int
+
+            - name: publication
+              type: object
+              fields:
+                - name: status
+                  type: string
+                - name: startingAt
+                  type: string
+                - name: startedAt
+                  type: string
+                - name: endingAt
+                  type: string
+                - name: endedAt
+                  type: string
+                - name: marketplaces
+                  type: object
+                  fields:
+                    - name: base
+                      type: object
+                      fields:
+                        - name: id
+                          type: string
+                    - name: additional
+                      type: array
+                      fields:
+                        - name: id
+                          type: string
+
+            - name: afterSalesServices
+              type: object
+              fields:
+                - name: impliedWarranty
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                - name: returnPolicy
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+                - name: warranty
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+
+            - name: additionalServices
+              type: object
+              fields:
+                - name: id
+                  type: string
+
+            - name: external
+              type: object
+              fields:
+                - name: id
+                  type: string
+
+            - name: delivery
+              type: object
+              fields:
+                - name: shippingRates
+                  type: object
+                  fields:
+                    - name: id
+                      type: string
+
+            - name: b2b
+              type: object
+              fields:
+                - name: buyableOnlyByBusiness
+                  type: bool
+
+            - name: fundraisingCampaign
+              type: object
+              fields:
+                - name: id
+                  type: string
+
+            - name: additionalMarketplaces
+              type: map?
+              description: Marketplace-specific extensions for offer
+              mapKey: string
+              fields:
+                - name: publication
+                  type: object
+                  fields:
+                    - name: state
+                      type: string
+                - name: sellingMode
+                  type: object
+                  fields:
+                    - name: price
+                      type: object
+                      fields:
+                        - name: amount
+                          type: string
+                        - name: currency
+                          type: string
+                    - name: priceAutomation
+                      type: object
+                      fields:
+                        - name: rule
+                          type: object
+                          fields:
+                            - name: id
+                              type: string
+                - name: stats
+                  type: object
+                  fields:
+                    - name: watchersCount
+                      type: int
+                    - name: visitsCount
+                      type: int
+                - name: stock
+                  type: object
+                  fields:
+                    - name: sold
+                      type: int
+
+  - name: Get Smart! classification report of the particular offer
+    url: https://api.{environment}/sale/offers/{offerId}/smart
+    method: get
+    description: >-
+      Use this resource to get a full Smart! offer classification report of one of your offers. Please keep in mind you have to meet Smart! seller conditions first - for more details, use GET /sale/smart. To learn more about Smart! offer requirements, see our knowledge base article: PL / EN. Read more: PL / EN.
+    out: 
+      fields: 
+        - name: scheduledForReclassification
+          type: bool
+          description: Indicates if offer is queued for reclassification
+
+        - name: classification
+          type: object
+          description: Offer classification status and last change date
+          fields:
+            - name: fulfilled
+              type: bool
+              description: Whether the classification conditions are fulfilled
+            - name: lastChanged
+              type: string
+              description: ISO8601 timestamp of last classification change
+
+        - name: smartDeliveryMethods
+          type: array
+          description: List of smart delivery method identifiers
+          fields:
+            - name: id
+              type: string
+
+        - name: conditions
+          type: array
+          description: List of classification conditions with delivery method checks
+          fields:
+            - name: code
+              type: string
+              description: Condition code identifier
+            - name: name
+              type: string
+              description: Human-readable condition name
+            - name: description
+              type: string
+              description: Detailed condition description
+            - name: fulfilled
+              type: bool
+              description: Indicates if this condition is fulfilled
+            - name: passedDeliveryMethods
+              type: array
+              description: Delivery methods that passed validation for this condition
+              fields:
+                - name: id
+                  type: string
+            - name: failedDeliveryMethods
+              type: array
+              description: Delivery methods that failed validation for this condition
+              fields:
+                - name: id
+                  type: string
+
+  - name: Get events about the seller's offers
+    url: https://api.{environment}/sale/offer-events
+    method: get
+    description: >-
+      Use this endpoint to get events from the last 24 hours concerning changes in the authorized seller's offers. At present we support the following events:
+
+      OFFER_ACTIVATED - offer is visible on site and available for purchase, occurs when offer status changes from ACTIVATING to ACTIVE.
+      OFFER_CHANGED - occurs when offer's fields has been changed e.g. description or photos.
+      OFFER_ENDED - offer is no longer available for purchase, occurs when offer status changes from ACTIVE to ENDED.
+      OFFER_STOCK_CHANGED - stock in an offer was changed either via purchase or by seller.
+      OFFER_PRICE_CHANGED - occurs when price in an offer was changed.
+      OFFER_ARCHIVED - offer is no longer available on listing and has been archived.
+      OFFER_BID_PLACED - bid was placed on the offer.
+      OFFER_BID_CANCELED - bid for offer was canceled.
+      OFFER_TRANSLATION_UPDATED - translation of offer was updated.
+      OFFER_VISIBILITY_CHANGED - visibility of offer was changed on marketplaces.
+      OFFER_DELIVERY_COUNTRIES_BLOCKED - the offer has been blocked in selected countries.
+      Returned events may occur by actions made via browser or API. The resource allows you to get events concerning active offers and offers scheduled for activation (status ACTIVE and ACTIVATING). Returned events do not concern offers in INACTIVE and ENDED status (the exception is OFFER_ARCHIVED event). External id is returned for all event types except OFFER_BID_PLACED and OFFER_BID_CANCELED. Please note that one change may result in more than one event. Read more: PL / EN.
+
+    out: 
+      fields: 
+        - name: offerEvents
+          type: array
+          description: List of events related to offer state changes
+          fields:
+            - name: id
+              type: string
+              description: Unique event identifier (base64 encoded)
+            - name: occurredAt
+              type: string
+              description: ISO8601 timestamp when the event occurred
+            - name: type
+              type: string
+              description: Event type (e.g., OFFER_ACTIVATED, OFFER_ENDED, etc.)
+            - name: offer
+              type: object
+              description: Basic offer information for which event occurred
+              fields:
+                - name: id
+                  type: string
+                - name: external
+                  type: object
+                  fields:
+                    - name: id
+                      type: string

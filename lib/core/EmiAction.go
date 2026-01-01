@@ -13,9 +13,6 @@ type EmiAction struct {
 	// Overrides the CLI action name if specified otherwise defaults to Name.
 	CliName string `yaml:"cliName,omitempty" json:"cliName,omitempty" jsonschema:"description=Overrides the CLI action name if specified otherwise defaults to Name"`
 
-	// CLI command aliases for shorter action names.
-	ActionAliases []string `yaml:"actionAliases,omitempty" json:"actionAliases,omitempty" jsonschema:"description=CLI command aliases for shorter action names"`
-
 	// HTTP route of the action; if not specified the action is CLI-only.
 	Url string `yaml:"url,omitempty" json:"url,omitempty" jsonschema:"description=HTTP route of the action; if not specified the action is CLI-only"`
 

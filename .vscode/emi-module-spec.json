@@ -70,13 +70,6 @@
           "type": "string",
           "description": "Overrides the CLI action name if specified otherwise defaults to Name"
         },
-        "actionAliases": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array",
-          "description": "CLI command aliases for shorter action names"
-        },
         "url": {
           "type": "string",
           "description": "HTTP route of the action; if not specified the action is CLI-only"
