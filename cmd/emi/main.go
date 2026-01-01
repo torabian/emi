@@ -22,16 +22,8 @@ import (
 func main() {
 
 	commands := []cli.Command{
-		{
-			Name:      "querypredict",
-			ShortName: "qp",
-			Aliases:   []string{"qp"},
-			Usage:     "Query predict sql tools and transformation",
-			Subcommands: cli.Commands{
-				DirCommand,
-				GenerateCommand,
-			},
-		},
+		DirCommand,
+		GenerateCommand,
 	}
 	commands = append(commands,
 		cliCommandFromTextActions(js.GetJsPublicActions().TextActions)...)
@@ -226,7 +218,7 @@ func cliCommandFromTextAction(a core.ActionText) cli.Command {
 }
 
 var GenerateCommand = cli.Command{
-	Name:        "gen",
+	Name:        "qp:gen",
 	Description: "Generate the query predict golang files from a query predict yaml definition",
 	Usage:       "Generate the query predict golang files from a query predict yaml definition",
 	Flags:       commonFlags,
@@ -319,7 +311,7 @@ func cliCommandFromFileAction(a core.ActionFile) cli.Command {
 }
 
 var DirCommand = cli.Command{
-	Name:        "dir",
+	Name:        "qp:dir",
 	Description: "Searches for .sql files in given directory, considering maximum depth, and would generate querypredict golang files in output ",
 	Usage:       "Searches for .sql files in given directory, considering maximum depth, and would generate querypredict golang files in output ",
 	Flags:       commonFlags,

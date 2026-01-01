@@ -1,0 +1,93 @@
+actions:
+  - name: Get offer translations
+    method: get
+    description: >-
+      Get offer translation for given language or all present. Read more: PL / EN.
+    url: https://api.{environment}/sale/offers/{offerId}/translations
+    out:
+      fields:
+        - name: translations
+          type: array
+          fields:
+            - name: language
+              type: string
+            - name: title
+              type: object
+              fields:
+                - name: translation
+                  type: string
+                - name: type
+                  type: string
+            - name: description
+              type: object
+              fields:
+                - name: translation
+                  type: object
+                  fields:
+                    - name: sections
+                      type: array
+                      fields:
+                        - name: items
+                          type: array
+                          fields:
+                            - name: type
+                              type: string
+                - name: type
+                  type: string
+            - name: safetyInformation
+              type: object
+              fields:
+                - name: products
+                  type: array
+                  fields:
+                    - name: id
+                      type: string
+                    - name: translation
+                      type: string
+                    - name: type
+                      type: string
+
+  - name: Update offer translation
+    url: https://api.{environment}/sale/offers/{offerId}/translations/{language}
+    method: patch
+    description: >-
+      Update manual translation for offer. Read more: PL / EN.
+
+
+    in:
+      fields:
+        - name: description
+          type: object
+          fields:
+            - name: translation
+              type: object
+              fields:
+                - name: sections
+                  type: array
+                  fields:
+                    - name: items
+                      type: array
+                      fields:
+                        - name: type
+                          type: string
+        - name: title
+          type: object
+          fields:
+            - name: translation
+              type: string
+        - name: safetyInformation
+          type: object
+          fields:
+            - name: products
+              type: array
+              fields:
+                - name: id
+                  type: string
+                - name: translation
+                  type: string
+
+  - name: Delete offer translation
+    method: delete
+    url: https://api.{environment}/sale/offers/{offerId}/translations/{language}
+    description: >-
+      Delete single element or entire manual translation. Read more: PL / EN.

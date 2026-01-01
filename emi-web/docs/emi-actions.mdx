@@ -61,7 +61,6 @@ Depending on your use case, you might not need all features, or they might not b
 |----------|------|-------------|
 | `name` | `string` | General name of the action used for generating code and CLI commands |
 | `cliName` | `string` | Overrides the CLI action name if specified otherwise defaults to Name |
-| `actionAliases` | `array` | CLI command aliases for shorter action names |
 | `url` | `string` | HTTP route of the action; if not specified the action is CLI-only |
 | `method` | `string` | HTTP method type including standard and Emi-specific methods |
 | `binaryType` | `string` | Text by default for websocket |
@@ -71,4 +70,4 @@ Depending on your use case, you might not need all features, or they might not b
 | `out` | `undefined` | Response body definition similar to HTTP response body |
 ## Action methods
 Emi allows for standard http methods, as well as some extra which will be converted to different protocols.
-Currently supported the actions and methods are the following: `post`, `patch`, `put`, `get`, `delete`, `webrtc`, `reactive`, `sse`. Calling for non-existing method, would resolve to http with the non-standard method.
+Currently supported the actions and methods are the following: `post`, `patch`, `put`, `get`, `delete`, `reactive`. Calling for non-existing method, would resolve to http with the non-standard method.
