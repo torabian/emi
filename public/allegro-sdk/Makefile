@@ -24,3 +24,9 @@ gen-golang:
 	../../emi.exe go --path definitions/offer/user-offer-information.emi.yml --emigo github.com/torabian/emi/public/allegro-sdk/golang/emigo --output golang/gen/offer/user-offer-information && \
 	../../emi.exe go --path definitions/offer/offer-translations.emi.yml --emigo github.com/torabian/emi/public/allegro-sdk/golang/emigo --output golang/gen/offer/offer-translations && \
 	../../emi.exe go --path definitions/offer/offer-management.emi.yml --emigo github.com/torabian/emi/public/allegro-sdk/golang/emigo --output golang/gen/offer/offer-management
+
+gen-swift:
+	rm -rf swift/gen/ && \
+	../../emi.exe swift --path definitions/offer/user-offer-information.emi.yml --output swift/gen/offer/user-offer-information && \
+	../../emi.exe swift --path definitions/offer/offer-translations.emi.yml --output swift/gen/offer/offer-translations && \
+	../../emi.exe swift --path definitions/offer/offer-management.emi.yml --output swift/gen/offer/offer-management

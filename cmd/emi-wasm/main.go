@@ -9,6 +9,7 @@ import (
 	emijs "github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
 	"github.com/torabian/emi/lib/querypredict"
+	"github.com/torabian/emi/lib/swift"
 )
 
 func main() {
@@ -44,6 +45,14 @@ func main() {
 	}
 
 	for _, fileAction := range kotlin.GetKotlinPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range swift.GetSwiftPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range swift.GetSwiftPublicActions().FileActions {
 		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
 	}
 
