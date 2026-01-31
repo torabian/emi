@@ -15,6 +15,7 @@ import (
 	"github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
 	"github.com/torabian/emi/lib/querypredict"
+	"github.com/torabian/emi/lib/swift"
 
 	"github.com/urfave/cli"
 )
@@ -44,6 +45,11 @@ func main() {
 		cliCommandFromTextActions(kotlin.GetKotlinPublicActions().TextActions)...)
 	commands = append(commands,
 		cliCommandFromFileActions(kotlin.GetKotlinPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(swift.GetSwiftPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(swift.GetSwiftPublicActions().FileActions)...)
 
 	app := &cli.App{
 		Name:     "Emi compiler",

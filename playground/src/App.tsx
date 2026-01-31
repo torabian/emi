@@ -14,6 +14,7 @@ const options = [
   { value: "kotlinGen", label: "Kotlin" },
   { value: "jsGenModule", label: "JavaScript" },
   { value: "sqlQueryPredict", label: "QueryPredict(SQL)" },
+  { value: "swiftGen", label: "Swift(All)" },
 ];
 
 function App() {
@@ -70,7 +71,7 @@ function App() {
             alignItems: "center",
           }}
         >
-          <div style={{ width: "150px" }}>
+          <div style={{ width: "170px" }}>
             <Dropdown
               options={options}
               onChange={(value) => {
