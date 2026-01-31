@@ -1,4 +1,4 @@
-package kotlin
+package swift
 
 import (
 	"encoding/json"
@@ -9,16 +9,16 @@ import (
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
-	KotlinInclude "github.com/torabian/emi/lib/kotlin/kotlin-include"
+	SwiftInclude "github.com/torabian/emi/lib/swift/swift-include"
 )
 
-func GetKotlinPublicActions() core.PublicAPIActions {
+func GetSwiftPublicActions() core.PublicAPIActions {
 	textActions := []core.ActionText{
 		{
 			BaseAction: core.BaseAction{
-				Name:             "kotlin:dto",
-				Description:      "Generate kotlin dto objects",
-				WasmFunctionName: "genKotlinDto",
+				Name:             "swift:dto",
+				Description:      "Generate swift dto objects",
+				WasmFunctionName: "genSwiftDto",
 				Flags:            []core.FlagDef{},
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
@@ -36,7 +36,7 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 					emiLocation = val
 				}
 
-				res, err := KotlinCommonStructGenerator(emiDto.Fields, ctx, commonClassContext{RootClassName: emiDto.Name, EmiLocation: emiLocation})
+				res, err := SwiftCommonStructGenerator(emiDto.Fields, ctx, commonClassContext{RootClassName: emiDto.Name, EmiLocation: emiLocation})
 				if err != nil {
 					return "", err
 				}
@@ -46,9 +46,9 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 			},
 		}, {
 			BaseAction: core.BaseAction{
-				Name:             "kotlin:headers",
-				Description:      "Generates headers, for kotlin, which can be used in client and server",
-				WasmFunctionName: "kotlinGenHeader",
+				Name:             "swift:headers",
+				Description:      "Generates headers, for swift, which can be used in client and server",
+				WasmFunctionName: "swiftGenHeader",
 				Flags:            []core.FlagDef{},
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
@@ -61,8 +61,8 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				res, err := KotlinHeaderStruct(
-					kotlinHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
+				res, err := SwiftHeaderStruct(
+					swiftHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
 					ctx,
 				)
 				if err != nil {
@@ -77,9 +77,9 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 	fileActions := []core.ActionFile{
 		{
 			BaseAction: core.BaseAction{
-				Name:             "kotlin",
-				Description:      "Compiles kotlin module",
-				WasmFunctionName: "kotlinGen",
+				Name:             "swift",
+				Description:      "Compiles swift module",
+				WasmFunctionName: "swiftGen",
 				Flags:            []core.FlagDef{},
 			},
 			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
@@ -94,7 +94,7 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 						return nil, err
 					}
 
-					files, err := KotlinModuleFull(&emiModule, ctx)
+					files, err := SwiftFullModule(&emiModule, ctx)
 
 					return files, err
 				}
@@ -137,7 +137,7 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 
 // Combines entire features for a module, and creates a virtual map of the files
 // which is necessary to run entire modules
-func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
 	complexes := discoverComplexes(module)
@@ -153,7 +153,7 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 			continue
 		}
 
-		actionRendered, err := KotlinCommonStructGenerator(dto.Fields, ctx, commonClassContext{
+		actionRendered, err := SwiftCommonStructGenerator(dto.Fields, ctx, commonClassContext{
 			RootClassName:       dto.GetClassName(),
 			RecognizedComplexes: complexes,
 		})
@@ -186,7 +186,7 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 
 	for _, action := range module.Actions {
 
-		output, err := KotlinActionRender(action, ctx, complexes)
+		output, err := SwiftActionRender(action, ctx, complexes)
 
 		if err != nil {
 			return nil, err
@@ -200,14 +200,14 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 	}
 
 	// Append the sdk include files
-	files = append(files, core.GenMoveIncludeDir(&KotlinInclude.KotlinInclude)...)
+	files = append(files, core.GenMoveIncludeDir(&SwiftInclude.SwiftInclude)...)
 
 	return files, nil
 }
 
 func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
 	importsList := CombineJavaImport(*x)
-	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + string(x.ActualScript)
+	var finalContent string = importsList + "\r\n" + string(x.ActualScript)
 
 	finalContent = string(core.EscapeLines([]byte(finalContent)))
 	return finalContent
