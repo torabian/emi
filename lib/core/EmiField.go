@@ -1,9 +1,14 @@
 package core
 
+import "strings"
+
 type EmiField struct {
 
 	// Name of the field in camel case. Will be upper case automatically when necessary
 	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description=Name of the field in camel case. Will be upper case automatically when necessary"`
+
+	// The field name apperance on the cli tools, such as --field-name. If empty, computed automatically
+	CliName string `yaml:"cli,omitempty" json:"cli,omitempty" jsonschema:"description=The field name apperance on the cli tools, such as --field-name. If empty, computed automatically"`
 
 	// Recommended field will be asked upon an interactive cli operation.
 	Recommended bool `yaml:"recommended,omitempty" json:"recommended,omitempty" jsonschema:"description=Recommended field will be asked upon an interactive cli operation."`
@@ -83,6 +88,13 @@ func (x *EmiField) GetName() string {
 
 func (x *EmiField) GetComplex() string {
 	return x.Complex
+}
+
+func (x *EmiField) GetCliName() string {
+	if x.CliName != "" {
+		return x.CliName
+	}
+	return strings.ReplaceAll(ToSnakeCase((x.Name)), "_", "-")
 }
 
 func (x *EmiField) GetDescription() string {

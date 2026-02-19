@@ -1,68 +1,114 @@
 package external
-
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/examples/fullstack/emigo"
+"bytes"
+"encoding/json"
+"fmt"
+"github.com/gin-gonic/gin"
+"github.com/torabian/emi/examples/fullstack/emigo"
+"io"
+"net/http"
+"net/url"
 )
-
 /**
 * Action to communicate with the action ComputeApiAction
- */
+*/
 func ComputeApiActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+    Name   string
+	CliName   string
+    URL    string
+    Method string
 } {
-	return struct {
-		Name   string
-		URL    string
-		Method string
-	}{
-		Name:   "ComputeApiAction",
-		URL:    "/compute/api",
-		Method: "POST",
+    return struct {
+        Name   string
+        CliName   string
+        URL    string
+        Method string
+    }{
+        Name:   "ComputeApiAction",
+        CliName:   "compute-api-action",
+        URL:    "/compute/api",
+        Method: "POST",
+    }
+}
+func GetComputeApiActionReqCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "initial-vector1",
+			Type: "slice",
+		},
+		{
+			Name: prefix + "value",
+			Type: "string?",
+		},
+		{
+			Name: prefix + "initial-vector2",
+			Type: "slice",
+		},
 	}
 }
-func CastComputeApiActionReqFromCli() ComputeApiActionReq {
+func CastComputeApiActionReqFromCli(c emigo.CliCastable) ComputeApiActionReq {
 	data := ComputeApiActionReq{}
+			if c.IsSet("initial-vector1") { 
+ emigo.InflatePossibleSlice(c.String("initial-vector1"), &data.InitialVector1) 
+}
+			if c.IsSet("value") { 
+ emigo.ParseNullable(c.String("value"), &data.Value) 
+}
+			if c.IsSet("initial-vector2") { 
+ emigo.InflatePossibleSlice(c.String("initial-vector2"), &data.InitialVector2) 
+}
 	return data
 }
-
-// The base class definition for computeApiActionReq
+  // The base class definition for computeApiActionReq
 type ComputeApiActionReq struct {
-	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
-	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
-	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
+		InitialVector1 []int `json:"initialVector1" yaml:"initialVector1"`
+		Value emigo.Nullable[string] `json:"value" yaml:"value"`
+		InitialVector2 []int `json:"initialVector2" yaml:"initialVector2"`
 }
-
-func CastComputeApiActionResFromCli() ComputeApiActionRes {
+func (x *ComputeApiActionReq) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+func GetComputeApiActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "output-vector",
+			Type: "slice",
+		},
+	}
+}
+func CastComputeApiActionResFromCli(c emigo.CliCastable) ComputeApiActionRes {
 	data := ComputeApiActionRes{}
+			if c.IsSet("output-vector") { 
+ emigo.InflatePossibleSlice(c.String("output-vector"), &data.OutputVector) 
+}
 	return data
 }
-
-// The base class definition for computeApiActionRes
+  // The base class definition for computeApiActionRes
 type ComputeApiActionRes struct {
-	OutputVector []int `json:"outputVector" yaml:"outputVector"`
+		OutputVector []int `json:"outputVector" yaml:"outputVector"`
+}
+func (x *ComputeApiActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
 }
 type ComputeApiActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
 }
-
 // ComputeApiActionRaw registers a raw Gin route for the ComputeApiAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func ComputeApiActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ComputeApiActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // ComputeApiActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiAction action.
+}// ComputeApiActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ComputeApiActionHandler(
@@ -106,16 +152,14 @@ func ComputeApiActionHandler(
 		}
 	}
 }
-
 // ComputeApiAction is a high-level convenience wrapper around ComputeApiActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeApiAction(r gin.IRoutes, handler func(c ComputeApiActionRequest, gin *gin.Context) (*ComputeApiActionResponse, error)) {
+func ComputeApiAction(r gin.IRoutes, handler func(c ComputeApiActionRequest, gin *gin.Context) (*ComputeApiActionResponse, error),) {
 	method, url, h := ComputeApiActionHandler(handler)
 	r.Handle(method, url, h)
 }
-
-/**
+	/**
  * Query parameters for ComputeApiAction
  */
 // Query wrapper with private fields
@@ -123,10 +167,9 @@ type ComputeApiActionQuery struct {
 	values url.Values
 	mapped map[string]interface{}
 	// Typesafe fields
-	action     string `json:"action"`
-	snapPoints []int  `json:"snapPoints"`
+			Action string `json:"action"`
+			SnapPoints []int `json:"snapPoints"`
 }
-
 func ComputeApiActionQueryFromString(rawQuery string) ComputeApiActionQuery {
 	v := ComputeApiActionQuery{}
 	values, _ := url.ParseQuery(rawQuery)
@@ -164,17 +207,15 @@ func (q *ComputeApiActionQuery) SetValues(v url.Values) {
 func (q *ComputeApiActionQuery) SetMapped(m map[string]interface{}) {
 	q.mapped = m
 }
-
 type ComputeApiActionRequest struct {
-	Body        ComputeApiActionReq
+	Body ComputeApiActionReq
 	QueryParams url.Values
-	Headers     http.Header
+	Headers http.Header
 }
 type ComputeApiActionResult struct {
-	resp    *http.Response // embed original response
+	resp *http.Response                      // embed original response
 	Payload interface{}
 }
-
 func ComputeApiActionCall(
 	req ComputeApiActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -192,11 +233,11 @@ func ComputeApiActionCall(
 		if len(req.QueryParams) > 0 {
 			u.RawQuery = req.QueryParams.Encode()
 		}
-		bodyBytes, err := json.Marshal(req.Body)
-		if err != nil {
-			return nil, err
-		}
-		req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+			bodyBytes, err := json.Marshal(req.Body)
+			if err != nil {
+				return nil, err
+			}
+			req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
 		if err != nil {
 			return nil, err
 		}

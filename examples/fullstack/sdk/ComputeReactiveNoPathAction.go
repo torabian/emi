@@ -1,35 +1,31 @@
 package external
-
 import (
-	"fmt"
-	"net/http"
-	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"github.com/torabian/emi/examples/fullstack/emigo"
+"fmt"
+"github.com/gin-gonic/gin"
+"github.com/gorilla/websocket"
+"github.com/torabian/emi/examples/fullstack/emigo"
+"net/http"
+"net/url"
 )
-
 /**
 * Action to communicate with the action ComputeReactiveNoPathAction
- */
+*/
 func ComputeReactiveNoPathActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+    Name   string
+    URL    string
+    Method string
 } {
-	return struct {
-		Name   string
-		URL    string
-		Method string
-	}{
-		Name:   "ComputeReactiveNoPathAction",
-		URL:    "/compute/reactive",
-		Method: "REACTIVE",
-	}
+    return struct {
+        Name   string
+        URL    string
+        Method string
+    }{
+        Name:   "ComputeReactiveNoPathAction",
+        URL:    "/compute/reactive",
+        Method: "REACTIVE",
+    }
 }
-
-/**
+	/**
  * Query parameters for ComputeReactiveNoPathAction
  */
 // Query wrapper with private fields
@@ -37,10 +33,9 @@ type ComputeReactiveNoPathActionQuery struct {
 	values url.Values
 	mapped map[string]interface{}
 	// Typesafe fields
-	queryParam1   string `json:"queryParam1"`
-	securityToken string `json:"securityToken"`
+			QueryParam1 string `json:"queryParam1"`
+			SecurityToken string `json:"securityToken"`
 }
-
 func ComputeReactiveNoPathActionQueryFromString(rawQuery string) ComputeReactiveNoPathActionQuery {
 	v := ComputeReactiveNoPathActionQuery{}
 	values, _ := url.ParseQuery(rawQuery)
@@ -78,39 +73,35 @@ func (q *ComputeReactiveNoPathActionQuery) SetValues(v url.Values) {
 func (q *ComputeReactiveNoPathActionQuery) SetMapped(m map[string]interface{}) {
 	q.mapped = m
 }
-
 // WebSocket upgrader
 var upgraderComputeReactiveNoPathAction = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
-
 type ComputeReactiveNoPathActionMessage struct {
-	Raw         []byte
-	Conn        *websocket.Conn
+	Raw []byte
+	Conn *websocket.Conn	
 	MessageType int
-	Error       error
+	Error error
 	QueryParams ComputeReactiveNoPathActionQuery
 }
-
 // Developer handler type
-type ComputeReactiveNoPathActionHandler func(msg ComputeReactiveNoPathActionMessage) error
-
+type ComputeReactiveNoPathActionHandler func(msg ComputeReactiveNoPathActionMessage ) error
 // Generated handler
 func ComputeReactiveNoPathAction(r *gin.Engine, handler ComputeReactiveNoPathActionHandler) {
 	meta := ComputeReactiveNoPathActionMeta()
 	r.GET(meta.URL, func(c *gin.Context) {
-		ws, err := upgraderComputeReactiveNoPathAction.Upgrade(c.Writer, c.Request, nil)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot upgrade websocket"})
-			return
-		}
+	ws, err := upgraderComputeReactiveNoPathAction.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot upgrade websocket"})
+		return
+	}
 		defer ws.Close()
 		for {
 			mt, raw, err := ws.ReadMessage()
 			msg := ComputeReactiveNoPathActionMessage{
-				Conn:        ws,
-				Raw:         raw,
-				Error:       err,
+				Conn: ws,
+				Raw: raw,
+				Error: err,
 				MessageType: mt,
 			}
 			msg.QueryParams = ComputeReactiveNoPathActionQueryFromGin(c)
@@ -124,16 +115,14 @@ func ComputeReactiveNoPathAction(r *gin.Engine, handler ComputeReactiveNoPathAct
 		}
 	})
 }
-
 type ComputeReactiveNoPathActionSession struct {
-	In          <-chan ComputeReactiveNoPathActionMessage
-	Out         chan<- ComputeReactiveNoPathActionMessage
-	Done        <-chan struct{}
-	Close       func(err error)
+	In   <-chan ComputeReactiveNoPathActionMessage
+	Out  chan<- ComputeReactiveNoPathActionMessage
+	Done <-chan struct{}
+	Close func(err error)
 	QueryParams ComputeReactiveNoPathActionQuery
 }
 type ComputeReactiveNoPathActionHandlerDuplex func(*ComputeReactiveNoPathActionSession)
-
 // ComputeReactiveNoPathActionDuplex upgrades the HTTP connection to a WebSocket and
 // exposes it as a full-duplex, blocking session.
 //

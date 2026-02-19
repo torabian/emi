@@ -144,3 +144,7 @@ func (x EmiAction) GetDefinition() string {
 func (x *EmiAction) Upper() string {
 	return ToUpper(x.Name)
 }
+
+func (x EmiAction) GetCliName() string {
+	return x.CliName
+}

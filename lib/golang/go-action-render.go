@@ -38,15 +38,18 @@ func GoActionRender(
 
 func {{ .realms.ActionName }}Meta() struct {
     Name   string
+	CliName   string
     URL    string
     Method string
 } {
     return struct {
         Name   string
+        CliName   string
         URL    string
         Method string
     }{
         Name:   "{{ .realms.ActionName }}",
+        CliName:   "{{ .realms.CliName }}",
         URL:    "{{ .realms.SafeUrl }}",
         Method: "{{ UPPER .action.Method }}",
     }

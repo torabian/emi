@@ -11,6 +11,9 @@ type EmiRemote struct {
 	// Remote action name, it will become the Golang function that you will call
 	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description=Remote action name, it will become the Golang function that you will call"`
 
+	// Remote action cli name, which will be used to call in case of using cli apps
+	CliName string `yaml:"cli,omitempty" json:"cli,omitempty" jsonschema:"description=Remote action cli name, which will be used to call in case of using cli apps"`
+
 	// Standard HTTP methods
 	Method string `yaml:"method,omitempty" json:"method,omitempty" jsonschema:"enum=get,enum=post,enum=put,enum=delete,enum=patch,enum=options,enum=head,description=Standard HTTP methods"`
 
@@ -73,6 +76,10 @@ func (x EmiRemote) GetRequestHeaders() []EmiHeader {
 	}
 
 	return []EmiHeader{}
+}
+
+func (x EmiRemote) GetCliName() string {
+	return x.CliName
 }
 
 func (x EmiRemote) HasResponse() bool {

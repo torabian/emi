@@ -10,9 +10,6 @@ type Nullable[T any] struct {
 // Marshal JSON: omit if not set, otherwise use the Value
 func (n Nullable[T]) MarshalJSON() ([]byte, error) {
 	if !n.IsSet {
-		return []byte("null"), nil // or omit if used with `omitempty`
-	}
-	if n.Value == nil {
 		return []byte("null"), nil
 	}
 	return json.Marshal(n.Value)
@@ -29,6 +26,29 @@ func (n *Nullable[T]) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
 	}
+	n.Value = &v
+	n.IsSet = true
+	return nil
+}
+
+func ParseNullable[T any](s string, n *Nullable[T]) error {
+	// empty → not set
+	if s == "" {
+		return nil
+	}
+
+	// explicit null
+	if s == "null" {
+		n.IsSet = true
+		n.Value = nil
+		return nil
+	}
+
+	v, err := CastPrimitive[T](s)
+	if err != nil {
+		return err
+	}
+
 	n.Value = &v
 	n.IsSet = true
 	return nil

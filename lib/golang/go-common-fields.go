@@ -8,10 +8,12 @@ import (
 )
 
 type goRenderedField struct {
-	Name         string
-	Type         string
-	Children     []goRenderedField
-	PrivateField string
+	Name                string
+	Type                string
+	Children            []goRenderedField
+	PrivateField        string
+	CliCaptureStatement string
+	CliName             string
 }
 
 type goFieldVariable struct {
@@ -24,6 +26,7 @@ type goFieldVariable struct {
 	IsNumeric        bool
 	GoDoc            string
 	Modifier         string
+	CliName          string
 }
 
 func (x goFieldVariable) Upper() string {
@@ -54,12 +57,72 @@ func (x goFieldVariable) Compile() string {
 	return strings.Join(sequence, " ")
 }
 
+func (x goFieldVariable) CliCaptureStatement() string {
+	possibleType := core.FieldType(x.Type)
+	statement := ""
+
+	// Nullable fields are automatically captured by compiler, all we do is use ParseNullable from string
+	// to the target object field and types are infered via generics in golang itself.
+	if core.IsNullable(x.Type) {
+		return fmt.Sprintf(
+			"if c.IsSet(\"%v\") { \r\n emigo.ParseNullable(c.String(\"%v\"), &data.%v) \r\n}",
+			x.CliName,
+			x.CliName,
+			x.Upper(),
+		)
+	}
+
+	switch possibleType {
+	case core.FieldTypeString:
+		statement = fmt.Sprintf("c.String(\"%v\")", x.CliName)
+	case core.FieldTypeInt, core.FieldTypeInt32, core.FieldTypeInt64:
+		statement = fmt.Sprintf("%v(c.Int64(\"%v\"))", x.ComputedType, x.CliName)
+	case core.FieldTypeFloat32, core.FieldTypeFloat64:
+		statement = fmt.Sprintf("%v(c.Float64(\"%v\"))", x.ComputedType, x.CliName)
+	case core.FieldTypeBool:
+		statement = fmt.Sprintf("%v(c.Bool(\"%v\"))", x.ComputedType, x.CliName)
+
+	// On arrays, since there is it's own function we look for that
+	case core.FieldTypeArray:
+		statement = fmt.Sprintf(
+			"emigo.CapturePossibleArray(Cast%vFromCli, \"%v\", c)",
+			strings.ReplaceAll(x.ComputedType, "[]", ""),
+			x.CliName,
+		)
+	case core.FieldTypeSlice:
+		return fmt.Sprintf(
+			"if c.IsSet(\"%v\") { \r\n emigo.InflatePossibleSlice(c.String(\"%v\"), &data.%v) \r\n}",
+			x.CliName,
+			x.CliName,
+			x.Upper(),
+		)
+		// On arrays, since there is it's own function we look for that
+	case core.FieldTypeObject:
+		statement = fmt.Sprintf(
+			"Cast%vFromCli(c)",
+			strings.TrimSpace(x.ComputedType),
+		)
+	}
+
+	if statement != "" {
+		return fmt.Sprintf(
+			"if c.IsSet(\"%v\") { \r\n data.%v = %v \r\n }",
+			x.CliName,
+			x.Upper(),
+			statement,
+		)
+	}
+
+	return ""
+}
+
 type fieldLike interface {
 	GetType() core.FieldType
 	GetModule() string
 	PublicName() string
 	GetTarget() string
 	GetName() string
+	GetCliName() string
 	GetComplex() string
 	GetDescription() string
 	GetPrimitive() string
@@ -79,6 +142,7 @@ func goRenderField(
 		Name:         field.PublicName(),
 		GoDoc:        GoDoc.String(),
 		IsNullable:   isFieldNullable,
+		CliName:      field.GetCliName(),
 		Type:         string(field.GetType()),
 		ComputedType: computedType,
 		IsNumeric:    core.IsNumericDataType(string(field.GetType())),
@@ -98,10 +162,19 @@ func goRenderField(
 	privateField := privateFieldToken.Compile()
 
 	return goRenderedField{
-		Name:         field.GetName(),
-		Type:         string(field.GetType()),
-		PrivateField: privateField,
+		Name:                field.GetName(),
+		Type:                string(field.GetType()),
+		PrivateField:        privateField,
+		CliCaptureStatement: privateFieldToken.CliCaptureStatement(),
+		CliName:             ComputedCliName(field),
 	}
+}
+
+func ComputedCliName(x fieldLike) string {
+	if x.GetCliName() != "" {
+		return x.GetCliName()
+	}
+	return strings.ReplaceAll(core.ToSnakeCase((x.GetName())), "_", "-")
 }
 
 func goRenderFieldsShallow(

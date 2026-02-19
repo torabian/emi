@@ -50,23 +50,23 @@ func GoActionQueryParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, err
 	{{ range . }}
 
 	 	{{ if or (eq .Type "string") (eq .Type "float64") (eq .Type "float32") (eq .Type "bool") (eq .Type "int") (eq .Type "int8") (eq .Type "int16") (eq .Type "int32") (eq .Type "int64")}}
-			{{ .Name }} {{ .Type }} ` + "`json:\"{{ .Name }}\"`" + `
+			{{ upper .Name }} {{ .Type }} ` + "`json:\"{{ .Name }}\"`" + `
 		{{ end }}
 
 		{{ if (eq .Type "object") }}
-			{{ .Name }} struct {
+			{{ upper .Name }} struct {
 				{{ template "printthem" .Fields }}
 			} ` + "`json:\"{{ .Name }}\"`" + `
 		{{ end }}
 
 		{{ if (eq .Type "array") }}
-			{{ .Name }} [] struct {
+			{{ upper .Name }} [] struct {
 				{{ template "printthem" .Fields }}
 			} ` + "`json:\"{{ .Name }}\"`" + `
 		{{ end }}
 
 		{{ if (eq .Type "slice") }}
-			{{ .Name }} []{{ .Primitive}} ` + "`json:\"{{ .Name }}\"`" + `
+			{{ upper .Name }} []{{ .Primitive}} ` + "`json:\"{{ .Name }}\"`" + `
 		{{ end }} 
 		 
 	{{ end }}
@@ -134,7 +134,7 @@ func (q *{{ .ctx.ActionName }}Query) SetMapped(m map[string]interface{}) {
 
 `
 
-	t := template.Must(template.New("queryParams").Parse(tmpl))
+	t := template.Must(template.New("queryParams").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, map[string]any{
 		"ClassName": className,
