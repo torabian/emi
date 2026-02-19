@@ -44,6 +44,10 @@
           "type": "string",
           "description": "Name of the field in camel case. Will be upper case automatically when necessary"
         },
+        "cli": {
+          "type": "string",
+          "description": "The field name apperance on the cli tools"
+        },
         "recommended": {
           "type": "boolean",
           "description": "Recommended field will be asked upon an interactive cli operation."
