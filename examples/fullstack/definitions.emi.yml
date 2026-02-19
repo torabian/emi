@@ -2,7 +2,7 @@ dtos:
   - name: commonVectorCompute
     fields:
       - name: initialVector1
-        type: slice
+        type: 
         primitive: int
       - name: value
         type: string?

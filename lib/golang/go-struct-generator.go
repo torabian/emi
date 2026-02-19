@@ -183,6 +183,12 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	import emigo "{{ .emiRuntimeLocation }}"
 {{ end }}
 
+{{ .CliCastFunction }} {
+	data := {{ .rootClass }}{}
+
+	return data
+}
+
 {{ define "printClass" }}
 {{ .GoDoc }}
 {{ .Signature  }} {
@@ -206,11 +212,14 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
+	CliCastFunction := fmt.Sprintf("func Cast%vFromCli() %v", core.ToUpper(goctx.RootClassName), core.ToUpper(goctx.RootClassName))
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"renderedClasses":    renderedClasses,
 		"emiRuntimeLocation": emiLocation,
+		"CliCastFunction":    CliCastFunction,
+		"rootClass":          core.ToUpper(goctx.RootClassName),
 	}); err != nil {
 		return nil, err
 	}

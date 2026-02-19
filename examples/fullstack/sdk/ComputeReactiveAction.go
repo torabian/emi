@@ -1,60 +1,67 @@
 package external
+
 import (
-"fmt"
-"github.com/gin-gonic/gin"
-"github.com/gorilla/websocket"
-"github.com/torabian/emi/examples/fullstack/emigo"
-"net/http"
-"net/url"
-"strconv"
-"strings"
+	"fmt"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/torabian/emi/examples/fullstack/emigo"
 )
+
 /**
 * Action to communicate with the action ComputeReactiveAction
-*/
+ */
 func ComputeReactiveActionMeta() struct {
-    Name   string
-    URL    string
-    Method string
+	Name   string
+	URL    string
+	Method string
 } {
-    return struct {
-        Name   string
-        URL    string
-        Method string
-    }{
-        Name:   "ComputeReactiveAction",
-        URL:    "/compute/reactive/:id/:age",
-        Method: "REACTIVE",
-    }
+	return struct {
+		Name   string
+		URL    string
+		Method string
+	}{
+		Name:   "ComputeReactiveAction",
+		URL:    "/compute/reactive/:id/:age",
+		Method: "REACTIVE",
+	}
 }
-	/**
+
+/**
  * Path parameters for ComputeReactiveAction
  */
 type ComputeReactiveActionPathParameter struct {
-	Id int32
+	Id  int32
 	Age int32
 }
+
 // Converts a placeholder url, and applies the parameters to it.
 func ComputeReactiveActionPathParameterApply(params ComputeReactiveActionPathParameter, templateUrl string) string {
-		templateUrl = strings.ReplaceAll(templateUrl, "id", fmt.Sprintf("%v", params.Id))
-		templateUrl = strings.ReplaceAll(templateUrl, "age", fmt.Sprintf("%v", params.Age))
+	templateUrl = strings.ReplaceAll(templateUrl, "id", fmt.Sprintf("%v", params.Id))
+	templateUrl = strings.ReplaceAll(templateUrl, "age", fmt.Sprintf("%v", params.Age))
 	return templateUrl
 }
+
 // Creates the parameters from the gin
 // Creates the parameters from the gin
 func ComputeReactiveActionPathParameterFromGin(g *gin.Context) ComputeReactiveActionPathParameter {
 	res := ComputeReactiveActionPathParameter{}
-			if v := g.Param("id"); v != "" {
-					t, _ := strconv.ParseInt(v, 10, 32)
-					res.Id = int32(t)
-			}
-			if v := g.Param("age"); v != "" {
-					t, _ := strconv.ParseInt(v, 10, 32)
-					res.Age = int32(t)
-			}
+	if v := g.Param("id"); v != "" {
+		t, _ := strconv.ParseInt(v, 10, 32)
+		res.Id = int32(t)
+	}
+	if v := g.Param("age"); v != "" {
+		t, _ := strconv.ParseInt(v, 10, 32)
+		res.Age = int32(t)
+	}
 	return res
 }
-	/**
+
+/**
  * Query parameters for ComputeReactiveAction
  */
 // Query wrapper with private fields
@@ -62,18 +69,19 @@ type ComputeReactiveActionQuery struct {
 	values url.Values
 	mapped map[string]interface{}
 	// Typesafe fields
-			QueryParam1 string `json:"queryParam1"`
-			SecurityToken string `json:"securityToken"`
-			Object1 struct {
-			Field1 string `json:"field1"`
-			Field2 string `json:"field2"`
-			} `json:"object1"`
-			IntSlice []int `json:"intSlice"`
-			InlineArray [] struct {
-			Slice1num int `json:"slice1num"`
-			InnerSlice []float64 `json:"innerSlice"`
-			} `json:"inlineArray"`
+	queryParam1   string `json:"queryParam1"`
+	securityToken string `json:"securityToken"`
+	object1       struct {
+		field1 string `json:"field1"`
+		field2 string `json:"field2"`
+	} `json:"object1"`
+	intSlice    []int `json:"intSlice"`
+	inlineArray []struct {
+		slice1num  int       `json:"slice1num"`
+		innerSlice []float64 `json:"innerSlice"`
+	} `json:"inlineArray"`
 }
+
 func ComputeReactiveActionQueryFromString(rawQuery string) ComputeReactiveActionQuery {
 	v := ComputeReactiveActionQuery{}
 	values, _ := url.ParseQuery(rawQuery)
@@ -111,37 +119,41 @@ func (q *ComputeReactiveActionQuery) SetValues(v url.Values) {
 func (q *ComputeReactiveActionQuery) SetMapped(m map[string]interface{}) {
 	q.mapped = m
 }
+
 // WebSocket upgrader
 var upgraderComputeReactiveAction = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true },
 }
+
 type ComputeReactiveActionMessage struct {
-	Raw []byte
-	Conn *websocket.Conn	
+	Raw         []byte
+	Conn        *websocket.Conn
 	MessageType int
-	Error error
-	PathParams ComputeReactiveActionPathParameter
+	Error       error
+	PathParams  ComputeReactiveActionPathParameter
 	QueryParams ComputeReactiveActionQuery
 }
+
 // Developer handler type
-type ComputeReactiveActionHandler func(msg ComputeReactiveActionMessage ) error
+type ComputeReactiveActionHandler func(msg ComputeReactiveActionMessage) error
+
 // Generated handler
 func ComputeReactiveAction(r *gin.Engine, handler ComputeReactiveActionHandler) {
 	meta := ComputeReactiveActionMeta()
 	r.GET(meta.URL, func(c *gin.Context) {
-	pathParams := ComputeReactiveActionPathParameterFromGin(c)
-	ws, err := upgraderComputeReactiveAction.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot upgrade websocket"})
-		return
-	}
+		pathParams := ComputeReactiveActionPathParameterFromGin(c)
+		ws, err := upgraderComputeReactiveAction.Upgrade(c.Writer, c.Request, nil)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot upgrade websocket"})
+			return
+		}
 		defer ws.Close()
 		for {
 			mt, raw, err := ws.ReadMessage()
 			msg := ComputeReactiveActionMessage{
-				Conn: ws,
-				Raw: raw,
-				Error: err,
+				Conn:        ws,
+				Raw:         raw,
+				Error:       err,
 				MessageType: mt,
 			}
 			msg.PathParams = pathParams
@@ -156,15 +168,17 @@ func ComputeReactiveAction(r *gin.Engine, handler ComputeReactiveActionHandler) 
 		}
 	})
 }
+
 type ComputeReactiveActionSession struct {
-	In   <-chan ComputeReactiveActionMessage
-	Out  chan<- ComputeReactiveActionMessage
-	Done <-chan struct{}
-	Close func(err error)
-	PathParams ComputeReactiveActionPathParameter
+	In          <-chan ComputeReactiveActionMessage
+	Out         chan<- ComputeReactiveActionMessage
+	Done        <-chan struct{}
+	Close       func(err error)
+	PathParams  ComputeReactiveActionPathParameter
 	QueryParams ComputeReactiveActionQuery
 }
 type ComputeReactiveActionHandlerDuplex func(*ComputeReactiveActionSession)
+
 // ComputeReactiveActionDuplex upgrades the HTTP connection to a WebSocket and
 // exposes it as a full-duplex, blocking session.
 //
@@ -229,7 +243,7 @@ func ComputeReactiveActionDuplexGinHandler(c *gin.Context, handler ComputeReacti
 			ws.Close()
 		},
 	}
-		session.PathParams = pathParams
+	session.PathParams = pathParams
 	session.QueryParams = ComputeReactiveActionQueryFromGin(c)
 	// Read loop
 	go func() {

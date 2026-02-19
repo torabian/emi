@@ -50,23 +50,23 @@ func GoActionQueryParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, err
 	{{ range . }}
 
 	 	{{ if or (eq .Type "string") (eq .Type "float64") (eq .Type "float32") (eq .Type "bool") (eq .Type "int") (eq .Type "int8") (eq .Type "int16") (eq .Type "int32") (eq .Type "int64")}}
-			{{ .PublicName }} {{ .Type }} ` + "`json:\"{{ .Name }}\"`" + `
+			{{ .Name }} {{ .Type }} ` + "`json:\"{{ .Name }}\"`" + `
 		{{ end }}
 
 		{{ if (eq .Type "object") }}
-			{{ .PublicName }} struct {
+			{{ .Name }} struct {
 				{{ template "printthem" .Fields }}
 			} ` + "`json:\"{{ .Name }}\"`" + `
 		{{ end }}
 
 		{{ if (eq .Type "array") }}
-			{{ .PublicName }} [] struct {
+			{{ .Name }} [] struct {
 				{{ template "printthem" .Fields }}
 			} ` + "`json:\"{{ .Name }}\"`" + `
 		{{ end }}
 
 		{{ if (eq .Type "slice") }}
-			{{ .PublicName }} []{{ .Primitive}} ` + "`json:\"{{ .Name }}\"`" + `
+			{{ .Name }} []{{ .Primitive}} ` + "`json:\"{{ .Name }}\"`" + `
 		{{ end }} 
 		 
 	{{ end }}

@@ -1,53 +1,68 @@
 package external
+
 import (
-"bytes"
-"encoding/json"
-"fmt"
-"github.com/gin-gonic/gin"
-"github.com/torabian/emi/examples/fullstack/emigo"
-"io"
-"net/http"
-"net/url"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/examples/fullstack/emigo"
 )
+
 /**
 * Action to communicate with the action ComputeApiSseAction
-*/
+ */
 func ComputeApiSseActionMeta() struct {
-    Name   string
-    URL    string
-    Method string
+	Name   string
+	URL    string
+	Method string
 } {
-    return struct {
-        Name   string
-        URL    string
-        Method string
-    }{
-        Name:   "ComputeApiSseAction",
-        URL:    "/compute/sse",
-        Method: "GET",
-    }
+	return struct {
+		Name   string
+		URL    string
+		Method string
+	}{
+		Name:   "ComputeApiSseAction",
+		URL:    "/compute/sse",
+		Method: "GET",
+	}
 }
-  // The base class definition for computeApiSseActionReq
+func CastComputeApiSseActionReqFromCli() ComputeApiSseActionReq {
+	data := ComputeApiSseActionReq{}
+	return data
+}
+
+// The base class definition for computeApiSseActionReq
 type ComputeApiSseActionReq struct {
-		InitialVector1 []int `json:"initialVector1" yaml:"initialVector1"`
-		Value emigo.Nullable[string] `json:"value" yaml:"value"`
-		InitialVector2 []int `json:"initialVector2" yaml:"initialVector2"`
+	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
+	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
+	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
 }
-  // The base class definition for computeApiSseActionRes
+
+func CastComputeApiSseActionResFromCli() ComputeApiSseActionRes {
+	data := ComputeApiSseActionRes{}
+	return data
+}
+
+// The base class definition for computeApiSseActionRes
 type ComputeApiSseActionRes struct {
-		OutputVector []int `json:"outputVector" yaml:"outputVector"`
+	OutputVector []int `json:"outputVector" yaml:"outputVector"`
 }
 type ComputeApiSseActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
 }
+
 // ComputeApiSseActionRaw registers a raw Gin route for the ComputeApiSseAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func ComputeApiSseActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ComputeApiSseActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-}// ComputeApiSseActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseAction action.
+} // ComputeApiSseActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ComputeApiSseActionHandler(
@@ -91,14 +106,16 @@ func ComputeApiSseActionHandler(
 		}
 	}
 }
+
 // ComputeApiSseAction is a high-level convenience wrapper around ComputeApiSseActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeApiSseAction(r gin.IRoutes, handler func(c ComputeApiSseActionRequest, gin *gin.Context) (*ComputeApiSseActionResponse, error),) {
+func ComputeApiSseAction(r gin.IRoutes, handler func(c ComputeApiSseActionRequest, gin *gin.Context) (*ComputeApiSseActionResponse, error)) {
 	method, url, h := ComputeApiSseActionHandler(handler)
 	r.Handle(method, url, h)
 }
-	/**
+
+/**
  * Query parameters for ComputeApiSseAction
  */
 // Query wrapper with private fields
@@ -107,6 +124,7 @@ type ComputeApiSseActionQuery struct {
 	mapped map[string]interface{}
 	// Typesafe fields
 }
+
 func ComputeApiSseActionQueryFromString(rawQuery string) ComputeApiSseActionQuery {
 	v := ComputeApiSseActionQuery{}
 	values, _ := url.ParseQuery(rawQuery)
@@ -144,15 +162,17 @@ func (q *ComputeApiSseActionQuery) SetValues(v url.Values) {
 func (q *ComputeApiSseActionQuery) SetMapped(m map[string]interface{}) {
 	q.mapped = m
 }
+
 type ComputeApiSseActionRequest struct {
-	Body ComputeApiSseActionReq
+	Body        ComputeApiSseActionReq
 	QueryParams url.Values
-	Headers http.Header
+	Headers     http.Header
 }
 type ComputeApiSseActionResult struct {
-	resp *http.Response                      // embed original response
+	resp    *http.Response // embed original response
 	Payload interface{}
 }
+
 func ComputeApiSseActionCall(
 	req ComputeApiSseActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -170,11 +190,11 @@ func ComputeApiSseActionCall(
 		if len(req.QueryParams) > 0 {
 			u.RawQuery = req.QueryParams.Encode()
 		}
-			bodyBytes, err := json.Marshal(req.Body)
-			if err != nil {
-				return nil, err
-			}
-			req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+		bodyBytes, err := json.Marshal(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
 		if err != nil {
 			return nil, err
 		}
