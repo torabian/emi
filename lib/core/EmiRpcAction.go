@@ -3,6 +3,7 @@ package core
 // Use for both remotes and actions to generate the same code
 type EmiRpcAction interface {
 	GetName() string
+	GetCliName() string
 	GetUrl() string
 	GetMethod() string
 	MethodUpper() string

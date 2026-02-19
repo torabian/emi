@@ -14,18 +14,50 @@ import (
 */
 func ComputeApiSseChannelActionMeta() struct {
     Name   string
+	CliName   string
     URL    string
     Method string
 } {
     return struct {
         Name   string
+        CliName   string
         URL    string
         Method string
     }{
         Name:   "ComputeApiSseChannelAction",
+        CliName:   "compute-api-sse-channel-action",
         URL:    "/compute/sse/ch",
         Method: "GET",
     }
+}
+func GetComputeApiSseChannelActionReqCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "initial-vector1",
+			Type: "slice",
+		},
+		{
+			Name: prefix + "value",
+			Type: "string?",
+		},
+		{
+			Name: prefix + "initial-vector2",
+			Type: "slice",
+		},
+	}
+}
+func CastComputeApiSseChannelActionReqFromCli(c emigo.CliCastable) ComputeApiSseChannelActionReq {
+	data := ComputeApiSseChannelActionReq{}
+			if c.IsSet("initial-vector1") { 
+ emigo.InflatePossibleSlice(c.String("initial-vector1"), &data.InitialVector1) 
+}
+			if c.IsSet("value") { 
+ emigo.ParseNullable(c.String("value"), &data.Value) 
+}
+			if c.IsSet("initial-vector2") { 
+ emigo.InflatePossibleSlice(c.String("initial-vector2"), &data.InitialVector2) 
+}
+	return data
 }
   // The base class definition for computeApiSseChannelActionReq
 type ComputeApiSseChannelActionReq struct {
@@ -33,9 +65,38 @@ type ComputeApiSseChannelActionReq struct {
 		Value emigo.Nullable[string] `json:"value" yaml:"value"`
 		InitialVector2 []int `json:"initialVector2" yaml:"initialVector2"`
 }
+func (x *ComputeApiSseChannelActionReq) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+func GetComputeApiSseChannelActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "output-vector",
+			Type: "slice",
+		},
+	}
+}
+func CastComputeApiSseChannelActionResFromCli(c emigo.CliCastable) ComputeApiSseChannelActionRes {
+	data := ComputeApiSseChannelActionRes{}
+			if c.IsSet("output-vector") { 
+ emigo.InflatePossibleSlice(c.String("output-vector"), &data.OutputVector) 
+}
+	return data
+}
   // The base class definition for computeApiSseChannelActionRes
 type ComputeApiSseChannelActionRes struct {
 		OutputVector []int `json:"outputVector" yaml:"outputVector"`
+}
+func (x *ComputeApiSseChannelActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
 }
 type ComputeApiSseChannelActionResponse struct {
 	StatusCode int

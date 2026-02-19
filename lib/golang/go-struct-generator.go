@@ -16,14 +16,16 @@ type RecognizedComplex struct {
 }
 
 type goRenderedStruct struct {
-	ClassName      string
-	Fields         []goRenderedField
-	LateInitFields []goRenderedField
-	Signature      string
-	GoDoc          string
-	SubClasses     []goRenderedStruct
-	ClassTypePath  string
-	ClassNamePath  string
+	ClassName       string
+	Fields          []goRenderedField
+	LateInitFields  []goRenderedField
+	Signature       string
+	GoDoc           string
+	SubClasses      []goRenderedStruct
+	ClassTypePath   string
+	FullClassName   string
+	ClassNamePath   string
+	CliCastFunction string
 }
 
 // Is is a bit weird function I am adding to capture type.
@@ -61,12 +63,14 @@ func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fi
 	fieldsRendered := goRenderFieldsShallow(fields, treeLocation)
 
 	currentClass := goRenderedStruct{
-		ClassName:     core.ToUpper(className),
-		Fields:        fieldsRendered,
-		ClassNamePath: treeLocation,
-		ClassTypePath: treeAsType(treeLocation),
-		GoDoc:         GoDoc.String(),
-		Signature:     signature,
+		ClassName:       core.ToUpper(className),
+		Fields:          fieldsRendered,
+		ClassNamePath:   treeLocation,
+		CliCastFunction: fmt.Sprintf("func Cast%vFromCli(c emigo.CliCastable) %v", prefixName, prefixName),
+		ClassTypePath:   treeAsType(treeLocation),
+		GoDoc:           GoDoc.String(),
+		FullClassName:   prefixName,
+		Signature:       signature,
 	}
 
 	for _, f := range fields {
@@ -104,6 +108,13 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 }
 
 func DetectIfEmiGoIsUsed(fields []*core.EmiField) bool {
+
+	// As of recent changes, since we are having cli tools,
+	// always emigo is included, it seems.
+	if len(fields) > 0 {
+		return true
+	}
+
 	var result bool = false
 
 	var walk func(f []*core.EmiField)
@@ -140,7 +151,11 @@ func findComplexLocation(complexName string, goctx GoCommonStructContext) string
 func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, goctx GoCommonStructContext) (*core.CodeChunkCompiled, error) {
 
 	res := &core.CodeChunkCompiled{
-		CodeChunkDependensies: []core.CodeChunkDependency{},
+		CodeChunkDependensies: []core.CodeChunkDependency{
+			{
+				Location: "encoding/json",
+			},
+		},
 	}
 
 	includeEmiGo := DetectIfEmiGoIsUsed(fields)
@@ -183,7 +198,36 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	import emigo "{{ .emiRuntimeLocation }}"
 {{ end }}
 
+
 {{ define "printClass" }}
+
+func Get{{ .FullClassName }}CliFlags(prefix string) []emigo.CliFlag {
+
+	return []emigo.CliFlag{
+		{{ range .Fields }}
+		{
+			Name: prefix + "{{ .CliName }}",
+			Type: "{{ .Type }}",
+			{{ if eq .Type "object" }}
+			Children: Get{{ $.FullClassName }}{{upper .Name}}CliFlags("{{ .CliName }}-"),
+			{{ end }}
+		},
+		{{ end }}
+	}
+}
+
+{{ .CliCastFunction }} {
+	data := {{ .FullClassName }}{}
+
+	{{ range .Fields }}
+		{{ if .CliCaptureStatement }}
+			{{ .CliCaptureStatement}}
+		{{ end }}
+	{{ end }}
+
+	return data
+}
+
 {{ .GoDoc }}
 {{ .Signature  }} {
 	{{ range .Fields }}
@@ -191,16 +235,24 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	{{ end }}
 }
 
+
+
 	{{ range .SubClasses }}
 		{{ template "printClass" . }}
 	{{ end }}
 
-	
 
 {{ end }}
 {{ range .renderedClasses }}
 	{{ template "printClass" . }}
 {{ end }}
+func (x *{{ .rootClass }}) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
 
   
 `
@@ -211,6 +263,7 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	if err := t.Execute(&buf, core.H{
 		"renderedClasses":    renderedClasses,
 		"emiRuntimeLocation": emiLocation,
+		"rootClass":          core.ToUpper(goctx.RootClassName),
 	}); err != nil {
 		return nil, err
 	}

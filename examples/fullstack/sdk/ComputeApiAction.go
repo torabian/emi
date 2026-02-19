@@ -14,18 +14,50 @@ import (
 */
 func ComputeApiActionMeta() struct {
     Name   string
+	CliName   string
     URL    string
     Method string
 } {
     return struct {
         Name   string
+        CliName   string
         URL    string
         Method string
     }{
         Name:   "ComputeApiAction",
+        CliName:   "compute-api-action",
         URL:    "/compute/api",
         Method: "POST",
     }
+}
+func GetComputeApiActionReqCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "initial-vector1",
+			Type: "slice",
+		},
+		{
+			Name: prefix + "value",
+			Type: "string?",
+		},
+		{
+			Name: prefix + "initial-vector2",
+			Type: "slice",
+		},
+	}
+}
+func CastComputeApiActionReqFromCli(c emigo.CliCastable) ComputeApiActionReq {
+	data := ComputeApiActionReq{}
+			if c.IsSet("initial-vector1") { 
+ emigo.InflatePossibleSlice(c.String("initial-vector1"), &data.InitialVector1) 
+}
+			if c.IsSet("value") { 
+ emigo.ParseNullable(c.String("value"), &data.Value) 
+}
+			if c.IsSet("initial-vector2") { 
+ emigo.InflatePossibleSlice(c.String("initial-vector2"), &data.InitialVector2) 
+}
+	return data
 }
   // The base class definition for computeApiActionReq
 type ComputeApiActionReq struct {
@@ -33,9 +65,38 @@ type ComputeApiActionReq struct {
 		Value emigo.Nullable[string] `json:"value" yaml:"value"`
 		InitialVector2 []int `json:"initialVector2" yaml:"initialVector2"`
 }
+func (x *ComputeApiActionReq) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+func GetComputeApiActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "output-vector",
+			Type: "slice",
+		},
+	}
+}
+func CastComputeApiActionResFromCli(c emigo.CliCastable) ComputeApiActionRes {
+	data := ComputeApiActionRes{}
+			if c.IsSet("output-vector") { 
+ emigo.InflatePossibleSlice(c.String("output-vector"), &data.OutputVector) 
+}
+	return data
+}
   // The base class definition for computeApiActionRes
 type ComputeApiActionRes struct {
 		OutputVector []int `json:"outputVector" yaml:"outputVector"`
+}
+func (x *ComputeApiActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
 }
 type ComputeApiActionResponse struct {
 	StatusCode int

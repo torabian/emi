@@ -3,6 +3,7 @@ package golang
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/torabian/emi/lib/core"
 )
@@ -15,6 +16,7 @@ type goActionRealms struct {
 	FetchMetaClass       *core.CodeChunkCompiled
 	RequestClass         *core.CodeChunkCompiled
 	ResponseClass        *core.CodeChunkCompiled
+	CliName              string
 	QueryStringClass     *core.CodeChunkCompiled
 	QueryParams          *core.CodeChunkCompiled
 	RequestHeadersClass  *core.CodeChunkCompiled
@@ -73,6 +75,7 @@ func GoActionRealms(
 
 	realms := goActionRealms{
 		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
+		CliName:    ActionToCliName(action),
 		SafeUrl:    core.RemoveTypeAnnotations(action.GetUrl()),
 	}
 
@@ -137,4 +140,12 @@ func GoActionRealms(
 	}
 
 	return realms, deps, nil
+}
+
+func ActionToCliName(x core.EmiRpcAction) string {
+	if x.GetCliName() != "" {
+		return x.GetCliName()
+	}
+
+	return strings.ReplaceAll(core.ToSnakeCase((x.GetName())), "_", "-")
 }

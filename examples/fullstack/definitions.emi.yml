@@ -1,3 +1,8 @@
+complexes:
+  - name: Money
+    compiler: golang
+    location: github.com/torabian/emi/examples/fullstack/money
+
 dtos:
   - name: commonVectorCompute
     fields:
@@ -6,9 +11,29 @@ dtos:
         primitive: int
       - name: value
         type: string?
+      - name: valuex
+        type: string
       - name: initialVector2
         type: slice
         primitive: int
+      # From here, I list all of the datatypes, so we can make sure the cli part works just fine.
+      - name: fieldTypeArray
+        type: array
+        fields:
+          - name: arrayField1
+            type: string
+          - name: arrayField2
+            type: array
+            fields:
+            - name: lastItem
+              type: string
+      - name: fieldTypeSlice
+        type: slice
+        primitive: string
+      - name: fieldInt
+        type: int
+      - name: fieldIntNullable
+        type: int?
   - name: commonVectorResponse
     fields:
       - name: outputVector

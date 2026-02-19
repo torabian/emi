@@ -108,6 +108,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 }
 
 // Finds the ts/js compatible types.
+// Make sure this function is public on later versions
 func discoverComplexes(module *core.Emi) []RecognizedComplex {
 	items := []RecognizedComplex{}
 	for _, complex := range module.Complexes {

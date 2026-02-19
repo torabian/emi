@@ -14,18 +14,50 @@ import (
 */
 func ComputeApiSseActionMeta() struct {
     Name   string
+	CliName   string
     URL    string
     Method string
 } {
     return struct {
         Name   string
+        CliName   string
         URL    string
         Method string
     }{
         Name:   "ComputeApiSseAction",
+        CliName:   "compute-api-sse-action",
         URL:    "/compute/sse",
         Method: "GET",
     }
+}
+func GetComputeApiSseActionReqCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "initial-vector1",
+			Type: "slice",
+		},
+		{
+			Name: prefix + "value",
+			Type: "string?",
+		},
+		{
+			Name: prefix + "initial-vector2",
+			Type: "slice",
+		},
+	}
+}
+func CastComputeApiSseActionReqFromCli(c emigo.CliCastable) ComputeApiSseActionReq {
+	data := ComputeApiSseActionReq{}
+			if c.IsSet("initial-vector1") { 
+ emigo.InflatePossibleSlice(c.String("initial-vector1"), &data.InitialVector1) 
+}
+			if c.IsSet("value") { 
+ emigo.ParseNullable(c.String("value"), &data.Value) 
+}
+			if c.IsSet("initial-vector2") { 
+ emigo.InflatePossibleSlice(c.String("initial-vector2"), &data.InitialVector2) 
+}
+	return data
 }
   // The base class definition for computeApiSseActionReq
 type ComputeApiSseActionReq struct {
@@ -33,9 +65,38 @@ type ComputeApiSseActionReq struct {
 		Value emigo.Nullable[string] `json:"value" yaml:"value"`
 		InitialVector2 []int `json:"initialVector2" yaml:"initialVector2"`
 }
+func (x *ComputeApiSseActionReq) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+func GetComputeApiSseActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "output-vector",
+			Type: "slice",
+		},
+	}
+}
+func CastComputeApiSseActionResFromCli(c emigo.CliCastable) ComputeApiSseActionRes {
+	data := ComputeApiSseActionRes{}
+			if c.IsSet("output-vector") { 
+ emigo.InflatePossibleSlice(c.String("output-vector"), &data.OutputVector) 
+}
+	return data
+}
   // The base class definition for computeApiSseActionRes
 type ComputeApiSseActionRes struct {
 		OutputVector []int `json:"outputVector" yaml:"outputVector"`
+}
+func (x *ComputeApiSseActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
 }
 type ComputeApiSseActionResponse struct {
 	StatusCode int
