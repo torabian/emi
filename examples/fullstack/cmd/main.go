@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/big"
 	"net/http"
 	"os"
 	"strings"
@@ -45,6 +46,20 @@ func main() {
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					data := unk.CastCommonVectorComputeDtoFromCli(cmd)
 					fmt.Println("Nullable value:", data.Json())
+					return nil
+				},
+			},
+			{
+				Name:  unk.ComputeExpActionMeta().Name,
+				Flags: CastEmiFlagToUrfave(unk.GetComputeExpActionReqCliFlags("")),
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+
+					data := unk.CastComputeExpActionReqFromCli(cmd)
+
+					x := &big.Int{}
+					x.Exp(&data.Base, &data.Exponent, nil)
+
+					fmt.Println(":" + x.String())
 					return nil
 				},
 			},

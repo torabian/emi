@@ -1,5 +1,9 @@
 package external
-import "encoding/json"
+import (
+"encoding"
+"encoding/json"
+"github.com/torabian/emi/examples/fullstack/sdk/complexes"
+)
 	import emigo "github.com/torabian/emi/examples/fullstack/emigo"
 func GetCommonVectorComputeDtoCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
@@ -35,6 +39,10 @@ func GetCommonVectorComputeDtoCliFlags(prefix string) []emigo.CliFlag {
 			Name: prefix + "field-int-nullable",
 			Type: "int?",
 		},
+		{
+			Name: prefix + "complex-money",
+			Type: "complex",
+		},
 	}
 }
 func CastCommonVectorComputeDtoFromCli(c emigo.CliCastable) CommonVectorComputeDto {
@@ -63,6 +71,9 @@ func CastCommonVectorComputeDtoFromCli(c emigo.CliCastable) CommonVectorComputeD
 			if c.IsSet("field-int-nullable") { 
  emigo.ParseNullable(c.String("field-int-nullable"), &data.FieldIntNullable) 
 }
+			if c.IsSet("complex-money") { 
+ if u, ok := any(&data.ComplexMoney).(encoding.TextUnmarshaler); ok { u.UnmarshalText([]byte(c.String("complex-money"))) } 
+}
 	return data
 }
   // The base class definition for commonVectorComputeDto
@@ -75,6 +86,7 @@ type CommonVectorComputeDto struct {
 		FieldTypeSlice []string `json:"fieldTypeSlice" yaml:"fieldTypeSlice"`
 		FieldInt int `json:"fieldInt" yaml:"fieldInt"`
 		FieldIntNullable emigo.Nullable[int] `json:"fieldIntNullable" yaml:"fieldIntNullable"`
+		ComplexMoney complexes.Money `json:"complexMoney" yaml:"complexMoney"`
 }
 func GetCommonVectorComputeDtoFieldTypeArrayCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{

@@ -96,6 +96,14 @@ func (x goFieldVariable) CliCaptureStatement() string {
 			x.CliName,
 			x.Upper(),
 		)
+	case core.FieldTypeComplex:
+		return fmt.Sprintf(
+
+			"if c.IsSet(\"%v\") { \r\n if u, ok := any(&data.%v).(encoding.TextUnmarshaler); ok { u.UnmarshalText([]byte(c.String(\"%v\"))) } \r\n}",
+			x.CliName,
+			x.Upper(),
+			x.CliName,
+		)
 		// On arrays, since there is it's own function we look for that
 	case core.FieldTypeObject:
 		statement = fmt.Sprintf(
@@ -131,8 +139,9 @@ type fieldLike interface {
 func goRenderField(
 	field fieldLike,
 	parentChain string,
+	goctx GoCommonStructContext,
 ) goRenderedField {
-	computedType := goFieldTypeOnNestedClasses(field, parentChain)
+	computedType := goFieldTypeOnNestedClasses(field, parentChain, goctx)
 	isFieldNullable := core.IsNullable(string(field.GetType()))
 
 	GoDoc := NewGoDoc("  ")
@@ -180,12 +189,13 @@ func ComputedCliName(x fieldLike) string {
 func goRenderFieldsShallow(
 	fields []*core.EmiField,
 	parentChain string,
+	goctx GoCommonStructContext,
 
 ) []goRenderedField {
 	out := make([]goRenderedField, 0, len(fields))
 	for _, f := range fields {
 		if f != nil {
-			out = append(out, goRenderField(f, parentChain))
+			out = append(out, goRenderField(f, parentChain, goctx))
 		}
 	}
 	return out
