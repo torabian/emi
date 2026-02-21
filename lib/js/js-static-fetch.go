@@ -176,7 +176,7 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 			})
 		} else {
 
-			statement := `(data) => { 
+			statementTs := `(data) => { 
 					const resp = new %v<%v>();
 					if (creatorFn) {
 						resp.setCreator(creatorFn);
@@ -186,11 +186,24 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 					return resp;
 			
 			}`
-			seq := fmt.Sprintf(statement, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)
+			seqTs := fmt.Sprintf(statementTs, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)
+
+			statementJs := `(data) => { 
+					const resp = new %v();
+					if (creatorFn) {
+						resp.setCreator(creatorFn);
+					}
+					resp.inject(data);
+
+					return resp;
+			
+			}`
+			seqJs := fmt.Sprintf(statementJs, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)
+
 			claims = append(claims, core.JsFnArgument{
 				Key: "response.cls",
-				Ts:  seq,
-				Js:  seq,
+				Ts:  seqTs,
+				Js:  seqJs,
 			})
 
 		}

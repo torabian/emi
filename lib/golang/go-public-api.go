@@ -118,6 +118,7 @@ func discoverComplexes(module *core.Emi) []RecognizedComplex {
 			items = append(items, RecognizedComplex{
 				Symbol:         complex.Name,
 				ImportLocation: complex.Location,
+				Namespace:      complex.Namespace,
 			})
 		}
 	}

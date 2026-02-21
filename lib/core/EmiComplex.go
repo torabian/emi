@@ -8,9 +8,12 @@ type EmiComplex struct {
 	// Name of the complex class or struct, which will be instantiated.
 	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description= Name of the complex class or struct, which will be instantiated."`
 
+	// Namespace or package name for example in golang
+	Namespace string `yaml:"namespace,omitempty" json:"namespace,omitempty" jsonschema:"description= Namespace or package name for example in golang"`
+
 	// Location of the definition, for different languages to import
 	Location string `yaml:"location,omitempty" json:"location,omitempty" jsonschema:"description= Location of the definition, for different languages to import"`
 
 	// Different compilers can import the definition from different locations, for example 'js'
-	Compiler string `yaml:"compiler,omitempty" json:"compiler,omitempty" jsonschema:"description= Different compilers can import the definition from different locations, for example 'js'"`
+	Compiler string `yaml:"compiler,omitempty" json:"compiler,omitempty" jsonschema:"enum=go,enum=ts,description=Different compilers can import the definition from different locations, for example 'js'"`
 }

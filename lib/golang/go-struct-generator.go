@@ -13,6 +13,9 @@ type RecognizedComplex struct {
 	Symbol string
 
 	ImportLocation string
+
+	// Useful on languages such as golang or java
+	Namespace string
 }
 
 type goRenderedStruct struct {
@@ -60,7 +63,7 @@ func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fi
 	GoDoc := NewGoDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("type %v struct", prefixName)
 
-	fieldsRendered := goRenderFieldsShallow(fields, treeLocation)
+	fieldsRendered := goRenderFieldsShallow(fields, treeLocation, goctx)
 
 	currentClass := goRenderedStruct{
 		ClassName:       core.ToUpper(className),
@@ -87,18 +90,40 @@ func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fi
 	return []goRenderedStruct{currentClass}
 }
 
-// Only finds the complex classes, those have + prefix or affix
 func CollectComplexClasses(fields []*core.EmiField) []string {
 	var result []string
 
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
-			if strings.Contains(field.Complex, "+") {
+			if field.Complex != "" && field.Type == core.FieldTypeComplex {
 				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
 			}
 			if len(field.Fields) > 0 {
 				walk(field.Fields)
+			}
+		}
+	}
+
+	walk(fields)
+	return result
+}
+
+// Detects if inside fields, complex type has been used.
+func DetectIfComplexIsUsed(fields []*core.EmiField) bool {
+	var result bool
+
+	var walk func(f []*core.EmiField)
+	walk = func(f []*core.EmiField) {
+		for _, field := range f {
+			if field.Complex != "" && field.Type == core.FieldTypeComplex {
+				result = true
+			}
+
+			if !result {
+				if len(field.Fields) > 0 {
+					walk(field.Fields)
+				}
 			}
 		}
 	}
@@ -135,6 +160,17 @@ func DetectIfEmiGoIsUsed(fields []*core.EmiField) bool {
 	return result
 }
 
+func findComplexGlobalDefinition(complexName string, goctx GoCommonStructContext) *RecognizedComplex {
+
+	for _, item := range goctx.RecognizedComplexes {
+		if item.Symbol == complexName {
+			return &item
+		}
+	}
+
+	return nil
+}
+
 func findComplexLocation(complexName string, goctx GoCommonStructContext) string {
 
 	for _, item := range goctx.RecognizedComplexes {
@@ -158,6 +194,13 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 		},
 	}
 
+	// Complexes are having a weird casting mechanism
+	if DetectIfComplexIsUsed(fields) {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Location: "encoding",
+		})
+	}
+
 	includeEmiGo := DetectIfEmiGoIsUsed(fields)
 	emiLocation := ""
 
@@ -174,7 +217,7 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 		}
 
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
-			Objects:  []string{item},
+			Objects:  []string{},
 			Location: location,
 		})
 	}
@@ -338,12 +381,24 @@ func goComputedField(field fieldLike) string {
 	return "interface{}"
 }
 
-func goFieldTypeOnNestedClasses(field fieldLike, parentChain string) string {
+func goFieldTypeOnNestedClasses(
+	field fieldLike,
+	parentChain string,
+	goctx GoCommonStructContext,
+) string {
 	if field == nil {
 		return ""
 	}
 	prefix := core.ToUpper(parentChain) + core.ToUpper(field.GetName())
 	switch field.GetType() {
+	case core.FieldTypeComplex:
+
+		globalDef := findComplexGlobalDefinition(field.GetComplex(), goctx)
+		if globalDef != nil && globalDef.Namespace != "" {
+			return fmt.Sprintf("%v.%v", globalDef.Namespace, field.GetComplex())
+		}
+
+		return fmt.Sprintf(" %v", field.GetComplex())
 	case core.FieldTypeObject:
 		return fmt.Sprintf(" %v", prefix)
 	case core.FieldTypeArray:

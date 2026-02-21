@@ -1,7 +1,12 @@
 complexes:
   - name: Money
-    compiler: golang
-    location: github.com/torabian/emi/examples/fullstack/money
+    compiler: go
+    location: github.com/torabian/emi/examples/fullstack/sdk/complexes
+    namespace: complexes
+  - name: Int
+    compiler: go
+    location: math/big
+    namespace: big
 
 dtos:
   - name: commonVectorCompute
@@ -34,6 +39,9 @@ dtos:
         type: int
       - name: fieldIntNullable
         type: int?
+      - name: complexMoney
+        type: complex
+        complex: Money
   - name: commonVectorResponse
     fields:
       - name: outputVector
@@ -41,6 +49,32 @@ dtos:
         primitive: int
 
 actions:
+
+  - name: envelopeExample
+    url: /response/with/envelop
+    method: get
+    out:
+      envelope: GResponse
+      fields:
+        - name: content
+          type: string
+      
+  - name: computeExp
+    description: Computes the exp value using big integer
+    url: /big/exp/:first/:second
+    in:
+      fields:
+      - name: base
+        type: complex
+        complex: Int
+      - name: exponent
+        type: complex
+        complex: Int
+    out:
+      fields:
+        - name: result
+          type: complex
+          complex: big.Int
   - name: computeReactive
     description:
       Reactive compute elsasements.

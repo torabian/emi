@@ -156,13 +156,21 @@
           "type": "string",
           "description": " Name of the complex class or struct"
         },
+        "namespace": {
+          "type": "string",
+          "description": " Namespace or package name for example in golang"
+        },
         "location": {
           "type": "string",
           "description": " Location of the definition"
         },
         "compiler": {
           "type": "string",
-          "description": " Different compilers can import the definition from different locations"
+          "enum": [
+            "go",
+            "ts"
+          ],
+          "description": "Different compilers can import the definition from different locations"
         }
       },
       "additionalProperties": false,

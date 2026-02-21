@@ -36,7 +36,7 @@ export class GResponse<T> extends ResponseDto implements EnvelopeClass<T> {
         this.creator !== null
       ) {
         this.data?.setItems(
-          body?.data?.items?.map((item: unknown) => this.creator?.(item))
+          body?.data?.items?.map((item: unknown) => this.creator?.(item)),
         );
       } else if (
         typeof body?.data?.item === "object" &&

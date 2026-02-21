@@ -185,6 +185,26 @@ setFieldIntNullable (value) {
 	this.fieldIntNullable = value
 	return this
 }
+		/**
+  * 
+  * @type {Money}
+  **/
+ #complexMoney
+		/**
+  * 
+  * @returns {Money}
+  **/
+get complexMoney () { return this.#complexMoney }
+/**
+  * 
+  * @type {Money}
+  **/
+set complexMoney (value) {
+}
+setComplexMoney (value) {
+	this.complexMoney = value
+	return this
+}
 /**
   * The base class definition for fieldTypeArray
   **/
@@ -467,6 +487,7 @@ get arrayField2() {
 			if (d.fieldTypeSlice !== undefined) { this.fieldTypeSlice = d.fieldTypeSlice }
 			if (d.fieldInt !== undefined) { this.fieldInt = d.fieldInt }
 			if (d.fieldIntNullable !== undefined) { this.fieldIntNullable = d.fieldIntNullable }
+			if (d.complexMoney !== undefined) { this.complexMoney = d.complexMoney }
 	}
 	/**
 	*	Special toJSON override, since the field are private,
@@ -482,6 +503,7 @@ get arrayField2() {
 				fieldTypeSlice: this.#fieldTypeSlice,
 				fieldInt: this.#fieldInt,
 				fieldIntNullable: this.#fieldIntNullable,
+				complexMoney: this.#complexMoney,
 		};
   	}
 	toString() {
@@ -512,6 +534,7 @@ get fieldTypeSlice() {
 						},
 			fieldInt: 'fieldInt',
 			fieldIntNullable: 'fieldIntNullable',
+			complexMoney: 'complexMoney',
 	  }
 	}
 	/**
