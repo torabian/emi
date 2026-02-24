@@ -183,6 +183,30 @@ func findComplexLocation(complexName string, goctx GoCommonStructContext) string
 	return ""
 }
 
+// In golang, only if the external package name is required we collect target.
+// By default, the target is supposed to be inside the same package.
+func CollectTargets(fields []*core.EmiField, currentName string) []string {
+	var result []string
+
+	var walk func(f []*core.EmiField)
+	walk = func(f []*core.EmiField) {
+		for _, field := range f {
+			if field.Provider != "" {
+				if field.Provider != currentName {
+					result = append(result, field.Provider)
+				}
+			}
+
+			if len(field.Fields) > 0 {
+				walk(field.Fields)
+			}
+		}
+	}
+
+	walk(fields)
+	return result
+}
+
 // Generates a class with getters and setters.
 func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, goctx GoCommonStructContext) (*core.CodeChunkCompiled, error) {
 
@@ -222,7 +246,8 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 		})
 	}
 
-	collectTargets := core.CollectTargets(fields, goctx.RootClassName)
+	// For golang actually, the core collect target doesn't work
+	collectTargets := CollectTargets(fields, goctx.RootClassName)
 
 	for _, item := range collectTargets {
 		m := castDtoNameToCodeChunk(item)

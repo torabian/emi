@@ -57,6 +57,9 @@ type EmiField struct {
 
 	// For types such as array or object children fields can be defined and will separate struct with name prefixed to parent
 	Fields []*EmiField `yaml:"fields,omitempty" json:"fields,omitempty" jsonschema:"description=For types such as array or object children fields can be defined and will separate struct with name prefixed to parent"`
+
+	// Tags are key/pair values which might be useful in some languages - such as golang. There you can specifiy extra tags for language.
+	Tags map[string]string `yaml:"tags,omitempty" json:"tags,omitempty" jsonschema:"description=Tags are key/pair values which might be useful in some languages - such as golang. There you can specifiy extra tags for language."`
 }
 
 func (x *EmiField) PublicName() string {
@@ -99,4 +102,8 @@ func (x *EmiField) GetCliName() string {
 
 func (x *EmiField) GetDescription() string {
 	return x.Description
+}
+
+func (x *EmiField) GetTags() map[string]string {
+	return x.Tags
 }

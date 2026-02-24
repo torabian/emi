@@ -346,6 +346,13 @@
           },
           "type": "array",
           "description": "For types such as array or object children fields can be defined and will separate struct with name prefixed to parent"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Tags are key/pair values which might be useful in some languages - such as golang. There you can specifiy extra tags for language."
         }
       },
       "additionalProperties": false,

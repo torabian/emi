@@ -62,7 +62,7 @@ func CastComputeApiSseChannelActionReqFromCli(c emigo.CliCastable) ComputeApiSse
   // The base class definition for computeApiSseChannelActionReq
 type ComputeApiSseChannelActionReq struct {
 		InitialVector1 []int `json:"initialVector1" yaml:"initialVector1"`
-		Value emigo.Nullable[string] `json:"value" yaml:"value"`
+		Value emigo.Nullable[string] `yaml:"value" json:"value"`
 		InitialVector2 []int `json:"initialVector2" yaml:"initialVector2"`
 }
 func (x *ComputeApiSseChannelActionReq) Json() string {

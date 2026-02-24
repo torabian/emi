@@ -82,9 +82,9 @@ type CommonVectorComputeDto struct {
 		Value emigo.Nullable[string] `json:"value" yaml:"value"`
 		Valuex string `json:"valuex" yaml:"valuex"`
 		InitialVector2 []int `json:"initialVector2" yaml:"initialVector2"`
-		FieldTypeArray []CommonVectorComputeDtoFieldTypeArray `json:"fieldTypeArray" yaml:"fieldTypeArray"`
+		FieldTypeArray []CommonVectorComputeDtoFieldTypeArray `yaml:"fieldTypeArray" json:"fieldTypeArray"`
 		FieldTypeSlice []string `json:"fieldTypeSlice" yaml:"fieldTypeSlice"`
-		FieldInt int `json:"fieldInt" yaml:"fieldInt"`
+		FieldInt int `yaml:"fieldInt" json:"fieldInt"`
 		FieldIntNullable emigo.Nullable[int] `json:"fieldIntNullable" yaml:"fieldIntNullable"`
 		ComplexMoney complexes.Money `json:"complexMoney" yaml:"complexMoney"`
 }

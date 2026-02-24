@@ -25,6 +25,7 @@ type goFieldVariable struct {
 	IsNullable       bool
 	IsNumeric        bool
 	GoDoc            string
+	Tags             map[string]string
 	Modifier         string
 	CliName          string
 }
@@ -52,7 +53,26 @@ func (x goFieldVariable) Compile() string {
 
 	sequence = append(sequence, varName)
 	sequence = append(sequence, x.ComputedType)
-	sequence = append(sequence, fmt.Sprintf("`json:\"%v\" yaml:\"%v\"`", core.ToLower(varName), core.ToLower(varName)))
+
+	// We allow each field to have custom tags, but also there is a json and yaml default
+	// tags created since they are very common. Remember, if user has defined those already, we skip adding them.
+	if x.Tags == nil {
+		x.Tags = make(map[string]string)
+	}
+
+	if x.Tags["json"] == "" {
+		x.Tags["json"] = core.ToLower(varName)
+	}
+	if x.Tags["yaml"] == "" {
+		x.Tags["yaml"] = core.ToLower(varName)
+	}
+
+	parts := []string{}
+	for k, v := range x.Tags {
+		parts = append(parts, fmt.Sprintf(`%v:"%v"`, k, strings.ReplaceAll(v, `"`, `\"`)))
+	}
+
+	sequence = append(sequence, "`"+strings.Join(parts, " ")+"`")
 
 	return strings.Join(sequence, " ")
 }
@@ -134,6 +154,7 @@ type fieldLike interface {
 	GetComplex() string
 	GetDescription() string
 	GetPrimitive() string
+	GetTags() map[string]string
 }
 
 func goRenderField(
@@ -154,6 +175,7 @@ func goRenderField(
 		CliName:      field.GetCliName(),
 		Type:         string(field.GetType()),
 		ComputedType: computedType,
+		Tags:         field.GetTags(),
 		IsNumeric:    core.IsNumericDataType(string(field.GetType())),
 	}
 
