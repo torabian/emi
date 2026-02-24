@@ -198,7 +198,7 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 					return resp;
 			
 			}`
-			seqJs := fmt.Sprintf(statementJs, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)
+			seqJs := fmt.Sprintf(statementJs, fetchctx.ResponseEnvelopeClass)
 
 			claims = append(claims, core.JsFnArgument{
 				Key: "response.cls",

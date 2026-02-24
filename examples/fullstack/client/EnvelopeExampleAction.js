@@ -56,7 +56,7 @@ export class EnvelopeExampleAction { //
 			return handleFetchResponse(
 				res, 
 				(data) => { 
-					const resp = new GResponse ();
+					const resp = new GResponse();
 					if (creatorFn) {
 						resp.setCreator(creatorFn);
 					}

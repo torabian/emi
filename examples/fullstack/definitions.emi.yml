@@ -47,6 +47,9 @@ dtos:
       - name: outputVector
         type: slice
         primitive: int
+      - name: request
+        type: one
+        target: CommonVectorComputeDto
 
 actions:
 

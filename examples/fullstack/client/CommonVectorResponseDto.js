@@ -1,3 +1,5 @@
+import { CommonVectorComputeDto } from './CommonVectorComputeDto';
+import { withPrefix } from './sdk/common/withPrefix';
 /**
   * The base class definition for commonVectorResponseDto
   **/
@@ -22,8 +24,35 @@ setOutputVector (value) {
 	this.outputVector = value
 	return this
 }
+		/**
+  * 
+  * @type {CommonVectorComputeDto}
+  **/
+ #request
+		/**
+  * 
+  * @returns {CommonVectorComputeDto}
+  **/
+get request () { return this.#request }
+/**
+  * 
+  * @type {CommonVectorComputeDto}
+  **/
+set request (value) {
+	 	// For objects, the sub type needs to always be instance of the sub class.
+	 	if (value instanceof CommonVectorComputeDto) {
+			this.#request = value
+		} else {
+			this.#request = new CommonVectorComputeDto(value)
+		}
+}
+setRequest (value) {
+	this.request = value
+	return this
+}
 	constructor(data) {
 		if (data === null || data === undefined) {
+				this.#lateInitFields();
 			return;
 		}
 		if (typeof data === "string") {
@@ -57,6 +86,15 @@ setOutputVector (value) {
 	applyFromObject(data = {}) {
 		const d = data;
 			if (d.outputVector !== undefined) { this.outputVector = d.outputVector }
+			if (d.request !== undefined) { this.request = d.request }
+		this.#lateInitFields(data)
+	}
+	/**
+	 * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+	**/
+	#lateInitFields(data = {}) {
+		const d = data;
+			if (!(d.request instanceof CommonVectorComputeDto)) { this.request = new CommonVectorComputeDto(d.request || {}) }	
 	}
 	/**
 	*	Special toJSON override, since the field are private,
@@ -65,6 +103,7 @@ setOutputVector (value) {
 	toJSON() {
     	return { 
 				outputVector: this.#outputVector,
+				request: this.#request,
 		};
   	}
 	toString() {
@@ -75,6 +114,13 @@ setOutputVector (value) {
 			outputVector$: 'outputVector',
 get outputVector() {
 					return "outputVector[:i]";
+						},
+			request$: 'request',
+get request() {
+					return withPrefix(
+						"request",
+						CommonVectorComputeDto.Fields
+						);
 						},
 	  }
 	}

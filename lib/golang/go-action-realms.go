@@ -48,9 +48,7 @@ func GoActionRealms(
 		{
 			Location: "net/http",
 		},
-		{
-			Location: "bytes",
-		},
+
 		{
 			Location: "github.com/gin-gonic/gin",
 		},
@@ -137,6 +135,13 @@ func GoActionRealms(
 		if token := core.FindTokenByName(realms.RequestClass.Tokens, TOKEN_ROOT_CLASS); token != nil {
 			realms.RequestClassName = token.Value
 		}
+	}
+
+	// At the moment we need bytes when the request class is there for golang.
+	if realms.RequestClass != nil {
+		deps = append(deps, core.CodeChunkDependency{
+			Location: "bytes",
+		})
 	}
 
 	return realms, deps, nil
