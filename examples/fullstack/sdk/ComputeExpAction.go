@@ -58,7 +58,7 @@ func CastComputeExpActionReqFromCli(c emigo.CliCastable) ComputeExpActionReq {
   // The base class definition for computeExpActionReq
 type ComputeExpActionReq struct {
 		Base big.Int `json:"base" yaml:"base"`
-		Exponent big.Int `yaml:"exponent" json:"exponent"`
+		Exponent big.Int `json:"exponent" yaml:"exponent"`
 }
 func (x *ComputeExpActionReq) Json() string {
 	if x != nil {

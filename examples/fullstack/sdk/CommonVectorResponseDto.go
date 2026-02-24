@@ -23,7 +23,7 @@ func CastCommonVectorResponseDtoFromCli(c emigo.CliCastable) CommonVectorRespons
   // The base class definition for commonVectorResponseDto
 type CommonVectorResponseDto struct {
 		OutputVector []int `json:"outputVector" yaml:"outputVector"`
-		Request CommonVectorComputeDto `json:"request" yaml:"request"`
+		Request CommonVectorComputeDto `yaml:"request" json:"request"`
 }
 func (x *CommonVectorResponseDto) Json() string {
 	if x != nil {

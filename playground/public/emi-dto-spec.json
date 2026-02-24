@@ -120,18 +120,6 @@
           "type": "string",
           "description": "The go project module of the important target for one or collection fields if its from exte"
         },
-        "json": {
-          "type": "string",
-          "description": "The json tag of the generated field. Defaults to the name but can be overwritten"
-        },
-        "yaml": {
-          "type": "string",
-          "description": "The yaml tag of the generated field. Defaults to the name but can be overwritten"
-        },
-        "xml": {
-          "type": "string",
-          "description": "The xml tag of the generated field. Defaults to the name but can be overwritten"
-        },
         "of": {
           "items": {
             "$ref": "#/definitions/EmiEnumInline"

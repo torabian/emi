@@ -37,15 +37,6 @@ type EmiField struct {
 	// The go project module of the important target for one or collection fields if its from external library
 	Provider string `yaml:"provider,omitempty" json:"provider,omitempty" jsonschema:"description=The go project module of the important target for one or collection fields if its from exte"`
 
-	// The json tag of the generated field. Defaults to the name but can be overwritten with this field
-	Json string `yaml:"json,omitempty" json:"json,omitempty" jsonschema:"description=The json tag of the generated field. Defaults to the name but can be overwritten"`
-
-	// The yaml tag of the generated field. Defaults to the name but can be overwritten with this field
-	Yaml string `yaml:"yaml,omitempty" json:"yaml,omitempty" jsonschema:"description=The yaml tag of the generated field. Defaults to the name but can be overwritten"`
-
-	// The xml tag of the generated field. Defaults to the name but can be overwritten with this field
-	Xml string `yaml:"xml,omitempty" json:"xml,omitempty" jsonschema:"description=The xml tag of the generated field. Defaults to the name but can be overwritten"`
-
 	// List of enum values in case of enum type for the field. Check EmiEnumInline for more details how to define them.
 	OfType []*EmiEnumInline `yaml:"of,omitempty" json:"of,omitempty" jsonschema:"description=List of enum values in case of enum type for the field. Check EmiEnumInline for more d"`
 
