@@ -1,4 +1,4 @@
-package xxx
+package queries
 
 import (
 	"database/sql"
@@ -70,9 +70,6 @@ func SimpleInsert(db *sql.DB, ctx SimpleInsertContext,) (sql.Result, error) {
     if err != nil {
 		return nil, err
 	}
-
-
-    log.Default().Println(script)
 
 	res, err := db.Exec(script, ctx.Placeholders...)
 	if err != nil {

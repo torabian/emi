@@ -1,4 +1,4 @@
-package xxx
+package queries
 
 import (
 	"database/sql"
@@ -72,8 +72,6 @@ func BasicSelect(db *sql.DB, ctx BasicSelectContext,) ([]BasicSelectRow, error) 
     if err != nil {
 		return nil, err
 	}
-
-    log.Default().Println(script)
 
 	rows, err := db.Query(script, ctx.Placeholders...)
 	if err != nil {

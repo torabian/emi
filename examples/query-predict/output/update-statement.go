@@ -1,4 +1,4 @@
-package xxx
+package queries
 
 import (
 	"database/sql"
@@ -84,9 +84,6 @@ func UpdateStatement(db *sql.DB, ctx UpdateStatementContext,) (sql.Result, error
     if err != nil {
 		return nil, err
 	}
-
-
-    log.Default().Println(script)
 
 	res, err := db.Exec(script, ctx.Placeholders...)
 	if err != nil {

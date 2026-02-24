@@ -1,4 +1,4 @@
-package xxx
+package queries
 
 import (
 	"database/sql"
@@ -78,8 +78,6 @@ func SelectAllUsers(db *sql.DB, ctx SelectAllUsersContext,) ([]SelectAllUsersRow
     if err != nil {
 		return nil, err
 	}
-
-    log.Default().Println(script)
 
 	rows, err := db.Query(script, ctx.Placeholders...)
 	if err != nil {
