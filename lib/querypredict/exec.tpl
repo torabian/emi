@@ -28,9 +28,6 @@ func {{ .FuncName }}(db *sql.DB, ctx {{ .FuncName }}Context,{{ if .Params }}, {{
 		return nil, err
 	}
 
-
-    log.Default().Println(script)
-
 	res, err := db.Exec(script, ctx.Placeholders...)
 	if err != nil {
 		return res, fmt.Errorf("exec {{ .FuncName }} failed: %w", err)

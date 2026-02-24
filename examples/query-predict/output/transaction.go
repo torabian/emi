@@ -1,4 +1,4 @@
-package xxx
+package queries
 
 import (
 	"database/sql"
@@ -75,9 +75,6 @@ func Transaction(db *sql.DB, ctx TransactionContext,) (sql.Result, error) {
     if err != nil {
 		return nil, err
 	}
-
-
-    log.Default().Println(script)
 
 	res, err := db.Exec(script, ctx.Placeholders...)
 	if err != nil {

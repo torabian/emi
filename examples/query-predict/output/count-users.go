@@ -1,4 +1,4 @@
-package xxx
+package queries
 
 import (
 	"database/sql"
@@ -71,8 +71,6 @@ func CountUsers(db *sql.DB, ctx CountUsersContext,) ([]CountUsersRow, error) {
     if err != nil {
 		return nil, err
 	}
-
-    log.Default().Println(script)
 
 	rows, err := db.Query(script, ctx.Placeholders...)
 	if err != nil {

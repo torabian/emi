@@ -32,8 +32,6 @@ func {{ .FuncName }}(db *sql.DB, ctx {{ .FuncName }}Context,{{ if .Params }}, {{
 		return nil, err
 	}
 
-    log.Default().Println(script)
-
 	rows, err := db.Query(script, ctx.Placeholders...)
 	if err != nil {
 		return nil, fmt.Errorf("query {{ .FuncName }} failed: %w", err)
