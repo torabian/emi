@@ -1,9 +1,12 @@
 # Emi compiler
 
-Backend for front-end code generation library based on Emi definition files. Define http actions, dtos, entities, and many more details, and get the code boilerplate, http requests, in different languages. 
+Backend for front-end code generation library based on Emi definition files. Define http actions, dtos, and many more details, and get the code boilerplate, http requests, in different languages. 
 
 Emi generated code aims to be framework agnostic on different targets, but in the same time would provide extra
 helpers based on popularity of a library.
+
+
+<img src="./emi-flowchart.png" style="max-width: 600px" />
 
 ## Live playground: https://torabian.github.io/emi 
 
