@@ -139,7 +139,7 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
-	complexes := discoverComplexes(module)
+	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := GoModuleGenerationFlags{}
