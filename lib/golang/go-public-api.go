@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go/format"
 	"slices"
 	"sort"
 	"strings"
@@ -109,7 +110,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 
 // Finds the ts/js compatible types.
 // Make sure this function is public on later versions
-func discoverComplexes(module *core.Emi) []RecognizedComplex {
+func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
 	items := []RecognizedComplex{}
 	for _, complex := range module.Complexes {
 
@@ -152,7 +153,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		fmt.Println("Flags provided are not correct:", ctx.Flags)
 	}
 
-	complexes := discoverComplexes(module)
+	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := GoModuleGenerationFlags{}
@@ -215,11 +216,21 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	return files, nil
 }
 
+func FormatGoCode(code string) string {
+	src := []byte(code)
+	formatted, err := format.Source(src)
+	if err != nil {
+		// if formatting fails, just return original
+		return code
+	}
+	return string(formatted)
+}
+
 func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
 	importsList := CombineGoImports(*x)
 	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + string(x.ActualScript)
 
-	finalContent = string(core.EscapeLines([]byte(finalContent)))
+	finalContent = FormatGoCode(string(core.EscapeLines([]byte(finalContent))))
 	return finalContent
 }
 func CombineGoImports(chunk core.CodeChunkCompiled) string {

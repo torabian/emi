@@ -111,18 +111,17 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 }
 
 // Finds the ts/js compatible types.
-func discoverComplexes(module *core.Emi) []RecognizedComplex {
+func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
 	items := []RecognizedComplex{}
-	for _, complex := range module.Complexes {
-
-		// only pick general or js/ts specific complexes for js-modules
-		if complex.Compiler == "go" {
-			items = append(items, RecognizedComplex{
-				Symbol:         complex.Name,
-				ImportLocation: complex.Location,
-			})
-		}
-	}
+	// for _, complex := range module.Complexes {
+	// It's not implemeneted yet in kotlin version
+	// if complex.Compiler == "go" {
+	// 	items = append(items, RecognizedComplex{
+	// 		Symbol:         complex.Name,
+	// 		ImportLocation: complex.Location,
+	// 	})
+	// }
+	// }
 
 	return items
 }
@@ -140,7 +139,7 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
-	complexes := discoverComplexes(module)
+	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := GoModuleGenerationFlags{}

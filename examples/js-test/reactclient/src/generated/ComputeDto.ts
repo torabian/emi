@@ -1,167 +1,183 @@
-import { Decimal } from 'decimal';
+import { Decimal } from "decimal";
 /**
-  * The base class definition for computeDto
-  **/
+ * The base class definition for computeDto
+ **/
 export class ComputeDto {
-		/**
-  * Minimum number which can be generated
-  * @type {Decimal}
-  **/
- #min ! : Decimal
-		/**
-  * Minimum number which can be generated
-  * @returns {Decimal}
-  **/
-get min () { return this.#min }
-/**
-  * Minimum number which can be generated
-  * @type {Decimal}
-  **/
-set min (value: Decimal) {
-	 	if (value instanceof Decimal) {
-			this.#min = value
-		} else {
-		 	this.#min = new Decimal(value)
-		}
-}
-setMin (value: Decimal) {
-	this.min = value
-	return this
-}
-		/**
-  * Maximum number which can be generated
-  * @type {number}
-  **/
- #max : number  =  0
-		/**
-  * Maximum number which can be generated
-  * @returns {number}
-  **/
-get max () { return this.#max }
-/**
-  * Maximum number which can be generated
-  * @type {number}
-  **/
-set max (value: number) {
-	 	const correctType = typeof value === 'number'
-		const parsedValue = correctType ? value : Number(value)
-		if (!Number.isNaN(parsedValue)) {
-			this.#max = parsedValue;
-		}
-}
-setMax (value: number) {
-	this.max = value
-	return this
-}
-		/**
-  * How many numbers you want to be generated based on maximum and minimum
-  * @type {number}
-  **/
- #count : number  =  0
-		/**
-  * How many numbers you want to be generated based on maximum and minimum
-  * @returns {number}
-  **/
-get count () { return this.#count }
-/**
-  * How many numbers you want to be generated based on maximum and minimum
-  * @type {number}
-  **/
-set count (value: number) {
-	 	const correctType = typeof value === 'number'
-		const parsedValue = correctType ? value : Number(value)
-		if (!Number.isNaN(parsedValue)) {
-			this.#count = parsedValue;
-		}
-}
-setCount (value: number) {
-	this.count = value
-	return this
-}
-	constructor(data: unknown = undefined) {
-		if (data === null || data === undefined) {
-			return;
-		}
-		if (typeof data === "string") {
-			this.applyFromObject(JSON.parse(data));
-		} else if (this.#isJsonAppliable(data)) {
-			this.applyFromObject(data);
-		} else {
-			throw new Error("Instance cannot be created on an unknown value, check the content being passed. got: "  + typeof data);
-		}
-	}
-	#isJsonAppliable(obj: unknown) {
-		const g = globalThis as unknown as { Buffer: any; Blob: any };
-		const isBuffer =
-			typeof g.Buffer !== "undefined" &&
-			typeof g.Buffer.isBuffer === "function" &&
-			g.Buffer.isBuffer(obj);
-		const isBlob =
-			typeof g.Blob !== "undefined" && obj instanceof g.Blob;
-		return (
-			obj &&
-			typeof obj === "object" &&
-			!Array.isArray(obj) &&
-			!isBuffer &&
-			!(obj instanceof ArrayBuffer) &&
-			!isBlob
-		);
-	}
-	/**
-	* casts the fields of a javascript object into the class properties one by one
-	**/
-	applyFromObject(data = {}) {
-		const d = data as Partial<ComputeDto>;
-			if (d.min !== undefined) { this.min = d.min }
-			if (d.max !== undefined) { this.max = d.max }
-			if (d.count !== undefined) { this.count = d.count }
-	}
-	/**
-	*	Special toJSON override, since the field are private,
-	*	Json stringify won't see them unless we mention it explicitly.
-	**/
-	toJSON() {
-    	return { 
-				min: this.#min,
-				max: this.#max,
-				count: this.#count,
-		};
-  	}
-	toString() {
-		return JSON.stringify(this);
-	}
-	static get Fields() {
-      return {
-			min: 'min',
-			max: 'max',
-			count: 'count',
-	  }
-	}
-	/**
-	* Creates an instance of ComputeDto, and possibleDtoObject
-	* needs to satisfy the type requirement fully, otherwise typescript compile would
-	* be complaining.
-	**/
-	static from(possibleDtoObject: ComputeDtoType) {
-		return new ComputeDto(possibleDtoObject);
-	}
-	/**
-	* Creates an instance of ComputeDto, and partialDtoObject
-	* needs to satisfy the type, but partially, and rest of the content would
-	* be constructed according to data types and nullability.
-	**/
-	static with(partialDtoObject: PartialDeep<ComputeDtoType>) {
-		return new ComputeDto(partialDtoObject);
-	}
-	copyWith(partial: PartialDeep<ComputeDtoType>): InstanceType<typeof ComputeDto> {
-		return new ComputeDto ({ ...this.toJSON(), ...partial });
-	}
-	clone(): InstanceType<typeof ComputeDto> {
-		return new ComputeDto(this.toJSON());
-	}
+  /**
+   * Minimum number which can be generated
+   * @type {Decimal}
+   **/
+  #min!: Decimal;
+  /**
+   * Minimum number which can be generated
+   * @returns {Decimal}
+   **/
+  get min() {
+    return this.#min;
+  }
+  /**
+   * Minimum number which can be generated
+   * @type {Decimal}
+   **/
+  set min(value: Decimal) {
+    if (value instanceof Decimal) {
+      this.#min = value;
+    } else {
+      this.#min = new Decimal(value);
+    }
+  }
+  setMin(value: Decimal) {
+    this.min = value;
+    return this;
+  }
+  /**
+   * Maximum number which can be generated
+   * @type {number}
+   **/
+  #max: number = 0;
+  /**
+   * Maximum number which can be generated
+   * @returns {number}
+   **/
+  get max() {
+    return this.#max;
+  }
+  /**
+   * Maximum number which can be generated
+   * @type {number}
+   **/
+  set max(value: number) {
+    const correctType = typeof value === "number";
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#max = parsedValue;
+    }
+  }
+  setMax(value: number) {
+    this.max = value;
+    return this;
+  }
+  /**
+   * How many numbers you want to be generated based on maximum and minimum
+   * @type {number}
+   **/
+  #count: number = 0;
+  /**
+   * How many numbers you want to be generated based on maximum and minimum
+   * @returns {number}
+   **/
+  get count() {
+    return this.#count;
+  }
+  /**
+   * How many numbers you want to be generated based on maximum and minimum
+   * @type {number}
+   **/
+  set count(value: number) {
+    const correctType = typeof value === "number";
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#count = parsedValue;
+    }
+  }
+  setCount(value: number) {
+    this.count = value;
+    return this;
+  }
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<ComputeDto>;
+    if (d.min !== undefined) {
+      this.min = d.min;
+    }
+    if (d.max !== undefined) {
+      this.max = d.max;
+    }
+    if (d.count !== undefined) {
+      this.count = d.count;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      min: this.#min,
+      max: this.#max,
+      count: this.#count,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      min: "min",
+      max: "max",
+      count: "count",
+    };
+  }
+  /**
+   * Creates an instance of ComputeDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: ComputeDtoType) {
+    return new ComputeDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of ComputeDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<ComputeDtoType>) {
+    return new ComputeDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<ComputeDtoType>,
+  ): InstanceType<typeof ComputeDto> {
+    return new ComputeDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof ComputeDto> {
+    return new ComputeDto(this.toJSON());
+  }
 }
 export abstract class ComputeDtoFactory {
-	abstract create(data: unknown): ComputeDto;
+  abstract create(data: unknown): ComputeDto;
 }
 type PartialDeep<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
@@ -170,26 +186,25 @@ type PartialDeep<T> = {
       ? PartialDeep<T[P]>
       : T[P];
 };
-	/**
-  * The base type definition for computeDto
-  **/
-	export type ComputeDtoType =  {
-			/**
-  * Minimum number which can be generated
-  * @type {Decimal}
-  **/
- min : Decimal;
-			/**
-  * Maximum number which can be generated
-  * @type {number}
-  **/
- max : number;
-			/**
-  * How many numbers you want to be generated based on maximum and minimum
-  * @type {number}
-  **/
- count : number;
-	}
+/**
+ * The base type definition for computeDto
+ **/
+export type ComputeDtoType = {
+  /**
+   * Minimum number which can be generated
+   * @type {Decimal}
+   **/
+  min: Decimal;
+  /**
+   * Maximum number which can be generated
+   * @type {number}
+   **/
+  max: number;
+  /**
+   * How many numbers you want to be generated based on maximum and minimum
+   * @type {number}
+   **/
+  count: number;
+};
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace ComputeDtoType {
-}
+export namespace ComputeDtoType {}

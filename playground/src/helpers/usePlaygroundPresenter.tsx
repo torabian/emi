@@ -16,11 +16,7 @@ export const usePlaygroundPresenter = () => {
     rerender(newValue, play);
   };
 
-  const [features, setFeatures] = useState<string[]>([
-    "nestjs",
-    "typescript",
-    "react",
-  ]);
+  const [features, setFeatures] = useState<string[]>(["nestjs", "react"]);
   const [files, setOutput] = useState<VirtualFile[]>([]);
 
   const rerender = (data: any, func = "") => {
@@ -30,17 +26,20 @@ export const usePlaygroundPresenter = () => {
         Tags: features.join(","),
       });
 
-      console.log(func, res);
-
       const formattedPromises = res.map(async (item: any) => {
         try {
-          if (item.Name.endsWith(".ts") || item.Name.endsWith(".js")) {
+          if (
+            item.Name.endsWith(".ts") ||
+            item.Name.endsWith(".js") ||
+            item.Extension === ".ts" ||
+            item.Extension === ".js"
+          ) {
             item.ActualScript = await (window as any).prettier.format(
               item.ActualScript,
               {
                 parser: "typescript",
                 plugins: (window as any).prettierPlugins,
-              }
+              },
             );
           }
         } catch (e) {

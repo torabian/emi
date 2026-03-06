@@ -91,7 +91,7 @@ function App() {
             style={{ borderRadius: 0, height: "41px", marginLeft: "5px" }}
             onClick={() =>
               setDirection((direction: string) =>
-                direction === "horizontal" ? "vertical" : "horizontal"
+                direction === "horizontal" ? "vertical" : "horizontal",
               )
             }
           >
