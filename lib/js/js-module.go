@@ -54,7 +54,7 @@ func (x JsModuleGenerationFlags) GetEntities() []string {
 }
 
 // Finds the ts/js compatible types.
-func discoverComplexes(module *core.Emi) []RecognizedComplex {
+func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
 	items := []RecognizedComplex{}
 	for _, complex := range module.Complexes {
 
@@ -75,7 +75,7 @@ func discoverComplexes(module *core.Emi) []RecognizedComplex {
 func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
-	complexes := discoverComplexes(module)
+	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := JsModuleGenerationFlags{}

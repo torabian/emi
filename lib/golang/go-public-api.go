@@ -109,7 +109,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 
 // Finds the ts/js compatible types.
 // Make sure this function is public on later versions
-func discoverComplexes(module *core.Emi) []RecognizedComplex {
+func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
 	items := []RecognizedComplex{}
 	for _, complex := range module.Complexes {
 
@@ -152,7 +152,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		fmt.Println("Flags provided are not correct:", ctx.Flags)
 	}
 
-	complexes := discoverComplexes(module)
+	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := GoModuleGenerationFlags{}

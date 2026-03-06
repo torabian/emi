@@ -111,18 +111,19 @@ func GetSwiftPublicActions() core.PublicAPIActions {
 }
 
 // Finds the ts/js compatible types.
-func discoverComplexes(module *core.Emi) []RecognizedComplex {
-	items := []RecognizedComplex{}
-	for _, complex := range module.Complexes {
+func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
 
-		// only pick general or js/ts specific complexes for js-modules
-		if complex.Compiler == "go" {
-			items = append(items, RecognizedComplex{
-				Symbol:         complex.Name,
-				ImportLocation: complex.Location,
-			})
-		}
-	}
+	// Not implemented for swift yet.
+
+	items := []RecognizedComplex{}
+	// for _, complex := range module.Complexes {
+	// 	if complex.Compiler == "go" {
+	// 		items = append(items, RecognizedComplex{
+	// 			Symbol:         complex.Name,
+	// 			ImportLocation: complex.Location,
+	// 		})
+	// 	}
+	// }
 
 	return items
 }
@@ -140,7 +141,7 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
-	complexes := discoverComplexes(module)
+	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := GoModuleGenerationFlags{}
