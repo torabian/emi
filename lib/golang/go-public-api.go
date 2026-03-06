@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go/format"
 	"slices"
 	"sort"
 	"strings"
@@ -215,11 +216,21 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	return files, nil
 }
 
+func FormatGoCode(code string) string {
+	src := []byte(code)
+	formatted, err := format.Source(src)
+	if err != nil {
+		// if formatting fails, just return original
+		return code
+	}
+	return string(formatted)
+}
+
 func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
 	importsList := CombineGoImports(*x)
 	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + string(x.ActualScript)
 
-	finalContent = string(core.EscapeLines([]byte(finalContent)))
+	finalContent = FormatGoCode(string(core.EscapeLines([]byte(finalContent))))
 	return finalContent
 }
 func CombineGoImports(chunk core.CodeChunkCompiled) string {

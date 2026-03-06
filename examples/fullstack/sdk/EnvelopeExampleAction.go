@@ -1,33 +1,35 @@
 package external
+
 import (
-"encoding/json"
-"fmt"
-"github.com/gin-gonic/gin"
-"github.com/torabian/emi/examples/fullstack/emigo"
-"io"
-"net/http"
-"net/url"
+	"encoding/json"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/examples/fullstack/emigo"
+	"io"
+	"net/http"
+	"net/url"
 )
+
 /**
 * Action to communicate with the action EnvelopeExampleAction
-*/
+ */
 func EnvelopeExampleActionMeta() struct {
-    Name   string
-	CliName   string
-    URL    string
-    Method string
+	Name    string
+	CliName string
+	URL     string
+	Method  string
 } {
-    return struct {
-        Name   string
-        CliName   string
-        URL    string
-        Method string
-    }{
-        Name:   "EnvelopeExampleAction",
-        CliName:   "envelope-example-action",
-        URL:    "/response/with/envelop",
-        Method: "GET",
-    }
+	return struct {
+		Name    string
+		CliName string
+		URL     string
+		Method  string
+	}{
+		Name:    "EnvelopeExampleAction",
+		CliName: "envelope-example-action",
+		URL:     "/response/with/envelop",
+		Method:  "GET",
+	}
 }
 func GetEnvelopeExampleActionResCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
@@ -39,15 +41,17 @@ func GetEnvelopeExampleActionResCliFlags(prefix string) []emigo.CliFlag {
 }
 func CastEnvelopeExampleActionResFromCli(c emigo.CliCastable) EnvelopeExampleActionRes {
 	data := EnvelopeExampleActionRes{}
-			if c.IsSet("content") { 
- data.Content = c.String("content") 
- }
+	if c.IsSet("content") {
+		data.Content = c.String("content")
+	}
 	return data
 }
-  // The base class definition for envelopeExampleActionRes
+
+// The base class definition for envelopeExampleActionRes
 type EnvelopeExampleActionRes struct {
-		Content string `json:"content" yaml:"content"`
+	Content string `json:"content" yaml:"content"`
 }
+
 func (x *EnvelopeExampleActionRes) Json() string {
 	if x != nil {
 		str, _ := json.MarshalIndent(x, "", "  ")
@@ -55,17 +59,19 @@ func (x *EnvelopeExampleActionRes) Json() string {
 	}
 	return ""
 }
+
 type EnvelopeExampleActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
 }
+
 // EnvelopeExampleActionRaw registers a raw Gin route for the EnvelopeExampleAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func EnvelopeExampleActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := EnvelopeExampleActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-}// EnvelopeExampleActionHandler returns the HTTP method, route URL, and a typed Gin handler for the EnvelopeExampleAction action.
+} // EnvelopeExampleActionHandler returns the HTTP method, route URL, and a typed Gin handler for the EnvelopeExampleAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func EnvelopeExampleActionHandler(
@@ -103,14 +109,16 @@ func EnvelopeExampleActionHandler(
 		}
 	}
 }
+
 // EnvelopeExampleAction is a high-level convenience wrapper around EnvelopeExampleActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func EnvelopeExampleAction(r gin.IRoutes, handler func(c EnvelopeExampleActionRequest, gin *gin.Context) (*EnvelopeExampleActionResponse, error),) {
+func EnvelopeExampleAction(r gin.IRoutes, handler func(c EnvelopeExampleActionRequest, gin *gin.Context) (*EnvelopeExampleActionResponse, error)) {
 	method, url, h := EnvelopeExampleActionHandler(handler)
 	r.Handle(method, url, h)
 }
-	/**
+
+/**
  * Query parameters for EnvelopeExampleAction
  */
 // Query wrapper with private fields
@@ -119,6 +127,7 @@ type EnvelopeExampleActionQuery struct {
 	mapped map[string]interface{}
 	// Typesafe fields
 }
+
 func EnvelopeExampleActionQueryFromString(rawQuery string) EnvelopeExampleActionQuery {
 	v := EnvelopeExampleActionQuery{}
 	values, _ := url.ParseQuery(rawQuery)
@@ -156,14 +165,16 @@ func (q *EnvelopeExampleActionQuery) SetValues(v url.Values) {
 func (q *EnvelopeExampleActionQuery) SetMapped(m map[string]interface{}) {
 	q.mapped = m
 }
+
 type EnvelopeExampleActionRequest struct {
 	QueryParams url.Values
-	Headers http.Header
+	Headers     http.Header
 }
 type EnvelopeExampleActionResult struct {
-	resp *http.Response                      // embed original response
+	resp    *http.Response // embed original response
 	Payload interface{}
 }
+
 func EnvelopeExampleActionCall(
 	req EnvelopeExampleActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -181,7 +192,7 @@ func EnvelopeExampleActionCall(
 		if len(req.QueryParams) > 0 {
 			u.RawQuery = req.QueryParams.Encode()
 		}
-			req0, err := http.NewRequest(meta.Method, u.String(), nil)
+		req0, err := http.NewRequest(meta.Method, u.String(), nil)
 		if err != nil {
 			return nil, err
 		}

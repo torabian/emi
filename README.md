@@ -14,6 +14,15 @@ You can try to compile Emi live here: https://torabian.github.io/emi
 Emi is written in Golang, and wasm file exported to be used in javascript environment (only for generation, no runtime needed.)
 
 
+## Feature support in a glance.
+
+| Feature / Language        | Golang | JavaScript | JavaScript (TS) | JavaScript (Node.js) | Kotlin | Swift | Notes |
+|----------------------------|--------|------------|----------------|---------------------|--------|-------|-------|
+| DTO Generation             | ✅     | ✅         | ✅             | ✅                  | ✅     | ✅    | Supported in all languages |
+| HTTP Actions               | ✅     | ✅         | ✅             | ✅                  | ✅     | ✅    | Works with HTTP client libraries |
+| Command Line               | ✅     | ❌         | ❌             | ❌                  | ❌     | ❌    | Only Golang has CLI support currently |
+
+
 ## Javascript/TypeScript generation
 
 Emi javascript generator can be used for both typescript or javascript without need of recompiling to javascript

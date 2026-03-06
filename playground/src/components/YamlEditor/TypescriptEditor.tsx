@@ -55,7 +55,7 @@ export default function TypescriptEditor({
 export const registerVirtualFiles = (files: VirtualFile[]) => {
   files.forEach((file) => {
     const x = uriCheck(
-      `file:///${file.Location}/${file.Name}${file.Extension ? "." + file.Extension : ""}`
+      `file:///${file.Location}/${file.Name}${file.Extension ? "." + file.Extension : ""}`,
     );
     const uri = monaco.Uri.parse(x);
     let model = monaco.editor.getModel(uri);
@@ -64,7 +64,7 @@ export const registerVirtualFiles = (files: VirtualFile[]) => {
       model = monaco.editor.createModel(
         file.ActualScript,
         guessLanguage(file.Extension),
-        uri
+        uri,
       );
     } else {
       model.setValue(file.ActualScript);
