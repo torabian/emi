@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"syscall/js"
 
@@ -65,11 +66,14 @@ func VirtualFilesFactory(
 
 	return func(this js.Value, args []js.Value) any {
 
+		var m map[string]string = map[string]string{}
+		json.Unmarshal([]byte(args[1].Get("Flags").String()), &m)
+
 		content := args[0].String()
 		ctx := core.MicroGenContext{
 			Tags:    args[1].Get("Tags").String(),
 			Content: content,
-			Flags:   args[1].Get("Flags").String(),
+			Flags:   m,
 		}
 
 		files, err := callback(ctx)
