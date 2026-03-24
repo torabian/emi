@@ -116,11 +116,15 @@ type ComputeApiSseActionResponse struct {
 func ComputeApiSseActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ComputeApiSseActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // ComputeApiSseActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseAction action.
+}
+
+type ComputeApiSseActionRequestSig = func(c ComputeApiSseActionRequest, gin *gin.Context) (*ComputeApiSseActionResponse, error)
+
+// ComputeApiSseActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ComputeApiSseActionHandler(
-	handler func(c ComputeApiSseActionRequest, gin *gin.Context) (*ComputeApiSseActionResponse, error),
+	handler ComputeApiSseActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := ComputeApiSseActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -164,7 +168,7 @@ func ComputeApiSseActionHandler(
 // ComputeApiSseAction is a high-level convenience wrapper around ComputeApiSseActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeApiSseAction(r gin.IRoutes, handler func(c ComputeApiSseActionRequest, gin *gin.Context) (*ComputeApiSseActionResponse, error)) {
+func ComputeApiSseAction(r gin.IRoutes, handler ComputeApiSseActionRequestSig) {
 	method, url, h := ComputeApiSseActionHandler(handler)
 	r.Handle(method, url, h)
 }

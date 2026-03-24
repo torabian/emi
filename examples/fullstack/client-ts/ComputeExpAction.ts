@@ -1,6 +1,6 @@
-import { FetchxContext, TypedRequestInit, TypedResponse, fetchx, handleFetchResponse } from './sdk/common/fetchx';
-import { UseMutationOptions, useMutation } from 'react-query';
+import { FetchxContext, fetchx, handleFetchResponse, type TypedRequestInit, type TypedResponse } from './sdk/common/fetchx';
 import { buildUrl } from './sdk/common/buildUrl';
+import { type UseMutationOptions, useMutation } from 'react-query';
 import { useFetchxContext } from './sdk/react/useFetchx';
 import { useState } from 'react';
 /**

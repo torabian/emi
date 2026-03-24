@@ -85,7 +85,7 @@ func CastCommonVectorComputeDtoFromCli(c emigo.CliCastable) CommonVectorComputeD
 type CommonVectorComputeDto struct {
 	InitialVector1   []int                                  `json:"initialVector1" yaml:"initialVector1"`
 	Value            emigo.Nullable[string]                 `json:"value" yaml:"value"`
-	Valuex           string                                 `json:"valuex" yaml:"valuex"`
+	Valuex           string                                 `yaml:"valuex" json:"valuex"`
 	InitialVector2   []int                                  `json:"initialVector2" yaml:"initialVector2"`
 	FieldTypeArray   []CommonVectorComputeDtoFieldTypeArray `json:"fieldTypeArray" yaml:"fieldTypeArray"`
 	FieldTypeSlice   []string                               `json:"fieldTypeSlice" yaml:"fieldTypeSlice"`
@@ -119,7 +119,7 @@ func CastCommonVectorComputeDtoFieldTypeArrayFromCli(c emigo.CliCastable) Common
 
 // The base class definition for fieldTypeArray
 type CommonVectorComputeDtoFieldTypeArray struct {
-	ArrayField1 string                                            `yaml:"arrayField1" json:"arrayField1"`
+	ArrayField1 string                                            `json:"arrayField1" yaml:"arrayField1"`
 	ArrayField2 []CommonVectorComputeDtoFieldTypeArrayArrayField2 `json:"arrayField2" yaml:"arrayField2"`
 }
 
@@ -141,7 +141,7 @@ func CastCommonVectorComputeDtoFieldTypeArrayArrayField2FromCli(c emigo.CliCasta
 
 // The base class definition for arrayField2
 type CommonVectorComputeDtoFieldTypeArrayArrayField2 struct {
-	LastItem string `json:"lastItem" yaml:"lastItem"`
+	LastItem string `yaml:"lastItem" json:"lastItem"`
 }
 
 func (x *CommonVectorComputeDto) Json() string {

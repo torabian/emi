@@ -3,7 +3,6 @@ import { withPrefix } from './sdk/common/withPrefix';
   * The base class definition for commonVectorComputeDto
   **/
 export class CommonVectorComputeDto {
-   * @type {string}
 		/**
   * 
   * @type {number[]}
