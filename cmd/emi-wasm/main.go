@@ -66,14 +66,14 @@ func VirtualFilesFactory(
 
 	return func(this js.Value, args []js.Value) any {
 
-		var m map[string]string = map[string]string{}
-		json.Unmarshal([]byte(args[1].Get("Flags").String()), &m)
+		var flags map[string]string = map[string]string{}
+		json.Unmarshal([]byte(args[1].Get("Flags").String()), &flags)
 
 		content := args[0].String()
 		ctx := core.MicroGenContext{
 			Tags:    args[1].Get("Tags").String(),
 			Content: content,
-			Flags:   m,
+			Flags:   flags,
 		}
 
 		files, err := callback(ctx)
@@ -106,11 +106,13 @@ func StringOutFactory(
 
 	return func(this js.Value, args []js.Value) any {
 		content := args[0].String()
+		var flags map[string]string = map[string]string{}
+		json.Unmarshal([]byte(args[1].Get("Flags").String()), &flags)
 
 		ctx := core.MicroGenContext{
 			Tags:    args[1].Get("Tags").String(),
 			Content: content,
-			Flags:   args[1].Get("Flags").String(),
+			Flags:   flags,
 		}
 
 		compiledChunk, err := callback(ctx)

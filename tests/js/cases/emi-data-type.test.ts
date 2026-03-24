@@ -232,7 +232,7 @@ describe("Generating numeric data types", () => {
     ...fieldsMap[key],
   }));
   const { source, resp } = runEmiActionTs("jsGenObject", fields, {
-    Flags: "Anonymouse",
+    Flags: JSON.stringify({ name: "Anonymouse" }),
     Tags: "react,typescript",
   });
   writeFileSync(path.join(__filename.replace(".test.ts", ".output.ts")), resp);
@@ -240,7 +240,7 @@ describe("Generating numeric data types", () => {
     expect(1).toBe(1);
     expect(source.getClasses().map((c) => c.getName())).toContain("Anonymouse");
     expect(source.getTypeAliases().map((t) => t.getName())).toContain(
-      "AnonymouseType"
+      "AnonymouseType",
     );
   });
   Object.keys(fieldsMap).forEach((fieldKey) => {
@@ -258,7 +258,7 @@ describe("Generating numeric data types", () => {
           const initializer = field.getInitializer()?.getText() ?? "undefined";
           // Important test for number.
           expect(field.getInitializer()?.getKindName()).toBe(
-            f.$initializerKind
+            f.$initializerKind,
           );
           if (f.$initializerKind == "NumericLiteral") {
             expect(+initializer).toBe(f.default);

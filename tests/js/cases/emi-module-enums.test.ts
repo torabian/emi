@@ -51,7 +51,7 @@ ${yaml.dump(sample1)}
   it("should generate and write the Emi JS module", async () => {
     const catalog = globalThis.jsGen(JSON.stringify(sample1), {
       Tags: "typescript",
-      Flags: "Anonymouse",
+      Flags: JSON.stringify({ name: "Anonymouse" }),
     });
 
     const classResult = catalog.find((x) => x.Name === "Enum1").ActualScript;
@@ -66,7 +66,7 @@ ${yaml.dump(sample1)}
   it("should write the final doc", () => {
     writeFileSync(
       "../../emi-web/docs/js/emi-enum.md",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });

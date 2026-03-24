@@ -48,7 +48,7 @@ ${yaml.dump(objectExample)}
 
     const classResult = globalThis.jsGenDtoClass(
       JSON.stringify(objectExample),
-      { Tags: "typescript", Flags: "Anonymouse" }
+      { Tags: "typescript", Flags: JSON.stringify({ name: "Anonymouse" }) },
     );
     const formatted = await prettier.format(classResult, {
       parser: "typescript",
@@ -77,7 +77,7 @@ Defaults to \`undefined\`, but you can assign an object with required child fiel
 
     const nullableResult = globalThis.jsGenDtoClass(
       JSON.stringify(nullableObjectExample),
-      { Tags: "typescript", Flags: "Anonymouse" }
+      { Tags: "typescript", Flags: JSON.stringify({ name: "Anonymouse" }) },
     );
     const formattedNullable = await prettier.format(nullableResult, {
       parser: "typescript",
@@ -86,7 +86,7 @@ Defaults to \`undefined\`, but you can assign an object with required child fiel
 
     writeFileSync(
       "../../emi-web/docs/js/emi-object-data-type.mdx",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });

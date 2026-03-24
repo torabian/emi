@@ -140,8 +140,6 @@ func createCliContext(c *cli.Context, flags []core.FlagDef) (core.MicroGenContex
 		}
 	}
 
-	fmt.Println("Flags:", m, m["pkg"] == "")
-
 	ctx.Flags = m
 	ctx.Content = string(content)
 

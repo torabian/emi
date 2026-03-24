@@ -125,7 +125,7 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
 
   it("compile the Emi fields array and show it as json", async () => {
     const classResult = globalThis.jsGenObject(JSON.stringify(exampleFields), {
-      Flags: "Anonymouse",
+      Flags: JSON.stringify({ name: "Anonymouse" }),
     });
 
     const formatted = await prettier.format(classResult, {
@@ -170,7 +170,7 @@ I prefer this response
 As you might see, the numbers are very close, and in real life, you would not call millions of times
 one after each other a javascript setter. Hence, Emi compiler extra checks make sense to bring the safety
 into the code base.
-      `
+      `,
     );
   });
 
@@ -178,7 +178,7 @@ into the code base.
   it("should write the final doc", () => {
     writeFileSync(
       "../../emi-web/docs/js/emi-object.mdx",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });
