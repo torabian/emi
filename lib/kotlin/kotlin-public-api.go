@@ -1,7 +1,6 @@
 package kotlin
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -23,16 +22,13 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
 
-				var m map[string]string = map[string]string{}
-				json.Unmarshal([]byte(ctx.Flags), &m)
-
 				emiDto, err := core.StringToEmiDto(ctx.Content)
 				if err != nil {
 					return "", err
 				}
 
 				emiLocation := ""
-				if val, ok := m["emi-runtime"]; ok && val != "" && val != "<nil>" {
+				if val, ok := ctx.Flags["emi-runtime"]; ok && val != "" && val != "<nil>" {
 					emiLocation = val
 				}
 
@@ -41,7 +37,7 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				return AsFullDocument(res, m["package"]), nil
+				return AsFullDocument(res, ctx.Flags["pkg"]), nil
 
 			},
 		}, {
@@ -53,22 +49,19 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
 
-				var m map[string]string = map[string]string{}
-
-				json.Unmarshal([]byte(ctx.Flags), &m)
 				headers, err := core.StringToEmiHeaders(ctx.Content)
 				if err != nil {
 					return "", err
 				}
 
 				res, err := KotlinHeaderStruct(
-					kotlinHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
+					kotlinHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: ctx.Flags["pkg"]},
 					ctx,
 				)
 				if err != nil {
 					return "", err
 				}
-				return AsFullDocument(res, m["package"]), nil
+				return AsFullDocument(res, ctx.Flags["pkg"]), nil
 
 			},
 		},
@@ -143,7 +136,10 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 	files := []core.VirtualFile{}
 
 	config := GoModuleGenerationFlags{}
-	json.Unmarshal([]byte(ctx.Flags), &config)
+	if ctx.Flags["dtos"] != "" {
+		str := ctx.Flags["dtos"]
+		config.Dtos = &str
+	}
 
 	var entitiesAndDtos []*core.CodeChunkCompiled
 

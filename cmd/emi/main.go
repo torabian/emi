@@ -68,13 +68,7 @@ func cliFlagsFromDefs(defs []core.FlagDef) []cli.Flag {
 
 	for _, f := range defs {
 		switch f.Type {
-		case core.FlagString:
-			flags = append(flags, cli.StringFlag{
-				Name:     f.Name,
-				Usage:    f.Usage,
-				Required: f.Required,
-				Value:    fmt.Sprintf("%v", f.Default),
-			})
+
 		case core.FlagBool:
 			flags = append(flags, cli.BoolFlag{
 				Name:  f.Name,
@@ -84,6 +78,14 @@ func cliFlagsFromDefs(defs []core.FlagDef) []cli.Flag {
 			flags = append(flags, cli.IntFlag{
 				Name:  f.Name,
 				Usage: f.Usage,
+			})
+
+		default:
+			flags = append(flags, cli.StringFlag{
+				Name:     f.Name,
+				Usage:    f.Usage,
+				Required: f.Required,
+				Value:    fmt.Sprintf("%v", f.Default),
 			})
 		}
 	}
@@ -130,19 +132,17 @@ func createCliContext(c *cli.Context, flags []core.FlagDef) (core.MicroGenContex
 
 	// Allow silently missing file to fail.
 	content, _ := os.ReadFile(c.String("path"))
-	// if err != nil {
-	// 	return core.MicroGenContext{}, err
-	// }
 
 	var m map[string]string = map[string]string{}
-
 	for _, flag := range flags {
-		m[flag.Name] = c.String(flag.Name)
+		if c.IsSet(flag.Name) {
+			m[flag.Name] = c.String(flag.Name)
+		}
 	}
 
-	res, _ := json.Marshal(m)
+	fmt.Println("Flags:", m, m["pkg"] == "")
 
-	ctx.Flags = string(res)
+	ctx.Flags = m
 	ctx.Content = string(content)
 
 	return ctx, nil
@@ -257,7 +257,8 @@ func cliCommandFromFileAction(a core.ActionFile) cli.Command {
 
 	// The action definition might ask for some flags,
 	// but in the meantime we need to add some related core.ActionText
-	flags := cliFlagsFromDefs(a.Flags)
+
+	flags := cliFlagsFromDefs(a.BaseAction.Flags)
 	flags = append(flags, commonFlags...)
 
 	return cli.Command{
@@ -267,26 +268,10 @@ func cliCommandFromFileAction(a core.ActionFile) cli.Command {
 		Flags:       flags,
 		Action: func(c *cli.Context) error {
 			ctx, err := createCliContext(c, a.Flags)
+
 			if err != nil {
 				return err
 			}
-
-			data := make(map[string]interface{})
-			for _, flag := range a.Flags {
-				if !c.IsSet(flag.Name) {
-					continue
-				}
-				switch flag.Type {
-				case core.FlagBool:
-					data[flag.Name] = c.Bool(flag.Name)
-				case core.FlagString:
-					data[flag.Name] = c.String(flag.Name)
-				case core.FlagInt:
-					data[flag.Name] = c.Int(flag.Name)
-				}
-			}
-			out, _ := json.MarshalIndent(data, "", "  ")
-			ctx.Flags = string(out)
 
 			// Let's combine the import requirements of the chunk
 			files, err := a.Run(ctx)

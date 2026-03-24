@@ -1,7 +1,6 @@
 package golang
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"go/format"
@@ -35,16 +34,13 @@ func GetGolangPublicActions() core.PublicAPIActions {
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
 
-				var m map[string]string = map[string]string{}
-				json.Unmarshal([]byte(ctx.Flags), &m)
-
 				emiDto, err := core.StringToEmiDto(ctx.Content)
 				if err != nil {
 					return "", err
 				}
 
 				emiLocation := ""
-				if val, ok := m["emi-runtime"]; ok && val != "" && val != "<nil>" {
+				if val, ok := ctx.Flags["emi-runtime"]; ok && val != "" && val != "<nil>" {
 					emiLocation = val
 				}
 
@@ -53,7 +49,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				return AsFullDocument(res, m["pkg"]), nil
+				return AsFullDocument(res, ctx.Flags["pkg"]), nil
 
 			},
 		},
@@ -141,23 +137,32 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	globalPacakges := []string{"qs", "@types/qs"}
 
 	type Flags struct {
-		Emigo       string `json:"emigo,omitempty"`
-		PackageName string `json:"pkg,omitempty"`
+		Emigo       string  `json:"emigo,omitempty"`
+		PackageName string  `json:"pkg,omitempty"`
+		Dtos        *string `json:"dtos"`
 	}
 	var f Flags = Flags{
 		Emigo:       "github.com/torabian/emi/emigo",
 		PackageName: DEFAULT_GO_PACKAGE,
 	}
 
-	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		fmt.Println("Flags provided are not correct:", ctx.Flags)
+	if val, ok := ctx.Flags["emigo"]; ok && val != "" {
+		f.Emigo = val
+	}
+
+	if val, ok := ctx.Flags["pkg"]; ok && val != "" {
+		fmt.Println("Setting packagename", val)
+		f.PackageName = val
 	}
 
 	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := GoModuleGenerationFlags{}
-	json.Unmarshal([]byte(ctx.Flags), &config)
+	if ctx.Flags["dtos"] != "" {
+		str := ctx.Flags["dtos"]
+		config.Dtos = &str
+	}
 
 	var entitiesAndDtos []*core.CodeChunkCompiled
 

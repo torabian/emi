@@ -86,12 +86,14 @@ export const {{ .className }} = (
 		templateResult = strings.ReplaceAll(templateResult, fmt.Sprintf("|@%v|", key), value)
 	}
 
+	reactQueryLocation := getReactQueryInfo(ctx)
+
 	res := &core.CodeChunkCompiled{
 		ActualScript: []byte(templateResult),
 		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"useMutation"},
-				Location: "@tanstack/react-query",
+				Location: reactQueryLocation.PackageName,
 			},
 			{
 				Objects:  []string{"useState"},

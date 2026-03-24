@@ -1,8 +1,6 @@
 package golang
 
 import (
-	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
@@ -40,8 +38,13 @@ func GoActionRealms(
 		Emigo:       "github.com/torabian/emi/emigo",
 		PackageName: DEFAULT_GO_PACKAGE,
 	}
-	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		fmt.Println("Flags provided are not correct:", ctx.Flags)
+
+	if val, ok := ctx.Flags["emigo"]; ok && val != "" {
+		f.Emigo = val
+	}
+
+	if val, ok := ctx.Flags["pkg"]; ok && val != "" {
+		f.PackageName = val
 	}
 
 	deps := []core.CodeChunkDependency{
