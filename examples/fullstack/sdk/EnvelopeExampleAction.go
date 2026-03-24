@@ -71,11 +71,15 @@ type EnvelopeExampleActionResponse struct {
 func EnvelopeExampleActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := EnvelopeExampleActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // EnvelopeExampleActionHandler returns the HTTP method, route URL, and a typed Gin handler for the EnvelopeExampleAction action.
+}
+
+type EnvelopeExampleActionRequestSig = func(c EnvelopeExampleActionRequest, gin *gin.Context) (*EnvelopeExampleActionResponse, error)
+
+// EnvelopeExampleActionHandler returns the HTTP method, route URL, and a typed Gin handler for the EnvelopeExampleAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func EnvelopeExampleActionHandler(
-	handler func(c EnvelopeExampleActionRequest, gin *gin.Context) (*EnvelopeExampleActionResponse, error),
+	handler EnvelopeExampleActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := EnvelopeExampleActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -113,7 +117,7 @@ func EnvelopeExampleActionHandler(
 // EnvelopeExampleAction is a high-level convenience wrapper around EnvelopeExampleActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func EnvelopeExampleAction(r gin.IRoutes, handler func(c EnvelopeExampleActionRequest, gin *gin.Context) (*EnvelopeExampleActionResponse, error)) {
+func EnvelopeExampleAction(r gin.IRoutes, handler EnvelopeExampleActionRequestSig) {
 	method, url, h := EnvelopeExampleActionHandler(handler)
 	r.Handle(method, url, h)
 }

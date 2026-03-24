@@ -65,7 +65,7 @@ func CastComputeExpActionReqFromCli(c emigo.CliCastable) ComputeExpActionReq {
 // The base class definition for computeExpActionReq
 type ComputeExpActionReq struct {
 	Base     big.Int `json:"base" yaml:"base"`
-	Exponent big.Int `json:"exponent" yaml:"exponent"`
+	Exponent big.Int `yaml:"exponent" json:"exponent"`
 }
 
 func (x *ComputeExpActionReq) Json() string {
@@ -95,7 +95,7 @@ func CastComputeExpActionResFromCli(c emigo.CliCastable) ComputeExpActionRes {
 
 // The base class definition for computeExpActionRes
 type ComputeExpActionRes struct {
-	Result big.Int `yaml:"result" json:"result"`
+	Result big.Int `json:"result" yaml:"result"`
 }
 
 func (x *ComputeExpActionRes) Json() string {
@@ -117,11 +117,15 @@ type ComputeExpActionResponse struct {
 func ComputeExpActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ComputeExpActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // ComputeExpActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeExpAction action.
+}
+
+type ComputeExpActionRequestSig = func(c ComputeExpActionRequest, gin *gin.Context) (*ComputeExpActionResponse, error)
+
+// ComputeExpActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeExpAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ComputeExpActionHandler(
-	handler func(c ComputeExpActionRequest, gin *gin.Context) (*ComputeExpActionResponse, error),
+	handler ComputeExpActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := ComputeExpActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -166,7 +170,7 @@ func ComputeExpActionHandler(
 // ComputeExpAction is a high-level convenience wrapper around ComputeExpActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeExpAction(r gin.IRoutes, handler func(c ComputeExpActionRequest, gin *gin.Context) (*ComputeExpActionResponse, error)) {
+func ComputeExpAction(r gin.IRoutes, handler ComputeExpActionRequestSig) {
 	method, url, h := ComputeExpActionHandler(handler)
 	r.Handle(method, url, h)
 }

@@ -57,8 +57,8 @@ ${yaml.dump(pureStringExample)}
       JSON.stringify(pureStringExample),
       {
         Tags: "typescript",
-        Flags: "Anonymouse",
-      }
+        Flags: JSON.stringify({ name: "Anonymouse" }),
+      },
     );
 
     const formatted = await prettier.format(classResult, {
@@ -101,8 +101,8 @@ ${yaml.dump(pureStringExample)}
       JSON.stringify(pureStringExample),
       {
         Tags: "typescript",
-        Flags: "Anonymouse",
-      }
+        Flags: JSON.stringify({ name: "Anonymouse" }),
+      },
     );
 
     const formatted = await prettier.format(classResult, {
@@ -116,7 +116,7 @@ ${yaml.dump(pureStringExample)}
   it("should write the final doc", () => {
     writeFileSync(
       "../../emi-web/docs/js/emi-string-data-type.mdx",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });

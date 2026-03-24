@@ -64,7 +64,7 @@ func CastComputeApiSseChannelActionReqFromCli(c emigo.CliCastable) ComputeApiSse
 
 // The base class definition for computeApiSseChannelActionReq
 type ComputeApiSseChannelActionReq struct {
-	InitialVector1 []int                  `yaml:"initialVector1" json:"initialVector1"`
+	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
 	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
 	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
 }
@@ -116,11 +116,15 @@ type ComputeApiSseChannelActionResponse struct {
 func ComputeApiSseChannelActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ComputeApiSseChannelActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // ComputeApiSseChannelActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseChannelAction action.
+}
+
+type ComputeApiSseChannelActionRequestSig = func(c ComputeApiSseChannelActionRequest, gin *gin.Context) (*ComputeApiSseChannelActionResponse, error)
+
+// ComputeApiSseChannelActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseChannelAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ComputeApiSseChannelActionHandler(
-	handler func(c ComputeApiSseChannelActionRequest, gin *gin.Context) (*ComputeApiSseChannelActionResponse, error),
+	handler ComputeApiSseChannelActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := ComputeApiSseChannelActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -164,7 +168,7 @@ func ComputeApiSseChannelActionHandler(
 // ComputeApiSseChannelAction is a high-level convenience wrapper around ComputeApiSseChannelActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeApiSseChannelAction(r gin.IRoutes, handler func(c ComputeApiSseChannelActionRequest, gin *gin.Context) (*ComputeApiSseChannelActionResponse, error)) {
+func ComputeApiSseChannelAction(r gin.IRoutes, handler ComputeApiSseChannelActionRequestSig) {
 	method, url, h := ComputeApiSseChannelActionHandler(handler)
 	r.Handle(method, url, h)
 }

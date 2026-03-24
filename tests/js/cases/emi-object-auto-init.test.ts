@@ -88,7 +88,7 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
   it("compile the Emi fields array and show it as json", async () => {
     const classResult = globalThis.jsGenDtoClass(JSON.stringify(arrayExample), {
       Tags: "typescript",
-      Flags: "AutoInitDto",
+      Flags: JSON.stringify({ name: "AutoInitDto" }),
     });
 
     const formatted = await prettier.format(classResult, {
@@ -126,7 +126,7 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
     });
 
     expect(m.object1.object2.contacts[0].email).toEqual(
-      "emi-compiler@emi-compiler.com"
+      "emi-compiler@emi-compiler.com",
     );
 
     // Phone needs to be exactly as undefined.
@@ -137,7 +137,7 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
   it("should write the final doc", () => {
     writeFileSync(
       "../../emi-web/docs/js/emi-fields-auto-init.mdx",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });

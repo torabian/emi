@@ -65,7 +65,7 @@ func CastComputeApiActionReqFromCli(c emigo.CliCastable) ComputeApiActionReq {
 // The base class definition for computeApiActionReq
 type ComputeApiActionReq struct {
 	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
-	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
+	Value          emigo.Nullable[string] `yaml:"value" json:"value"`
 	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
 }
 
@@ -116,11 +116,15 @@ type ComputeApiActionResponse struct {
 func ComputeApiActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ComputeApiActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // ComputeApiActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiAction action.
+}
+
+type ComputeApiActionRequestSig = func(c ComputeApiActionRequest, gin *gin.Context) (*ComputeApiActionResponse, error)
+
+// ComputeApiActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ComputeApiActionHandler(
-	handler func(c ComputeApiActionRequest, gin *gin.Context) (*ComputeApiActionResponse, error),
+	handler ComputeApiActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := ComputeApiActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -164,7 +168,7 @@ func ComputeApiActionHandler(
 // ComputeApiAction is a high-level convenience wrapper around ComputeApiActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeApiAction(r gin.IRoutes, handler func(c ComputeApiActionRequest, gin *gin.Context) (*ComputeApiActionResponse, error)) {
+func ComputeApiAction(r gin.IRoutes, handler ComputeApiActionRequestSig) {
 	method, url, h := ComputeApiActionHandler(handler)
 	r.Handle(method, url, h)
 }

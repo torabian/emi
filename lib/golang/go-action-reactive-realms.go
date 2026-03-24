@@ -1,9 +1,6 @@
 package golang
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/torabian/emi/lib/core"
 )
 
@@ -32,9 +29,15 @@ func GoActionReactiveRealms(
 		Emigo:       "github.com/torabian/emi/emigo",
 		PackageName: DEFAULT_GO_PACKAGE,
 	}
-	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		fmt.Println("Flags provided are not correct:", ctx.Flags)
+
+	if val, ok := ctx.Flags["emigo"]; ok && val != "" {
+		f.Emigo = val
 	}
+
+	if val, ok := ctx.Flags["pkg"]; ok && val != "" {
+		f.PackageName = val
+	}
+
 	deps := []core.CodeChunkDependency{
 		{
 			Location: "github.com/gin-gonic/gin",
@@ -48,10 +51,6 @@ func GoActionReactiveRealms(
 		{
 			Location: f.Emigo,
 		},
-	}
-
-	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		fmt.Println("Flags provided are not correct:", ctx.Flags)
 	}
 
 	realms := goActionReactiveRealms{

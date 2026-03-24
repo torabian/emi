@@ -108,7 +108,7 @@ pass number as many as you want, and it would replace [:i] statements to have pr
 
   it("compile the Emi fields array and show it as json", async () => {
     const classResult = globalThis.jsGenObject(JSON.stringify(exampleModel), {
-      Flags: "Anonymouse",
+      Flags: JSON.stringify({ name: "Anonymouse" }),
     });
 
     const formatted = await prettier.format(classResult, {
@@ -122,7 +122,7 @@ pass number as many as you want, and it would replace [:i] statements to have pr
   it("should write the final doc", () => {
     writeFileSync(
       "../../emi-web/docs/js/emi-static-fields.mdx",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });

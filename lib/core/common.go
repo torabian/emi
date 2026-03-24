@@ -31,7 +31,7 @@ type CompleteModuleGenerator = func(module *Emi, ctx MicroGenContext) ([]Virtual
 type MicroGenContext struct {
 	Tags    string // Tags/features to enable or disable
 	Output  string // Output file or directory
-	Flags   string
+	Flags   map[string]string
 	Content string
 }
 

@@ -48,7 +48,7 @@ ${yaml.dump(arrayExample)}
 
     const classResult = globalThis.jsGenDtoClass(JSON.stringify(arrayExample), {
       Tags: "typescript",
-      Flags: "Anonymouse",
+      Flags: JSON.stringify({ name: "Anonymouse" }),
     });
     const formatted = await prettier.format(classResult, {
       parser: "typescript",
@@ -80,7 +80,7 @@ Arrays can hold primitive types or nested objects.
 
     const arrayObjectResult = globalThis.jsGenDtoClass(
       JSON.stringify(arrayObjectExample),
-      { Tags: "typescript", Flags: "Anonymouse" }
+      { Tags: "typescript", Flags: JSON.stringify({ name: "Anonymouse" }) },
     );
     const formattedArrayObj = await prettier.format(arrayObjectResult, {
       parser: "typescript",
@@ -103,7 +103,7 @@ Defaults to \`undefined\`, but you can assign an array or \`null\`.
 
     const nullableResult = globalThis.jsGenDtoClass(
       JSON.stringify(nullableArrayExample),
-      { Tags: "typescript", Flags: "Anonymouse" }
+      { Tags: "typescript", Flags: JSON.stringify({ name: "Anonymouse" }) },
     );
     const formattedNullable = await prettier.format(nullableResult, {
       parser: "typescript",
@@ -112,7 +112,7 @@ Defaults to \`undefined\`, but you can assign an array or \`null\`.
 
     writeFileSync(
       "../../emi-web/docs/js/emi-array-data-type.mdx",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });

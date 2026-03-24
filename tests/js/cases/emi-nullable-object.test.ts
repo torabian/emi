@@ -73,7 +73,7 @@ ${yaml.dump(sample1)}
   it("should generate and write the Emi JS module", async () => {
     const classResult = globalThis.jsGenDtoClass(JSON.stringify(sample1), {
       Tags: "typescript",
-      Flags: "Anonymouse",
+      Flags: JSON.stringify({ name: "Anonymouse" }),
     });
 
     const formatted = await prettier.format(classResult, {
@@ -86,7 +86,7 @@ ${yaml.dump(sample1)}
   it("should write the final doc", () => {
     writeFileSync(
       "../../emi-web/docs/js/emi-nullable-object.md",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });

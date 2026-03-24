@@ -47,12 +47,12 @@ func GetJsPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				code, err := JsHeaderClass(jsHeaderClassContext{ClassName: ctx.Flags, Columns: fields}, ctx)
+				code, err := JsHeaderClass(jsHeaderClassContext{ClassName: ctx.Flags["name"], Columns: fields}, ctx)
 				if err != nil {
 					return "", err
 				}
 
-				return AsFullDocument(code), nil
+				return AsFullDocument(code, ctx), nil
 			},
 		},
 		{
@@ -84,7 +84,16 @@ func GetJsPublicActions() core.PublicAPIActions {
 				Name:             "js",
 				Description:      "Compiles a definition file catalog, and based on emi tag, it would use an appropriate sub compiler.",
 				WasmFunctionName: "jsGen",
-				Flags:            []core.FlagDef{},
+				Flags: []core.FlagDef{
+					{
+						Name:  "react-query",
+						Usage: "Assign a custom react query location, and version: --react-query react-query@v3",
+					},
+					{
+						Name:  "discard-type-prefix",
+						Usage: "Removes type keyword before imports in typescript, --discard-type-prefix true",
+					},
+				},
 			},
 			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 				type_, err := core.DetectEmiStringContentType(ctx.Content)
@@ -117,7 +126,7 @@ func GetJsPublicActions() core.PublicAPIActions {
 						return nil, err
 					}
 
-					files, err := detectUsedFilesAndImports(result, &tssdk.Content)
+					files, err := detectUsedFilesAndImports(result, &tssdk.Content, ctx)
 					if err != nil {
 						return nil, err
 					}
@@ -182,6 +191,7 @@ func GetJsPublicActions() core.PublicAPIActions {
 func detectUsedFilesAndImports(
 	result *core.CodeChunkCompiled,
 	sdkEmbedContent *embed.FS,
+	ctx core.MicroGenContext,
 ) ([]core.VirtualFile, error) {
 	internalUsage := []string{}
 
@@ -194,7 +204,7 @@ func detectUsedFilesAndImports(
 	files := []core.VirtualFile{{
 		Name:         result.SuggestedFileName,
 		Extension:    result.SuggestedExtension,
-		ActualScript: AsFullDocument(result),
+		ActualScript: AsFullDocument(result, ctx),
 	}}
 
 	// Switch between SDK sources if needed

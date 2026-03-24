@@ -6,7 +6,6 @@ package js
 import (
 	"bytes"
 	"embed"
-	"encoding/json"
 	"os"
 	"os/exec"
 	"path"
@@ -21,8 +20,10 @@ import (
 	tssdk "github.com/torabian/emi/lib/js/ts-sdk"
 )
 
-func AsFullDocument(x *core.CodeChunkCompiled) string {
-	importsList := CombineImportsJsWorld(*x)
+func AsFullDocument(x *core.CodeChunkCompiled, ctx core.MicroGenContext) string {
+	discardTypePrefix := ctx.Flags["discard-type-prefix"] != ""
+
+	importsList := CombineImportsJsWorld(*x, discardTypePrefix)
 	var finalContent string = importsList + "\r\n" + string(x.ActualScript)
 
 	// Assumed it's typescript for both js and ts. Not sure the impact.
@@ -132,9 +133,12 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 
 	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
-
 	config := JsModuleGenerationFlags{}
-	json.Unmarshal([]byte(ctx.Flags), &config)
+
+	if ctx.Flags["dtos"] != "" {
+		str := ctx.Flags["dtos"]
+		config.Dtos = &str
+	}
 
 	var actionsRendered []*core.CodeChunkCompiled
 
@@ -161,7 +165,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		files = append(files, core.VirtualFile{
 			Name:         enumRendered.SuggestedFileName,
 			Extension:    enumRendered.SuggestedExtension,
-			ActualScript: AsFullDocument(enumRendered),
+			ActualScript: AsFullDocument(enumRendered, ctx),
 		})
 	}
 
@@ -211,7 +215,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		files = append(files, core.VirtualFile{
 			Name:         action.SuggestedFileName,
 			Extension:    action.SuggestedExtension,
-			ActualScript: AsFullDocument(action),
+			ActualScript: AsFullDocument(action, ctx),
 		})
 	}
 
@@ -227,12 +231,12 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		files = append(files, core.VirtualFile{
 			Name:         dtoItem.SuggestedFileName,
 			Extension:    dtoItem.SuggestedExtension,
-			ActualScript: AsFullDocument(dtoItem),
+			ActualScript: AsFullDocument(dtoItem, ctx),
 		})
 	}
 
 	// Let's add a package.json :)
-	pkg, err := GeneratePackageJSON("sdk", globalPacakges)
+	pkg, err := GeneratePackageJSON("sdk", globalPacakges, ctx)
 	if err != nil {
 		return nil, err
 	}

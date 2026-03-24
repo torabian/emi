@@ -80,9 +80,8 @@ func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	r.Handle(meta.Method, meta.URL, handlers...)
 }
 
-{{- define "ginFn" -}}
-	func(c {{ .ActionName }}Request, gin *gin.Context) (*{{ .ActionName }}Response, error)
-{{- end -}}
+
+type {{ .realms.ActionName }}RequestSig = func(c {{ .realms.ActionName }}Request, gin *gin.Context) (*{{ .realms.ActionName }}Response, error)
 
 
 
@@ -90,7 +89,7 @@ func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func {{ .realms.ActionName }}Handler(
-	handler {{template "ginFn" .realms -}},
+	handler {{ .realms.ActionName }}RequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := {{ .realms.ActionName }}Meta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -148,7 +147,7 @@ func {{ .realms.ActionName }}Handler(
 // {{ .realms.ActionName }} is a high-level convenience wrapper around {{ .realms.ActionName }}Handler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func {{ .realms.ActionName }}(r gin.IRoutes, handler {{template "ginFn" .realms -}},) {
+func {{ .realms.ActionName }}(r gin.IRoutes, handler {{ .realms.ActionName }}RequestSig,) {
 	method, url, h := {{ .realms.ActionName }}Handler(handler)
 	r.Handle(method, url, h)
 }

@@ -81,12 +81,13 @@ export type {{ .className }} = Omit<
 			},
 		},
 	}
+	reactQueryLocation := getReactQueryInfo(ctx)
 
 	if isTypeScript {
 		res.CodeChunkDependensies = []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type UseQueryOptions"},
-				Location: "@tanstack/react-query",
+				Location: reactQueryLocation.PackageName,
 			},
 		}
 	}
