@@ -191,7 +191,7 @@ func JsActionManifestRealms(
 
 		deps = append(deps, core.CodeChunkDependency{
 			Objects:  []string{action.GetResponseEnvelopeClass()},
-			Location: INTERNAL_SDK_ENVELOPES_LOCATION,
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_ENVELOPES_LOCATION),
 		})
 	}
 

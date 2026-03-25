@@ -174,7 +174,7 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	if hasChildrenWithStaticFields {
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
 			Objects:  []string{"withPrefix"},
-			Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/withPrefix",
 		})
 	}
 

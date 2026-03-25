@@ -111,11 +111,11 @@ export const {{ .className }}Query = (
 			},
 			{
 				Objects:  []string{"type TypedResponse"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
 			},
 			{
 				Objects:  []string{"useFetchxContext"},
-				Location: INTERNAL_SDK_REACT_LOCATION + "/useFetchx",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION) + "/useFetchx",
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{

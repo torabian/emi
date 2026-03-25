@@ -85,7 +85,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"buildUrl"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/buildUrl",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/buildUrl",
 			},
 		},
 	}
