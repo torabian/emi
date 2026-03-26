@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
@@ -15,21 +16,24 @@ import (
 * Action to communicate with the action ComputeApiAction
  */
 func ComputeApiActionMeta() struct {
-	Name    string
-	CliName string
-	URL     string
-	Method  string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name    string
-		CliName string
-		URL     string
-		Method  string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:    "ComputeApiAction",
-		CliName: "compute-api-action",
-		URL:     "/compute/api",
-		Method:  "POST",
+		Name:        "ComputeApiAction",
+		CliName:     "compute-api-action",
+		URL:         "/compute/api",
+		Method:      "POST",
+		Description: `An API, which computes two vectors`,
 	}
 }
 func GetComputeApiActionReqCliFlags(prefix string) []emigo.CliFlag {
@@ -65,7 +69,7 @@ func CastComputeApiActionReqFromCli(c emigo.CliCastable) ComputeApiActionReq {
 // The base class definition for computeApiActionReq
 type ComputeApiActionReq struct {
 	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
-	Value          emigo.Nullable[string] `yaml:"value" json:"value"`
+	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
 	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
 }
 
@@ -111,6 +115,16 @@ type ComputeApiActionResponse struct {
 	Payload    interface{}
 }
 
+func (x ComputeApiActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x ComputeApiActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x ComputeApiActionResponse) GetPayload() interface{} {
+	return x.Payload
+}
+
 // ComputeApiActionRaw registers a raw Gin route for the ComputeApiAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func ComputeApiActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
@@ -118,7 +132,7 @@ func ComputeApiActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	r.Handle(meta.Method, meta.URL, handlers...)
 }
 
-type ComputeApiActionRequestSig = func(c ComputeApiActionRequest, gin *gin.Context) (*ComputeApiActionResponse, error)
+type ComputeApiActionRequestSig = func(c ComputeApiActionRequest) (*ComputeApiActionResponse, error)
 
 // ComputeApiActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiAction action.
 // Developers implement their business logic as a function that receives a typed request object
@@ -138,8 +152,9 @@ func ComputeApiActionHandler(
 			Body:        body,
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -168,7 +183,7 @@ func ComputeApiActionHandler(
 // ComputeApiAction is a high-level convenience wrapper around ComputeApiActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeApiAction(r gin.IRoutes, handler ComputeApiActionRequestSig) {
+func ComputeApiActionGin(r gin.IRoutes, handler ComputeApiActionRequestSig) {
 	method, url, h := ComputeApiActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -227,6 +242,8 @@ type ComputeApiActionRequest struct {
 	Body        ComputeApiActionReq
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type ComputeApiActionResult struct {
 	resp    *http.Response // embed original response

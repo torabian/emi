@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
@@ -15,21 +16,24 @@ import (
 * Action to communicate with the action ComputeApiSseChannelAction
  */
 func ComputeApiSseChannelActionMeta() struct {
-	Name    string
-	CliName string
-	URL     string
-	Method  string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name    string
-		CliName string
-		URL     string
-		Method  string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:    "ComputeApiSseChannelAction",
-		CliName: "compute-api-sse-channel-action",
-		URL:     "/compute/sse/ch",
-		Method:  "GET",
+		Name:        "ComputeApiSseChannelAction",
+		CliName:     "compute-api-sse-channel-action",
+		URL:         "/compute/sse/ch",
+		Method:      "GET",
+		Description: `We use a helper in order to send SSE, instead of pure code in gin.`,
 	}
 }
 func GetComputeApiSseChannelActionReqCliFlags(prefix string) []emigo.CliFlag {
@@ -64,7 +68,7 @@ func CastComputeApiSseChannelActionReqFromCli(c emigo.CliCastable) ComputeApiSse
 
 // The base class definition for computeApiSseChannelActionReq
 type ComputeApiSseChannelActionReq struct {
-	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
+	InitialVector1 []int                  `yaml:"initialVector1" json:"initialVector1"`
 	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
 	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
 }
@@ -111,6 +115,16 @@ type ComputeApiSseChannelActionResponse struct {
 	Payload    interface{}
 }
 
+func (x ComputeApiSseChannelActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x ComputeApiSseChannelActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x ComputeApiSseChannelActionResponse) GetPayload() interface{} {
+	return x.Payload
+}
+
 // ComputeApiSseChannelActionRaw registers a raw Gin route for the ComputeApiSseChannelAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func ComputeApiSseChannelActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
@@ -118,7 +132,7 @@ func ComputeApiSseChannelActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	r.Handle(meta.Method, meta.URL, handlers...)
 }
 
-type ComputeApiSseChannelActionRequestSig = func(c ComputeApiSseChannelActionRequest, gin *gin.Context) (*ComputeApiSseChannelActionResponse, error)
+type ComputeApiSseChannelActionRequestSig = func(c ComputeApiSseChannelActionRequest) (*ComputeApiSseChannelActionResponse, error)
 
 // ComputeApiSseChannelActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseChannelAction action.
 // Developers implement their business logic as a function that receives a typed request object
@@ -138,8 +152,9 @@ func ComputeApiSseChannelActionHandler(
 			Body:        body,
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -168,7 +183,7 @@ func ComputeApiSseChannelActionHandler(
 // ComputeApiSseChannelAction is a high-level convenience wrapper around ComputeApiSseChannelActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeApiSseChannelAction(r gin.IRoutes, handler ComputeApiSseChannelActionRequestSig) {
+func ComputeApiSseChannelActionGin(r gin.IRoutes, handler ComputeApiSseChannelActionRequestSig) {
 	method, url, h := ComputeApiSseChannelActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -225,6 +240,8 @@ type ComputeApiSseChannelActionRequest struct {
 	Body        ComputeApiSseChannelActionReq
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type ComputeApiSseChannelActionResult struct {
 	resp    *http.Response // embed original response

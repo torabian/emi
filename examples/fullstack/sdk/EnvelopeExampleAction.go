@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,21 +15,24 @@ import (
 * Action to communicate with the action EnvelopeExampleAction
  */
 func EnvelopeExampleActionMeta() struct {
-	Name    string
-	CliName string
-	URL     string
-	Method  string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name    string
-		CliName string
-		URL     string
-		Method  string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:    "EnvelopeExampleAction",
-		CliName: "envelope-example-action",
-		URL:     "/response/with/envelop",
-		Method:  "GET",
+		Name:        "EnvelopeExampleAction",
+		CliName:     "envelope-example-action",
+		URL:         "/response/with/envelop",
+		Method:      "GET",
+		Description: ``,
 	}
 }
 func GetEnvelopeExampleActionResCliFlags(prefix string) []emigo.CliFlag {
@@ -49,7 +53,7 @@ func CastEnvelopeExampleActionResFromCli(c emigo.CliCastable) EnvelopeExampleAct
 
 // The base class definition for envelopeExampleActionRes
 type EnvelopeExampleActionRes struct {
-	Content string `json:"content" yaml:"content"`
+	Content string `yaml:"content" json:"content"`
 }
 
 func (x *EnvelopeExampleActionRes) Json() string {
@@ -66,6 +70,16 @@ type EnvelopeExampleActionResponse struct {
 	Payload    interface{}
 }
 
+func (x EnvelopeExampleActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x EnvelopeExampleActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x EnvelopeExampleActionResponse) GetPayload() interface{} {
+	return x.Payload
+}
+
 // EnvelopeExampleActionRaw registers a raw Gin route for the EnvelopeExampleAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func EnvelopeExampleActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
@@ -73,7 +87,7 @@ func EnvelopeExampleActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	r.Handle(meta.Method, meta.URL, handlers...)
 }
 
-type EnvelopeExampleActionRequestSig = func(c EnvelopeExampleActionRequest, gin *gin.Context) (*EnvelopeExampleActionResponse, error)
+type EnvelopeExampleActionRequestSig = func(c EnvelopeExampleActionRequest) (*EnvelopeExampleActionResponse, error)
 
 // EnvelopeExampleActionHandler returns the HTTP method, route URL, and a typed Gin handler for the EnvelopeExampleAction action.
 // Developers implement their business logic as a function that receives a typed request object
@@ -87,8 +101,9 @@ func EnvelopeExampleActionHandler(
 		req := EnvelopeExampleActionRequest{
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -117,7 +132,7 @@ func EnvelopeExampleActionHandler(
 // EnvelopeExampleAction is a high-level convenience wrapper around EnvelopeExampleActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func EnvelopeExampleAction(r gin.IRoutes, handler EnvelopeExampleActionRequestSig) {
+func EnvelopeExampleActionGin(r gin.IRoutes, handler EnvelopeExampleActionRequestSig) {
 	method, url, h := EnvelopeExampleActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -173,6 +188,8 @@ func (q *EnvelopeExampleActionQuery) SetMapped(m map[string]interface{}) {
 type EnvelopeExampleActionRequest struct {
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type EnvelopeExampleActionResult struct {
 	resp    *http.Response // embed original response

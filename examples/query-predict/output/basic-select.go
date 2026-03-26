@@ -3,73 +3,70 @@ package queries
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"regexp"
 	"strings"
-    "regexp"
 )
 
 const BasicSelectSQL = `select name, id from users;`
 
 type BasicSelectRow struct {
 	Name string
-	Id string
+	Id   string
 }
 
 type BasicSelectContext struct {
-    Filter string
-    Having string
-    Restriction string
-    Params      map[string]interface{}
-    Placeholders      []any
+	Filter       string
+	Having       string
+	Restriction  string
+	Params       map[string]interface{}
+	Placeholders []any
 }
 
-
 func BasicSelectPrepreSql(ctx BasicSelectContext) (string, error) {
-    replaceUseVal := func(sql string, values map[string]interface{}) string {
-        re := regexp.MustCompile(`useval\(\s*['"]([^'"]+)['"]\s*\)`)
-        return re.ReplaceAllStringFunc(sql, func(match string) string {
-            if m := re.FindStringSubmatch(match); len(m) > 1 {
-                if val, ok := values[m[1]]; ok {
-                    // escape the value safely
-                    switch v := val.(type) {
-                    case string:
-                        safe := strings.ReplaceAll(v, `'`, `''`)
-                        return "'" + safe + "'"
-                    default:
-                        return fmt.Sprintf("%v", v)
-                    }
-                }
-            }
-            return match
-        })
-    }
+	replaceUseVal := func(sql string, values map[string]interface{}) string {
+		re := regexp.MustCompile(`useval\(\s*['"]([^'"]+)['"]\s*\)`)
+		return re.ReplaceAllStringFunc(sql, func(match string) string {
+			if m := re.FindStringSubmatch(match); len(m) > 1 {
+				if val, ok := values[m[1]]; ok {
+					// escape the value safely
+					switch v := val.(type) {
+					case string:
+						safe := strings.ReplaceAll(v, `'`, `''`)
+						return "'" + safe + "'"
+					default:
+						return fmt.Sprintf("%v", v)
+					}
+				}
+			}
+			return match
+		})
+	}
 
-    script := replaceUseVal(BasicSelectSQL, ctx.Params)
-    filter := "1"
+	script := replaceUseVal(BasicSelectSQL, ctx.Params)
+	filter := "1"
 	if ctx.Filter != "" {
 		filter = ctx.Filter
 	}
-	script = strings.ReplaceAll(script, "filter()", "(" +filter+ ")")
+	script = strings.ReplaceAll(script, "filter()", "("+filter+")")
 
-    restriction := "1"
-    if ctx.Restriction != "" {
-        restriction = ctx.Restriction
-    }
-    script = strings.ReplaceAll(script, "restriction()", "(" +restriction + ")")
-    
-    having := ""
-    if ctx.Having != "" {
-        having = ctx.Having
-    }
-    script = strings.ReplaceAll(script, "having()", having)
+	restriction := "1"
+	if ctx.Restriction != "" {
+		restriction = ctx.Restriction
+	}
+	script = strings.ReplaceAll(script, "restriction()", "("+restriction+")")
 
-    return script, nil
+	having := ""
+	if ctx.Having != "" {
+		having = ctx.Having
+	}
+	script = strings.ReplaceAll(script, "having()", having)
+
+	return script, nil
 }
 
-
-func BasicSelect(db *sql.DB, ctx BasicSelectContext,) ([]BasicSelectRow, error) {
-    script, err := BasicSelectPrepreSql(ctx)
-    if err != nil {
+func BasicSelect(db *sql.DB, ctx BasicSelectContext) ([]BasicSelectRow, error) {
+	script, err := BasicSelectPrepreSql(ctx)
+	if err != nil {
 		return nil, err
 	}
 
