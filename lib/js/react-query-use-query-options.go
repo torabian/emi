@@ -25,9 +25,13 @@ func ReactQueryOptionsTypeFunction(rqoptions reactQueryOptionsType, ctx core.Mic
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	className := fmt.Sprintf("%vQueryOptions", core.ToUpper(rqoptions.ActionName))
 
-	var responseClass *core.GeneratedScriptToken
+	var responseClass string
 	if rqoptions.JsActionRealms.ResponseClass != nil {
-		responseClass = findTokenByName(rqoptions.JsActionRealms.ResponseClass.Tokens, TOKEN_ROOT_CLASS)
+		responseClass = findTokenByName(rqoptions.JsActionRealms.ResponseClass.Tokens, TOKEN_ROOT_CLASS).Value
+
+		if rqoptions.JsActionRealms.Fetchctx.ResponseEnvelopeClass != "" {
+			responseClass = fmt.Sprintf("%v<%v>", rqoptions.JsActionRealms.Fetchctx.ResponseEnvelopeClass, responseClass)
+		}
 	}
 
 	const tmpl = `
@@ -36,7 +40,7 @@ export type {{ .className }} = Omit<
 		unknown,
 		unknown,
 		{{ if .responseClass }}
-			{{ .responseClass.Value }},
+			{{ .responseClass }},
 		{{ end }}
 		unknown[]
 	>,

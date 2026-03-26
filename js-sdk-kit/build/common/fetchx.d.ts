@@ -23,7 +23,17 @@ export declare class FetchxContext {
     defaultHeaders: Record<string, string>;
     requestInterceptor?: (url: string, init: TypedRequestInit<any, any>) => Promise<[string, TypedRequestInit<any, any>]> | [string, TypedRequestInit<any, any>];
     responseInterceptor?: <T>(res: TypedResponse<T>) => Promise<TypedResponse<T>>;
-    constructor(baseUrl?: string, defaultHeaders?: Record<string, string>, requestInterceptor?: (url: string, init: TypedRequestInit<any, any>) => Promise<[string, TypedRequestInit<any, any>]> | [string, TypedRequestInit<any, any>], responseInterceptor?: <T>(res: TypedResponse<T>) => Promise<TypedResponse<T>>);
+    /**
+     * Overrides the browser fetch function, for different purposes. It would recieve the same first 2 arguments as fetch,
+     * as well as third one of fetchx context. If you pass the fetch itself to override, it should have no effect.
+     */
+    fetchOverrideFn: (input: RequestInfo | URL, init?: TypedRequestInit) => Promise<Response>;
+    constructor(baseUrl?: string, defaultHeaders?: Record<string, string>, requestInterceptor?: (url: string, init: TypedRequestInit<any, any>) => Promise<[string, TypedRequestInit<any, any>]> | [string, TypedRequestInit<any, any>], responseInterceptor?: <T>(res: TypedResponse<T>) => Promise<TypedResponse<T>>, 
+    /**
+     * Overrides the browser fetch function, for different purposes. It would recieve the same first 2 arguments as fetch,
+     * as well as third one of fetchx context. If you pass the fetch itself to override, it should have no effect.
+     */
+    fetchOverrideFn?: (input: RequestInfo | URL, init?: TypedRequestInit) => Promise<Response>);
     apply<T>(url: string, init: TypedRequestInit<any, any>): Promise<[string, TypedRequestInit<any, any>]>;
     handle<T>(res: TypedResponse<T>): Promise<TypedResponse<T>>;
     clone(overrides?: Partial<FetchxContext>): FetchxContext;

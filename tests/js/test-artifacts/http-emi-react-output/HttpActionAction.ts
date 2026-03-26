@@ -23,7 +23,7 @@ export type HttpActionActionOptions = {
   qs?: URLSearchParams;
 };
 export type HttpActionActionQueryOptions = Omit<
-  UseQueryOptions<unknown, unknown, HttpActionActionRes, unknown[]>,
+  UseQueryOptions<unknown, unknown, GResponse<HttpActionActionRes>, unknown[]>,
   "queryKey"
 > &
   HttpActionActionOptions &
