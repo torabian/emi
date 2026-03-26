@@ -55,6 +55,11 @@ func GoActionRealms(
 		{
 			Location: "github.com/gin-gonic/gin",
 		},
+
+		{
+			Location: "github.com/urfave/cli",
+		},
+
 		{
 			Location: f.Emigo,
 		},

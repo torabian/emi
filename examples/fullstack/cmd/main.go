@@ -109,7 +109,7 @@ func runServer(addr string) error {
 	r := gin.Default()
 
 	// ----------- HTTP -----------
-	unk.ComputeApiAction(r, func(req unk.ComputeApiActionRequest, c *gin.Context) (*unk.ComputeApiActionResponse, error) {
+	unk.ComputeApiActionGin(r, func(req unk.ComputeApiActionRequest) (*unk.ComputeApiActionResponse, error) {
 		output := sumVectors(req.Body.InitialVector1, req.Body.InitialVector2)
 
 		return &unk.ComputeApiActionResponse{
@@ -121,24 +121,24 @@ func runServer(addr string) error {
 	})
 
 	// ----------- SSE -----------
-	unk.ComputeApiSseAction(r, func(req unk.ComputeApiSseActionRequest, g *gin.Context) (*unk.ComputeApiSseActionResponse, error) {
+	unk.ComputeApiSseActionGin(r, func(req unk.ComputeApiSseActionRequest) (*unk.ComputeApiSseActionResponse, error) {
 		output := sumVectors(req.Body.InitialVector1, req.Body.InitialVector2)
 
-		g.Writer.Header().Set("Content-Type", "text/event-stream")
-		g.Writer.Header().Set("Cache-Control", "no-cache")
-		g.Writer.Header().Set("Connection", "keep-alive")
+		req.GinCtx.Writer.Header().Set("Content-Type", "text/event-stream")
+		req.GinCtx.Writer.Header().Set("Cache-Control", "no-cache")
+		req.GinCtx.Writer.Header().Set("Connection", "keep-alive")
 
 		for i := 0; i < 10; i++ {
-			fmt.Fprintf(g.Writer, "data: %v\n\n", output)
-			g.Writer.Flush()
+			fmt.Fprintf(req.GinCtx.Writer, "data: %v\n\n", output)
+			req.GinCtx.Writer.Flush()
 			time.Sleep(500 * time.Millisecond)
 		}
 		return nil, nil
 	})
 
-	unk.ComputeApiSseChannelAction(r, func(req unk.ComputeApiSseChannelActionRequest, g *gin.Context) (*unk.ComputeApiSseChannelActionResponse, error) {
+	unk.ComputeApiSseChannelActionGin(r, func(req unk.ComputeApiSseChannelActionRequest) (*unk.ComputeApiSseChannelActionResponse, error) {
 		ch := computeViaChannel(req.Body.InitialVector1, req.Body.InitialVector2)
-		SSEStream(g, ch)
+		SSEStream(req.GinCtx, ch)
 		return nil, nil
 	})
 

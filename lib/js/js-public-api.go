@@ -85,6 +85,11 @@ func GetJsPublicActions() core.PublicAPIActions {
 				Description:      "Compiles a definition file catalog, and based on emi tag, it would use an appropriate sub compiler.",
 				WasmFunctionName: "jsGen",
 				Flags: []core.FlagDef{
+
+					{
+						Name:  "js-sdk-location",
+						Usage: "Changes the default ./sdk folder, when generating js/ts files referencing to it.",
+					},
 					{
 						Name:  "react-query",
 						Usage: "Assign a custom react query location, and version: --react-query react-query@v3",
@@ -196,7 +201,7 @@ func detectUsedFilesAndImports(
 	internalUsage := []string{}
 
 	for _, loc := range result.CodeChunkDependensies {
-		if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
+		if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION)) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION)) {
 			internalUsage = append(internalUsage, loc.Location)
 		}
 	}

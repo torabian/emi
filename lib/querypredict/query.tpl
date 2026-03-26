@@ -3,7 +3,6 @@ package {{ .GoPackageName }}
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
     "regexp"
 )

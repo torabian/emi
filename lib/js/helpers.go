@@ -216,3 +216,15 @@ func commonJsModuleFileCompiler(
 
 	return result, nil
 }
+
+func getSdkAwareLocation(ctx core.MicroGenContext, pathPlaceHolder string) string {
+
+	// By default, the location is ./sdk. Flag such as --js-sdk-location=../../../sdk can change that.
+	prefix := "./sdk"
+
+	if val, ok := ctx.Flags["js-sdk-location"]; ok && val != "" {
+		prefix = val
+	}
+
+	return strings.ReplaceAll(pathPlaceHolder, "{sdk}", prefix)
+}

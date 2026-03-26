@@ -101,7 +101,7 @@ export const {{ .className }} = (
 			},
 			{
 				Objects:  []string{"useFetchxContext"},
-				Location: INTERNAL_SDK_REACT_LOCATION + "/useFetchx",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION) + "/useFetchx",
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{

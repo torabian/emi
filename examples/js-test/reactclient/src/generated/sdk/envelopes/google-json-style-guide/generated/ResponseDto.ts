@@ -2,7 +2,7 @@ import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for responseDto
  **/
-export class ResponseDto {
+export class ResponseDto<T> {
   /**
    * Version of the API used for this response.
    * @type {string}
@@ -128,12 +128,12 @@ export class ResponseDto {
   }
   /**
    * Main data payload of the response.
-   * @type {ResponseDto.Data}
+   * @type {ResponseDto.Data<T>}
    **/
-  #data!: InstanceType<typeof ResponseDto.Data>;
+  #data!: InstanceType<typeof ResponseDto.Data<T>>;
   /**
    * Main data payload of the response.
-   * @returns {ResponseDto.Data}
+   * @returns {ResponseDto.Data<T>}
    **/
   get data() {
     return this.#data;
@@ -142,7 +142,7 @@ export class ResponseDto {
    * Main data payload of the response.
    * @type {ResponseDto.Data}
    **/
-  set data(value: InstanceType<typeof ResponseDto.Data>) {
+  set data(value: InstanceType<typeof ResponseDto.Data<T>>) {
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof ResponseDto.Data) {
       this.#data = value;
@@ -150,7 +150,7 @@ export class ResponseDto {
       this.#data = new ResponseDto.Data(value);
     }
   }
-  setData(value: InstanceType<typeof ResponseDto.Data>) {
+  setData(value: InstanceType<typeof ResponseDto.Data<T>>) {
     this.data = value;
     return this;
   }
@@ -185,17 +185,17 @@ export class ResponseDto {
   /**
    * The base class definition for data
    **/
-  static Data = class Data {
+  static Data = class Data<T> {
     /**
      * Single item returned by the API.
      * @type {any}
      **/
-    #item: any = null;
+    #item: T = null;
     /**
      * Single item returned by the API.
-     * @returns {any}
+     * @returns {T}
      **/
-    get item() {
+    get item(): T {
       return this.#item;
     }
     /**
@@ -688,7 +688,7 @@ export class ResponseDto {
      * casts the fields of a javascript object into the class properties one by one
      **/
     applyFromObject(data = {}) {
-      const d = data as Partial<Data>;
+      const d = data as Partial<Data<T>>;
       if (d.item !== undefined) {
         this.item = d.item;
       }
@@ -800,7 +800,7 @@ export class ResponseDto {
      * needs to satisfy the type requirement fully, otherwise typescript compile would
      * be complaining.
      **/
-    static from(possibleDtoObject: ResponseDtoType.DataType) {
+    static from<T = unknown>(possibleDtoObject: ResponseDtoType.DataType<T>) {
       return new ResponseDto.Data(possibleDtoObject);
     }
     /**
@@ -808,11 +808,13 @@ export class ResponseDto {
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
-    static with(partialDtoObject: PartialDeep<ResponseDtoType.DataType>) {
+    static with<T = unknown>(
+      partialDtoObject: PartialDeep<ResponseDtoType.DataType<T>>,
+    ) {
       return new ResponseDto.Data(partialDtoObject);
     }
     copyWith(
-      partial: PartialDeep<ResponseDtoType.DataType>,
+      partial: PartialDeep<ResponseDtoType.DataType<unknown>>,
     ): InstanceType<typeof ResponseDto.Data> {
       return new ResponseDto.Data({ ...this.toJSON(), ...partial });
     }
@@ -1390,7 +1392,7 @@ export class ResponseDto {
    * casts the fields of a javascript object into the class properties one by one
    **/
   applyFromObject(data = {}) {
-    const d = data as Partial<ResponseDto>;
+    const d = data as Partial<ResponseDto<T>>;
     if (d.apiVersion !== undefined) {
       this.apiVersion = d.apiVersion;
     }
@@ -1418,7 +1420,7 @@ export class ResponseDto {
    * These are the class instances, which need to be initialised, regardless of the constructor incoming data
    **/
   #lateInitFields(data = {}) {
-    const d = data as Partial<ResponseDto>;
+    const d = data as Partial<ResponseDto<T>>;
     if (!(d.data instanceof ResponseDto.Data)) {
       this.data = new ResponseDto.Data(d.data || {});
     }
@@ -1466,7 +1468,7 @@ export class ResponseDto {
    * needs to satisfy the type requirement fully, otherwise typescript compile would
    * be complaining.
    **/
-  static from(possibleDtoObject: ResponseDtoType) {
+  static from<T = unknown>(possibleDtoObject: ResponseDtoType<T>) {
     return new ResponseDto(possibleDtoObject);
   }
   /**
@@ -1474,11 +1476,11 @@ export class ResponseDto {
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
-  static with(partialDtoObject: PartialDeep<ResponseDtoType>) {
+  static with<T = unknown>(partialDtoObject: PartialDeep<ResponseDtoType<T>>) {
     return new ResponseDto(partialDtoObject);
   }
   copyWith(
-    partial: PartialDeep<ResponseDtoType>,
+    partial: PartialDeep<ResponseDtoType<T>>,
   ): InstanceType<typeof ResponseDto> {
     return new ResponseDto({ ...this.toJSON(), ...partial });
   }
@@ -1487,7 +1489,7 @@ export class ResponseDto {
   }
 }
 export abstract class ResponseDtoFactory {
-  abstract create(data: unknown): ResponseDto;
+  abstract create(data: unknown): ResponseDto<unknown>;
 }
 type PartialDeep<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
@@ -1499,7 +1501,7 @@ type PartialDeep<T> = {
 /**
  * The base type definition for responseDto
  **/
-export type ResponseDtoType = {
+export type ResponseDtoType<T> = {
   /**
    * Version of the API used for this response.
    * @type {string}
@@ -1529,7 +1531,7 @@ export type ResponseDtoType = {
    * Main data payload of the response.
    * @type {ResponseDtoType.DataType}
    **/
-  data: ResponseDtoType.DataType;
+  data: ResponseDtoType.DataType<T>;
   /**
    * Error details, if the request failed.
    * @type {ResponseDtoType.ErrorType}
@@ -1541,12 +1543,12 @@ export namespace ResponseDtoType {
   /**
    * The base type definition for dataType
    **/
-  export type DataType = {
+  export type DataType<T> = {
     /**
      * Single item returned by the API.
      * @type {any}
      **/
-    item: any;
+    item2: T;
     /**
      * List of items returned by the API.
      * @type {any}

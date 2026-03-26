@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"math/big"
 	"net/http"
@@ -18,21 +19,24 @@ import (
 * Action to communicate with the action ComputeExpAction
  */
 func ComputeExpActionMeta() struct {
-	Name    string
-	CliName string
-	URL     string
-	Method  string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name    string
-		CliName string
-		URL     string
-		Method  string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:    "ComputeExpAction",
-		CliName: "compute-exp-action",
-		URL:     "/big/exp/:first/:second",
-		Method:  "",
+		Name:        "ComputeExpAction",
+		CliName:     "compute-exp-action",
+		URL:         "/big/exp/:first/:second",
+		Method:      "",
+		Description: `Computes the exp value using big integer`,
 	}
 }
 func GetComputeExpActionReqCliFlags(prefix string) []emigo.CliFlag {
@@ -65,7 +69,7 @@ func CastComputeExpActionReqFromCli(c emigo.CliCastable) ComputeExpActionReq {
 // The base class definition for computeExpActionReq
 type ComputeExpActionReq struct {
 	Base     big.Int `json:"base" yaml:"base"`
-	Exponent big.Int `yaml:"exponent" json:"exponent"`
+	Exponent big.Int `json:"exponent" yaml:"exponent"`
 }
 
 func (x *ComputeExpActionReq) Json() string {
@@ -95,7 +99,7 @@ func CastComputeExpActionResFromCli(c emigo.CliCastable) ComputeExpActionRes {
 
 // The base class definition for computeExpActionRes
 type ComputeExpActionRes struct {
-	Result big.Int `json:"result" yaml:"result"`
+	Result big.Int `yaml:"result" json:"result"`
 }
 
 func (x *ComputeExpActionRes) Json() string {
@@ -112,6 +116,16 @@ type ComputeExpActionResponse struct {
 	Payload    interface{}
 }
 
+func (x ComputeExpActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x ComputeExpActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x ComputeExpActionResponse) GetPayload() interface{} {
+	return x.Payload
+}
+
 // ComputeExpActionRaw registers a raw Gin route for the ComputeExpAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func ComputeExpActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
@@ -119,7 +133,7 @@ func ComputeExpActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	r.Handle(meta.Method, meta.URL, handlers...)
 }
 
-type ComputeExpActionRequestSig = func(c ComputeExpActionRequest, gin *gin.Context) (*ComputeExpActionResponse, error)
+type ComputeExpActionRequestSig = func(c ComputeExpActionRequest) (*ComputeExpActionResponse, error)
 
 // ComputeExpActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeExpAction action.
 // Developers implement their business logic as a function that receives a typed request object
@@ -140,8 +154,9 @@ func ComputeExpActionHandler(
 			Params:      ComputeExpActionPathParameterFromGin(m),
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -170,7 +185,7 @@ func ComputeExpActionHandler(
 // ComputeExpAction is a high-level convenience wrapper around ComputeExpActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeExpAction(r gin.IRoutes, handler ComputeExpActionRequestSig) {
+func ComputeExpActionGin(r gin.IRoutes, handler ComputeExpActionRequestSig) {
 	method, url, h := ComputeExpActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -252,6 +267,8 @@ type ComputeExpActionRequest struct {
 	Params      ComputeExpActionPathParameter
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type ComputeExpActionResult struct {
 	resp    *http.Response // embed original response

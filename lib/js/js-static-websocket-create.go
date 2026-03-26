@@ -113,7 +113,7 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"WebSocketX"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/WebSocketX",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/WebSocketX",
 			},
 		},
 	}

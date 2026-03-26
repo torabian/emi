@@ -41,17 +41,20 @@ func {{ .realms.ActionName }}Meta() struct {
 	CliName   string
     URL    string
     Method string
+	Description string
 } {
     return struct {
         Name   string
         CliName   string
         URL    string
         Method string
+		Description string
     }{
         Name:   "{{ .realms.ActionName }}",
         CliName:   "{{ .realms.CliName }}",
         URL:    "{{ .realms.SafeUrl }}",
         Method: "{{ UPPER .action.Method }}",
+		Description: ` + "`" + `{{ .action.Description }}` + "`" + `,
     }
 }
 
@@ -73,6 +76,19 @@ type {{ .realms.ActionName }}Response struct {
 	Payload    interface{}
 }
 
+func (x {{ .realms.ActionName }}Response) GetStatusCode() int {
+	return x.StatusCode
+}
+
+func (x {{ .realms.ActionName }}Response) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+
+func (x {{ .realms.ActionName }}Response) GetPayload() interface{} {
+	return x.Payload
+}
+
+
 // {{ .realms.ActionName }}Raw registers a raw Gin route for the {{ .realms.ActionName }} action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
@@ -81,7 +97,7 @@ func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 }
 
 
-type {{ .realms.ActionName }}RequestSig = func(c {{ .realms.ActionName }}Request, gin *gin.Context) (*{{ .realms.ActionName }}Response, error)
+type {{ .realms.ActionName }}RequestSig = func(c {{ .realms.ActionName }}Request) (*{{ .realms.ActionName }}Response, error)
 
 
 
@@ -111,10 +127,11 @@ func {{ .realms.ActionName }}Handler(
 			{{ end }}
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx: m,
 		}
 
 
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -147,7 +164,7 @@ func {{ .realms.ActionName }}Handler(
 // {{ .realms.ActionName }} is a high-level convenience wrapper around {{ .realms.ActionName }}Handler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func {{ .realms.ActionName }}(r gin.IRoutes, handler {{ .realms.ActionName }}RequestSig,) {
+func {{ .realms.ActionName }}Gin(r gin.IRoutes, handler {{ .realms.ActionName }}RequestSig,) {
 	method, url, h := {{ .realms.ActionName }}Handler(handler)
 	r.Handle(method, url, h)
 }
@@ -170,6 +187,8 @@ type {{ .realms.ActionName }}Request struct {
 	{{ end }}
 	QueryParams url.Values
 	Headers http.Header
+	GinCtx      *gin.Context
+	CliCtx *cli.Context
 }
 
 type {{ .realms.ActionName }}Result struct {

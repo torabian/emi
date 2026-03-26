@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
@@ -15,21 +16,24 @@ import (
 * Action to communicate with the action ComputeApiSseAction
  */
 func ComputeApiSseActionMeta() struct {
-	Name    string
-	CliName string
-	URL     string
-	Method  string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name    string
-		CliName string
-		URL     string
-		Method  string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:    "ComputeApiSseAction",
-		CliName: "compute-api-sse-action",
-		URL:     "/compute/sse",
-		Method:  "GET",
+		Name:        "ComputeApiSseAction",
+		CliName:     "compute-api-sse-action",
+		URL:         "/compute/sse",
+		Method:      "GET",
+		Description: `The same compute api, but it would return the response as SSE.`,
 	}
 }
 func GetComputeApiSseActionReqCliFlags(prefix string) []emigo.CliFlag {
@@ -111,6 +115,16 @@ type ComputeApiSseActionResponse struct {
 	Payload    interface{}
 }
 
+func (x ComputeApiSseActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x ComputeApiSseActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x ComputeApiSseActionResponse) GetPayload() interface{} {
+	return x.Payload
+}
+
 // ComputeApiSseActionRaw registers a raw Gin route for the ComputeApiSseAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func ComputeApiSseActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
@@ -118,7 +132,7 @@ func ComputeApiSseActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	r.Handle(meta.Method, meta.URL, handlers...)
 }
 
-type ComputeApiSseActionRequestSig = func(c ComputeApiSseActionRequest, gin *gin.Context) (*ComputeApiSseActionResponse, error)
+type ComputeApiSseActionRequestSig = func(c ComputeApiSseActionRequest) (*ComputeApiSseActionResponse, error)
 
 // ComputeApiSseActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseAction action.
 // Developers implement their business logic as a function that receives a typed request object
@@ -138,8 +152,9 @@ func ComputeApiSseActionHandler(
 			Body:        body,
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -168,7 +183,7 @@ func ComputeApiSseActionHandler(
 // ComputeApiSseAction is a high-level convenience wrapper around ComputeApiSseActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeApiSseAction(r gin.IRoutes, handler ComputeApiSseActionRequestSig) {
+func ComputeApiSseActionGin(r gin.IRoutes, handler ComputeApiSseActionRequestSig) {
 	method, url, h := ComputeApiSseActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -225,6 +240,8 @@ type ComputeApiSseActionRequest struct {
 	Body        ComputeApiSseActionReq
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type ComputeApiSseActionResult struct {
 	resp    *http.Response // embed original response
