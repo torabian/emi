@@ -76,6 +76,40 @@ type {{ .realms.ActionName }}Response struct {
 	Payload    interface{}
 }
 
+
+func (x *{{ .realms.ActionName }}Response) SetContentType(contentType string) *{{ .realms.ActionName }}Response {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+
+func (x *{{ .realms.ActionName }}Response) AsStream(r io.Reader, contentType string) *{{ .realms.ActionName }}Response {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+
+func (x *{{ .realms.ActionName }}Response) AsJSON(payload any) *{{ .realms.ActionName }}Response {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+
+func (x *{{ .realms.ActionName }}Response) AsHTML(payload string) *{{ .realms.ActionName }}Response {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+
+func (x *{{ .realms.ActionName }}Response) AsBytes(payload []byte) *{{ .realms.ActionName }}Response {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+
 func (x {{ .realms.ActionName }}Response) GetStatusCode() int {
 	return x.StatusCode
 }
