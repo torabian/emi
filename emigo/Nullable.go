@@ -1,6 +1,10 @@
 package emigo
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"gopkg.in/yaml.v3"
+)
 
 // Note: This file is referenced in torabian.github.io/trainings/
 
@@ -75,6 +79,40 @@ func (n *Nullable[T]) UnmarshalJSON(data []byte) error {
 	}
 	var v T
 	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	n.value = &v
+	n.isSet = true
+	return nil
+}
+
+// MarshalYAML implements YAML marshalling for Nullable[T].
+// If the value is not set, returns nil so that YAML omits the field if "omitempty" is used.
+// If the value is set (even nil), marshals the actual value.
+func (n Nullable[T]) MarshalYAML() (interface{}, error) {
+	if !n.isSet {
+		// undefined → YAML omitempty will omit the field
+		return nil, nil
+	}
+	if n.value == nil {
+		// explicit null
+		return nil, nil
+	}
+	return *n.value, nil
+}
+
+// UnmarshalYAML implements YAML unmarshalling for Nullable[T].
+// Detects whether the field was present in YAML.
+func (n *Nullable[T]) UnmarshalYAML(node *yaml.Node) error {
+	if node.Kind == yaml.ScalarNode && node.Tag == "!!null" {
+		// Explicit null
+		n.value = nil
+		n.isSet = true
+		return nil
+	}
+
+	var v T
+	if err := node.Decode(&v); err != nil {
 		return err
 	}
 	n.value = &v

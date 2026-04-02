@@ -1,0 +1,72 @@
+---
+sidebar_position: 4
+---
+
+# Golang map field
+
+        
+
+      Primitive support in Golang is standard as `bool` and `bool?` emi types. `bool` resolves the primitive 
+      counterpart in golang without modification, whearas the nullable data types such as
+      `bool?` will be wrapped around Nullable[bool]
+      similar to all other primitives and structs which are nullable.
+
+      Emi doesn't generate pointer elements in Golang, and it's support has been removed many years ago in Fireback.
+```yaml
+name: Catalog
+fields:
+  - name: personConfig
+    type: map
+    mapKeyOf: string
+    mapPairOf: any
+  - name: personConfigExtra
+    type: map?
+    mapKeyOf: string
+    mapPairOf: any
+
+```
+    
+Possible result:
+
+
+      
+```go
+package datatypes
+
+import "encoding/json"
+
+func GetCatalogCliFlags(prefix string) []emigo.CliFlag {
+  return []emigo.CliFlag{
+    {
+      Name: prefix + "person-config",
+      Type: "map",
+    },
+    {
+      Name: prefix + "person-config-extra",
+      Type: "map?",
+    },
+  }
+}
+func CastCatalogFromCli(c emigo.CliCastable) Catalog {
+  data := Catalog{}
+  if c.IsSet("person-config-extra") {
+    emigo.ParseNullable(c.String("person-config-extra"), &data.PersonConfigExtra)
+  }
+  return data
+}
+
+// The base class definition for catalog
+type Catalog struct {
+  PersonConfig      map[string]any                 `json:"personConfig" yaml:"personConfig"`
+  PersonConfigExtra emigo.Nullable[map[string]any] `json:"personConfigExtra" yaml:"personConfigExtra"`
+}
+
+func (x *Catalog) Json() string {
+  if x != nil {
+    str, _ := json.MarshalIndent(x, "", "  ")
+    return string(str)
+  }
+  return ""
+}
+
+```
