@@ -19,8 +19,11 @@ type EmiField struct {
 	// Type of the field based on Emi types.
 	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=array,enum=map?,enum=map,enum=slice,enum=one,enum=collection,enum=object,enum=enum,enum=string,enum=bool,enum=int,enum=int32,enum=int64,enum=float32,enum=float64,enum=array?,enum=slice?,enum=one?,enum=collection?,enum=object?,enum=enum?,enum=string?,enum=bool?,enum=int?,enum=int32?,enum=int64?,enum=float32?,enum=float64?,enum=any,enum=complex,description=Type of the field based on Emi types."`
 
-	// Type of the field based on Emi types.
-	MapKey string `yaml:"mapKey,omitempty" json:"mapKey,omitempty" jsonschema:"enum=string,enum=int,enum=any,description=When the field type is map or map? you can modify the key type."`
+	// In case of type map this is the map key type, can be a primitive.
+	MapKeyOf string `yaml:"mapKeyOf,omitempty" json:"mapKeyOf,omitempty" jsonschema:"enum=string,enum=int,enum=any,description=In case of type map this is the map key type, can be a primitive."`
+
+	// In case of type map this is the map pair type, can be a primitive.
+	MapPairOf string `yaml:"mapPairOf,omitempty" json:"mapPairOf,omitempty" jsonschema:"enum=string,enum=int,enum=any,description=In case of type map this is the map key type, can be a primitive."`
 
 	// Primitive type in golang when type: slice is set
 	Primitive string `yaml:"primitive,omitempty" json:"primitive,omitempty" jsonschema:"description=Primitive type in golang when type: slice is set"`
@@ -97,4 +100,12 @@ func (x *EmiField) GetDescription() string {
 
 func (x *EmiField) GetTags() map[string]string {
 	return x.Tags
+}
+
+func (x *EmiField) GetMapKeyType() string {
+	return x.MapKeyOf
+}
+
+func (x *EmiField) GetMapValueType() string {
+	return x.MapPairOf
 }

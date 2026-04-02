@@ -29,7 +29,7 @@ build-envelopes:
 	cp ./lib/js/index.go.txt ./lib/js/ts-envelopes/index.go
 
 all: 
-	make build && make build-envelopes && make jstests && make sample
+	make build && make build-envelopes && make jstests && make sample && make nullabletest
 sample:
 	cd examples/js-test/reactclient && make && cd -
 
@@ -57,3 +57,6 @@ win:
 go:
 
 	./emi.exe go --path ./examples/fullstack/definitions.emi.yml --output ./examples/fullstack/sdk --emigo github.com/torabian/emi/examples/fullstack/emigo
+
+nullabletest:
+	go test ./tests/nullable-test/...

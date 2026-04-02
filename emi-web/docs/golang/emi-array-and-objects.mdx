@@ -1,0 +1,244 @@
+---
+sidebar_position: 4
+---
+
+# Golang object and array
+
+        
+
+      Primitive support in Golang is standard as `bool` and `bool?` emi types. `bool` resolves the primitive 
+      counterpart in golang without modification, whearas the nullable data types such as
+      `bool?` will be wrapped around Nullable[bool]
+      similar to all other primitives and structs which are nullable.
+
+      Emi doesn't generate pointer elements in Golang, and it's support has been removed many years ago in Fireback.
+```yaml
+name: Catalog
+fields:
+  - name: person
+    type: object
+    fields:
+      - name: firstName
+        type: string
+      - name: lastName
+        type: string
+  - name: people
+    type: array
+    fields:
+      - name: firstName
+        type: string
+      - name: lastName
+        type: string
+      - name: parent
+        type: one
+        target: PersonDto
+  - name: personOptional
+    type: object?
+    fields:
+      - name: firstName
+        type: string
+      - name: lastName
+        type: string
+  - name: peopleOptional
+    type: array?
+    fields:
+      - name: firstName
+        type: string
+      - name: lastName
+        type: string
+      - name: parent
+        type: one
+        target: PersonDto
+
+```
+    
+Possible result:
+
+
+      
+```go
+package datatypes
+
+import "encoding/json"
+
+func GetCatalogCliFlags(prefix string) []emigo.CliFlag {
+  return []emigo.CliFlag{
+    {
+      Name:     prefix + "person",
+      Type:     "object",
+      Children: GetCatalogPersonCliFlags("person-"),
+    },
+    {
+      Name: prefix + "people",
+      Type: "array",
+    },
+    {
+      Name: prefix + "person-optional",
+      Type: "object?",
+    },
+    {
+      Name: prefix + "people-optional",
+      Type: "array?",
+    },
+  }
+}
+func CastCatalogFromCli(c emigo.CliCastable) Catalog {
+  data := Catalog{}
+  if c.IsSet("person") {
+    data.Person = CastCatalogPersonFromCli(c)
+  }
+  if c.IsSet("people") {
+    data.People = emigo.CapturePossibleArray(CastCatalogPeopleFromCli, "people", c)
+  }
+  if c.IsSet("person-optional") {
+    emigo.ParseNullable(c.String("person-optional"), &data.PersonOptional)
+  }
+  if c.IsSet("people-optional") {
+    emigo.ParseNullable(c.String("people-optional"), &data.PeopleOptional)
+  }
+  return data
+}
+
+// The base class definition for catalog
+type Catalog struct {
+  Person         CatalogPerson                           `json:"person" yaml:"person"`
+  People         []CatalogPeople                         `json:"people" yaml:"people"`
+  PersonOptional emigo.Nullable[CatalogPersonOptional]   `json:"personOptional" yaml:"personOptional"`
+  PeopleOptional emigo.Nullable[[]CatalogPeopleOptional] `json:"peopleOptional" yaml:"peopleOptional"`
+}
+
+func GetCatalogPersonCliFlags(prefix string) []emigo.CliFlag {
+  return []emigo.CliFlag{
+    {
+      Name: prefix + "first-name",
+      Type: "string",
+    },
+    {
+      Name: prefix + "last-name",
+      Type: "string",
+    },
+  }
+}
+func CastCatalogPersonFromCli(c emigo.CliCastable) CatalogPerson {
+  data := CatalogPerson{}
+  if c.IsSet("first-name") {
+    data.FirstName = c.String("first-name")
+  }
+  if c.IsSet("last-name") {
+    data.LastName = c.String("last-name")
+  }
+  return data
+}
+
+// The base class definition for person
+type CatalogPerson struct {
+  FirstName string `json:"firstName" yaml:"firstName"`
+  LastName  string `json:"lastName" yaml:"lastName"`
+}
+
+func GetCatalogPeopleCliFlags(prefix string) []emigo.CliFlag {
+  return []emigo.CliFlag{
+    {
+      Name: prefix + "first-name",
+      Type: "string",
+    },
+    {
+      Name: prefix + "last-name",
+      Type: "string",
+    },
+    {
+      Name: prefix + "parent",
+      Type: "one",
+    },
+  }
+}
+func CastCatalogPeopleFromCli(c emigo.CliCastable) CatalogPeople {
+  data := CatalogPeople{}
+  if c.IsSet("first-name") {
+    data.FirstName = c.String("first-name")
+  }
+  if c.IsSet("last-name") {
+    data.LastName = c.String("last-name")
+  }
+  return data
+}
+
+// The base class definition for people
+type CatalogPeople struct {
+  FirstName string    `json:"firstName" yaml:"firstName"`
+  LastName  string    `json:"lastName" yaml:"lastName"`
+  Parent    PersonDto `json:"parent" yaml:"parent"`
+}
+
+func GetCatalogPersonOptionalCliFlags(prefix string) []emigo.CliFlag {
+  return []emigo.CliFlag{
+    {
+      Name: prefix + "first-name",
+      Type: "string",
+    },
+    {
+      Name: prefix + "last-name",
+      Type: "string",
+    },
+  }
+}
+func CastCatalogPersonOptionalFromCli(c emigo.CliCastable) CatalogPersonOptional {
+  data := CatalogPersonOptional{}
+  if c.IsSet("first-name") {
+    data.FirstName = c.String("first-name")
+  }
+  if c.IsSet("last-name") {
+    data.LastName = c.String("last-name")
+  }
+  return data
+}
+
+// The base class definition for personOptional
+type CatalogPersonOptional struct {
+  FirstName string `json:"firstName" yaml:"firstName"`
+  LastName  string `json:"lastName" yaml:"lastName"`
+}
+
+func GetCatalogPeopleOptionalCliFlags(prefix string) []emigo.CliFlag {
+  return []emigo.CliFlag{
+    {
+      Name: prefix + "first-name",
+      Type: "string",
+    },
+    {
+      Name: prefix + "last-name",
+      Type: "string",
+    },
+    {
+      Name: prefix + "parent",
+      Type: "one",
+    },
+  }
+}
+func CastCatalogPeopleOptionalFromCli(c emigo.CliCastable) CatalogPeopleOptional {
+  data := CatalogPeopleOptional{}
+  if c.IsSet("first-name") {
+    data.FirstName = c.String("first-name")
+  }
+  if c.IsSet("last-name") {
+    data.LastName = c.String("last-name")
+  }
+  return data
+}
+
+// The base class definition for peopleOptional
+type CatalogPeopleOptional struct {
+  FirstName string    `json:"firstName" yaml:"firstName"`
+  LastName  string    `json:"lastName" yaml:"lastName"`
+  Parent    PersonDto `json:"parent" yaml:"parent"`
+}
+
+func (x *Catalog) Json() string {
+  if x != nil {
+    str, _ := json.MarshalIndent(x, "", "  ")
+    return string(str)
+  }
+  return ""
+}
+
+```

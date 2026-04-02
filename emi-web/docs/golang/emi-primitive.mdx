@@ -1,0 +1,217 @@
+---
+sidebar_position: 5
+---
+
+# Golang primitive data types.
+
+Emi golang compiler converts the Emi data types into appropriate keywords and structs 
+in Golang. Emi types are fundamentally inspired by golang data types anyway,
+but still there might be some mismatches added over time. Besides for nested objects,
+new structs needed to be created.
+
+## Default values in Go version
+
+Golang pure structs (unlike classes in js) cannot have a custom default value without initialization.
+Emi might generate helper function to solve this issue, but at the written time 
+of this document is not available.
+
+        
+
+      Primitive support in Golang is standard as `bool` and `bool?` emi types. `bool` resolves the primitive 
+      counterpart in golang without modification, whearas the nullable data types such as
+      `bool?` will be wrapped around Nullable[bool]
+      similar to all other primitives and structs which are nullable.
+
+      Emi doesn't generate pointer elements in Golang, and it's support has been removed many years ago in Fireback.
+```yaml
+name: MyBoolClass
+fields:
+  - name: boolWithDefault
+    default: true
+    type: bool
+  - name: plainBool
+    type: bool?
+  - name: intField
+    type: int
+  - name: int32Field
+    type: int32
+  - name: int64Field
+    type: int64
+  - name: intFieldNullable
+    type: int?
+  - name: int32FieldNullable
+    type: int32?
+  - name: int64FieldNullable
+    type: int64?
+  - name: stringField
+    type: string
+  - name: stringFieldNullable
+    type: string?
+  - name: anyField
+    type: any
+  - name: inner
+    type: object
+    fields:
+      - name: sliceField
+        type: slice
+        primitive: string
+      - name: sliceFieldOptional
+        type: slice?
+        primitive: int
+
+```
+    
+Possible result:
+
+
+      
+```go
+package datatypes
+
+import "encoding/json"
+
+func GetMyBoolClassCliFlags(prefix string) []emigo.CliFlag {
+  return []emigo.CliFlag{
+    {
+      Name: prefix + "bool-with-default",
+      Type: "bool",
+    },
+    {
+      Name: prefix + "plain-bool",
+      Type: "bool?",
+    },
+    {
+      Name: prefix + "int-field",
+      Type: "int",
+    },
+    {
+      Name: prefix + "int32-field",
+      Type: "int32",
+    },
+    {
+      Name: prefix + "int64-field",
+      Type: "int64",
+    },
+    {
+      Name: prefix + "int-field-nullable",
+      Type: "int?",
+    },
+    {
+      Name: prefix + "int32-field-nullable",
+      Type: "int32?",
+    },
+    {
+      Name: prefix + "int64-field-nullable",
+      Type: "int64?",
+    },
+    {
+      Name: prefix + "string-field",
+      Type: "string",
+    },
+    {
+      Name: prefix + "string-field-nullable",
+      Type: "string?",
+    },
+    {
+      Name: prefix + "any-field",
+      Type: "any",
+    },
+    {
+      Name:     prefix + "inner",
+      Type:     "object",
+      Children: GetMyBoolClassInnerCliFlags("inner-"),
+    },
+  }
+}
+func CastMyBoolClassFromCli(c emigo.CliCastable) MyBoolClass {
+  data := MyBoolClass{}
+  if c.IsSet("bool-with-default") {
+    data.BoolWithDefault = bool(c.Bool("bool-with-default"))
+  }
+  if c.IsSet("plain-bool") {
+    emigo.ParseNullable(c.String("plain-bool"), &data.PlainBool)
+  }
+  if c.IsSet("int-field") {
+    data.IntField = int(c.Int64("int-field"))
+  }
+  if c.IsSet("int32-field") {
+    data.Int32Field = int32(c.Int64("int32-field"))
+  }
+  if c.IsSet("int64-field") {
+    data.Int64Field = int64(c.Int64("int64-field"))
+  }
+  if c.IsSet("int-field-nullable") {
+    emigo.ParseNullable(c.String("int-field-nullable"), &data.IntFieldNullable)
+  }
+  if c.IsSet("int32-field-nullable") {
+    emigo.ParseNullable(c.String("int32-field-nullable"), &data.Int32FieldNullable)
+  }
+  if c.IsSet("int64-field-nullable") {
+    emigo.ParseNullable(c.String("int64-field-nullable"), &data.Int64FieldNullable)
+  }
+  if c.IsSet("string-field") {
+    data.StringField = c.String("string-field")
+  }
+  if c.IsSet("string-field-nullable") {
+    emigo.ParseNullable(c.String("string-field-nullable"), &data.StringFieldNullable)
+  }
+  if c.IsSet("inner") {
+    data.Inner = CastMyBoolClassInnerFromCli(c)
+  }
+  return data
+}
+
+// The base class definition for myBoolClass
+type MyBoolClass struct {
+  BoolWithDefault     bool                   `json:"boolWithDefault" yaml:"boolWithDefault"`
+  PlainBool           emigo.Nullable[bool]   `json:"plainBool" yaml:"plainBool"`
+  IntField            int                    `json:"intField" yaml:"intField"`
+  Int32Field          int32                  `json:"int32Field" yaml:"int32Field"`
+  Int64Field          int64                  `json:"int64Field" yaml:"int64Field"`
+  IntFieldNullable    emigo.Nullable[int]    `json:"intFieldNullable" yaml:"intFieldNullable"`
+  Int32FieldNullable  emigo.Nullable[int32]  `json:"int32FieldNullable" yaml:"int32FieldNullable"`
+  Int64FieldNullable  emigo.Nullable[int64]  `json:"int64FieldNullable" yaml:"int64FieldNullable"`
+  StringField         string                 `json:"stringField" yaml:"stringField"`
+  StringFieldNullable emigo.Nullable[string] `json:"stringFieldNullable" yaml:"stringFieldNullable"`
+  AnyField            interface{}            `json:"anyField" yaml:"anyField"`
+  Inner               MyBoolClassInner       `json:"inner" yaml:"inner"`
+}
+
+func GetMyBoolClassInnerCliFlags(prefix string) []emigo.CliFlag {
+  return []emigo.CliFlag{
+    {
+      Name: prefix + "slice-field",
+      Type: "slice",
+    },
+    {
+      Name: prefix + "slice-field-optional",
+      Type: "slice?",
+    },
+  }
+}
+func CastMyBoolClassInnerFromCli(c emigo.CliCastable) MyBoolClassInner {
+  data := MyBoolClassInner{}
+  if c.IsSet("slice-field") {
+    emigo.InflatePossibleSlice(c.String("slice-field"), &data.SliceField)
+  }
+  if c.IsSet("slice-field-optional") {
+    emigo.ParseNullable(c.String("slice-field-optional"), &data.SliceFieldOptional)
+  }
+  return data
+}
+
+// The base class definition for inner
+type MyBoolClassInner struct {
+  SliceField         []string              `json:"sliceField" yaml:"sliceField"`
+  SliceFieldOptional emigo.Nullable[[]int] `json:"sliceFieldOptional" yaml:"sliceFieldOptional"`
+}
+
+func (x *MyBoolClass) Json() string {
+  if x != nil {
+    str, _ := json.MarshalIndent(x, "", "  ")
+    return string(str)
+  }
+  return ""
+}
+
+```

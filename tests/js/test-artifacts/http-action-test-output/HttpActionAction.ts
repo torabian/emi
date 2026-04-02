@@ -58,7 +58,7 @@ export class HttpActionAction {
     const res = await HttpActionAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,
-      (item) => creatorFn(item),
+      (item) => (creatorFn ? creatorFn(item) : item),
       onMessage,
       init?.signal,
     );

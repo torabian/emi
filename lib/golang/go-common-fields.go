@@ -166,6 +166,8 @@ type fieldLike interface {
 	GetComplex() string
 	GetDescription() string
 	GetPrimitive() string
+	GetMapKeyType() string
+	GetMapValueType() string
 	GetTags() map[string]string
 }
 
