@@ -71,6 +71,7 @@ func CastPrimitive[T any](s string) (T, error) {
 		return zero, fmt.Errorf("unsupported slice type")
 	}
 }
+
 func InflatePossibleSlice[T any](raw string, target *[]T) error {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {

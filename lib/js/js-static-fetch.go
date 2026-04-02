@@ -171,8 +171,8 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 				Key: "response.cls",
 				// Ts:  fetchctx.ResponseClass,
 				// Js:  fetchctx.ResponseClass,
-				Ts: "(item) => creatorFn(item)",
-				Js: "(item) => creatorFn(item)",
+				Ts: "(item) => (creatorFn ? creatorFn(item) : item)",
+				Js: "(item) => (creatorFn ? creatorFn(item) : item)",
 			})
 		} else {
 

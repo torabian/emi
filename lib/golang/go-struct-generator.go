@@ -363,17 +363,31 @@ func goPrimitiveDetect(fieldType string) string {
 
 func goListAndObjectTypes(field fieldLike) string {
 
-	prefix := "emigo."
+	// prefix := "emigo."
 	switch field.GetType() {
 
-	case core.FieldTypeOne:
+	case core.FieldTypeMap, core.FieldTypeMapNullable:
+		keyType := "any"
+		pairType := "any"
+
+		if field.GetMapKeyType() != "" {
+			keyType = field.GetMapKeyType()
+		}
+
+		if field.GetMapValueType() != "" {
+			pairType = field.GetMapValueType()
+		}
+
+		return fmt.Sprintf("map[%v]%v", keyType, pairType)
+
+	case core.FieldTypeOne, core.FieldTypeOneNullable:
 		if field.GetModule() != "" {
 			return field.GetModule() + "." + field.GetTarget()
 		}
 		return field.GetTarget()
 	case core.FieldTypeArray:
 		return field.PublicName()
-	case core.FieldTypeCollection:
+	case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
 		if field.GetModule() != "" {
 			return "[]" + field.GetModule() + "." + field.GetTarget()
 		}
@@ -381,7 +395,7 @@ func goListAndObjectTypes(field fieldLike) string {
 	case core.FieldTypeSlice:
 		return "[]" + goPrimitiveDetect(field.GetPrimitive())
 	case core.FieldTypeSliceNullable:
-		return prefix + "Nullable[[]" + goPrimitiveDetect(field.GetPrimitive()) + "]"
+		return "[]" + goPrimitiveDetect(field.GetPrimitive())
 	case core.FieldTypeObject:
 		return field.PublicName()
 	default:

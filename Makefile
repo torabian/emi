@@ -57,3 +57,6 @@ win:
 go:
 
 	./emi.exe go --path ./examples/fullstack/definitions.emi.yml --output ./examples/fullstack/sdk --emigo github.com/torabian/emi/examples/fullstack/emigo
+
+nullabletest:
+	go test ./tests/nullable-test/...
