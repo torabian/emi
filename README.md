@@ -1,4 +1,4 @@
-# Emi compiler
+# Emi - Backend-for-Frontend with automatic SDK generation.
 
 Backend for front-end code generation library based on Emi definition files. Define http actions, dtos, and many more details, and get the code boilerplate, http requests, in different languages. 
 

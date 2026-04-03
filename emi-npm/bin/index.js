@@ -76,7 +76,7 @@ for (const a of TextActions) {
 
 program
   .name("Emi compiler")
-  .description("Module3 definitions code generator")
-  .version("0.8.0");
+  .description("Backend-for-Frontend with automatic SDK generation.")
+  .version("1.0.22");
 
 program.parse();
