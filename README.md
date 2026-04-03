@@ -1,16 +1,40 @@
 # Emi - Backend-for-Frontend with automatic SDK generation.
 
-Backend for front-end code generation library based on Emi definition files. Define http actions, dtos, and many more details, and get the code boilerplate, http requests, in different languages. 
+Live preview: https://torabian.github.io/emi/playground
 
-Emi generated code aims to be framework agnostic on different targets, but in the same time would provide extra
-helpers based on popularity of a library.
+Backend for front-end code generation library based on Emi definition files. Define http actions, dtos, enums, and
+other sharable details with a single yaml definition, and then compile multiple
+targets out of the same definition. Golden tool for creating SDKs which work
+with an API system.
 
+Main focus is on **JavaScript, TypeScript, Golang** environment, also supports a basic
+version of **Swift** and **Kotlin** which is more limited (PR Welcome)
+
+Code written in Emi aims to be as framework agnostic, but still there are following
+libraries used:
+
+- React.js code flag. Emi generates react.js, and tanstack react query code,
+upon flag `react` provided to `js` compiler. You can change the library import
+location, or version, if needed.
+- On Golang side, code generated uses `Gin` and possibly `urfave/cli` for giving
+context on cli status, which are both very well known and mature libraries.
+- On js side, `qs` has been used for parsing query strings.
+- Small amount of helpers are added for next.js, upon providing `--tags nextjs` for
+js compiler, which is a famous backend framework on node.js. Helps
+to use the classes generated directly in req, headers arguments.
+
+Notes:
+- Golang and JavaScript(Ts) are having an special focus.
+- Emi generates most type-safe javascript code, which ensures typesafety through
+class generation of dtos which is very unique feature.
+- Kotlin and Swift compilers require more work, you can modify them and open a pull
+request.
 
 <img src="./emi-flowchart.png" style="max-width: 600px" />
 
 ## Live playground: https://torabian.github.io/emi 
 
-You can try to compile Emi live here: https://torabian.github.io/emi
+You can try to compile Emi live here: https://torabian.github.io/emi/playground
 Emi is written in Golang, and wasm file exported to be used in javascript environment (only for generation, no runtime needed.)
 
 
@@ -19,7 +43,7 @@ Emi is written in Golang, and wasm file exported to be used in javascript enviro
 | Feature / Language        | Golang | JavaScript | JavaScript (TS) | JavaScript (Node.js) | Kotlin | Swift | Notes |
 |----------------------------|--------|------------|----------------|---------------------|--------|-------|-------|
 | DTO Generation             | ✅     | ✅         | ✅             | ✅                  | ✅     | ✅    | Supported in all languages |
-| HTTP Actions               | ✅     | ✅         | ✅             | ✅                  | ✅     | ✅    | Works with HTTP client libraries |
+| HTTP Actions               | ✅     | ✅         | ✅             | ✅                  | WIP     | WIP    | Works with HTTP client libraries |
 | Command Line               | ✅     | ❌         | ❌             | ❌                  | ❌     | ❌    | Only Golang has CLI support currently |
 
 
