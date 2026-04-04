@@ -10,7 +10,7 @@ with an API system.
 Main focus is on **JavaScript, TypeScript, Golang** environment, also supports a basic
 version of **Swift** and **Kotlin** which is more limited (PR Welcome)
 
-Code written in Emi aims to be as framework agnostic, but still there are following
+Code written in Emi aims to be framework agnostic, but still there are following
 libraries used:
 
 - React.js code flag. Emi generates react.js, and tanstack react query code,
