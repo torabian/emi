@@ -144,9 +144,12 @@ func DetectIfEmiGoIsUsed(fields []*core.EmiField) bool {
 
 	// As of recent changes, since we are having cli tools,
 	// always emigo is included, it seems.
-	if len(fields) > 0 {
-		return true
-	}
+
+	/// As a recent change, always emi go is used, because even empty dto has import.
+	return true
+	// if len(fields) > 0 {
+	// 	return true
+	// }
 
 	var result bool = false
 
