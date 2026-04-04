@@ -1,6 +1,7 @@
 # Emi - Backend-for-Frontend with automatic SDK generation.
 
 Live preview: https://torabian.github.io/emi/playground
+Documentation: https://torabian.github.io/emi
 
 Backend for front-end code generation library based on Emi definition files. Define http actions, dtos, enums, and
 other sharable details with a single yaml definition, and then compile multiple
