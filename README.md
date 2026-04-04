@@ -37,6 +37,33 @@ request.
 You can try to compile Emi live here: https://torabian.github.io/emi/playground
 Emi is written in Golang, and wasm file exported to be used in javascript environment (only for generation, no runtime needed.)
 
+## Installation
+
+
+### For general purpose:
+
+You can download the binaries from releases section of github for desired application.
+
+
+### For Golang Fans
+
+If you have golang setup already, then you can use:
+
+```bash
+go install github.com/torabian/emi/cmd/emi@latest
+```
+
+and it would install emi command globally.
+
+### For Js fans
+
+Emi also is published on npm as well, but a bit behind sometimes from the releases.
+You can use following command but recommended is to install it via binaries from releases:
+
+```
+npx emicc
+```
+
 
 ## Feature support in a glance.
 
