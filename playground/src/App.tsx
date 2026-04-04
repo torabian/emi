@@ -57,6 +57,10 @@ function App() {
             <a target="_blank" href="https://github.com/torabian/emi">
               Github
             </a>
+          {" "}
+            <a target="_blank" href="https://torabian.github.io/emi">
+              Documentation
+            </a>
             <span style={{ marginLeft: "20px" }} className="wasm-status">
               {ready ? "✅" : "⏳"}
             </span>
