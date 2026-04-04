@@ -50,7 +50,6 @@ func GetGolangPublicActions() core.PublicAPIActions {
 				}
 
 				return AsFullDocument(res, ctx.Flags["pkg"]), nil
-
 			},
 		},
 	}
