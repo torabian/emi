@@ -3,31 +3,74 @@ package external
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
 )
 
 /**
 * Action to communicate with the action PublishCommandSummaryAction
  */
 func PublishCommandSummaryActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name   string
-		URL    string
-		Method string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:   "PublishCommandSummaryAction",
-		URL:    "https://api.{environment}/sale/offer-publication-commands/{commandId}",
-		Method: "GET",
+		Name:        "PublishCommandSummaryAction",
+		CliName:     "publish command summary-action",
+		URL:         "https://api.{environment}/sale/offer-publication-commands/{commandId}",
+		Method:      "GET",
+		Description: `Use this resource to retrieve information about the offer listing statuses.  You will receive a summary with a number of correctly listed offers and errors.  Read more: PL / EN. This resource is rate limited to retrieving information about 270 000 offer changes per minute.`,
 	}
+}
+func GetPublishCommandSummaryActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "created-at",
+			Type: "string",
+		},
+		{
+			Name: prefix + "completed-at",
+			Type: "string",
+		},
+		{
+			Name:     prefix + "task-count",
+			Type:     "object",
+			Children: GetPublishCommandSummaryActionResTaskCountCliFlags("task-count-"),
+		},
+	}
+}
+func CastPublishCommandSummaryActionResFromCli(c emigo.CliCastable) PublishCommandSummaryActionRes {
+	data := PublishCommandSummaryActionRes{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("created-at") {
+		data.CreatedAt = c.String("created-at")
+	}
+	if c.IsSet("completed-at") {
+		data.CompletedAt = c.String("completed-at")
+	}
+	if c.IsSet("task-count") {
+		data.TaskCount = CastPublishCommandSummaryActionResTaskCountFromCli(c)
+	}
+	return data
 }
 
 // The base class definition for publishCommandSummaryActionRes
@@ -38,16 +81,92 @@ type PublishCommandSummaryActionRes struct {
 	TaskCount   PublishCommandSummaryActionResTaskCount `json:"taskCount" yaml:"taskCount"`
 }
 
+func GetPublishCommandSummaryActionResTaskCountCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "failed",
+			Type: "int",
+		},
+		{
+			Name: prefix + "success",
+			Type: "int",
+		},
+		{
+			Name: prefix + "total",
+			Type: "int",
+		},
+	}
+}
+func CastPublishCommandSummaryActionResTaskCountFromCli(c emigo.CliCastable) PublishCommandSummaryActionResTaskCount {
+	data := PublishCommandSummaryActionResTaskCount{}
+	if c.IsSet("failed") {
+		data.Failed = int(c.Int64("failed"))
+	}
+	if c.IsSet("success") {
+		data.Success = int(c.Int64("success"))
+	}
+	if c.IsSet("total") {
+		data.Total = int(c.Int64("total"))
+	}
+	return data
+}
+
 // The base class definition for taskCount
 type PublishCommandSummaryActionResTaskCount struct {
 	Failed  int `json:"failed" yaml:"failed"`
 	Success int `json:"success" yaml:"success"`
 	Total   int `json:"total" yaml:"total"`
 }
+
+func (x *PublishCommandSummaryActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+
 type PublishCommandSummaryActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
+}
+
+func (x *PublishCommandSummaryActionResponse) SetContentType(contentType string) *PublishCommandSummaryActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *PublishCommandSummaryActionResponse) AsStream(r io.Reader, contentType string) *PublishCommandSummaryActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *PublishCommandSummaryActionResponse) AsJSON(payload any) *PublishCommandSummaryActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *PublishCommandSummaryActionResponse) AsHTML(payload string) *PublishCommandSummaryActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *PublishCommandSummaryActionResponse) AsBytes(payload []byte) *PublishCommandSummaryActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+func (x PublishCommandSummaryActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x PublishCommandSummaryActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x PublishCommandSummaryActionResponse) GetPayload() interface{} {
+	return x.Payload
 }
 
 // PublishCommandSummaryActionRaw registers a raw Gin route for the PublishCommandSummaryAction action.
@@ -55,11 +174,15 @@ type PublishCommandSummaryActionResponse struct {
 func PublishCommandSummaryActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := PublishCommandSummaryActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // PublishCommandSummaryActionHandler returns the HTTP method, route URL, and a typed Gin handler for the PublishCommandSummaryAction action.
+}
+
+type PublishCommandSummaryActionRequestSig = func(c PublishCommandSummaryActionRequest) (*PublishCommandSummaryActionResponse, error)
+
+// PublishCommandSummaryActionHandler returns the HTTP method, route URL, and a typed Gin handler for the PublishCommandSummaryAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func PublishCommandSummaryActionHandler(
-	handler func(c PublishCommandSummaryActionRequest, gin *gin.Context) (*PublishCommandSummaryActionResponse, error),
+	handler PublishCommandSummaryActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := PublishCommandSummaryActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -67,8 +190,9 @@ func PublishCommandSummaryActionHandler(
 		req := PublishCommandSummaryActionRequest{
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -97,7 +221,7 @@ func PublishCommandSummaryActionHandler(
 // PublishCommandSummaryAction is a high-level convenience wrapper around PublishCommandSummaryActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func PublishCommandSummaryAction(r gin.IRoutes, handler func(c PublishCommandSummaryActionRequest, gin *gin.Context) (*PublishCommandSummaryActionResponse, error)) {
+func PublishCommandSummaryActionGin(r gin.IRoutes, handler PublishCommandSummaryActionRequestSig) {
 	method, url, h := PublishCommandSummaryActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -153,6 +277,8 @@ func (q *PublishCommandSummaryActionQuery) SetMapped(m map[string]interface{}) {
 type PublishCommandSummaryActionRequest struct {
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type PublishCommandSummaryActionResult struct {
 	resp    *http.Response // embed original response

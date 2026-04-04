@@ -1,32 +1,39 @@
 package external
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
 )
 
 /**
 * Action to communicate with the action DeleteADraftOfferAction
  */
 func DeleteADraftOfferActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name   string
-		URL    string
-		Method string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:   "DeleteADraftOfferAction",
-		URL:    "https://api.{environment}/sale/offers/{offerId}",
-		Method: "DELETE",
+		Name:        "DeleteADraftOfferAction",
+		CliName:     "delete a draft offer-action",
+		URL:         "https://api.{environment}/sale/offers/{offerId}",
+		Method:      "DELETE",
+		Description: `Use this resource to delete a draft offer. Read more: PL / EN.`,
 	}
 }
 
@@ -36,16 +43,57 @@ type DeleteADraftOfferActionResponse struct {
 	Payload    interface{}
 }
 
+func (x *DeleteADraftOfferActionResponse) SetContentType(contentType string) *DeleteADraftOfferActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *DeleteADraftOfferActionResponse) AsStream(r io.Reader, contentType string) *DeleteADraftOfferActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *DeleteADraftOfferActionResponse) AsJSON(payload any) *DeleteADraftOfferActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *DeleteADraftOfferActionResponse) AsHTML(payload string) *DeleteADraftOfferActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *DeleteADraftOfferActionResponse) AsBytes(payload []byte) *DeleteADraftOfferActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+func (x DeleteADraftOfferActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x DeleteADraftOfferActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x DeleteADraftOfferActionResponse) GetPayload() interface{} {
+	return x.Payload
+}
+
 // DeleteADraftOfferActionRaw registers a raw Gin route for the DeleteADraftOfferAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func DeleteADraftOfferActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := DeleteADraftOfferActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // DeleteADraftOfferActionHandler returns the HTTP method, route URL, and a typed Gin handler for the DeleteADraftOfferAction action.
+}
+
+type DeleteADraftOfferActionRequestSig = func(c DeleteADraftOfferActionRequest) (*DeleteADraftOfferActionResponse, error)
+
+// DeleteADraftOfferActionHandler returns the HTTP method, route URL, and a typed Gin handler for the DeleteADraftOfferAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func DeleteADraftOfferActionHandler(
-	handler func(c DeleteADraftOfferActionRequest, gin *gin.Context) (*DeleteADraftOfferActionResponse, error),
+	handler DeleteADraftOfferActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := DeleteADraftOfferActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -53,8 +101,9 @@ func DeleteADraftOfferActionHandler(
 		req := DeleteADraftOfferActionRequest{
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -83,7 +132,7 @@ func DeleteADraftOfferActionHandler(
 // DeleteADraftOfferAction is a high-level convenience wrapper around DeleteADraftOfferActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func DeleteADraftOfferAction(r gin.IRoutes, handler func(c DeleteADraftOfferActionRequest, gin *gin.Context) (*DeleteADraftOfferActionResponse, error)) {
+func DeleteADraftOfferActionGin(r gin.IRoutes, handler DeleteADraftOfferActionRequestSig) {
 	method, url, h := DeleteADraftOfferActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -139,6 +188,8 @@ func (q *DeleteADraftOfferActionQuery) SetMapped(m map[string]interface{}) {
 type DeleteADraftOfferActionRequest struct {
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type DeleteADraftOfferActionResult struct {
 	resp    *http.Response // embed original response

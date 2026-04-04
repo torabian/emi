@@ -1,32 +1,39 @@
 package external
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
 )
 
 /**
 * Action to communicate with the action DeleteOfferTranslationAction
  */
 func DeleteOfferTranslationActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name   string
-		URL    string
-		Method string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:   "DeleteOfferTranslationAction",
-		URL:    "https://api.{environment}/sale/offers/{offerId}/translations/{language}",
-		Method: "DELETE",
+		Name:        "DeleteOfferTranslationAction",
+		CliName:     "delete offer translation-action",
+		URL:         "https://api.{environment}/sale/offers/{offerId}/translations/{language}",
+		Method:      "DELETE",
+		Description: `Delete single element or entire manual translation. Read more: PL / EN.`,
 	}
 }
 
@@ -36,16 +43,57 @@ type DeleteOfferTranslationActionResponse struct {
 	Payload    interface{}
 }
 
+func (x *DeleteOfferTranslationActionResponse) SetContentType(contentType string) *DeleteOfferTranslationActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *DeleteOfferTranslationActionResponse) AsStream(r io.Reader, contentType string) *DeleteOfferTranslationActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *DeleteOfferTranslationActionResponse) AsJSON(payload any) *DeleteOfferTranslationActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *DeleteOfferTranslationActionResponse) AsHTML(payload string) *DeleteOfferTranslationActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *DeleteOfferTranslationActionResponse) AsBytes(payload []byte) *DeleteOfferTranslationActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+func (x DeleteOfferTranslationActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x DeleteOfferTranslationActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x DeleteOfferTranslationActionResponse) GetPayload() interface{} {
+	return x.Payload
+}
+
 // DeleteOfferTranslationActionRaw registers a raw Gin route for the DeleteOfferTranslationAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func DeleteOfferTranslationActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := DeleteOfferTranslationActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // DeleteOfferTranslationActionHandler returns the HTTP method, route URL, and a typed Gin handler for the DeleteOfferTranslationAction action.
+}
+
+type DeleteOfferTranslationActionRequestSig = func(c DeleteOfferTranslationActionRequest) (*DeleteOfferTranslationActionResponse, error)
+
+// DeleteOfferTranslationActionHandler returns the HTTP method, route URL, and a typed Gin handler for the DeleteOfferTranslationAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func DeleteOfferTranslationActionHandler(
-	handler func(c DeleteOfferTranslationActionRequest, gin *gin.Context) (*DeleteOfferTranslationActionResponse, error),
+	handler DeleteOfferTranslationActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := DeleteOfferTranslationActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -53,8 +101,9 @@ func DeleteOfferTranslationActionHandler(
 		req := DeleteOfferTranslationActionRequest{
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -83,7 +132,7 @@ func DeleteOfferTranslationActionHandler(
 // DeleteOfferTranslationAction is a high-level convenience wrapper around DeleteOfferTranslationActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func DeleteOfferTranslationAction(r gin.IRoutes, handler func(c DeleteOfferTranslationActionRequest, gin *gin.Context) (*DeleteOfferTranslationActionResponse, error)) {
+func DeleteOfferTranslationActionGin(r gin.IRoutes, handler DeleteOfferTranslationActionRequestSig) {
 	method, url, h := DeleteOfferTranslationActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -139,6 +188,8 @@ func (q *DeleteOfferTranslationActionQuery) SetMapped(m map[string]interface{}) 
 type DeleteOfferTranslationActionRequest struct {
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type DeleteOfferTranslationActionResult struct {
 	resp    *http.Response // embed original response

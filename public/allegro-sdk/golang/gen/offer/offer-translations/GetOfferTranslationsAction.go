@@ -3,36 +3,97 @@ package external
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
 )
 
 /**
 * Action to communicate with the action GetOfferTranslationsAction
  */
 func GetOfferTranslationsActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name   string
-		URL    string
-		Method string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:   "GetOfferTranslationsAction",
-		URL:    "https://api.{environment}/sale/offers/{offerId}/translations",
-		Method: "GET",
+		Name:        "GetOfferTranslationsAction",
+		CliName:     "get offer translations-action",
+		URL:         "https://api.{environment}/sale/offers/{offerId}/translations",
+		Method:      "GET",
+		Description: `Get offer translation for given language or all present. Read more: PL / EN.`,
 	}
+}
+func GetGetOfferTranslationsActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "translations",
+			Type: "array",
+		},
+	}
+}
+func CastGetOfferTranslationsActionResFromCli(c emigo.CliCastable) GetOfferTranslationsActionRes {
+	data := GetOfferTranslationsActionRes{}
+	if c.IsSet("translations") {
+		data.Translations = emigo.CapturePossibleArray(CastGetOfferTranslationsActionResTranslationsFromCli, "translations", c)
+	}
+	return data
 }
 
 // The base class definition for getOfferTranslationsActionRes
 type GetOfferTranslationsActionRes struct {
 	Translations []GetOfferTranslationsActionResTranslations `json:"translations" yaml:"translations"`
+}
+
+func GetGetOfferTranslationsActionResTranslationsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "language",
+			Type: "string",
+		},
+		{
+			Name:     prefix + "title",
+			Type:     "object",
+			Children: GetGetOfferTranslationsActionResTranslationsTitleCliFlags("title-"),
+		},
+		{
+			Name:     prefix + "description",
+			Type:     "object",
+			Children: GetGetOfferTranslationsActionResTranslationsDescriptionCliFlags("description-"),
+		},
+		{
+			Name:     prefix + "safety-information",
+			Type:     "object",
+			Children: GetGetOfferTranslationsActionResTranslationsSafetyInformationCliFlags("safety-information-"),
+		},
+	}
+}
+func CastGetOfferTranslationsActionResTranslationsFromCli(c emigo.CliCastable) GetOfferTranslationsActionResTranslations {
+	data := GetOfferTranslationsActionResTranslations{}
+	if c.IsSet("language") {
+		data.Language = c.String("language")
+	}
+	if c.IsSet("title") {
+		data.Title = CastGetOfferTranslationsActionResTranslationsTitleFromCli(c)
+	}
+	if c.IsSet("description") {
+		data.Description = CastGetOfferTranslationsActionResTranslationsDescriptionFromCli(c)
+	}
+	if c.IsSet("safety-information") {
+		data.SafetyInformation = CastGetOfferTranslationsActionResTranslationsSafetyInformationFromCli(c)
+	}
+	return data
 }
 
 // The base class definition for translations
@@ -43,10 +104,57 @@ type GetOfferTranslationsActionResTranslations struct {
 	SafetyInformation GetOfferTranslationsActionResTranslationsSafetyInformation `json:"safetyInformation" yaml:"safetyInformation"`
 }
 
+func GetGetOfferTranslationsActionResTranslationsTitleCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "translation",
+			Type: "string",
+		},
+		{
+			Name: prefix + "type",
+			Type: "string",
+		},
+	}
+}
+func CastGetOfferTranslationsActionResTranslationsTitleFromCli(c emigo.CliCastable) GetOfferTranslationsActionResTranslationsTitle {
+	data := GetOfferTranslationsActionResTranslationsTitle{}
+	if c.IsSet("translation") {
+		data.Translation = c.String("translation")
+	}
+	if c.IsSet("type") {
+		data.Type = c.String("type")
+	}
+	return data
+}
+
 // The base class definition for title
 type GetOfferTranslationsActionResTranslationsTitle struct {
 	Translation string `json:"translation" yaml:"translation"`
 	Type        string `json:"type" yaml:"type"`
+}
+
+func GetGetOfferTranslationsActionResTranslationsDescriptionCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "translation",
+			Type:     "object",
+			Children: GetGetOfferTranslationsActionResTranslationsDescriptionTranslationCliFlags("translation-"),
+		},
+		{
+			Name: prefix + "type",
+			Type: "string",
+		},
+	}
+}
+func CastGetOfferTranslationsActionResTranslationsDescriptionFromCli(c emigo.CliCastable) GetOfferTranslationsActionResTranslationsDescription {
+	data := GetOfferTranslationsActionResTranslationsDescription{}
+	if c.IsSet("translation") {
+		data.Translation = CastGetOfferTranslationsActionResTranslationsDescriptionTranslationFromCli(c)
+	}
+	if c.IsSet("type") {
+		data.Type = c.String("type")
+	}
+	return data
 }
 
 // The base class definition for description
@@ -55,9 +163,41 @@ type GetOfferTranslationsActionResTranslationsDescription struct {
 	Type        string                                                          `json:"type" yaml:"type"`
 }
 
+func GetGetOfferTranslationsActionResTranslationsDescriptionTranslationCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "sections",
+			Type: "array",
+		},
+	}
+}
+func CastGetOfferTranslationsActionResTranslationsDescriptionTranslationFromCli(c emigo.CliCastable) GetOfferTranslationsActionResTranslationsDescriptionTranslation {
+	data := GetOfferTranslationsActionResTranslationsDescriptionTranslation{}
+	if c.IsSet("sections") {
+		data.Sections = emigo.CapturePossibleArray(CastGetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsFromCli, "sections", c)
+	}
+	return data
+}
+
 // The base class definition for translation
 type GetOfferTranslationsActionResTranslationsDescriptionTranslation struct {
 	Sections []GetOfferTranslationsActionResTranslationsDescriptionTranslationSections `json:"sections" yaml:"sections"`
+}
+
+func GetGetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "items",
+			Type: "array",
+		},
+	}
+}
+func CastGetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsFromCli(c emigo.CliCastable) GetOfferTranslationsActionResTranslationsDescriptionTranslationSections {
+	data := GetOfferTranslationsActionResTranslationsDescriptionTranslationSections{}
+	if c.IsSet("items") {
+		data.Items = emigo.CapturePossibleArray(CastGetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItemsFromCli, "items", c)
+	}
+	return data
 }
 
 // The base class definition for sections
@@ -65,14 +205,76 @@ type GetOfferTranslationsActionResTranslationsDescriptionTranslationSections str
 	Items []GetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItems `json:"items" yaml:"items"`
 }
 
+func GetGetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItemsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "type",
+			Type: "string",
+		},
+	}
+}
+func CastGetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItemsFromCli(c emigo.CliCastable) GetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItems {
+	data := GetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItems{}
+	if c.IsSet("type") {
+		data.Type = c.String("type")
+	}
+	return data
+}
+
 // The base class definition for items
 type GetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItems struct {
 	Type string `json:"type" yaml:"type"`
 }
 
+func GetGetOfferTranslationsActionResTranslationsSafetyInformationCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "products",
+			Type: "array",
+		},
+	}
+}
+func CastGetOfferTranslationsActionResTranslationsSafetyInformationFromCli(c emigo.CliCastable) GetOfferTranslationsActionResTranslationsSafetyInformation {
+	data := GetOfferTranslationsActionResTranslationsSafetyInformation{}
+	if c.IsSet("products") {
+		data.Products = emigo.CapturePossibleArray(CastGetOfferTranslationsActionResTranslationsSafetyInformationProductsFromCli, "products", c)
+	}
+	return data
+}
+
 // The base class definition for safetyInformation
 type GetOfferTranslationsActionResTranslationsSafetyInformation struct {
 	Products []GetOfferTranslationsActionResTranslationsSafetyInformationProducts `json:"products" yaml:"products"`
+}
+
+func GetGetOfferTranslationsActionResTranslationsSafetyInformationProductsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "translation",
+			Type: "string",
+		},
+		{
+			Name: prefix + "type",
+			Type: "string",
+		},
+	}
+}
+func CastGetOfferTranslationsActionResTranslationsSafetyInformationProductsFromCli(c emigo.CliCastable) GetOfferTranslationsActionResTranslationsSafetyInformationProducts {
+	data := GetOfferTranslationsActionResTranslationsSafetyInformationProducts{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("translation") {
+		data.Translation = c.String("translation")
+	}
+	if c.IsSet("type") {
+		data.Type = c.String("type")
+	}
+	return data
 }
 
 // The base class definition for products
@@ -81,10 +283,56 @@ type GetOfferTranslationsActionResTranslationsSafetyInformationProducts struct {
 	Translation string `json:"translation" yaml:"translation"`
 	Type        string `json:"type" yaml:"type"`
 }
+
+func (x *GetOfferTranslationsActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+
 type GetOfferTranslationsActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
+}
+
+func (x *GetOfferTranslationsActionResponse) SetContentType(contentType string) *GetOfferTranslationsActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *GetOfferTranslationsActionResponse) AsStream(r io.Reader, contentType string) *GetOfferTranslationsActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *GetOfferTranslationsActionResponse) AsJSON(payload any) *GetOfferTranslationsActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *GetOfferTranslationsActionResponse) AsHTML(payload string) *GetOfferTranslationsActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *GetOfferTranslationsActionResponse) AsBytes(payload []byte) *GetOfferTranslationsActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+func (x GetOfferTranslationsActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x GetOfferTranslationsActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x GetOfferTranslationsActionResponse) GetPayload() interface{} {
+	return x.Payload
 }
 
 // GetOfferTranslationsActionRaw registers a raw Gin route for the GetOfferTranslationsAction action.
@@ -92,11 +340,15 @@ type GetOfferTranslationsActionResponse struct {
 func GetOfferTranslationsActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := GetOfferTranslationsActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // GetOfferTranslationsActionHandler returns the HTTP method, route URL, and a typed Gin handler for the GetOfferTranslationsAction action.
+}
+
+type GetOfferTranslationsActionRequestSig = func(c GetOfferTranslationsActionRequest) (*GetOfferTranslationsActionResponse, error)
+
+// GetOfferTranslationsActionHandler returns the HTTP method, route URL, and a typed Gin handler for the GetOfferTranslationsAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func GetOfferTranslationsActionHandler(
-	handler func(c GetOfferTranslationsActionRequest, gin *gin.Context) (*GetOfferTranslationsActionResponse, error),
+	handler GetOfferTranslationsActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := GetOfferTranslationsActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -104,8 +356,9 @@ func GetOfferTranslationsActionHandler(
 		req := GetOfferTranslationsActionRequest{
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -134,7 +387,7 @@ func GetOfferTranslationsActionHandler(
 // GetOfferTranslationsAction is a high-level convenience wrapper around GetOfferTranslationsActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func GetOfferTranslationsAction(r gin.IRoutes, handler func(c GetOfferTranslationsActionRequest, gin *gin.Context) (*GetOfferTranslationsActionResponse, error)) {
+func GetOfferTranslationsActionGin(r gin.IRoutes, handler GetOfferTranslationsActionRequestSig) {
 	method, url, h := GetOfferTranslationsActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -190,6 +443,8 @@ func (q *GetOfferTranslationsActionQuery) SetMapped(m map[string]interface{}) {
 type GetOfferTranslationsActionRequest struct {
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type GetOfferTranslationsActionResult struct {
 	resp    *http.Response // embed original response

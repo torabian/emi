@@ -4,31 +4,60 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
 )
 
 /**
 * Action to communicate with the action ModifyTheBuyNowPriceInAnOfferAction
  */
 func ModifyTheBuyNowPriceInAnOfferActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name   string
-		URL    string
-		Method string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:   "ModifyTheBuyNowPriceInAnOfferAction",
-		URL:    "https://api.{environment}/offers/{offerId}/change-price-commands/{commandId}",
-		Method: "PUT",
+		Name:        "ModifyTheBuyNowPriceInAnOfferAction",
+		CliName:     "modify the -buy -now price in an offer-action",
+		URL:         "https://api.{environment}/offers/{offerId}/change-price-commands/{commandId}",
+		Method:      "PUT",
+		Description: `Use this resource to change the Buy Now price in a single offer. Read more: PL / EN.`,
 	}
+}
+func GetModifyTheBuyNowPriceInAnOfferActionReqCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name:     prefix + "input",
+			Type:     "object",
+			Children: GetModifyTheBuyNowPriceInAnOfferActionReqInputCliFlags("input-"),
+		},
+	}
+}
+func CastModifyTheBuyNowPriceInAnOfferActionReqFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionReq {
+	data := ModifyTheBuyNowPriceInAnOfferActionReq{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("input") {
+		data.Input = CastModifyTheBuyNowPriceInAnOfferActionReqInputFromCli(c)
+	}
+	return data
 }
 
 // The base class definition for modifyTheBuyNowPriceInAnOfferActionReq
@@ -37,15 +66,94 @@ type ModifyTheBuyNowPriceInAnOfferActionReq struct {
 	Input ModifyTheBuyNowPriceInAnOfferActionReqInput `json:"input" yaml:"input"`
 }
 
+func GetModifyTheBuyNowPriceInAnOfferActionReqInputCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "buy-now-price",
+			Type:     "object",
+			Children: GetModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPriceCliFlags("buy-now-price-"),
+		},
+	}
+}
+func CastModifyTheBuyNowPriceInAnOfferActionReqInputFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionReqInput {
+	data := ModifyTheBuyNowPriceInAnOfferActionReqInput{}
+	if c.IsSet("buy-now-price") {
+		data.BuyNowPrice = CastModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPriceFromCli(c)
+	}
+	return data
+}
+
 // The base class definition for input
 type ModifyTheBuyNowPriceInAnOfferActionReqInput struct {
 	BuyNowPrice ModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPrice `json:"buyNowPrice" yaml:"buyNowPrice"`
+}
+
+func GetModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPriceCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "amount",
+			Type: "string",
+		},
+		{
+			Name: prefix + "currency",
+			Type: "string",
+		},
+	}
+}
+func CastModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPriceFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPrice {
+	data := ModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPrice{}
+	if c.IsSet("amount") {
+		data.Amount = c.String("amount")
+	}
+	if c.IsSet("currency") {
+		data.Currency = c.String("currency")
+	}
+	return data
 }
 
 // The base class definition for buyNowPrice
 type ModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPrice struct {
 	Amount   string `json:"amount" yaml:"amount"`
 	Currency string `json:"currency" yaml:"currency"`
+}
+
+func (x *ModifyTheBuyNowPriceInAnOfferActionReq) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+func GetModifyTheBuyNowPriceInAnOfferActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name:     prefix + "input",
+			Type:     "object",
+			Children: GetModifyTheBuyNowPriceInAnOfferActionResInputCliFlags("input-"),
+		},
+		{
+			Name:     prefix + "output",
+			Type:     "object",
+			Children: GetModifyTheBuyNowPriceInAnOfferActionResOutputCliFlags("output-"),
+		},
+	}
+}
+func CastModifyTheBuyNowPriceInAnOfferActionResFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionRes {
+	data := ModifyTheBuyNowPriceInAnOfferActionRes{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("input") {
+		data.Input = CastModifyTheBuyNowPriceInAnOfferActionResInputFromCli(c)
+	}
+	if c.IsSet("output") {
+		data.Output = CastModifyTheBuyNowPriceInAnOfferActionResOutputFromCli(c)
+	}
+	return data
 }
 
 // The base class definition for modifyTheBuyNowPriceInAnOfferActionRes
@@ -55,9 +163,49 @@ type ModifyTheBuyNowPriceInAnOfferActionRes struct {
 	Output ModifyTheBuyNowPriceInAnOfferActionResOutput `json:"output" yaml:"output"`
 }
 
+func GetModifyTheBuyNowPriceInAnOfferActionResInputCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "buy-now-price",
+			Type:     "object",
+			Children: GetModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPriceCliFlags("buy-now-price-"),
+		},
+	}
+}
+func CastModifyTheBuyNowPriceInAnOfferActionResInputFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResInput {
+	data := ModifyTheBuyNowPriceInAnOfferActionResInput{}
+	if c.IsSet("buy-now-price") {
+		data.BuyNowPrice = CastModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPriceFromCli(c)
+	}
+	return data
+}
+
 // The base class definition for input
 type ModifyTheBuyNowPriceInAnOfferActionResInput struct {
 	BuyNowPrice ModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPrice `json:"buyNowPrice" yaml:"buyNowPrice"`
+}
+
+func GetModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPriceCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "amount",
+			Type: "string",
+		},
+		{
+			Name: prefix + "currency",
+			Type: "string",
+		},
+	}
+}
+func CastModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPriceFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPrice {
+	data := ModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPrice{}
+	if c.IsSet("amount") {
+		data.Amount = c.String("amount")
+	}
+	if c.IsSet("currency") {
+		data.Currency = c.String("currency")
+	}
+	return data
 }
 
 // The base class definition for buyNowPrice
@@ -66,10 +214,85 @@ type ModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPrice struct {
 	Currency string `json:"currency" yaml:"currency"`
 }
 
+func GetModifyTheBuyNowPriceInAnOfferActionResOutputCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "status",
+			Type: "string",
+		},
+		{
+			Name: prefix + "errors",
+			Type: "array",
+		},
+	}
+}
+func CastModifyTheBuyNowPriceInAnOfferActionResOutputFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResOutput {
+	data := ModifyTheBuyNowPriceInAnOfferActionResOutput{}
+	if c.IsSet("status") {
+		data.Status = c.String("status")
+	}
+	if c.IsSet("errors") {
+		data.Errors = emigo.CapturePossibleArray(CastModifyTheBuyNowPriceInAnOfferActionResOutputErrorsFromCli, "errors", c)
+	}
+	return data
+}
+
 // The base class definition for output
 type ModifyTheBuyNowPriceInAnOfferActionResOutput struct {
 	Status string                                               `json:"status" yaml:"status"`
 	Errors []ModifyTheBuyNowPriceInAnOfferActionResOutputErrors `json:"errors" yaml:"errors"`
+}
+
+func GetModifyTheBuyNowPriceInAnOfferActionResOutputErrorsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "code",
+			Type: "string",
+		},
+		{
+			Name: prefix + "details",
+			Type: "string",
+		},
+		{
+			Name: prefix + "message",
+			Type: "string",
+		},
+		{
+			Name: prefix + "path",
+			Type: "string",
+		},
+		{
+			Name: prefix + "user-message",
+			Type: "string",
+		},
+		{
+			Name:     prefix + "metadata",
+			Type:     "object",
+			Children: GetModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadataCliFlags("metadata-"),
+		},
+	}
+}
+func CastModifyTheBuyNowPriceInAnOfferActionResOutputErrorsFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResOutputErrors {
+	data := ModifyTheBuyNowPriceInAnOfferActionResOutputErrors{}
+	if c.IsSet("code") {
+		data.Code = c.String("code")
+	}
+	if c.IsSet("details") {
+		data.Details = c.String("details")
+	}
+	if c.IsSet("message") {
+		data.Message = c.String("message")
+	}
+	if c.IsSet("path") {
+		data.Path = c.String("path")
+	}
+	if c.IsSet("user-message") {
+		data.UserMessage = c.String("user-message")
+	}
+	if c.IsSet("metadata") {
+		data.Metadata = CastModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadataFromCli(c)
+	}
+	return data
 }
 
 // The base class definition for errors
@@ -82,14 +305,76 @@ type ModifyTheBuyNowPriceInAnOfferActionResOutputErrors struct {
 	Metadata    ModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadata `json:"metadata" yaml:"metadata"`
 }
 
+func GetModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadataCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "product-id",
+			Type: "string",
+		},
+	}
+}
+func CastModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadataFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadata {
+	data := ModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadata{}
+	if c.IsSet("product-id") {
+		data.ProductId = c.String("product-id")
+	}
+	return data
+}
+
 // The base class definition for metadata
 type ModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadata struct {
 	ProductId string `json:"productId" yaml:"productId"`
 }
+
+func (x *ModifyTheBuyNowPriceInAnOfferActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+
 type ModifyTheBuyNowPriceInAnOfferActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
+}
+
+func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) SetContentType(contentType string) *ModifyTheBuyNowPriceInAnOfferActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) AsStream(r io.Reader, contentType string) *ModifyTheBuyNowPriceInAnOfferActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) AsJSON(payload any) *ModifyTheBuyNowPriceInAnOfferActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) AsHTML(payload string) *ModifyTheBuyNowPriceInAnOfferActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) AsBytes(payload []byte) *ModifyTheBuyNowPriceInAnOfferActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+func (x ModifyTheBuyNowPriceInAnOfferActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x ModifyTheBuyNowPriceInAnOfferActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x ModifyTheBuyNowPriceInAnOfferActionResponse) GetPayload() interface{} {
+	return x.Payload
 }
 
 // ModifyTheBuyNowPriceInAnOfferActionRaw registers a raw Gin route for the ModifyTheBuyNowPriceInAnOfferAction action.
@@ -97,11 +382,15 @@ type ModifyTheBuyNowPriceInAnOfferActionResponse struct {
 func ModifyTheBuyNowPriceInAnOfferActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ModifyTheBuyNowPriceInAnOfferActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // ModifyTheBuyNowPriceInAnOfferActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ModifyTheBuyNowPriceInAnOfferAction action.
+}
+
+type ModifyTheBuyNowPriceInAnOfferActionRequestSig = func(c ModifyTheBuyNowPriceInAnOfferActionRequest) (*ModifyTheBuyNowPriceInAnOfferActionResponse, error)
+
+// ModifyTheBuyNowPriceInAnOfferActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ModifyTheBuyNowPriceInAnOfferAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ModifyTheBuyNowPriceInAnOfferActionHandler(
-	handler func(c ModifyTheBuyNowPriceInAnOfferActionRequest, gin *gin.Context) (*ModifyTheBuyNowPriceInAnOfferActionResponse, error),
+	handler ModifyTheBuyNowPriceInAnOfferActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := ModifyTheBuyNowPriceInAnOfferActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -115,8 +404,9 @@ func ModifyTheBuyNowPriceInAnOfferActionHandler(
 			Body:        body,
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -145,7 +435,7 @@ func ModifyTheBuyNowPriceInAnOfferActionHandler(
 // ModifyTheBuyNowPriceInAnOfferAction is a high-level convenience wrapper around ModifyTheBuyNowPriceInAnOfferActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ModifyTheBuyNowPriceInAnOfferAction(r gin.IRoutes, handler func(c ModifyTheBuyNowPriceInAnOfferActionRequest, gin *gin.Context) (*ModifyTheBuyNowPriceInAnOfferActionResponse, error)) {
+func ModifyTheBuyNowPriceInAnOfferActionGin(r gin.IRoutes, handler ModifyTheBuyNowPriceInAnOfferActionRequestSig) {
 	method, url, h := ModifyTheBuyNowPriceInAnOfferActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -202,6 +492,8 @@ type ModifyTheBuyNowPriceInAnOfferActionRequest struct {
 	Body        ModifyTheBuyNowPriceInAnOfferActionReq
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type ModifyTheBuyNowPriceInAnOfferActionResult struct {
 	resp    *http.Response // embed original response
