@@ -1,4 +1,5 @@
 import { Decimal } from "decimal";
+import { type PartialDeep } from "./sdk/common/fetchx";
 /**
  * The base class definition for computeDto
  **/
@@ -179,13 +180,6 @@ export class ComputeDto {
 export abstract class ComputeDtoFactory {
   abstract create(data: unknown): ComputeDto;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for computeDto
  **/

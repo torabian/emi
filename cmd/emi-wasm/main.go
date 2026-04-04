@@ -129,7 +129,15 @@ func StringOutFactory(
 func getPublicActions(this js.Value, args []js.Value) any {
 	actionsJs := emijs.GetJsPublicActions() // from your js package
 	actionsGolang := golang.GetGolangPublicActions()
-	return publicAPIActionsToJS([]core.PublicAPIActions{actionsGolang, actionsJs})
+	actionsSwift := swift.GetSwiftPublicActions()
+	actionsKotlin := kotlin.GetKotlinPublicActions()
+
+	return publicAPIActionsToJS([]core.PublicAPIActions{
+		actionsJs,
+		actionsGolang,
+		actionsSwift,
+		actionsKotlin,
+	})
 }
 
 // Helper to convert PublicAPIActions to JS object

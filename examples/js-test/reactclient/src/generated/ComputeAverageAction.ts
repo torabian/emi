@@ -1,13 +1,13 @@
 import { AverageDto } from "./AverageDto";
 import { ComputeDto } from "./ComputeDto";
+import { buildUrl } from "./sdk/common/buildUrl";
 import {
-  FetchxContext,
   fetchx,
   handleFetchResponse,
+  type FetchxContext,
   type TypedRequestInit,
   type TypedResponse,
 } from "./sdk/common/fetchx";
-import { buildUrl } from "./sdk/common/buildUrl";
 import { type UseMutationOptions, useMutation } from "@tanstack/react-query";
 import { useFetchxContext } from "./sdk/react/useFetchx";
 import { useState } from "react";

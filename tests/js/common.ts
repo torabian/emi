@@ -2,6 +2,7 @@ import { createInstance } from "../../emi-npm/bin/getPublicActions";
 import yaml from "js-yaml";
 import {
   MethodDeclaration,
+  ModuleKind,
   ModuleResolutionKind,
   Project,
   PropertyDeclaration,
@@ -32,10 +33,16 @@ function checkTsCode(code: string) {
   const project = new Project({
     useInMemoryFileSystem: true,
     skipAddingFilesFromTsConfig: true,
+    skipFileDependencyResolution: true,
     compilerOptions: {
-      target: ts.ScriptTarget.ES2019, // or higher, e.g. ES2020
+      target: ts.ScriptTarget.ES2019, // or higher, e.g. ES2020,\
     },
   });
+
+  project.createSourceFile(
+  "/sdk/common/fetchx.ts",
+  "export type PartialDeep<T>: any;",
+);
 
   const sourceFile = project.createSourceFile("temp.ts", code);
 
@@ -65,7 +72,7 @@ function runEmiActionTs(
     context
   );
 
-  resp = resp.replace(/^import .*$/gm, "");
+  // resp = resp.replace(/^import .*$/gm, "");
 
   resp += `
   

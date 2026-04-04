@@ -90,6 +90,10 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if strings.Contains(field.Complex, "+") {
 				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
 			}

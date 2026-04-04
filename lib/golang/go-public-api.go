@@ -167,6 +167,10 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	var entitiesAndDtos []*core.CodeChunkCompiled
 
 	for _, dto := range module.Dto {
+		if dto.Name == "" {
+			continue
+		}
+
 		if config.Dtos != nil && len(*config.Dtos) > 0 && !slices.Contains(config.GetDtos(), dto.Name) {
 			continue
 		}

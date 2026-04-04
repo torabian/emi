@@ -53,7 +53,7 @@ func main() {
 
 	app := &cli.App{
 		Name:     "Emi compiler",
-		Usage:    "Module3 definitions code generator",
+		Usage:    "Backend-for-Frontend with automatic SDK generation.",
 		Commands: commands,
 	}
 
@@ -302,7 +302,7 @@ func cliCommandFromFileAction(a core.ActionFile) cli.Command {
 var DirCommand = cli.Command{
 	Name:        "qp:dir",
 	Description: "Searches for .sql files in given directory, considering maximum depth, and would generate querypredict golang files in output ",
-	Usage:       "Searches for .sql files in given directory, considering maximum depth, and would generate querypredict golang files in output ",
+	Usage:       "Scan a directory for .sql files (with optional depth) and generate QueryPredict Go code.",
 	Flags:       commonFlags,
 	Action: func(c *cli.Context) error {
 

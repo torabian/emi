@@ -94,6 +94,10 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if strings.Contains(field.Complex, "+") {
 				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
 			}
@@ -115,6 +119,10 @@ func CollectTargets(fields []*core.EmiField) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Target != "" {
 				result = append(result, field.Target)
 			}
@@ -135,6 +143,10 @@ func hasClassesAsChildren(fields []*core.EmiField) bool {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeCollectionNullable || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeCollection {
 				result = true
 				break
@@ -175,6 +187,14 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
 			Objects:  []string{"withPrefix"},
 			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/withPrefix",
+		})
+	}
+
+	// Not sure under which condition need to import partial deep.
+	if isTypeScript {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Objects:  []string{"type PartialDeep"},
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
 		})
 	}
 
@@ -373,15 +393,6 @@ export abstract class %vFactory {
 	{{ .abstractFactoryClass }}
 {{ end }}
 
-{{ if .isTypeScript }}
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
-{{ end }}
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))

@@ -25,6 +25,7 @@ fields:
 - `object?` allows `null`/ `undefined`.  
     
 ```ts
+import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myObjectClassDto
@@ -300,13 +301,6 @@ export class MyObjectClassDto {
 export abstract class MyObjectClassDtoFactory {
   abstract create(data: unknown): MyObjectClassDto;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for myObjectClassDto
  **/
@@ -355,6 +349,7 @@ fields:
 Defaults to `undefined`, but you can assign an object with required child fields or `null`.
     
 ```ts
+import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for myObjectClassDto
@@ -611,13 +606,6 @@ export class MyObjectClassDto {
 export abstract class MyObjectClassDtoFactory {
   abstract create(data: unknown): MyObjectClassDto;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for myObjectClassDto
  **/

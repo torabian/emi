@@ -6,6 +6,7 @@ package js
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"strings"
 	"text/template"
 
@@ -24,6 +25,9 @@ func findTokenByName(realms []core.GeneratedScriptToken, name string) *core.Gene
 }
 
 func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, ctx core.MicroGenContext) (*core.CodeChunkCompiled, fetchStaticFunctionContext, error) {
+	if action == nil || reflect.ValueOf(action).IsNil() {
+		return nil, fetchStaticFunctionContext{}, nil
+	}
 
 	className := realms.ActionName
 	fetchctx := fetchStaticFunctionContext{

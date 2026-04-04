@@ -1,5 +1,5 @@
 import {
-  FetchxContext,
+  type FetchxContext,
   fetchx,
   handleFetchResponse,
   type TypedRequestInit,
