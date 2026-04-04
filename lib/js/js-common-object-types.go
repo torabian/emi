@@ -81,9 +81,6 @@ func tsRenderFields(fields []*core.EmiField, parentChain string) []tsRenderedFie
 }
 
 func tsRenderTypes(fields []*core.EmiField, typeName string, treeLocation string, isFirst bool) []tsRenderedType {
-	if len(fields) == 0 {
-		return []tsRenderedType{}
-	}
 
 	typeNameUpper := core.ToUpper(typeName)
 
