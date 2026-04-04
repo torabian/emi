@@ -39,9 +39,6 @@ func treeAsType(treeLocation string) string {
 
 func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, isFirst bool, ctx core.MicroGenContext, jsctx JsCommonObjectContext) []jsRenderedDataClass {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	if len(fields) == 0 {
-		return nil
-	}
 
 	jsdoc := NewJsDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("export class %v", core.ToUpper(className))

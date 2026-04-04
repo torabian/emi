@@ -51,9 +51,6 @@ type commonClassContext struct {
 }
 
 func renderClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx commonClassContext) []renderedClass {
-	if len(fields) == 0 {
-		return nil
-	}
 
 	GoDoc := NewDocC("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("struct %v: Codable", prefixName)

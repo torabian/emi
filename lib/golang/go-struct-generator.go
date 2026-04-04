@@ -56,10 +56,6 @@ type GoCommonStructContext struct {
 }
 
 func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx GoCommonStructContext) []goRenderedStruct {
-	// if len(fields) == 0 {
-	// 	return nil
-	// }
-
 	GoDoc := NewGoDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("type %v struct", prefixName)
 
