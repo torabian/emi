@@ -38,4 +38,7 @@ export declare class FetchxContext {
     handle<T>(res: TypedResponse<T>): Promise<TypedResponse<T>>;
     clone(overrides?: Partial<FetchxContext>): FetchxContext;
 }
+export type PartialDeep<T> = {
+    [P in keyof T]?: T[P] extends Array<infer U> ? Array<PartialDeep<U>> : T[P] extends object ? PartialDeep<T[P]> : T[P];
+};
 export {};

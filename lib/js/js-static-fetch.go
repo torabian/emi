@@ -332,11 +332,18 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		ActualScript: []byte(templateResult),
 		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"fetchx", "FetchxContext"},
+				Objects:  []string{"fetchx"},
 				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{},
+	}
+
+	if isTypeScript {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Objects:  []string{"type FetchxContext"},
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
+		})
 	}
 
 	if creatorFn != nil {

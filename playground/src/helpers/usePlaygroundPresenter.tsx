@@ -26,6 +26,10 @@ export const usePlaygroundPresenter = () => {
         Tags: features.join(","),
       });
 
+      if (!res) {
+        return
+      }
+
       const formattedPromises = res.map(async (item: any) => {
         try {
           if (

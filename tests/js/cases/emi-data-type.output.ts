@@ -1,3 +1,4 @@
+import { type PartialDeep } from './sdk/common/fetchx';
 /**
   * The base class definition for anonymouse
   **/
@@ -814,13 +815,6 @@ setNullableFloat64FieldWithValue (value: number | null | undefined) {
 export abstract class AnonymouseFactory {
 	abstract create(data: unknown): Anonymouse;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 	/**
   * The base type definition for anonymouse
   **/

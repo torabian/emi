@@ -37,6 +37,7 @@ fields:
 
 ```ts
 import { UncleDto } from "./UncleDto";
+import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for nullableResponseActionDto
@@ -523,13 +524,6 @@ export class NullableResponseActionDto {
 export abstract class NullableResponseActionDtoFactory {
   abstract create(data: unknown): NullableResponseActionDto;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for nullableResponseActionDto
  **/

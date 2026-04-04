@@ -1,5 +1,6 @@
 import { WebSocketX } from "./sdk/common/WebSocketX";
 import { buildUrl } from "./sdk/common/buildUrl";
+import { type PartialDeep } from "./sdk/common/fetchx";
 import { useWebSocketX } from "./sdk/react/useWebSocketX";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -593,13 +594,6 @@ export class WebSocketOrgEchoActionReq {
 export abstract class WebSocketOrgEchoActionReqFactory {
   abstract create(data: unknown): WebSocketOrgEchoActionReq;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for webSocketOrgEchoActionReq
  **/
@@ -770,13 +764,6 @@ export class WebSocketOrgEchoActionRes {
 export abstract class WebSocketOrgEchoActionResFactory {
   abstract create(data: unknown): WebSocketOrgEchoActionRes;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for webSocketOrgEchoActionRes
  **/

@@ -1,6 +1,8 @@
 package kotlin
 
 import (
+	"reflect"
+
 	"github.com/torabian/emi/lib/core"
 )
 
@@ -55,9 +57,13 @@ func GetActionRealms(
 		},
 	}
 
-	realms := actionRealms{
-		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
+	realms := actionRealms{}
+
+	if action == nil || reflect.ValueOf(action).IsNil() {
+		return realms, []core.CodeChunkDependency{}, nil
 	}
+
+	realms.ActionName = core.ToUpper(core.NormaliseKey(action.GetName()))
 
 	// Header is the http headers, extending the Headers class from standard javascript
 	pathParameter, err := KotlinActionPathParams(action)

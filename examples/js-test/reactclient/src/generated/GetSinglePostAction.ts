@@ -1,12 +1,13 @@
+import { Money } from "../Money";
+import { buildUrl } from "./sdk/common/buildUrl";
 import {
-  FetchxContext,
   fetchx,
   handleFetchResponse,
+  type FetchxContext,
+  type PartialDeep,
   type TypedRequestInit,
   type TypedResponse,
 } from "./sdk/common/fetchx";
-import { Money } from "../Money";
-import { buildUrl } from "./sdk/common/buildUrl";
 import {
   type UseMutationOptions,
   type UseQueryOptions,
@@ -431,13 +432,6 @@ export class GetSinglePostActionRes {
 export abstract class GetSinglePostActionResFactory {
   abstract create(data: unknown): GetSinglePostActionRes;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for getSinglePostActionRes
  **/

@@ -2,6 +2,7 @@ package swift
 
 import (
 	"bytes"
+	"reflect"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -12,6 +13,11 @@ func SwiftActionRender(
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 ) (*core.CodeChunkCompiled, error) {
+
+	if action == nil || reflect.ValueOf(action).IsNil() {
+		return nil, nil
+	}
+
 	realms, deps, err := GetActionRealms(action, ctx, complexes)
 	if err != nil {
 		return nil, err

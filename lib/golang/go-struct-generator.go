@@ -56,9 +56,9 @@ type GoCommonStructContext struct {
 }
 
 func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx GoCommonStructContext) []goRenderedStruct {
-	if len(fields) == 0 {
-		return nil
-	}
+	// if len(fields) == 0 {
+	// 	return nil
+	// }
 
 	GoDoc := NewGoDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("type %v struct", prefixName)
@@ -96,6 +96,10 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Complex != "" && field.Type == core.FieldTypeComplex {
 				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
 			}
@@ -116,6 +120,10 @@ func DetectIfComplexIsUsed(fields []*core.EmiField) bool {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Complex != "" && field.Type == core.FieldTypeComplex {
 				result = true
 			}
@@ -145,6 +153,10 @@ func DetectIfEmiGoIsUsed(fields []*core.EmiField) bool {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			// At least in this case, a nullable value has been used.
 			if strings.Contains(string(field.Type), "?") {
 				result = true
@@ -191,6 +203,10 @@ func CollectTargets(fields []*core.EmiField, currentName string) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Provider != "" {
 				if field.Provider != currentName {
 					result = append(result, field.Provider)

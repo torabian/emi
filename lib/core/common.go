@@ -375,6 +375,10 @@ func CollectTargets(fields []*EmiField, currentName string) []string {
 	var walk func(f []*EmiField)
 	walk = func(f []*EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Target != "" {
 				if field.Target != currentName {
 					result = append(result, field.Target)

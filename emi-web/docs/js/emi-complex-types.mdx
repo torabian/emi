@@ -35,15 +35,16 @@ actions:
 ## Example Generated Code
 
 ```ts
-import {
-  FetchxContext,
-  fetchx,
-  handleFetchResponse,
-  type TypedRequestInit,
-} from "./sdk/common/fetchx";
 import { GResponse } from "./sdk/envelopes/index";
 import { Money } from "../some/directory/Money";
 import { buildUrl } from "./sdk/common/buildUrl";
+import {
+  fetchx,
+  handleFetchResponse,
+  type FetchxContext,
+  type PartialDeep,
+  type TypedRequestInit,
+} from "./sdk/common/fetchx";
 /**
  * Action to communicate with the action sample
  */
@@ -280,13 +281,6 @@ export class SampleActionRes {
 export abstract class SampleActionResFactory {
   abstract create(data: unknown): SampleActionRes;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for sampleActionRes
  **/
