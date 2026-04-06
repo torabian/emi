@@ -429,7 +429,7 @@ func jsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 	value := ""
 	if field == nil {
 		value = ""
-	} else if isSelf, valuex := getSelfReferencingField(field, ""); isSelf {
+	} else if isSelf, valuex := getSelfReferencingField(field, parentChain); isSelf {
 		return valuex
 	} else if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable {
 		value = core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
