@@ -41,7 +41,7 @@ func tsFieldType(field *core.EmiField, parentChain string) string {
 		case core.FieldTypeObject, core.FieldTypeObjectNullable:
 			value = core.ToUpper(parentChain) + "." + fieldName
 		default:
-			value = TsComputedField(field, false)
+			value = TsComputedField(field, false, parentChain)
 		}
 	}
 

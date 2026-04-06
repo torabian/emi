@@ -376,7 +376,17 @@ func goPrimitiveDetect(fieldType string) string {
 	return ""
 }
 
-func goListAndObjectTypes(field fieldLike) string {
+var SELF_FIELD = "self@"
+
+func getSelfReferencingField(fieldTaret string, parentChain string) (bool, string) {
+	if !strings.HasPrefix(fieldTaret, SELF_FIELD) {
+		return false, ""
+	}
+
+	return true, strings.ReplaceAll(fieldTaret, SELF_FIELD, strings.Split(parentChain, ".")[0])
+}
+
+func goListAndObjectTypes(field fieldLike, parentChain string) string {
 
 	// prefix := "emigo."
 	switch field.GetType() {
@@ -396,17 +406,32 @@ func goListAndObjectTypes(field fieldLike) string {
 		return fmt.Sprintf("map[%v]%v", keyType, pairType)
 
 	case core.FieldTypeOne, core.FieldTypeOneNullable:
-		if field.GetModule() != "" {
-			return field.GetModule() + "." + field.GetTarget()
+		target := field.GetTarget()
+
+		isSelf, value := getSelfReferencingField(target, parentChain)
+		if isSelf {
+			target = value
 		}
-		return field.GetTarget()
+
+		if field.GetModule() != "" {
+			return field.GetModule() + "." + target
+
+		}
+		return target
 	case core.FieldTypeArray:
 		return field.PublicName()
 	case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
-		if field.GetModule() != "" {
-			return "[]" + field.GetModule() + "." + field.GetTarget()
+		target := field.GetTarget()
+
+		isSelf, value := getSelfReferencingField(target, parentChain)
+		if isSelf {
+			target = value
 		}
-		return "[]" + field.GetTarget()
+
+		if field.GetModule() != "" {
+			return "[]" + field.GetModule() + "." + target
+		}
+		return "[]" + target
 	case core.FieldTypeSlice:
 		return "[]" + goPrimitiveDetect(field.GetPrimitive())
 	case core.FieldTypeSliceNullable:
@@ -418,13 +443,13 @@ func goListAndObjectTypes(field fieldLike) string {
 	}
 }
 
-func goComputedField(field fieldLike) string {
+func goComputedField(field fieldLike, parentChain string) string {
 
 	if goprimitive := goPrimitiveDetect(string(field.GetType())); goprimitive != "" {
 		return goprimitive
 	}
 
-	if computedType := goListAndObjectTypes(field); computedType != "" {
+	if computedType := goListAndObjectTypes(field, parentChain); computedType != "" {
 		if core.IsNullable(string(field.GetType())) {
 			return fmt.Sprintf("emigo.Nullable[%v]", computedType)
 		} else {
@@ -462,6 +487,6 @@ func goFieldTypeOnNestedClasses(
 	case core.FieldTypeArrayNullable:
 		return fmt.Sprintf("emigo.Nullable[[]%v]", prefix)
 	default:
-		return goComputedField(field)
+		return goComputedField(field, goctx.RootClassName)
 	}
 }

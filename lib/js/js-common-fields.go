@@ -140,6 +140,14 @@ func (x jsFieldVariable) Compile(isTypeScript bool) string {
 	return strings.Join(sequence, " ")
 }
 
+func getSelfReferencingField(field *core.EmiField, parentChain string) (bool, string) {
+	if !strings.HasPrefix(field.Target, SELF_FIELD) {
+		return false, ""
+	}
+
+	return true, strings.ReplaceAll(field.Target, SELF_FIELD, strings.Split(parentChain, ".")[0])
+}
+
 func jsRenderField(
 	field *core.EmiField,
 	parentChain string,
@@ -158,7 +166,10 @@ func jsRenderField(
 	// In case of target, means the constructor class is the target, not
 	// the field name with chain
 	constructorClass := core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
-	if field.Target != "" {
+	if isSelf, value := getSelfReferencingField(field, parentChain); isSelf {
+		constructorClass = value
+		//
+	} else if field.Target != "" {
 		constructorClass = field.Target
 	}
 
@@ -229,9 +240,13 @@ func jsRenderField(
 		}
 
 		classReference := core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
-		// In case of target available, means the class is external.
-		if field.Target != "" && (field.Type != core.FieldTypeEnum && field.Type != core.FieldTypeEnumNullable) {
+
+		isSelf, selfFinal := getSelfReferencingField(field, parentChain)
+
+		if !isSelf && field.Target != "" && (field.Type != core.FieldTypeEnum && field.Type != core.FieldTypeEnumNullable) {
 			classReference = field.Target
+		} else if isSelf {
+			classReference = selfFinal
 		}
 
 		if field.Type != core.FieldTypeSlice && field.Type != core.FieldTypeSliceNullable {
