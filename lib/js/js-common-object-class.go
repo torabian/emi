@@ -108,6 +108,8 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	return result
 }
 
+var SELF_FIELD = "self@"
+
 // when developer says target: AnotherEntity or target: AnotherDto, we need
 // to import that. Here we search through the definition tree and extract them all
 func CollectTargets(fields []*core.EmiField) []string {
@@ -120,7 +122,8 @@ func CollectTargets(fields []*core.EmiField) []string {
 				continue
 			}
 
-			if field.Target != "" {
+			isSelf, _ := getSelfReferencingField(field, "")
+			if field.Target != "" && !isSelf {
 				result = append(result, field.Target)
 			}
 
@@ -426,10 +429,12 @@ func jsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 	value := ""
 	if field == nil {
 		value = ""
+	} else if isSelf, valuex := getSelfReferencingField(field, ""); isSelf {
+		return valuex
 	} else if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable {
 		value = core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
 	} else {
-		value = TsComputedField(field, false)
+		value = TsComputedField(field, false, parentChain)
 	}
 
 	// For the complex fields
@@ -441,7 +446,29 @@ func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 		return ""
 	}
 	prefix := core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
+
 	switch field.Type {
+	case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
+		target := field.Target
+
+		isSelf, value := getSelfReferencingField(field, parentChain)
+
+		if isSelf {
+			target = value
+		}
+
+		return target + "[]"
+	case core.FieldTypeOne, core.FieldTypeOneNullable:
+
+		target := field.Target
+
+		isSelf, value := getSelfReferencingField(field, parentChain)
+		if isSelf {
+			target = value
+		}
+
+		return target
+
 	case core.FieldTypeObject:
 		return fmt.Sprintf("InstanceType<typeof %v>", prefix)
 	case core.FieldTypeArray:
@@ -451,6 +478,6 @@ func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 	case core.FieldTypeArrayNullable:
 		return fmt.Sprintf("InstanceType<typeof %v>[] | null | undefined", prefix)
 	default:
-		return TsComputedField(field, false)
+		return TsComputedField(field, false, parentChain)
 	}
 }

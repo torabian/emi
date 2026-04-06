@@ -19,7 +19,7 @@ func IsNullable(value string) bool {
 	return strings.Contains(value, "?")
 }
 
-func TsComputedField(field *core.EmiField, isWorkspace bool) string {
+func TsComputedField(field *core.EmiField, isWorkspace bool, parentChain string) string {
 	if field.Complex != "" {
 		return field.Complex
 	}
@@ -27,7 +27,15 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 	case "string", "text", "string?":
 		return "string"
 	case "one", "one?":
-		return field.Target
+		target := field.Target
+
+		isSelf, value := getSelfReferencingField(field, parentChain)
+
+		if isSelf {
+			target = value
+		}
+
+		return target
 	case "daterange":
 		return "any"
 	case "enum":
@@ -43,7 +51,16 @@ func TsComputedField(field *core.EmiField, isWorkspace bool) string {
 	case "json":
 		return TsCalcJsonField(field)
 	case "collection", "collection?":
-		return field.Target + "[]"
+
+		target := field.Target
+
+		isSelf, value := getSelfReferencingField(field, parentChain)
+
+		if isSelf {
+			target = value
+		}
+
+		return target + "[]"
 	case "int64?", "int32?", "int?", "float64?", "float32?":
 		return "number"
 	case "bool?":
