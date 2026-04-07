@@ -53,15 +53,21 @@ func {{ .realms.ActionName }}Meta() struct {
     Name   string
     URL    string
     Method string
+	CliName string
+	Description string
 } {
     return struct {
         Name   string
         URL    string
         Method string
+		CliName string
+		Description string
     }{
         Name:   "{{ .realms.ActionName }}",
         URL:    "{{ .realms.SafeUrl }}",
         Method: "{{ UPPER .action.Method }}",
+		CliName: "{{ .action.CliName }}",
+		Description: "{{ .action.Description }}",
     }
 }
 
@@ -142,7 +148,8 @@ type {{ .realms.ActionName }}Session struct {
 	{{ end}}
 
 	QueryParams {{ .realms.ActionName }}Query
-
+	G           *gin.Context
+	Socket      *websocket.Conn
 }
 
 type {{ .realms.ActionName }}HandlerDuplex func(*{{ .realms.ActionName }}Session)
@@ -206,6 +213,8 @@ func {{ .realms.ActionName }}DuplexGinHandler(c *gin.Context, handler {{ .realms
 		In:   in,
 		Out:  out,
 		Done: done,
+		Socket: ws,
+		G:      c,
 		Close: func(err error) {
 			close(done)
 			ws.Close()
