@@ -12,7 +12,7 @@ export class WebSocketX<
     url: string | URL,
     protocols?: string | string[],
     options?: {
-      MessageFactoryClass: ConstructorWithArg<any>;
+      MessageFactoryClass?: ConstructorWithArg<any>;
     }
   ) {
     super(url, protocols);
