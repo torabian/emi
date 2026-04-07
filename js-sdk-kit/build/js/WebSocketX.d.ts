@@ -4,7 +4,7 @@ export declare class WebSocketX<SendType = string | ArrayBufferLike | Blob | Arr
     readonly addEventListenerRaw: WebSocket["addEventListener"];
     readonly sendRaw: WebSocket["send"];
     constructor(url: string | URL, protocols?: string | string[], options?: {
-        MessageFactoryClass: ConstructorWithArg<any>;
+        MessageFactoryClass?: ConstructorWithArg<any>;
     });
     set onmessage(fn: ((this: WebSocket, ev: MessageEvent<RecieveData>) => any) | null);
     get onmessage(): ((this: WebSocket, ev: MessageEvent<RecieveData>) => any) | null;
