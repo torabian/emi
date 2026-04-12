@@ -43,7 +43,9 @@ export class MyFloatClassDto {
    *
    * @type {number}
    **/
-  set floatWithDefault(value: number) {}
+  set floatWithDefault(value: number) {
+    this.#floatWithDefault = value;
+  }
   setFloatWithDefault(value: number) {
     this.floatWithDefault = value;
     return this;
@@ -64,7 +66,9 @@ export class MyFloatClassDto {
    *
    * @type {number}
    **/
-  set plainFloat(value: number) {}
+  set plainFloat(value: number) {
+    this.#plainFloat = value;
+  }
   setPlainFloat(value: number) {
     this.plainFloat = value;
     return this;

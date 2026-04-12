@@ -490,6 +490,7 @@ get float32Field () { return this.#float32Field }
   * @type {number}
   **/
 set float32Field (value: number) {
+		this.#float32Field = value;
 }
 setFloat32Field (value: number) {
 	this.float32Field = value
@@ -510,6 +511,7 @@ get float32FieldWithValue () { return this.#float32FieldWithValue }
   * @type {number}
   **/
 set float32FieldWithValue (value: number) {
+		this.#float32FieldWithValue = value;
 }
 setFloat32FieldWithValue (value: number) {
 	this.float32FieldWithValue = value
@@ -580,6 +582,7 @@ get float64Field () { return this.#float64Field }
   * @type {number}
   **/
 set float64Field (value: number) {
+		this.#float64Field = value;
 }
 setFloat64Field (value: number) {
 	this.float64Field = value
@@ -600,6 +603,7 @@ get float64FieldWithValue () { return this.#float64FieldWithValue }
   * @type {number}
   **/
 set float64FieldWithValue (value: number) {
+		this.#float64FieldWithValue = value;
 }
 setFloat64FieldWithValue (value: number) {
 	this.float64FieldWithValue = value
