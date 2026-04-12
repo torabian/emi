@@ -154,7 +154,9 @@ func {{ .realms.ActionName }}Handler(
 		// Build typed request wrapper
 		req := {{ .realms.ActionName }}Request{
 			{{ if .realms.RequestClassName }}
-			Body:        body,
+				Body:        body,
+			{{ else }}
+				Body: nil,
 			{{ end }}
 			{{ if .realms.PathParameter }}
 			Params: {{ .realms.ActionName }}PathParameterFromGin(m),
@@ -215,6 +217,8 @@ func {{ .realms.ActionName }}Gin(r gin.IRoutes, handler {{ .realms.ActionName }}
 type {{ .realms.ActionName }}Request struct {
 	{{ if .realms.RequestClassName }}
 	Body {{ .realms.RequestClassName }}
+	{{ else }}
+	Body interface{}
 	{{ end }}
 	{{ if .realms.PathParameter }}
 	Params {{ .realms.ActionName }}PathParameter
