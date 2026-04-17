@@ -57,7 +57,7 @@ function App() {
             <a target="_blank" href="https://github.com/torabian/emi">
               Github
             </a>
-          {" "}
+            {" "}
             <a target="_blank" href="https://torabian.github.io/emi">
               Documentation
             </a>
@@ -102,6 +102,13 @@ function App() {
             {direction === "horizontal" ? "V" : "H"}
           </button>
           <div style={{ display: "flex" }}>
+            {assemblyFunction === "goGen" ? (
+              <FeatureSelector
+                options={["no-client"]}
+                setSelected={(value) => setFeatures(value)}
+                selected={features}
+              />
+            ) : null}
             {assemblyFunction === "jsGenModule" ? (
               <FeatureSelector
                 options={["nestjs", "typescript", "react"]}
