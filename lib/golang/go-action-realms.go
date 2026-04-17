@@ -22,13 +22,15 @@ type goActionRealms struct {
 	RequestClassName     string
 }
 
-var GENERATE_GO_CLINET = true
+var GEN_GO_SKIP_CLIENT = "no-client"
 
 func GoActionRealms(
 	action core.EmiRpcAction,
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 ) (goActionRealms, []core.CodeChunkDependency, error) {
+
+	skipGoClient := strings.Contains(ctx.Tags, GEN_GO_SKIP_CLIENT)
 
 	type Flags struct {
 		Emigo       string `json:"emigo,omitempty"`
@@ -65,7 +67,7 @@ func GoActionRealms(
 		},
 	}
 
-	if GENERATE_GO_CLINET {
+	if !skipGoClient {
 		deps = append(
 			deps,
 			core.CodeChunkDependency{Location: "encoding/json"},
@@ -74,9 +76,6 @@ func GoActionRealms(
 			core.CodeChunkDependency{Location: "net/url"},
 		)
 
-		if action.MethodUpper() != "GET" {
-			deps = append(deps, core.CodeChunkDependency{Location: "bytes"})
-		}
 	}
 
 	realms := goActionRealms{
@@ -146,7 +145,7 @@ func GoActionRealms(
 	}
 
 	// At the moment we need bytes when the request class is there for golang.
-	if realms.RequestClass != nil {
+	if realms.RequestClass != nil && !skipGoClient {
 		deps = append(deps, core.CodeChunkDependency{
 			Location: "bytes",
 		})

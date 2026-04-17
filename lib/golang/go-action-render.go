@@ -2,6 +2,7 @@ package golang
 
 import (
 	"bytes"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -16,6 +17,7 @@ func GoActionRender(
 	if action.GetMethod() == "reactive" {
 		return GoActionRenderReactive(action, ctx, complexes)
 	}
+	skipGoClient := strings.Contains(ctx.Tags, GEN_GO_SKIP_CLIENT)
 
 	realms, deps, err := GoActionRealms(action, ctx, complexes)
 	if err != nil {
@@ -234,6 +236,7 @@ type {{ .realms.ActionName }}Result struct {
 	Payload interface{}
 }
 
+{{ if .EnableClientRequest }}
 
 func {{ .realms.ActionName }}Call(
 	req {{ .realms.ActionName }}Request,
@@ -303,16 +306,17 @@ func {{ .realms.ActionName }}Call(
 
 	return &result, nil
 }
-
+{{ end }}
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"action":       action,
-		"realms":       realms,
-		"shouldExport": true,
+		"action":              action,
+		"realms":              realms,
+		"shouldExport":        true,
+		"EnableClientRequest": !skipGoClient,
 	}); err != nil {
 		return nil, err
 	}
