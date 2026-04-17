@@ -187,7 +187,6 @@ export class FetchxContext {
     );
   }
 }
-
 export type PartialDeep<T> = {
   [P in keyof T]?: T[P] extends Array<infer U>
     ? Array<PartialDeep<U>>

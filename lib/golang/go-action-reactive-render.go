@@ -162,7 +162,7 @@ func {{ .realms.ActionName }}ReactiveHandler(factory func(
 		read := make(chan {{ .realms.ActionName }}ReadChan)
 		done := make(chan bool)
 
-		c, err := Upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+		c, err := upgrader{{ .realms.ActionName }}.Upgrade(ctx.Writer, ctx.Request, nil)
 		if err != nil {
 			c.WriteMessage(websocket.TextMessage, []byte(err.Error()))
 

@@ -433,14 +433,22 @@ func goListAndObjectTypes(field fieldLike, parentChain string) string {
 		}
 		return "[]" + target
 	case core.FieldTypeSlice:
-		return "[]" + goPrimitiveDetect(field.GetPrimitive())
+		return "[]" + DefaultIfEmpty(goPrimitiveDetect(field.GetPrimitive()), "interface{}")
 	case core.FieldTypeSliceNullable:
-		return "[]" + goPrimitiveDetect(field.GetPrimitive())
+		return "[]" + DefaultIfEmpty(goPrimitiveDetect(field.GetPrimitive()), "interface{}")
 	case core.FieldTypeObject:
 		return field.PublicName()
 	default:
 		return "interface{}"
 	}
+}
+
+func DefaultIfEmpty(value string, defaultV string) string {
+	if value == "" {
+		return defaultV
+	}
+
+	return value
 }
 
 func goComputedField(field fieldLike, parentChain string) string {

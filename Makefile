@@ -60,3 +60,7 @@ go:
 
 nullabletest:
 	go test ./tests/nullable-test/...
+
+
+test_examples:
+	cd examples/fullstack && make
