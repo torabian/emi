@@ -1,4 +1,5 @@
 import { CommonVectorComputeDto } from "./CommonVectorComputeDto";
+import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for commonVectorResponseDto
@@ -20,7 +21,9 @@ export class CommonVectorResponseDto {
    *
    * @type {number[]}
    **/
-  set outputVector(value: number[]) {}
+  set outputVector(value: number[]) {
+    this.#outputVector = value;
+  }
   setOutputVector(value: number[]) {
     this.outputVector = value;
     return this;
@@ -160,13 +163,6 @@ export class CommonVectorResponseDto {
 export abstract class CommonVectorResponseDtoFactory {
   abstract create(data: unknown): CommonVectorResponseDto;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for commonVectorResponseDto
  **/

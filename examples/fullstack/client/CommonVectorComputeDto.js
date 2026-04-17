@@ -19,7 +19,9 @@ export class CommonVectorComputeDto {
    *
    * @type {number[]}
    **/
-  set initialVector1(value) {}
+  set initialVector1(value) {
+    this.#initialVector1 = value;
+  }
   setInitialVector1(value) {
     this.initialVector1 = value;
     return this;
@@ -88,7 +90,9 @@ export class CommonVectorComputeDto {
    *
    * @type {number[]}
    **/
-  set initialVector2(value) {}
+  set initialVector2(value) {
+    this.#initialVector2 = value;
+  }
   setInitialVector2(value) {
     this.initialVector2 = value;
     return this;
@@ -145,7 +149,9 @@ export class CommonVectorComputeDto {
    *
    * @type {string[]}
    **/
-  set fieldTypeSlice(value) {}
+  set fieldTypeSlice(value) {
+    this.#fieldTypeSlice = value;
+  }
   setFieldTypeSlice(value) {
     this.fieldTypeSlice = value;
     return this;
@@ -221,7 +227,9 @@ export class CommonVectorComputeDto {
    *
    * @type {Money}
    **/
-  set complexMoney(value) {}
+  set complexMoney(value) {
+    this.#complexMoney = value;
+  }
   setComplexMoney(value) {
     this.complexMoney = value;
     return this;

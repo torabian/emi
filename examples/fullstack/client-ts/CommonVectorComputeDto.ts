@@ -1,3 +1,4 @@
+import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for commonVectorComputeDto
@@ -19,7 +20,9 @@ export class CommonVectorComputeDto {
    *
    * @type {number[]}
    **/
-  set initialVector1(value: number[]) {}
+  set initialVector1(value: number[]) {
+    this.#initialVector1 = value;
+  }
   setInitialVector1(value: number[]) {
     this.initialVector1 = value;
     return this;
@@ -88,7 +91,9 @@ export class CommonVectorComputeDto {
    *
    * @type {number[]}
    **/
-  set initialVector2(value: number[]) {}
+  set initialVector2(value: number[]) {
+    this.#initialVector2 = value;
+  }
   setInitialVector2(value: number[]) {
     this.initialVector2 = value;
     return this;
@@ -151,7 +156,9 @@ export class CommonVectorComputeDto {
    *
    * @type {string[]}
    **/
-  set fieldTypeSlice(value: string[]) {}
+  set fieldTypeSlice(value: string[]) {
+    this.#fieldTypeSlice = value;
+  }
   setFieldTypeSlice(value: string[]) {
     this.fieldTypeSlice = value;
     return this;
@@ -227,7 +234,9 @@ export class CommonVectorComputeDto {
    *
    * @type {Money}
    **/
-  set complexMoney(value: Money) {}
+  set complexMoney(value: Money) {
+    this.#complexMoney = value;
+  }
   setComplexMoney(value: Money) {
     this.complexMoney = value;
     return this;
@@ -671,13 +680,6 @@ export class CommonVectorComputeDto {
 export abstract class CommonVectorComputeDtoFactory {
   abstract create(data: unknown): CommonVectorComputeDto;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for commonVectorComputeDto
  **/

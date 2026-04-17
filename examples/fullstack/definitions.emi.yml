@@ -30,8 +30,8 @@ dtos:
           - name: arrayField2
             type: array
             fields:
-            - name: lastItem
-              type: string
+              - name: lastItem
+                type: string
       - name: fieldTypeSlice
         type: slice
         primitive: string
@@ -53,6 +53,18 @@ dtos:
 
 actions:
 
+  - name: allData
+    url: /res/22
+    out:
+      fields:
+        - name: stringType
+          type: string
+        - name: stringTypeNull
+          type: string?
+        - name: collection
+          type: collection
+          target: CommonVectorResponseDto
+
   - name: envelopeExample
     url: /response/with/envelop
     method: get
@@ -61,26 +73,25 @@ actions:
       fields:
         - name: content
           type: string
-      
+
   - name: computeExp
     description: Computes the exp value using big integer
     url: /big/exp/:first/:second
     in:
       fields:
-      - name: base
-        type: complex
-        complex: Int
-      - name: exponent
-        type: complex
-        complex: Int
+        - name: base
+          type: complex
+          complex: Int
+        - name: exponent
+          type: complex
+          complex: Int
     out:
       fields:
         - name: result
           type: complex
           complex: big.Int
   - name: computeReactive
-    description:
-      Reactive compute elsasements.
+    description: Reactive compute elsasements.
     method: reactive
     url: /compute/reactive/:id int32/:age int32
     qs:
@@ -107,8 +118,7 @@ actions:
             type: slice
             primitive: float64
   - name: computeReactiveNoPath
-    description:
-      Reactive compute elsasements.
+    description: Reactive compute elsasements.
     method: reactive
     url: /compute/reactive
     qs:
@@ -116,10 +126,9 @@ actions:
         type: string
       - name: securityToken
         type: string
-        
+
   - name: computeApiSseChannel
-    description: 
-      We use a helper in order to send SSE, instead of pure code in gin.
+    description: We use a helper in order to send SSE, instead of pure code in gin.
     method: get
     url: /compute/sse/ch
     in:
@@ -138,8 +147,7 @@ actions:
           type: slice
           primitive: int
   - name: computeApiSse
-    description: 
-      The same compute api, but it would return the response as SSE.
+    description: The same compute api, but it would return the response as SSE.
     method: get
     url: /compute/sse
     in:
@@ -183,4 +191,3 @@ actions:
         - name: outputVector
           type: slice
           primitive: int
-      

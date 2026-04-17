@@ -115,6 +115,33 @@ type ComputeApiSseActionResponse struct {
 	Payload    interface{}
 }
 
+func (x *ComputeApiSseActionResponse) SetContentType(contentType string) *ComputeApiSseActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *ComputeApiSseActionResponse) AsStream(r io.Reader, contentType string) *ComputeApiSseActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *ComputeApiSseActionResponse) AsJSON(payload any) *ComputeApiSseActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *ComputeApiSseActionResponse) AsHTML(payload string) *ComputeApiSseActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *ComputeApiSseActionResponse) AsBytes(payload []byte) *ComputeApiSseActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
 func (x ComputeApiSseActionResponse) GetStatusCode() int {
 	return x.StatusCode
 }

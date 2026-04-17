@@ -68,7 +68,7 @@ func CastComputeApiSseChannelActionReqFromCli(c emigo.CliCastable) ComputeApiSse
 
 // The base class definition for computeApiSseChannelActionReq
 type ComputeApiSseChannelActionReq struct {
-	InitialVector1 []int                  `yaml:"initialVector1" json:"initialVector1"`
+	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
 	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
 	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
 }
@@ -115,6 +115,33 @@ type ComputeApiSseChannelActionResponse struct {
 	Payload    interface{}
 }
 
+func (x *ComputeApiSseChannelActionResponse) SetContentType(contentType string) *ComputeApiSseChannelActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *ComputeApiSseChannelActionResponse) AsStream(r io.Reader, contentType string) *ComputeApiSseChannelActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *ComputeApiSseChannelActionResponse) AsJSON(payload any) *ComputeApiSseChannelActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *ComputeApiSseChannelActionResponse) AsHTML(payload string) *ComputeApiSseChannelActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *ComputeApiSseChannelActionResponse) AsBytes(payload []byte) *ComputeApiSseChannelActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
 func (x ComputeApiSseChannelActionResponse) GetStatusCode() int {
 	return x.StatusCode
 }

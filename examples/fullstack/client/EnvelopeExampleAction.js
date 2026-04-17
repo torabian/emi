@@ -1,10 +1,6 @@
-import {
-  FetchxContext,
-  fetchx,
-  handleFetchResponse,
-} from "./sdk/common/fetchx";
 import { GResponse } from "./sdk/envelopes/index";
 import { buildUrl } from "./sdk/common/buildUrl";
+import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 /**
  * Action to communicate with the action envelopeExample
  */

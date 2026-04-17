@@ -1,10 +1,6 @@
-import {
-  FetchxContext,
-  fetchx,
-  handleFetchResponse,
-} from "./sdk/common/fetchx";
 import { URLSearchParamsX } from "./sdk/common/URLSearchParamsX";
 import { buildUrl } from "./sdk/common/buildUrl";
+import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 /**
  * Action to communicate with the action computeApi
  */
@@ -36,7 +32,7 @@ export class ComputeApiAction {
     const res = await ComputeApiAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,
-      (item) => creatorFn(item),
+      (item) => (creatorFn ? creatorFn(item) : item),
       onMessage,
       init?.signal,
     );
@@ -106,7 +102,9 @@ export class ComputeApiActionReq {
    *
    * @type {number[]}
    **/
-  set initialVector1(value) {}
+  set initialVector1(value) {
+    this.#initialVector1 = value;
+  }
   setInitialVector1(value) {
     this.initialVector1 = value;
     return this;
@@ -152,7 +150,9 @@ export class ComputeApiActionReq {
    *
    * @type {number[]}
    **/
-  set initialVector2(value) {}
+  set initialVector2(value) {
+    this.#initialVector2 = value;
+  }
   setInitialVector2(value) {
     this.initialVector2 = value;
     return this;
@@ -273,7 +273,9 @@ export class ComputeApiActionRes {
    *
    * @type {number[]}
    **/
-  set outputVector(value) {}
+  set outputVector(value) {
+    this.#outputVector = value;
+  }
   setOutputVector(value) {
     this.outputVector = value;
     return this;

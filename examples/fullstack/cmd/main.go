@@ -156,32 +156,6 @@ func runServer(addr string) error {
 		return msg.Conn.WriteMessage(websocket.TextMessage, resBytes)
 	})
 
-	// ----------- WebSocket (duplex channel) -----------
-	unk.ComputeReactiveActionDuplex(r, func(ctx *unk.ComputeReactiveActionSession) {
-
-		fmt.Println(ctx.PathParams.Age + ctx.PathParams.Id)
-
-		ctx.Out <- unk.ComputeReactiveActionMessage{
-			MessageType: websocket.TextMessage,
-			Raw:         []byte(fmt.Sprintf("Query Param 1: %v", ctx.QueryParams.QueryParam1)),
-		}
-
-		for {
-			select {
-			case msg, ok := <-ctx.In:
-				if !ok {
-					return
-				}
-				ctx.Out <- unk.ComputeReactiveActionMessage{
-					MessageType: websocket.TextMessage,
-					Raw:         msg.Raw,
-				}
-			case <-ctx.Done:
-				return
-			}
-		}
-	})
-
 	fmt.Println("Server running on", addr)
 	return r.Run(addr)
 }

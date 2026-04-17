@@ -9,24 +9,31 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 /**
 * Action to communicate with the action ComputeReactiveAction
  */
 func ComputeReactiveActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+	Name        string
+	URL         string
+	Method      string
+	CliName     string
+	Description string
 } {
 	return struct {
-		Name   string
-		URL    string
-		Method string
+		Name        string
+		URL         string
+		Method      string
+		CliName     string
+		Description string
 	}{
-		Name:   "ComputeReactiveAction",
-		URL:    "/compute/reactive/:id/:age",
-		Method: "REACTIVE",
+		Name:        "ComputeReactiveAction",
+		URL:         "/compute/reactive/:id/:age",
+		Method:      "REACTIVE",
+		CliName:     "",
+		Description: "Reactive compute elsasements.",
 	}
 }
 
@@ -130,7 +137,6 @@ type ComputeReactiveActionMessage struct {
 	MessageType int
 	Error       error
 	PathParams  ComputeReactiveActionPathParameter
-	QueryParams ComputeReactiveActionQuery
 }
 
 // Developer handler type
@@ -156,7 +162,6 @@ func ComputeReactiveAction(r *gin.Engine, handler ComputeReactiveActionHandler) 
 				MessageType: mt,
 			}
 			msg.PathParams = pathParams
-			msg.QueryParams = ComputeReactiveActionQueryFromGin(c)
 			// Provide raw message to developer handler
 			if err := handler(msg); err != nil {
 				errMsg := fmt.Sprintf("handler error: %v", err)
@@ -169,102 +174,78 @@ func ComputeReactiveAction(r *gin.Engine, handler ComputeReactiveActionHandler) 
 }
 
 type ComputeReactiveActionSession struct {
-	In          <-chan ComputeReactiveActionMessage
-	Out         chan<- ComputeReactiveActionMessage
-	Done        <-chan struct{}
-	Close       func(err error)
-	PathParams  ComputeReactiveActionPathParameter
+	Ctx         *gin.Context
+	Socket      *websocket.Conn
+	Done        chan bool
+	Read        chan ComputeReactiveActionReadChan
 	QueryParams ComputeReactiveActionQuery
 }
 type ComputeReactiveActionHandlerDuplex func(*ComputeReactiveActionSession)
-
-// ComputeReactiveActionDuplex upgrades the HTTP connection to a WebSocket and
-// exposes it as a full-duplex, blocking session.
-//
-// The provided handler owns the lifetime of the connection.
-// The WebSocket remains open as long as the handler is running.
-// Returning from the handler will close the connection.
-//
-// Session channels:
-//   - ctx.In   : incoming messages from the client (closed on disconnect)
-//   - ctx.Out  : outgoing messages to the client (blocking send)
-//   - ctx.Done : closed when the server terminates the session
-//
-// Usage pattern:
-//
-//	external.ComputeReactiveActionDuplex(r, func(ctx *external.ComputeReactiveActionSession) {
-//		for {
-//			select {
-//			case msg, ok := <-ctx.In:
-//				if !ok {
-//					return // client disconnected
-//				}
-//				ctx.Out <- external.ComputeReactiveActionMessage{
-//					MessageType: websocket.TextMessage,
-//					Raw:         msg.Raw,
-//				}
-//
-//			case <-ctx.Done:
-//				return // server-side close
-//			}
-//		}
-//	})
-//
-// Important:
-//   - Always read the generated code, don't use blindly.
-//   - If there is an error on write, you'll get a message back, with message type -1 (instead of default websocket message type int.)
-//   - The handler MUST block (typically via a loop).
-//   - Returning from the handler closes the WebSocket.
-//   - Do not treat this as a per-message callback.
-func ComputeReactiveActionDuplex(r *gin.Engine, handler ComputeReactiveActionHandlerDuplex) {
-	meta := ComputeReactiveActionMeta()
-	// The actual callback is extracted, in case you need to handle multiple handlers or customize, use it directly.
-	r.GET(meta.URL, func(ctx *gin.Context) {
-		ComputeReactiveActionDuplexGinHandler(ctx, handler)
-	})
+type ComputeReactiveActionReadChan struct {
+	Data  []byte
+	Error error
 }
-func ComputeReactiveActionDuplexGinHandler(c *gin.Context, handler ComputeReactiveActionHandlerDuplex) {
-	pathParams := ComputeReactiveActionPathParameterFromGin(c)
-	ws, err := upgraderComputeReactiveAction.Upgrade(c.Writer, c.Request, nil)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot upgrade websocket"})
-		return
-	}
-	in := make(chan ComputeReactiveActionMessage)
-	out := make(chan ComputeReactiveActionMessage)
-	done := make(chan struct{})
-	session := &ComputeReactiveActionSession{
-		In:   in,
-		Out:  out,
-		Done: done,
-		Close: func(err error) {
-			close(done)
-			ws.Close()
-		},
-	}
-	session.PathParams = pathParams
-	session.QueryParams = ComputeReactiveActionQueryFromGin(c)
-	// Read loop
-	go func() {
-		defer close(in)
-		for {
-			mt, raw, err := ws.ReadMessage()
-			in <- ComputeReactiveActionMessage{MessageType: mt, Raw: raw, Error: err}
+
+func ComputeReactiveActionReactiveHandler(factory func(
+	session ComputeReactiveActionSession,
+) (chan []byte, error)) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		read := make(chan ComputeReactiveActionReadChan)
+		done := make(chan bool)
+		c, err := upgraderComputeReactiveAction.Upgrade(ctx.Writer, ctx.Request, nil)
+		if err != nil {
+			c.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+			c.Close()
+			return
 		}
-	}()
-	// Write loop
-	go func() {
-		for msg := range out {
-			if err := ws.WriteMessage(msg.MessageType, msg.Raw); err != nil {
-				// When message is -1, means it's internal error coming out
-				in <- ComputeReactiveActionMessage{MessageType: -1, Error: err}
-				return
+		session := ComputeReactiveActionSession{
+			Ctx:    ctx,
+			Socket: c,
+			Done:   done,
+			Read:   read,
+		}
+		session.QueryParams = ComputeReactiveActionQueryFromGin(ctx)
+		write, err := factory(session)
+		if err != nil {
+			c.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+		}
+		go func() {
+			for {
+				_, data, err := c.ReadMessage()
+				read <- ComputeReactiveActionReadChan{
+					Data:  data,
+					Error: err,
+				}
+				if err != nil {
+					return
+				}
 			}
-		}
-	}()
-	// Run developer code (blocking)
-	handler(session)
-	// Cleanup
-	close(out)
-	ws.Close()
+		}()
+		go func() {
+			for {
+				select {
+				case msg, ok := <-write:
+					if !ok {
+						// Channel closed; shutdown
+						c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+						done <- true
+						return
+					}
+					msgType := websocket.TextMessage
+					if !utf8.Valid(msg) {
+						msgType = websocket.BinaryMessage
+					}
+					err := c.WriteMessage(msgType, msg)
+					if err != nil {
+						// Optionally log the error or send to a logger
+						done <- true
+						return
+					}
+				case <-done:
+					c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+					return
+				}
+			}
+		}()
+	}
 }

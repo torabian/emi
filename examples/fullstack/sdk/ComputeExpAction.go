@@ -99,7 +99,7 @@ func CastComputeExpActionResFromCli(c emigo.CliCastable) ComputeExpActionRes {
 
 // The base class definition for computeExpActionRes
 type ComputeExpActionRes struct {
-	Result big.Int `yaml:"result" json:"result"`
+	Result big.Int `json:"result" yaml:"result"`
 }
 
 func (x *ComputeExpActionRes) Json() string {
@@ -116,6 +116,33 @@ type ComputeExpActionResponse struct {
 	Payload    interface{}
 }
 
+func (x *ComputeExpActionResponse) SetContentType(contentType string) *ComputeExpActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *ComputeExpActionResponse) AsStream(r io.Reader, contentType string) *ComputeExpActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *ComputeExpActionResponse) AsJSON(payload any) *ComputeExpActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *ComputeExpActionResponse) AsHTML(payload string) *ComputeExpActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *ComputeExpActionResponse) AsBytes(payload []byte) *ComputeExpActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
 func (x ComputeExpActionResponse) GetStatusCode() int {
 	return x.StatusCode
 }

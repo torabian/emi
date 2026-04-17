@@ -1,9 +1,5 @@
-import {
-  FetchxContext,
-  fetchx,
-  handleFetchResponse,
-} from "./sdk/common/fetchx";
 import { buildUrl } from "./sdk/common/buildUrl";
+import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 /**
  * Action to communicate with the action computeExp
  */
@@ -42,7 +38,7 @@ export class ComputeExpAction {
     );
     return handleFetchResponse(
       res,
-      (item) => creatorFn(item),
+      (item) => (creatorFn ? creatorFn(item) : item),
       onMessage,
       init?.signal,
     );
@@ -96,7 +92,9 @@ export class ComputeExpActionReq {
    *
    * @type {Int}
    **/
-  set base(value) {}
+  set base(value) {
+    this.#base = value;
+  }
   setBase(value) {
     this.base = value;
     return this;
@@ -117,7 +115,9 @@ export class ComputeExpActionReq {
    *
    * @type {Int}
    **/
-  set exponent(value) {}
+  set exponent(value) {
+    this.#exponent = value;
+  }
   setExponent(value) {
     this.exponent = value;
     return this;
@@ -227,7 +227,9 @@ export class ComputeExpActionRes {
    *
    * @type {big.Int}
    **/
-  set result(value) {}
+  set result(value) {
+    this.#result = value;
+  }
   setResult(value) {
     this.result = value;
     return this;

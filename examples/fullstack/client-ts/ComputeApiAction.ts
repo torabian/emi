@@ -1,12 +1,13 @@
+import { URLSearchParamsX } from "./sdk/common/URLSearchParamsX";
+import { buildUrl } from "./sdk/common/buildUrl";
 import {
-  type FetchxContext,
   fetchx,
   handleFetchResponse,
+  type FetchxContext,
+  type PartialDeep,
   type TypedRequestInit,
   type TypedResponse,
 } from "./sdk/common/fetchx";
-import { URLSearchParamsX } from "./sdk/common/URLSearchParamsX";
-import { buildUrl } from "./sdk/common/buildUrl";
 import { type UseMutationOptions, useMutation } from "react-query";
 import { useFetchxContext } from "./sdk/react/useFetchx";
 import { useState } from "react";
@@ -114,7 +115,7 @@ export class ComputeApiAction {
     const res = await ComputeApiAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,
-      (item) => creatorFn(item),
+      (item) => (creatorFn ? creatorFn(item) : item),
       onMessage,
       init?.signal,
     );
@@ -184,7 +185,9 @@ export class ComputeApiActionReq {
    *
    * @type {number[]}
    **/
-  set initialVector1(value: number[]) {}
+  set initialVector1(value: number[]) {
+    this.#initialVector1 = value;
+  }
   setInitialVector1(value: number[]) {
     this.initialVector1 = value;
     return this;
@@ -230,7 +233,9 @@ export class ComputeApiActionReq {
    *
    * @type {number[]}
    **/
-  set initialVector2(value: number[]) {}
+  set initialVector2(value: number[]) {
+    this.#initialVector2 = value;
+  }
   setInitialVector2(value: number[]) {
     this.initialVector2 = value;
     return this;
@@ -336,13 +341,6 @@ export class ComputeApiActionReq {
 export abstract class ComputeApiActionReqFactory {
   abstract create(data: unknown): ComputeApiActionReq;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for computeApiActionReq
  **/
@@ -385,7 +383,9 @@ export class ComputeApiActionRes {
    *
    * @type {number[]}
    **/
-  set outputVector(value: number[]) {}
+  set outputVector(value: number[]) {
+    this.#outputVector = value;
+  }
   setOutputVector(value: number[]) {
     this.outputVector = value;
     return this;
@@ -478,13 +478,6 @@ export class ComputeApiActionRes {
 export abstract class ComputeApiActionResFactory {
   abstract create(data: unknown): ComputeApiActionRes;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for computeApiActionRes
  **/

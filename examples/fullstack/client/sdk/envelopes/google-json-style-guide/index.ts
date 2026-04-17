@@ -1,6 +1,5 @@
 import type { CreatorSignature, EnvelopeClass } from "../common/EnvelopeClass";
 import { ResponseDto } from "./generated/ResponseDto";
-
 // Use this class to generate a GResponse.
 export class GResponse<T> extends ResponseDto<T> implements EnvelopeClass<T> {
   creator?: CreatorSignature<T> | null;

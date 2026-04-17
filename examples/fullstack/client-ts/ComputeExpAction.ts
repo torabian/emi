@@ -1,11 +1,12 @@
+import { buildUrl } from "./sdk/common/buildUrl";
 import {
-  FetchxContext,
   fetchx,
   handleFetchResponse,
+  type FetchxContext,
+  type PartialDeep,
   type TypedRequestInit,
   type TypedResponse,
 } from "./sdk/common/fetchx";
-import { buildUrl } from "./sdk/common/buildUrl";
 import { type UseMutationOptions, useMutation } from "react-query";
 import { useFetchxContext } from "./sdk/react/useFetchx";
 import { useState } from "react";
@@ -132,7 +133,7 @@ export class ComputeExpAction {
     );
     return handleFetchResponse(
       res,
-      (item) => creatorFn(item),
+      (item) => (creatorFn ? creatorFn(item) : item),
       onMessage,
       init?.signal,
     );
@@ -186,7 +187,9 @@ export class ComputeExpActionReq {
    *
    * @type {Int}
    **/
-  set base(value: Int) {}
+  set base(value: Int) {
+    this.#base = value;
+  }
   setBase(value: Int) {
     this.base = value;
     return this;
@@ -207,7 +210,9 @@ export class ComputeExpActionReq {
    *
    * @type {Int}
    **/
-  set exponent(value: Int) {}
+  set exponent(value: Int) {
+    this.#exponent = value;
+  }
   setExponent(value: Int) {
     this.exponent = value;
     return this;
@@ -302,13 +307,6 @@ export class ComputeExpActionReq {
 export abstract class ComputeExpActionReqFactory {
   abstract create(data: unknown): ComputeExpActionReq;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for computeExpActionReq
  **/
@@ -346,7 +344,9 @@ export class ComputeExpActionRes {
    *
    * @type {big.Int}
    **/
-  set result(value: big.Int) {}
+  set result(value: big.Int) {
+    this.#result = value;
+  }
   setResult(value: big.Int) {
     this.result = value;
     return this;
@@ -436,13 +436,6 @@ export class ComputeExpActionRes {
 export abstract class ComputeExpActionResFactory {
   abstract create(data: unknown): ComputeExpActionRes;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for computeExpActionRes
  **/

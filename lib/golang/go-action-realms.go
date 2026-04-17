@@ -53,7 +53,7 @@ func GoActionRealms(
 		{
 			Location: "net/http",
 		},
-
+		core.CodeChunkDependency{Location: "io"},
 		{
 			Location: "github.com/gin-gonic/gin",
 		},

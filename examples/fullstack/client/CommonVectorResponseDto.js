@@ -20,7 +20,9 @@ export class CommonVectorResponseDto {
    *
    * @type {number[]}
    **/
-  set outputVector(value) {}
+  set outputVector(value) {
+    this.#outputVector = value;
+  }
   setOutputVector(value) {
     this.outputVector = value;
     return this;
