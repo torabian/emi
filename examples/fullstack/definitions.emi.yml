@@ -71,6 +71,18 @@ actions:
           type: collection
           target: CommonVectorResponseDto
 
+  - name: allData
+    url: /res/22
+    out:
+      fields:
+        - name: stringType
+          type: string
+        - name: stringTypeNull
+          type: string?
+        - name: collection
+          type: collection
+          target: CommonVectorResponseDto
+
   - name: envelopeExample
     url: /response/with/envelop
     method: get

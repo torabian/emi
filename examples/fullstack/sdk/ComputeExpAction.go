@@ -5,14 +5,15 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/examples/fullstack/emigo"
-	"github.com/urfave/cli"
 	"io"
 	"math/big"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
 )
 
 /**
