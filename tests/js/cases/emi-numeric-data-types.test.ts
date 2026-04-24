@@ -45,7 +45,7 @@ ${yaml.dump(pureIntExample)}
 
     const classResult = globalThis.jsGenDtoClass(
       JSON.stringify(pureIntExample),
-      { Tags: "typescript", Flags: "Anonymouse" }
+      { Tags: "typescript", Flags: JSON.stringify({ name: "Anonymouse" }) },
     );
     const formatted = await prettier.format(classResult, {
       parser: "typescript",
@@ -71,7 +71,7 @@ Defaults to \`undefined\`, but you can assign \`0\`, any number, or \`null\`.
 
     const nullableResult = globalThis.jsGenDtoClass(
       JSON.stringify(nullableIntExample),
-      { Tags: "typescript", Flags: "Anonymouse" }
+      { Tags: "typescript", Flags: JSON.stringify({ name: "Anonymouse" }) },
     );
     const formattedNullable = await prettier.format(nullableResult, {
       parser: "typescript",
@@ -84,7 +84,7 @@ Defaults to \`undefined\`, but you can assign \`0\`, any number, or \`null\`.
 
     writeFileSync(
       "../../emi-web/docs/js/emi-int-data-type.mdx",
-      contentInt.join("\r\n").trim()
+      contentInt.join("\r\n").trim(),
     );
   });
 
@@ -121,7 +121,7 @@ ${yaml.dump(pureFloatExample)}
 
     const classResult = globalThis.jsGenDtoClass(
       JSON.stringify(pureFloatExample),
-      { Tags: "typescript", Flags: "Anonymouse" }
+      { Tags: "typescript", Flags: JSON.stringify({ name: "Anonymouse" }) },
     );
     const formatted = await prettier.format(classResult, {
       parser: "typescript",
@@ -147,7 +147,7 @@ Defaults to \`undefined\`, but you can assign any float value or \`null\`.
 
     const nullableResult = globalThis.jsGenDtoClass(
       JSON.stringify(nullableFloatExample),
-      { Tags: "typescript", Flags: "Anonymouse" }
+      { Tags: "typescript", Flags: JSON.stringify({ name: "Anonymouse" }) },
     );
     const formattedNullable = await prettier.format(nullableResult, {
       parser: "typescript",
@@ -160,7 +160,7 @@ Defaults to \`undefined\`, but you can assign any float value or \`null\`.
 
     writeFileSync(
       "../../emi-web/docs/js/emi-float64-data-type.mdx",
-      contentFloat.join("\r\n").trim()
+      contentFloat.join("\r\n").trim(),
     );
   });
 });

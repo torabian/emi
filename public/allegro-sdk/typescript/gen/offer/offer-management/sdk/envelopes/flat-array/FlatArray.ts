@@ -1,4 +1,4 @@
-import { CreatorSignature, EnvelopeClass } from "../common/EnvelopeClass";
+import type { CreatorSignature, EnvelopeClass } from "../common/EnvelopeClass";
 
 // Some responses are returning a flat array, without any other information
 // regarding the pagination, etc. They start [{},{}...] style.

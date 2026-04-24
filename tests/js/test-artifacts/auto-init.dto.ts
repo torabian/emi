@@ -1,3 +1,4 @@
+import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for autoInitClassDto
@@ -556,13 +557,6 @@ export class AutoInitClassDto {
 export abstract class AutoInitClassDtoFactory {
   abstract create(data: unknown): AutoInitClassDto;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for autoInitClassDto
  **/

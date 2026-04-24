@@ -13,7 +13,7 @@ describe("Action headers class needs to be generated correctly.", () => {
   ];
 
   const { source, resp } = runEmiActionTs("jsGenActionHeaders", action, {
-    Flags: "SampleHeaders",
+    Flags: JSON.stringify({ name: "SampleHeaders" }),
   });
 
   it("generate int doc", async () => {
@@ -90,10 +90,10 @@ ${resp}
 
     // body checks
     expect(getter!.getBodyText()).toContain(
-      "this.#getTyped('accept-language', 'string | null')"
+      "this.#getTyped('accept-language', 'string | null')",
     );
     expect(setter!.getBodyText()).toContain(
-      "this.set('accept-language', value)"
+      "this.set('accept-language', value)",
     );
   });
 
@@ -107,7 +107,7 @@ ${resp}
   it("should write the documentation", () => {
     writeFileSync(
       "../../emi-web/docs/js/emi-headers-class.mdx",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });

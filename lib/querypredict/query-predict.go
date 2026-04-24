@@ -14,4 +14,5 @@ type QuerySpec struct {
 
 type QueryDocument struct {
 	Queries []QuerySpec `yaml:"queries"`
+	Package string      `yaml:"package"`
 }

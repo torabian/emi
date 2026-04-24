@@ -1,0 +1,63 @@
+package unknownpackage
+import okhttp3.RequestBody.Companion.toRequestBody
+import kotlinx.coroutines.Dispatchers
+import emikot.ClientContext
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+/**
+ * Action to communicate with the action DeleteADraftOfferAction
+ */
+data class DeleteADraftOfferActionMeta(
+    val name: String = "DeleteADraftOfferAction",
+    val url: String = "https://api.{environment}/sale/offers/{offerId}",
+    val method: String = "delete"
+)
+/*data class DeleteADraftOfferActionRequest(val call: io.ktor.server.application.ApplicationCall)*/
+data class DeleteADraftOfferActionResponse(
+    val statusCode: Int = 200,
+    val headers: Map<String, String> = emptyMap(),
+    val payload: Any? = null
+)
+object DeleteADraftOfferActionClient {
+	public var context: ClientContext? = null
+    private val client = OkHttpClient()
+    private val jsonType = "application/json".toMediaType()
+    fun buildUrl(base: String, path: String, query: Map<String, String>): String {
+        val baseUrl = base.toHttpUrl()   // parses full URL like "http://asdasda/"
+        val urlBuilder = baseUrl
+            .newBuilder()
+            .encodedPath(path)
+        query.forEach { (k, v) ->
+            urlBuilder.addQueryParameter(k, v)
+        }
+        return urlBuilder.build().toString()
+    }
+    suspend fun compute(
+		query: Map<String, String> = emptyMap(),
+		headers: Map<String, String> = emptyMap(),
+		body: String? = null
+	): DeleteADraftOfferActionResponse =
+        withContext(Dispatchers.IO) {
+            val meta = DeleteADraftOfferActionMeta()
+            var baseUrl = context?.baseUrl ?: ""
+            var url = buildUrl(baseUrl, meta.url, query)
+            println(  url)
+            val body0 = body?.toRequestBody(jsonType)
+            val request = Request.Builder()
+                .url(url)
+                .method(meta.method, body0)
+                .addHeader("Accept", "application/json")
+                .build()
+            client.newCall(request).execute().use { resp ->
+                DeleteADraftOfferActionResponse(
+                    statusCode = resp.code,
+                    // body = resp.body?.string().orEmpty(),
+                    headers = resp.headers.toMap()
+                )
+            }
+        }
+}

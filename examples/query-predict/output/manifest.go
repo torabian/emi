@@ -1,4 +1,4 @@
-package xxx
+package queries
 
 import "database/sql"
 

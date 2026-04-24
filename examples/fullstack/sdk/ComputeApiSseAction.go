@@ -1,34 +1,40 @@
 package external
+
 import (
-"bytes"
-"encoding/json"
-"fmt"
-"github.com/gin-gonic/gin"
-"github.com/torabian/emi/examples/fullstack/emigo"
-"io"
-"net/http"
-"net/url"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
+	"io"
+	"net/http"
+	"net/url"
 )
+
 /**
 * Action to communicate with the action ComputeApiSseAction
-*/
+ */
 func ComputeApiSseActionMeta() struct {
-    Name   string
-	CliName   string
-    URL    string
-    Method string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
-    return struct {
-        Name   string
-        CliName   string
-        URL    string
-        Method string
-    }{
-        Name:   "ComputeApiSseAction",
-        CliName:   "compute-api-sse-action",
-        URL:    "/compute/sse",
-        Method: "GET",
-    }
+	return struct {
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
+	}{
+		Name:        "ComputeApiSseAction",
+		CliName:     "compute-api-sse-action",
+		URL:         "/compute/sse",
+		Method:      "POST",
+		Description: `The same compute api, but it would return the response as SSE.`,
+	}
 }
 func GetComputeApiSseActionReqCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
@@ -48,23 +54,25 @@ func GetComputeApiSseActionReqCliFlags(prefix string) []emigo.CliFlag {
 }
 func CastComputeApiSseActionReqFromCli(c emigo.CliCastable) ComputeApiSseActionReq {
 	data := ComputeApiSseActionReq{}
-			if c.IsSet("initial-vector1") { 
- emigo.InflatePossibleSlice(c.String("initial-vector1"), &data.InitialVector1) 
-}
-			if c.IsSet("value") { 
- emigo.ParseNullable(c.String("value"), &data.Value) 
-}
-			if c.IsSet("initial-vector2") { 
- emigo.InflatePossibleSlice(c.String("initial-vector2"), &data.InitialVector2) 
-}
+	if c.IsSet("initial-vector1") {
+		emigo.InflatePossibleSlice(c.String("initial-vector1"), &data.InitialVector1)
+	}
+	if c.IsSet("value") {
+		emigo.ParseNullable(c.String("value"), &data.Value)
+	}
+	if c.IsSet("initial-vector2") {
+		emigo.InflatePossibleSlice(c.String("initial-vector2"), &data.InitialVector2)
+	}
 	return data
 }
-  // The base class definition for computeApiSseActionReq
+
+// The base class definition for computeApiSseActionReq
 type ComputeApiSseActionReq struct {
-		InitialVector1 []int `json:"initialVector1" yaml:"initialVector1"`
-		Value emigo.Nullable[string] `yaml:"value" json:"value"`
-		InitialVector2 []int `json:"initialVector2" yaml:"initialVector2"`
+	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
+	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
+	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
 }
+
 func (x *ComputeApiSseActionReq) Json() string {
 	if x != nil {
 		str, _ := json.MarshalIndent(x, "", "  ")
@@ -82,15 +90,17 @@ func GetComputeApiSseActionResCliFlags(prefix string) []emigo.CliFlag {
 }
 func CastComputeApiSseActionResFromCli(c emigo.CliCastable) ComputeApiSseActionRes {
 	data := ComputeApiSseActionRes{}
-			if c.IsSet("output-vector") { 
- emigo.InflatePossibleSlice(c.String("output-vector"), &data.OutputVector) 
-}
+	if c.IsSet("output-vector") {
+		emigo.InflatePossibleSlice(c.String("output-vector"), &data.OutputVector)
+	}
 	return data
 }
-  // The base class definition for computeApiSseActionRes
+
+// The base class definition for computeApiSseActionRes
 type ComputeApiSseActionRes struct {
-		OutputVector []int `json:"outputVector" yaml:"outputVector"`
+	OutputVector []int `json:"outputVector" yaml:"outputVector"`
 }
+
 func (x *ComputeApiSseActionRes) Json() string {
 	if x != nil {
 		str, _ := json.MarshalIndent(x, "", "  ")
@@ -98,21 +108,71 @@ func (x *ComputeApiSseActionRes) Json() string {
 	}
 	return ""
 }
+
 type ComputeApiSseActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
 }
+
+func (x *ComputeApiSseActionResponse) SetContentType(contentType string) *ComputeApiSseActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *ComputeApiSseActionResponse) AsStream(r io.Reader, contentType string) *ComputeApiSseActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *ComputeApiSseActionResponse) AsJSON(payload any) *ComputeApiSseActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+
+// When the response is expected as documentation, you call this to get some type
+// safety for the action which is happening.
+func (x *ComputeApiSseActionResponse) WithIdeal(payload ComputeApiSseActionRes) *ComputeApiSseActionResponse {
+	x.Payload = payload
+	return x
+}
+func (x *ComputeApiSseActionResponse) AsHTML(payload string) *ComputeApiSseActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *ComputeApiSseActionResponse) AsBytes(payload []byte) *ComputeApiSseActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+func (x ComputeApiSseActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x ComputeApiSseActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x ComputeApiSseActionResponse) GetPayload() interface{} {
+	return x.Payload
+}
+
 // ComputeApiSseActionRaw registers a raw Gin route for the ComputeApiSseAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func ComputeApiSseActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ComputeApiSseActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-}// ComputeApiSseActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseAction action.
+}
+
+type ComputeApiSseActionRequestSig = func(c ComputeApiSseActionRequest) (*ComputeApiSseActionResponse, error)
+
+// ComputeApiSseActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ComputeApiSseAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ComputeApiSseActionHandler(
-	handler func(c ComputeApiSseActionRequest, gin *gin.Context) (*ComputeApiSseActionResponse, error),
+	handler ComputeApiSseActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := ComputeApiSseActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -126,8 +186,9 @@ func ComputeApiSseActionHandler(
 			Body:        body,
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -152,14 +213,16 @@ func ComputeApiSseActionHandler(
 		}
 	}
 }
+
 // ComputeApiSseAction is a high-level convenience wrapper around ComputeApiSseActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ComputeApiSseAction(r gin.IRoutes, handler func(c ComputeApiSseActionRequest, gin *gin.Context) (*ComputeApiSseActionResponse, error),) {
+func ComputeApiSseActionGin(r gin.IRoutes, handler ComputeApiSseActionRequestSig) {
 	method, url, h := ComputeApiSseActionHandler(handler)
 	r.Handle(method, url, h)
 }
-	/**
+
+/**
  * Query parameters for ComputeApiSseAction
  */
 // Query wrapper with private fields
@@ -168,6 +231,7 @@ type ComputeApiSseActionQuery struct {
 	mapped map[string]interface{}
 	// Typesafe fields
 }
+
 func ComputeApiSseActionQueryFromString(rawQuery string) ComputeApiSseActionQuery {
 	v := ComputeApiSseActionQuery{}
 	values, _ := url.ParseQuery(rawQuery)
@@ -205,15 +269,19 @@ func (q *ComputeApiSseActionQuery) SetValues(v url.Values) {
 func (q *ComputeApiSseActionQuery) SetMapped(m map[string]interface{}) {
 	q.mapped = m
 }
+
 type ComputeApiSseActionRequest struct {
-	Body ComputeApiSseActionReq
+	Body        ComputeApiSseActionReq
 	QueryParams url.Values
-	Headers http.Header
+	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type ComputeApiSseActionResult struct {
-	resp *http.Response                      // embed original response
+	resp    *http.Response // embed original response
 	Payload interface{}
 }
+
 func ComputeApiSseActionCall(
 	req ComputeApiSseActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -231,11 +299,11 @@ func ComputeApiSseActionCall(
 		if len(req.QueryParams) > 0 {
 			u.RawQuery = req.QueryParams.Encode()
 		}
-			bodyBytes, err := json.Marshal(req.Body)
-			if err != nil {
-				return nil, err
-			}
-			req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
+		bodyBytes, err := json.Marshal(req.Body)
+		if err != nil {
+			return nil, err
+		}
+		req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
 		if err != nil {
 			return nil, err
 		}

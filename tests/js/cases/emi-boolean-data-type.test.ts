@@ -60,8 +60,8 @@ ${yaml.dump(pureBoolExample)}
       JSON.stringify(pureBoolExample),
       {
         Tags: "typescript",
-        Flags: "Anonymouse",
-      }
+        Flags: JSON.stringify({ name: "Anonymouse" }),
+      },
     );
 
     const formatted = await prettier.format(classResult, {
@@ -105,8 +105,8 @@ ${yaml.dump(nullableBoolExample)}
       JSON.stringify(nullableBoolExample),
       {
         Tags: "typescript",
-        Flags: "Anonymouse",
-      }
+        Flags: JSON.stringify({ name: "Anonymouse" }),
+      },
     );
 
     const formatted = await prettier.format(classResult, {
@@ -119,7 +119,7 @@ ${yaml.dump(nullableBoolExample)}
   it("should write the final doc", () => {
     writeFileSync(
       "../../emi-web/docs/js/emi-boolean-data-type.mdx",
-      content.join("\r\n").trim()
+      content.join("\r\n").trim(),
     );
   });
 });

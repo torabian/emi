@@ -3,31 +3,67 @@ package external
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
 )
 
 /**
 * Action to communicate with the action ModificationCommandDetailedResultAction
  */
 func ModificationCommandDetailedResultActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name   string
-		URL    string
-		Method string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:   "ModificationCommandDetailedResultAction",
-		URL:    "https://api.{environment}/sale/offers/promo-options-commands/{commandId}/tasks",
-		Method: "GET",
+		Name:        "ModificationCommandDetailedResultAction",
+		CliName:     "modification command detailed result-action",
+		URL:         "https://api.{environment}/sale/offers/promo-options-commands/{commandId}/tasks",
+		Method:      "GET",
+		Description: ``,
 	}
+}
+func GetModificationCommandDetailedResultActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "tasks",
+			Type: "array",
+		},
+		{
+			Name:     prefix + "modification",
+			Type:     "object",
+			Children: GetModificationCommandDetailedResultActionResModificationCliFlags("modification-"),
+		},
+		{
+			Name: prefix + "additional-marketplaces",
+			Type: "array",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionRes {
+	data := ModificationCommandDetailedResultActionRes{}
+	if c.IsSet("tasks") {
+		data.Tasks = emigo.CapturePossibleArray(CastModificationCommandDetailedResultActionResTasksFromCli, "tasks", c)
+	}
+	if c.IsSet("modification") {
+		data.Modification = CastModificationCommandDetailedResultActionResModificationFromCli(c)
+	}
+	if c.IsSet("additional-marketplaces") {
+		data.AdditionalMarketplaces = emigo.CapturePossibleArray(CastModificationCommandDetailedResultActionResAdditionalMarketplacesFromCli, "additional-marketplaces", c)
+	}
+	return data
 }
 
 // The base class definition for modificationCommandDetailedResultActionRes
@@ -35,6 +71,58 @@ type ModificationCommandDetailedResultActionRes struct {
 	Tasks                  []ModificationCommandDetailedResultActionResTasks                  `json:"tasks" yaml:"tasks"`
 	Modification           ModificationCommandDetailedResultActionResModification             `json:"modification" yaml:"modification"`
 	AdditionalMarketplaces []ModificationCommandDetailedResultActionResAdditionalMarketplaces `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+}
+
+func GetModificationCommandDetailedResultActionResTasksCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "offer",
+			Type:     "object",
+			Children: GetModificationCommandDetailedResultActionResTasksOfferCliFlags("offer-"),
+		},
+		{
+			Name: prefix + "marketplace-id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "scheduled-at",
+			Type: "string",
+		},
+		{
+			Name: prefix + "finished-at",
+			Type: "string",
+		},
+		{
+			Name: prefix + "status",
+			Type: "string",
+		},
+		{
+			Name: prefix + "errors",
+			Type: "array",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResTasksFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResTasks {
+	data := ModificationCommandDetailedResultActionResTasks{}
+	if c.IsSet("offer") {
+		data.Offer = CastModificationCommandDetailedResultActionResTasksOfferFromCli(c)
+	}
+	if c.IsSet("marketplace-id") {
+		data.MarketplaceId = c.String("marketplace-id")
+	}
+	if c.IsSet("scheduled-at") {
+		data.ScheduledAt = c.String("scheduled-at")
+	}
+	if c.IsSet("finished-at") {
+		data.FinishedAt = c.String("finished-at")
+	}
+	if c.IsSet("status") {
+		data.Status = c.String("status")
+	}
+	if c.IsSet("errors") {
+		data.Errors = emigo.CapturePossibleArray(CastModificationCommandDetailedResultActionResTasksErrorsFromCli, "errors", c)
+	}
+	return data
 }
 
 // The base class definition for tasks
@@ -47,9 +135,77 @@ type ModificationCommandDetailedResultActionResTasks struct {
 	Errors        []ModificationCommandDetailedResultActionResTasksErrors `json:"errors" yaml:"errors"`
 }
 
+func GetModificationCommandDetailedResultActionResTasksOfferCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResTasksOfferFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResTasksOffer {
+	data := ModificationCommandDetailedResultActionResTasksOffer{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	return data
+}
+
 // The base class definition for offer
 type ModificationCommandDetailedResultActionResTasksOffer struct {
 	Id string `json:"id" yaml:"id"`
+}
+
+func GetModificationCommandDetailedResultActionResTasksErrorsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "code",
+			Type: "string",
+		},
+		{
+			Name: prefix + "details",
+			Type: "string",
+		},
+		{
+			Name: prefix + "message",
+			Type: "string",
+		},
+		{
+			Name: prefix + "path",
+			Type: "string",
+		},
+		{
+			Name: prefix + "user-message",
+			Type: "string",
+		},
+		{
+			Name:     prefix + "metadata",
+			Type:     "object",
+			Children: GetModificationCommandDetailedResultActionResTasksErrorsMetadataCliFlags("metadata-"),
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResTasksErrorsFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResTasksErrors {
+	data := ModificationCommandDetailedResultActionResTasksErrors{}
+	if c.IsSet("code") {
+		data.Code = c.String("code")
+	}
+	if c.IsSet("details") {
+		data.Details = c.String("details")
+	}
+	if c.IsSet("message") {
+		data.Message = c.String("message")
+	}
+	if c.IsSet("path") {
+		data.Path = c.String("path")
+	}
+	if c.IsSet("user-message") {
+		data.UserMessage = c.String("user-message")
+	}
+	if c.IsSet("metadata") {
+		data.Metadata = CastModificationCommandDetailedResultActionResTasksErrorsMetadataFromCli(c)
+	}
+	return data
 }
 
 // The base class definition for errors
@@ -62,9 +218,56 @@ type ModificationCommandDetailedResultActionResTasksErrors struct {
 	Metadata    ModificationCommandDetailedResultActionResTasksErrorsMetadata `json:"metadata" yaml:"metadata"`
 }
 
+func GetModificationCommandDetailedResultActionResTasksErrorsMetadataCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "product-id",
+			Type: "string",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResTasksErrorsMetadataFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResTasksErrorsMetadata {
+	data := ModificationCommandDetailedResultActionResTasksErrorsMetadata{}
+	if c.IsSet("product-id") {
+		data.ProductId = c.String("product-id")
+	}
+	return data
+}
+
 // The base class definition for metadata
 type ModificationCommandDetailedResultActionResTasksErrorsMetadata struct {
 	ProductId string `json:"productId" yaml:"productId"`
+}
+
+func GetModificationCommandDetailedResultActionResModificationCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "base-package",
+			Type:     "object",
+			Children: GetModificationCommandDetailedResultActionResModificationBasePackageCliFlags("base-package-"),
+		},
+		{
+			Name: prefix + "extra-packages",
+			Type: "array",
+		},
+		{
+			Name: prefix + "modification-time",
+			Type: "string",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResModificationFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResModification {
+	data := ModificationCommandDetailedResultActionResModification{}
+	if c.IsSet("base-package") {
+		data.BasePackage = CastModificationCommandDetailedResultActionResModificationBasePackageFromCli(c)
+	}
+	if c.IsSet("extra-packages") {
+		data.ExtraPackages = emigo.CapturePossibleArray(CastModificationCommandDetailedResultActionResModificationExtraPackagesFromCli, "extra-packages", c)
+	}
+	if c.IsSet("modification-time") {
+		data.ModificationTime = c.String("modification-time")
+	}
+	return data
 }
 
 // The base class definition for modification
@@ -74,9 +277,41 @@ type ModificationCommandDetailedResultActionResModification struct {
 	ModificationTime string                                                                `json:"modificationTime" yaml:"modificationTime"`
 }
 
+func GetModificationCommandDetailedResultActionResModificationBasePackageCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResModificationBasePackageFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResModificationBasePackage {
+	data := ModificationCommandDetailedResultActionResModificationBasePackage{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	return data
+}
+
 // The base class definition for basePackage
 type ModificationCommandDetailedResultActionResModificationBasePackage struct {
 	Id string `json:"id" yaml:"id"`
+}
+
+func GetModificationCommandDetailedResultActionResModificationExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResModificationExtraPackagesFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResModificationExtraPackages {
+	data := ModificationCommandDetailedResultActionResModificationExtraPackages{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	return data
 }
 
 // The base class definition for extraPackages
@@ -84,10 +319,65 @@ type ModificationCommandDetailedResultActionResModificationExtraPackages struct 
 	Id string `json:"id" yaml:"id"`
 }
 
+func GetModificationCommandDetailedResultActionResAdditionalMarketplacesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "marketplace-id",
+			Type: "string",
+		},
+		{
+			Name:     prefix + "modification",
+			Type:     "object",
+			Children: GetModificationCommandDetailedResultActionResAdditionalMarketplacesModificationCliFlags("modification-"),
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResAdditionalMarketplacesFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResAdditionalMarketplaces {
+	data := ModificationCommandDetailedResultActionResAdditionalMarketplaces{}
+	if c.IsSet("marketplace-id") {
+		data.MarketplaceId = c.String("marketplace-id")
+	}
+	if c.IsSet("modification") {
+		data.Modification = CastModificationCommandDetailedResultActionResAdditionalMarketplacesModificationFromCli(c)
+	}
+	return data
+}
+
 // The base class definition for additionalMarketplaces
 type ModificationCommandDetailedResultActionResAdditionalMarketplaces struct {
 	MarketplaceId string                                                                       `json:"marketplaceId" yaml:"marketplaceId"`
 	Modification  ModificationCommandDetailedResultActionResAdditionalMarketplacesModification `json:"modification" yaml:"modification"`
+}
+
+func GetModificationCommandDetailedResultActionResAdditionalMarketplacesModificationCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "base-package",
+			Type:     "object",
+			Children: GetModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackageCliFlags("base-package-"),
+		},
+		{
+			Name: prefix + "extra-packages",
+			Type: "array",
+		},
+		{
+			Name: prefix + "modification-time",
+			Type: "string",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResAdditionalMarketplacesModificationFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResAdditionalMarketplacesModification {
+	data := ModificationCommandDetailedResultActionResAdditionalMarketplacesModification{}
+	if c.IsSet("base-package") {
+		data.BasePackage = CastModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackageFromCli(c)
+	}
+	if c.IsSet("extra-packages") {
+		data.ExtraPackages = emigo.CapturePossibleArray(CastModificationCommandDetailedResultActionResAdditionalMarketplacesModificationExtraPackagesFromCli, "extra-packages", c)
+	}
+	if c.IsSet("modification-time") {
+		data.ModificationTime = c.String("modification-time")
+	}
+	return data
 }
 
 // The base class definition for modification
@@ -97,19 +387,97 @@ type ModificationCommandDetailedResultActionResAdditionalMarketplacesModificatio
 	ModificationTime string                                                                                      `json:"modificationTime" yaml:"modificationTime"`
 }
 
+func GetModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackageCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackageFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackage {
+	data := ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackage{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	return data
+}
+
 // The base class definition for basePackage
 type ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackage struct {
 	Id string `json:"id" yaml:"id"`
+}
+
+func GetModificationCommandDetailedResultActionResAdditionalMarketplacesModificationExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+	}
+}
+func CastModificationCommandDetailedResultActionResAdditionalMarketplacesModificationExtraPackagesFromCli(c emigo.CliCastable) ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationExtraPackages {
+	data := ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationExtraPackages{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	return data
 }
 
 // The base class definition for extraPackages
 type ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationExtraPackages struct {
 	Id string `json:"id" yaml:"id"`
 }
+
+func (x *ModificationCommandDetailedResultActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+
 type ModificationCommandDetailedResultActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
+}
+
+func (x *ModificationCommandDetailedResultActionResponse) SetContentType(contentType string) *ModificationCommandDetailedResultActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *ModificationCommandDetailedResultActionResponse) AsStream(r io.Reader, contentType string) *ModificationCommandDetailedResultActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *ModificationCommandDetailedResultActionResponse) AsJSON(payload any) *ModificationCommandDetailedResultActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *ModificationCommandDetailedResultActionResponse) AsHTML(payload string) *ModificationCommandDetailedResultActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *ModificationCommandDetailedResultActionResponse) AsBytes(payload []byte) *ModificationCommandDetailedResultActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+func (x ModificationCommandDetailedResultActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x ModificationCommandDetailedResultActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x ModificationCommandDetailedResultActionResponse) GetPayload() interface{} {
+	return x.Payload
 }
 
 // ModificationCommandDetailedResultActionRaw registers a raw Gin route for the ModificationCommandDetailedResultAction action.
@@ -117,11 +485,15 @@ type ModificationCommandDetailedResultActionResponse struct {
 func ModificationCommandDetailedResultActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ModificationCommandDetailedResultActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // ModificationCommandDetailedResultActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ModificationCommandDetailedResultAction action.
+}
+
+type ModificationCommandDetailedResultActionRequestSig = func(c ModificationCommandDetailedResultActionRequest) (*ModificationCommandDetailedResultActionResponse, error)
+
+// ModificationCommandDetailedResultActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ModificationCommandDetailedResultAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func ModificationCommandDetailedResultActionHandler(
-	handler func(c ModificationCommandDetailedResultActionRequest, gin *gin.Context) (*ModificationCommandDetailedResultActionResponse, error),
+	handler ModificationCommandDetailedResultActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := ModificationCommandDetailedResultActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -129,8 +501,9 @@ func ModificationCommandDetailedResultActionHandler(
 		req := ModificationCommandDetailedResultActionRequest{
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -159,7 +532,7 @@ func ModificationCommandDetailedResultActionHandler(
 // ModificationCommandDetailedResultAction is a high-level convenience wrapper around ModificationCommandDetailedResultActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func ModificationCommandDetailedResultAction(r gin.IRoutes, handler func(c ModificationCommandDetailedResultActionRequest, gin *gin.Context) (*ModificationCommandDetailedResultActionResponse, error)) {
+func ModificationCommandDetailedResultActionGin(r gin.IRoutes, handler ModificationCommandDetailedResultActionRequestSig) {
 	method, url, h := ModificationCommandDetailedResultActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -215,6 +588,8 @@ func (q *ModificationCommandDetailedResultActionQuery) SetMapped(m map[string]in
 type ModificationCommandDetailedResultActionRequest struct {
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type ModificationCommandDetailedResultActionResult struct {
 	resp    *http.Response // embed original response

@@ -39,9 +39,6 @@ func treeAsType(treeLocation string) string {
 
 func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, isFirst bool, ctx core.MicroGenContext, jsctx JsCommonObjectContext) []jsRenderedDataClass {
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	if len(fields) == 0 {
-		return nil
-	}
 
 	jsdoc := NewJsDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("export class %v", core.ToUpper(className))
@@ -94,6 +91,10 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if strings.Contains(field.Complex, "+") {
 				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
 			}
@@ -107,6 +108,8 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	return result
 }
 
+var SELF_FIELD = "self@"
+
 // when developer says target: AnotherEntity or target: AnotherDto, we need
 // to import that. Here we search through the definition tree and extract them all
 func CollectTargets(fields []*core.EmiField) []string {
@@ -115,7 +118,12 @@ func CollectTargets(fields []*core.EmiField) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
-			if field.Target != "" {
+			if field == nil {
+				continue
+			}
+
+			isSelf, _ := getSelfReferencingField(field, "")
+			if field.Target != "" && !isSelf {
 				result = append(result, field.Target)
 			}
 
@@ -135,6 +143,10 @@ func hasClassesAsChildren(fields []*core.EmiField) bool {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeCollectionNullable || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable || field.Type == core.FieldTypeOne || field.Type == core.FieldTypeCollection {
 				result = true
 				break
@@ -174,7 +186,15 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	if hasChildrenWithStaticFields {
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
 			Objects:  []string{"withPrefix"},
-			Location: INTERNAL_SDK_JS_LOCATION + "/withPrefix",
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/withPrefix",
+		})
+	}
+
+	// Not sure under which condition need to import partial deep.
+	if isTypeScript {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Objects:  []string{"type PartialDeep"},
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
 		})
 	}
 
@@ -373,15 +393,6 @@ export abstract class %vFactory {
 	{{ .abstractFactoryClass }}
 {{ end }}
 
-{{ if .isTypeScript }}
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
-{{ end }}
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
@@ -418,10 +429,12 @@ func jsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 	value := ""
 	if field == nil {
 		value = ""
+	} else if isSelf, valuex := getSelfReferencingField(field, parentChain); isSelf {
+		return valuex
 	} else if field.Type == core.FieldTypeArray || field.Type == core.FieldTypeObject || field.Type == core.FieldTypeArrayNullable || field.Type == core.FieldTypeObjectNullable {
 		value = core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
 	} else {
-		value = TsComputedField(field, false)
+		value = TsComputedField(field, false, parentChain)
 	}
 
 	// For the complex fields
@@ -433,7 +446,29 @@ func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 		return ""
 	}
 	prefix := core.ToUpper(parentChain) + "." + core.ToUpper(field.Name)
+
 	switch field.Type {
+	case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
+		target := field.Target
+
+		isSelf, value := getSelfReferencingField(field, parentChain)
+
+		if isSelf {
+			target = value
+		}
+
+		return target + "[]"
+	case core.FieldTypeOne, core.FieldTypeOneNullable:
+
+		target := field.Target
+
+		isSelf, value := getSelfReferencingField(field, parentChain)
+		if isSelf {
+			target = value
+		}
+
+		return target
+
 	case core.FieldTypeObject:
 		return fmt.Sprintf("InstanceType<typeof %v>", prefix)
 	case core.FieldTypeArray:
@@ -443,6 +478,6 @@ func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 	case core.FieldTypeArrayNullable:
 		return fmt.Sprintf("InstanceType<typeof %v>[] | null | undefined", prefix)
 	default:
-		return TsComputedField(field, false)
+		return TsComputedField(field, false, parentChain)
 	}
 }

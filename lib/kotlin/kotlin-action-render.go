@@ -2,6 +2,7 @@ package kotlin
 
 import (
 	"bytes"
+	"reflect"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -12,6 +13,10 @@ func KotlinActionRender(
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 ) (*core.CodeChunkCompiled, error) {
+	if action == nil || reflect.ValueOf(action).IsNil() {
+		return nil, nil
+	}
+
 	realms, deps, err := GetActionRealms(action, ctx, complexes)
 	if err != nil {
 		return nil, err

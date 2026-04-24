@@ -31,7 +31,7 @@ type CompleteModuleGenerator = func(module *Emi, ctx MicroGenContext) ([]Virtual
 type MicroGenContext struct {
 	Tags    string // Tags/features to enable or disable
 	Output  string // Output file or directory
-	Flags   string
+	Flags   map[string]string
 	Content string
 }
 
@@ -375,6 +375,10 @@ func CollectTargets(fields []*EmiField, currentName string) []string {
 	var walk func(f []*EmiField)
 	walk = func(f []*EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Target != "" {
 				if field.Target != currentName {
 					result = append(result, field.Target)

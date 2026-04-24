@@ -3,31 +3,66 @@ package external
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
 )
 
 /**
 * Action to communicate with the action GetPromoOptionsForSellerSOffersAction
  */
 func GetPromoOptionsForSellerSOffersActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name   string
-		URL    string
-		Method string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:   "GetPromoOptionsForSellerSOffersAction",
-		URL:    "https://api.{environment}/sale/offers/promo-options",
-		Method: "GET",
+		Name:        "GetPromoOptionsForSellerSOffersAction",
+		CliName:     "get promo options for seller's offers-action",
+		URL:         "https://api.{environment}/sale/offers/promo-options",
+		Method:      "GET",
+		Description: `Use this resource to retrieve promo options for seller offers. Read more: PL / EN.`,
 	}
+}
+func GetGetPromoOptionsForSellerSOffersActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "promo-options",
+			Type: "array",
+		},
+		{
+			Name: prefix + "count",
+			Type: "int",
+		},
+		{
+			Name: prefix + "total-count",
+			Type: "int",
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionRes {
+	data := GetPromoOptionsForSellerSOffersActionRes{}
+	if c.IsSet("promo-options") {
+		data.PromoOptions = emigo.CapturePossibleArray(CastGetPromoOptionsForSellerSOffersActionResPromoOptionsFromCli, "promo-options", c)
+	}
+	if c.IsSet("count") {
+		data.Count = int(c.Int64("count"))
+	}
+	if c.IsSet("total-count") {
+		data.TotalCount = int(c.Int64("total-count"))
+	}
+	return data
 }
 
 // The base class definition for getPromoOptionsForSellerSOffersActionRes
@@ -35,6 +70,59 @@ type GetPromoOptionsForSellerSOffersActionRes struct {
 	PromoOptions []GetPromoOptionsForSellerSOffersActionResPromoOptions `json:"promoOptions" yaml:"promoOptions"`
 	Count        int                                                    `json:"count" yaml:"count"`
 	TotalCount   int                                                    `json:"totalCount" yaml:"totalCount"`
+}
+
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "offer-id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "marketplace-id",
+			Type: "string",
+		},
+		{
+			Name:     prefix + "base-package",
+			Type:     "object",
+			Children: GetGetPromoOptionsForSellerSOffersActionResPromoOptionsBasePackageCliFlags("base-package-"),
+		},
+		{
+			Name: prefix + "extra-packages",
+			Type: "array",
+		},
+		{
+			Name:     prefix + "pending-changes",
+			Type:     "object",
+			Children: GetGetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesCliFlags("pending-changes-"),
+		},
+		{
+			Name: prefix + "additional-marketplaces",
+			Type: "array",
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptions {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptions{}
+	if c.IsSet("offer-id") {
+		data.OfferId = c.String("offer-id")
+	}
+	if c.IsSet("marketplace-id") {
+		data.MarketplaceId = c.String("marketplace-id")
+	}
+	if c.IsSet("base-package") {
+		data.BasePackage = CastGetPromoOptionsForSellerSOffersActionResPromoOptionsBasePackageFromCli(c)
+	}
+	if c.IsSet("extra-packages") {
+		data.ExtraPackages = emigo.CapturePossibleArray(CastGetPromoOptionsForSellerSOffersActionResPromoOptionsExtraPackagesFromCli, "extra-packages", c)
+	}
+	if c.IsSet("pending-changes") {
+		data.PendingChanges = CastGetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesFromCli(c)
+	}
+	if c.IsSet("additional-marketplaces") {
+		data.AdditionalMarketplaces = emigo.CapturePossibleArray(CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesFromCli, "additional-marketplaces", c)
+	}
+	return data
 }
 
 // The base class definition for promoOptions
@@ -47,12 +135,86 @@ type GetPromoOptionsForSellerSOffersActionResPromoOptions struct {
 	AdditionalMarketplaces []GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplaces `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
 }
 
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsBasePackageCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-from",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-to",
+			Type: "string",
+		},
+		{
+			Name: prefix + "next-cycle-date",
+			Type: "string",
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsBasePackageFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptionsBasePackage {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptionsBasePackage{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("valid-from") {
+		data.ValidFrom = c.String("valid-from")
+	}
+	if c.IsSet("valid-to") {
+		data.ValidTo = c.String("valid-to")
+	}
+	if c.IsSet("next-cycle-date") {
+		data.NextCycleDate = c.String("next-cycle-date")
+	}
+	return data
+}
+
 // The base class definition for basePackage
 type GetPromoOptionsForSellerSOffersActionResPromoOptionsBasePackage struct {
 	Id            string `json:"id" yaml:"id"`
 	ValidFrom     string `json:"validFrom" yaml:"validFrom"`
 	ValidTo       string `json:"validTo" yaml:"validTo"`
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
+}
+
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-from",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-to",
+			Type: "string",
+		},
+		{
+			Name: prefix + "next-cycle-date",
+			Type: "string",
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsExtraPackagesFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptionsExtraPackages {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptionsExtraPackages{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("valid-from") {
+		data.ValidFrom = c.String("valid-from")
+	}
+	if c.IsSet("valid-to") {
+		data.ValidTo = c.String("valid-to")
+	}
+	if c.IsSet("next-cycle-date") {
+		data.NextCycleDate = c.String("next-cycle-date")
+	}
+	return data
 }
 
 // The base class definition for extraPackages
@@ -63,9 +225,63 @@ type GetPromoOptionsForSellerSOffersActionResPromoOptionsExtraPackages struct {
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
 }
 
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "base-package",
+			Type:     "object",
+			Children: GetGetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesBasePackageCliFlags("base-package-"),
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChanges {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChanges{}
+	if c.IsSet("base-package") {
+		data.BasePackage = CastGetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesBasePackageFromCli(c)
+	}
+	return data
+}
+
 // The base class definition for pendingChanges
 type GetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChanges struct {
 	BasePackage GetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesBasePackage `json:"basePackage" yaml:"basePackage"`
+}
+
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesBasePackageCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-from",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-to",
+			Type: "string",
+		},
+		{
+			Name: prefix + "next-cycle-date",
+			Type: "string",
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesBasePackageFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesBasePackage {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesBasePackage{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("valid-from") {
+		data.ValidFrom = c.String("valid-from")
+	}
+	if c.IsSet("valid-to") {
+		data.ValidTo = c.String("valid-to")
+	}
+	if c.IsSet("next-cycle-date") {
+		data.NextCycleDate = c.String("next-cycle-date")
+	}
+	return data
 }
 
 // The base class definition for basePackage
@@ -76,12 +292,88 @@ type GetPromoOptionsForSellerSOffersActionResPromoOptionsPendingChangesBasePacka
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
 }
 
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "marketplace-id",
+			Type: "string",
+		},
+		{
+			Name:     prefix + "base-package",
+			Type:     "object",
+			Children: GetGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesBasePackageCliFlags("base-package-"),
+		},
+		{
+			Name: prefix + "extra-packages",
+			Type: "array",
+		},
+		{
+			Name:     prefix + "pending-changes",
+			Type:     "object",
+			Children: GetGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesCliFlags("pending-changes-"),
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplaces {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplaces{}
+	if c.IsSet("marketplace-id") {
+		data.MarketplaceId = c.String("marketplace-id")
+	}
+	if c.IsSet("base-package") {
+		data.BasePackage = CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesBasePackageFromCli(c)
+	}
+	if c.IsSet("extra-packages") {
+		data.ExtraPackages = emigo.CapturePossibleArray(CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesExtraPackagesFromCli, "extra-packages", c)
+	}
+	if c.IsSet("pending-changes") {
+		data.PendingChanges = CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesFromCli(c)
+	}
+	return data
+}
+
 // The base class definition for additionalMarketplaces
 type GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplaces struct {
 	MarketplaceId  string                                                                                    `json:"marketplaceId" yaml:"marketplaceId"`
 	BasePackage    GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesBasePackage     `json:"basePackage" yaml:"basePackage"`
 	ExtraPackages  []GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesExtraPackages `json:"extraPackages" yaml:"extraPackages"`
 	PendingChanges GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChanges  `json:"pendingChanges" yaml:"pendingChanges"`
+}
+
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesBasePackageCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-from",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-to",
+			Type: "string",
+		},
+		{
+			Name: prefix + "next-cycle-date",
+			Type: "string",
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesBasePackageFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesBasePackage {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesBasePackage{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("valid-from") {
+		data.ValidFrom = c.String("valid-from")
+	}
+	if c.IsSet("valid-to") {
+		data.ValidTo = c.String("valid-to")
+	}
+	if c.IsSet("next-cycle-date") {
+		data.NextCycleDate = c.String("next-cycle-date")
+	}
+	return data
 }
 
 // The base class definition for basePackage
@@ -92,6 +384,43 @@ type GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesB
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
 }
 
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-from",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-to",
+			Type: "string",
+		},
+		{
+			Name: prefix + "next-cycle-date",
+			Type: "string",
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesExtraPackagesFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesExtraPackages {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesExtraPackages{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("valid-from") {
+		data.ValidFrom = c.String("valid-from")
+	}
+	if c.IsSet("valid-to") {
+		data.ValidTo = c.String("valid-to")
+	}
+	if c.IsSet("next-cycle-date") {
+		data.NextCycleDate = c.String("next-cycle-date")
+	}
+	return data
+}
+
 // The base class definition for extraPackages
 type GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesExtraPackages struct {
 	Id            string `json:"id" yaml:"id"`
@@ -100,9 +429,63 @@ type GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesE
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
 }
 
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "base-package",
+			Type:     "object",
+			Children: GetGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesBasePackageCliFlags("base-package-"),
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChanges {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChanges{}
+	if c.IsSet("base-package") {
+		data.BasePackage = CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesBasePackageFromCli(c)
+	}
+	return data
+}
+
 // The base class definition for pendingChanges
 type GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChanges struct {
 	BasePackage GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesBasePackage `json:"basePackage" yaml:"basePackage"`
+}
+
+func GetGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesBasePackageCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-from",
+			Type: "string",
+		},
+		{
+			Name: prefix + "valid-to",
+			Type: "string",
+		},
+		{
+			Name: prefix + "next-cycle-date",
+			Type: "string",
+		},
+	}
+}
+func CastGetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesBasePackageFromCli(c emigo.CliCastable) GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesBasePackage {
+	data := GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesPendingChangesBasePackage{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("valid-from") {
+		data.ValidFrom = c.String("valid-from")
+	}
+	if c.IsSet("valid-to") {
+		data.ValidTo = c.String("valid-to")
+	}
+	if c.IsSet("next-cycle-date") {
+		data.NextCycleDate = c.String("next-cycle-date")
+	}
+	return data
 }
 
 // The base class definition for basePackage
@@ -112,10 +495,56 @@ type GetPromoOptionsForSellerSOffersActionResPromoOptionsAdditionalMarketplacesP
 	ValidTo       string `json:"validTo" yaml:"validTo"`
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
 }
+
+func (x *GetPromoOptionsForSellerSOffersActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+
 type GetPromoOptionsForSellerSOffersActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
+}
+
+func (x *GetPromoOptionsForSellerSOffersActionResponse) SetContentType(contentType string) *GetPromoOptionsForSellerSOffersActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *GetPromoOptionsForSellerSOffersActionResponse) AsStream(r io.Reader, contentType string) *GetPromoOptionsForSellerSOffersActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *GetPromoOptionsForSellerSOffersActionResponse) AsJSON(payload any) *GetPromoOptionsForSellerSOffersActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *GetPromoOptionsForSellerSOffersActionResponse) AsHTML(payload string) *GetPromoOptionsForSellerSOffersActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *GetPromoOptionsForSellerSOffersActionResponse) AsBytes(payload []byte) *GetPromoOptionsForSellerSOffersActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+func (x GetPromoOptionsForSellerSOffersActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x GetPromoOptionsForSellerSOffersActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x GetPromoOptionsForSellerSOffersActionResponse) GetPayload() interface{} {
+	return x.Payload
 }
 
 // GetPromoOptionsForSellerSOffersActionRaw registers a raw Gin route for the GetPromoOptionsForSellerSOffersAction action.
@@ -123,11 +552,15 @@ type GetPromoOptionsForSellerSOffersActionResponse struct {
 func GetPromoOptionsForSellerSOffersActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := GetPromoOptionsForSellerSOffersActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // GetPromoOptionsForSellerSOffersActionHandler returns the HTTP method, route URL, and a typed Gin handler for the GetPromoOptionsForSellerSOffersAction action.
+}
+
+type GetPromoOptionsForSellerSOffersActionRequestSig = func(c GetPromoOptionsForSellerSOffersActionRequest) (*GetPromoOptionsForSellerSOffersActionResponse, error)
+
+// GetPromoOptionsForSellerSOffersActionHandler returns the HTTP method, route URL, and a typed Gin handler for the GetPromoOptionsForSellerSOffersAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func GetPromoOptionsForSellerSOffersActionHandler(
-	handler func(c GetPromoOptionsForSellerSOffersActionRequest, gin *gin.Context) (*GetPromoOptionsForSellerSOffersActionResponse, error),
+	handler GetPromoOptionsForSellerSOffersActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := GetPromoOptionsForSellerSOffersActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -135,8 +568,9 @@ func GetPromoOptionsForSellerSOffersActionHandler(
 		req := GetPromoOptionsForSellerSOffersActionRequest{
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -165,7 +599,7 @@ func GetPromoOptionsForSellerSOffersActionHandler(
 // GetPromoOptionsForSellerSOffersAction is a high-level convenience wrapper around GetPromoOptionsForSellerSOffersActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func GetPromoOptionsForSellerSOffersAction(r gin.IRoutes, handler func(c GetPromoOptionsForSellerSOffersActionRequest, gin *gin.Context) (*GetPromoOptionsForSellerSOffersActionResponse, error)) {
+func GetPromoOptionsForSellerSOffersActionGin(r gin.IRoutes, handler GetPromoOptionsForSellerSOffersActionRequestSig) {
 	method, url, h := GetPromoOptionsForSellerSOffersActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -221,6 +655,8 @@ func (q *GetPromoOptionsForSellerSOffersActionQuery) SetMapped(m map[string]inte
 type GetPromoOptionsForSellerSOffersActionRequest struct {
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type GetPromoOptionsForSellerSOffersActionResult struct {
 	resp    *http.Response // embed original response

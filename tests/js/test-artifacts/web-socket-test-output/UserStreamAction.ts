@@ -1,5 +1,6 @@
 import { WebSocketX } from "./sdk/common/WebSocketX";
 import { buildUrl } from "./sdk/common/buildUrl";
+import { type PartialDeep } from "./sdk/common/fetchx";
 /**
  * Action to communicate with the action userStream
  */
@@ -242,13 +243,6 @@ export class UserStreamActionReq {
 export abstract class UserStreamActionReqFactory {
   abstract create(data: unknown): UserStreamActionReq;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for userStreamActionReq
  **/
@@ -387,13 +381,6 @@ export class UserStreamActionRes {
 export abstract class UserStreamActionResFactory {
   abstract create(data: unknown): UserStreamActionRes;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for userStreamActionRes
  **/

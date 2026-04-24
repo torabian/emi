@@ -2,6 +2,7 @@ package golang
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
@@ -67,8 +68,19 @@ func (x goFieldVariable) Compile() string {
 		x.Tags["yaml"] = core.ToLower(varName)
 	}
 
-	parts := []string{}
-	for k, v := range x.Tags {
+	// collect keys
+	keys := make([]string, 0, len(x.Tags))
+	for k := range x.Tags {
+		keys = append(keys, k)
+	}
+
+	// sort keys
+	sort.Strings(keys)
+
+	// build parts in order
+	parts := make([]string, 0, len(keys))
+	for _, k := range keys {
+		v := x.Tags[k]
 		parts = append(parts, fmt.Sprintf(`%v:"%v"`, k, strings.ReplaceAll(v, `"`, `\"`)))
 	}
 
@@ -154,6 +166,8 @@ type fieldLike interface {
 	GetComplex() string
 	GetDescription() string
 	GetPrimitive() string
+	GetMapKeyType() string
+	GetMapValueType() string
 	GetTags() map[string]string
 }
 

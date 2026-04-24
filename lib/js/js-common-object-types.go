@@ -41,7 +41,7 @@ func tsFieldType(field *core.EmiField, parentChain string) string {
 		case core.FieldTypeObject, core.FieldTypeObjectNullable:
 			value = core.ToUpper(parentChain) + "." + fieldName
 		default:
-			value = TsComputedField(field, false)
+			value = TsComputedField(field, false, parentChain)
 		}
 	}
 
@@ -81,9 +81,6 @@ func tsRenderFields(fields []*core.EmiField, parentChain string) []tsRenderedFie
 }
 
 func tsRenderTypes(fields []*core.EmiField, typeName string, treeLocation string, isFirst bool) []tsRenderedType {
-	if len(fields) == 0 {
-		return []tsRenderedType{}
-	}
 
 	typeNameUpper := core.ToUpper(typeName)
 

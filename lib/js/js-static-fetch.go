@@ -171,8 +171,8 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 				Key: "response.cls",
 				// Ts:  fetchctx.ResponseClass,
 				// Js:  fetchctx.ResponseClass,
-				Ts: "(item) => creatorFn(item)",
-				Js: "(item) => creatorFn(item)",
+				Ts: "(item) => (creatorFn ? creatorFn(item) : item)",
+				Js: "(item) => (creatorFn ? creatorFn(item) : item)",
 			})
 		} else {
 
@@ -332,11 +332,18 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		ActualScript: []byte(templateResult),
 		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{"fetchx", "FetchxContext"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
+				Objects:  []string{"fetchx"},
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{},
+	}
+
+	if isTypeScript {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Objects:  []string{"type FetchxContext"},
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
+		})
 	}
 
 	if creatorFn != nil {
@@ -349,7 +356,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 	res.CodeChunkDependensies = append(res.CodeChunkDependensies, []core.CodeChunkDependency{
 		{
 			Objects:  []string{"handleFetchResponse"},
-			Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
 		},
 	}...)
 
@@ -357,7 +364,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type TypedRequestInit"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
 			},
 		}...)
 	}
@@ -367,6 +374,6 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 
 // On final stage of compiling, this varialble will be replaced with context
 // sdk location on the disk
-var INTERNAL_SDK_JS_LOCATION string = "./sdk/common"
-var INTERNAL_SDK_REACT_LOCATION string = "./sdk/react"
-var INTERNAL_SDK_ENVELOPES_LOCATION string = "./sdk/envelopes/index"
+var INTERNAL_SDK_JS_LOCATION string = "{sdk}/common"
+var INTERNAL_SDK_REACT_LOCATION string = "{sdk}/react"
+var INTERNAL_SDK_ENVELOPES_LOCATION string = "{sdk}/envelopes/index"

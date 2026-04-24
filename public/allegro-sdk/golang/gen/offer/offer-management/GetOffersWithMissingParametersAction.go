@@ -3,31 +3,66 @@ package external
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
+	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
 )
 
 /**
 * Action to communicate with the action GetOffersWithMissingParametersAction
  */
 func GetOffersWithMissingParametersActionMeta() struct {
-	Name   string
-	URL    string
-	Method string
+	Name        string
+	CliName     string
+	URL         string
+	Method      string
+	Description string
 } {
 	return struct {
-		Name   string
-		URL    string
-		Method string
+		Name        string
+		CliName     string
+		URL         string
+		Method      string
+		Description string
 	}{
-		Name:   "GetOffersWithMissingParametersAction",
-		URL:    "https://api.{environment}/sale/offers/unfilled-parameters",
-		Method: "GET",
+		Name:        "GetOffersWithMissingParametersAction",
+		CliName:     "get offers with missing parameters-action",
+		URL:         "https://api.{environment}/sale/offers/unfilled-parameters",
+		Method:      "GET",
+		Description: `Use this resource to get information about required parameters or parameters scheduled to become required that are not filled in offers. Read more: PL / EN.`,
 	}
+}
+func GetGetOffersWithMissingParametersActionResCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "offers",
+			Type: "array",
+		},
+		{
+			Name: prefix + "count",
+			Type: "int",
+		},
+		{
+			Name: prefix + "total-count",
+			Type: "int",
+		},
+	}
+}
+func CastGetOffersWithMissingParametersActionResFromCli(c emigo.CliCastable) GetOffersWithMissingParametersActionRes {
+	data := GetOffersWithMissingParametersActionRes{}
+	if c.IsSet("offers") {
+		data.Offers = emigo.CapturePossibleArray(CastGetOffersWithMissingParametersActionResOffersFromCli, "offers", c)
+	}
+	if c.IsSet("count") {
+		data.Count = int(c.Int64("count"))
+	}
+	if c.IsSet("total-count") {
+		data.TotalCount = int(c.Int64("total-count"))
+	}
+	return data
 }
 
 // The base class definition for getOffersWithMissingParametersActionRes
@@ -37,6 +72,37 @@ type GetOffersWithMissingParametersActionRes struct {
 	TotalCount int                                             `json:"totalCount" yaml:"totalCount"`
 }
 
+func GetGetOffersWithMissingParametersActionResOffersCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "parameters",
+			Type: "array",
+		},
+		{
+			Name:     prefix + "category",
+			Type:     "object",
+			Children: GetGetOffersWithMissingParametersActionResOffersCategoryCliFlags("category-"),
+		},
+	}
+}
+func CastGetOffersWithMissingParametersActionResOffersFromCli(c emigo.CliCastable) GetOffersWithMissingParametersActionResOffers {
+	data := GetOffersWithMissingParametersActionResOffers{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	if c.IsSet("parameters") {
+		data.Parameters = emigo.CapturePossibleArray(CastGetOffersWithMissingParametersActionResOffersParametersFromCli, "parameters", c)
+	}
+	if c.IsSet("category") {
+		data.Category = CastGetOffersWithMissingParametersActionResOffersCategoryFromCli(c)
+	}
+	return data
+}
+
 // The base class definition for offers
 type GetOffersWithMissingParametersActionResOffers struct {
 	Id         string                                                    `json:"id" yaml:"id"`
@@ -44,19 +110,97 @@ type GetOffersWithMissingParametersActionResOffers struct {
 	Category   GetOffersWithMissingParametersActionResOffersCategory     `json:"category" yaml:"category"`
 }
 
+func GetGetOffersWithMissingParametersActionResOffersParametersCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+	}
+}
+func CastGetOffersWithMissingParametersActionResOffersParametersFromCli(c emigo.CliCastable) GetOffersWithMissingParametersActionResOffersParameters {
+	data := GetOffersWithMissingParametersActionResOffersParameters{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	return data
+}
+
 // The base class definition for parameters
 type GetOffersWithMissingParametersActionResOffersParameters struct {
 	Id string `json:"id" yaml:"id"`
+}
+
+func GetGetOffersWithMissingParametersActionResOffersCategoryCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "id",
+			Type: "string",
+		},
+	}
+}
+func CastGetOffersWithMissingParametersActionResOffersCategoryFromCli(c emigo.CliCastable) GetOffersWithMissingParametersActionResOffersCategory {
+	data := GetOffersWithMissingParametersActionResOffersCategory{}
+	if c.IsSet("id") {
+		data.Id = c.String("id")
+	}
+	return data
 }
 
 // The base class definition for category
 type GetOffersWithMissingParametersActionResOffersCategory struct {
 	Id string `json:"id" yaml:"id"`
 }
+
+func (x *GetOffersWithMissingParametersActionRes) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+
 type GetOffersWithMissingParametersActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
+}
+
+func (x *GetOffersWithMissingParametersActionResponse) SetContentType(contentType string) *GetOffersWithMissingParametersActionResponse {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+func (x *GetOffersWithMissingParametersActionResponse) AsStream(r io.Reader, contentType string) *GetOffersWithMissingParametersActionResponse {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+func (x *GetOffersWithMissingParametersActionResponse) AsJSON(payload any) *GetOffersWithMissingParametersActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+func (x *GetOffersWithMissingParametersActionResponse) AsHTML(payload string) *GetOffersWithMissingParametersActionResponse {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+func (x *GetOffersWithMissingParametersActionResponse) AsBytes(payload []byte) *GetOffersWithMissingParametersActionResponse {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+func (x GetOffersWithMissingParametersActionResponse) GetStatusCode() int {
+	return x.StatusCode
+}
+func (x GetOffersWithMissingParametersActionResponse) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+func (x GetOffersWithMissingParametersActionResponse) GetPayload() interface{} {
+	return x.Payload
 }
 
 // GetOffersWithMissingParametersActionRaw registers a raw Gin route for the GetOffersWithMissingParametersAction action.
@@ -64,11 +208,15 @@ type GetOffersWithMissingParametersActionResponse struct {
 func GetOffersWithMissingParametersActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := GetOffersWithMissingParametersActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
-} // GetOffersWithMissingParametersActionHandler returns the HTTP method, route URL, and a typed Gin handler for the GetOffersWithMissingParametersAction action.
+}
+
+type GetOffersWithMissingParametersActionRequestSig = func(c GetOffersWithMissingParametersActionRequest) (*GetOffersWithMissingParametersActionResponse, error)
+
+// GetOffersWithMissingParametersActionHandler returns the HTTP method, route URL, and a typed Gin handler for the GetOffersWithMissingParametersAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func GetOffersWithMissingParametersActionHandler(
-	handler func(c GetOffersWithMissingParametersActionRequest, gin *gin.Context) (*GetOffersWithMissingParametersActionResponse, error),
+	handler GetOffersWithMissingParametersActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := GetOffersWithMissingParametersActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -76,8 +224,9 @@ func GetOffersWithMissingParametersActionHandler(
 		req := GetOffersWithMissingParametersActionRequest{
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx:      m,
 		}
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -106,7 +255,7 @@ func GetOffersWithMissingParametersActionHandler(
 // GetOffersWithMissingParametersAction is a high-level convenience wrapper around GetOffersWithMissingParametersActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func GetOffersWithMissingParametersAction(r gin.IRoutes, handler func(c GetOffersWithMissingParametersActionRequest, gin *gin.Context) (*GetOffersWithMissingParametersActionResponse, error)) {
+func GetOffersWithMissingParametersActionGin(r gin.IRoutes, handler GetOffersWithMissingParametersActionRequestSig) {
 	method, url, h := GetOffersWithMissingParametersActionHandler(handler)
 	r.Handle(method, url, h)
 }
@@ -162,6 +311,8 @@ func (q *GetOffersWithMissingParametersActionQuery) SetMapped(m map[string]inter
 type GetOffersWithMissingParametersActionRequest struct {
 	QueryParams url.Values
 	Headers     http.Header
+	GinCtx      *gin.Context
+	CliCtx      *cli.Context
 }
 type GetOffersWithMissingParametersActionResult struct {
 	resp    *http.Response // embed original response

@@ -1,9 +1,9 @@
 package golang
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+	"go/format"
 	"slices"
 	"sort"
 	"strings"
@@ -34,16 +34,13 @@ func GetGolangPublicActions() core.PublicAPIActions {
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
 
-				var m map[string]string = map[string]string{}
-				json.Unmarshal([]byte(ctx.Flags), &m)
-
 				emiDto, err := core.StringToEmiDto(ctx.Content)
 				if err != nil {
 					return "", err
 				}
 
 				emiLocation := ""
-				if val, ok := m["emi-runtime"]; ok && val != "" && val != "<nil>" {
+				if val, ok := ctx.Flags["emi-runtime"]; ok && val != "" && val != "<nil>" {
 					emiLocation = val
 				}
 
@@ -52,8 +49,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				return AsFullDocument(res, m["pkg"]), nil
-
+				return AsFullDocument(res, ctx.Flags["pkg"]), nil
 			},
 		},
 	}
@@ -109,7 +105,7 @@ func GetGolangPublicActions() core.PublicAPIActions {
 
 // Finds the ts/js compatible types.
 // Make sure this function is public on later versions
-func discoverComplexes(module *core.Emi) []RecognizedComplex {
+func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
 	items := []RecognizedComplex{}
 	for _, complex := range module.Complexes {
 
@@ -140,27 +136,40 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	globalPacakges := []string{"qs", "@types/qs"}
 
 	type Flags struct {
-		Emigo       string `json:"emigo,omitempty"`
-		PackageName string `json:"pkg,omitempty"`
+		Emigo       string  `json:"emigo,omitempty"`
+		PackageName string  `json:"pkg,omitempty"`
+		Dtos        *string `json:"dtos"`
 	}
 	var f Flags = Flags{
 		Emigo:       "github.com/torabian/emi/emigo",
 		PackageName: DEFAULT_GO_PACKAGE,
 	}
 
-	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		fmt.Println("Flags provided are not correct:", ctx.Flags)
+	if val, ok := ctx.Flags["emigo"]; ok && val != "" {
+		f.Emigo = val
 	}
 
-	complexes := discoverComplexes(module)
+	if val, ok := ctx.Flags["pkg"]; ok && val != "" {
+		fmt.Println("Setting packagename", val)
+		f.PackageName = val
+	}
+
+	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := GoModuleGenerationFlags{}
-	json.Unmarshal([]byte(ctx.Flags), &config)
+	if ctx.Flags["dtos"] != "" {
+		str := ctx.Flags["dtos"]
+		config.Dtos = &str
+	}
 
 	var entitiesAndDtos []*core.CodeChunkCompiled
 
 	for _, dto := range module.Dto {
+		if dto.Name == "" {
+			continue
+		}
+
 		if config.Dtos != nil && len(*config.Dtos) > 0 && !slices.Contains(config.GetDtos(), dto.Name) {
 			continue
 		}
@@ -215,11 +224,21 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	return files, nil
 }
 
+func FormatGoCode(code string) string {
+	src := []byte(code)
+	formatted, err := format.Source(src)
+	if err != nil {
+		// if formatting fails, just return original
+		return code
+	}
+	return string(formatted)
+}
+
 func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
 	importsList := CombineGoImports(*x)
 	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + string(x.ActualScript)
 
-	finalContent = string(core.EscapeLines([]byte(finalContent)))
+	finalContent = FormatGoCode(string(core.EscapeLines([]byte(finalContent))))
 	return finalContent
 }
 func CombineGoImports(chunk core.CodeChunkCompiled) string {

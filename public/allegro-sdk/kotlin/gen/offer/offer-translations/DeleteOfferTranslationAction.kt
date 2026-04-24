@@ -1,0 +1,63 @@
+package unknownpackage
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import kotlinx.coroutines.Dispatchers
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import kotlinx.coroutines.withContext
+import emikot.ClientContext
+/**
+ * Action to communicate with the action DeleteOfferTranslationAction
+ */
+data class DeleteOfferTranslationActionMeta(
+    val name: String = "DeleteOfferTranslationAction",
+    val url: String = "https://api.{environment}/sale/offers/{offerId}/translations/{language}",
+    val method: String = "delete"
+)
+/*data class DeleteOfferTranslationActionRequest(val call: io.ktor.server.application.ApplicationCall)*/
+data class DeleteOfferTranslationActionResponse(
+    val statusCode: Int = 200,
+    val headers: Map<String, String> = emptyMap(),
+    val payload: Any? = null
+)
+object DeleteOfferTranslationActionClient {
+	public var context: ClientContext? = null
+    private val client = OkHttpClient()
+    private val jsonType = "application/json".toMediaType()
+    fun buildUrl(base: String, path: String, query: Map<String, String>): String {
+        val baseUrl = base.toHttpUrl()   // parses full URL like "http://asdasda/"
+        val urlBuilder = baseUrl
+            .newBuilder()
+            .encodedPath(path)
+        query.forEach { (k, v) ->
+            urlBuilder.addQueryParameter(k, v)
+        }
+        return urlBuilder.build().toString()
+    }
+    suspend fun compute(
+		query: Map<String, String> = emptyMap(),
+		headers: Map<String, String> = emptyMap(),
+		body: String? = null
+	): DeleteOfferTranslationActionResponse =
+        withContext(Dispatchers.IO) {
+            val meta = DeleteOfferTranslationActionMeta()
+            var baseUrl = context?.baseUrl ?: ""
+            var url = buildUrl(baseUrl, meta.url, query)
+            println(  url)
+            val body0 = body?.toRequestBody(jsonType)
+            val request = Request.Builder()
+                .url(url)
+                .method(meta.method, body0)
+                .addHeader("Accept", "application/json")
+                .build()
+            client.newCall(request).execute().use { resp ->
+                DeleteOfferTranslationActionResponse(
+                    statusCode = resp.code,
+                    // body = resp.body?.string().orEmpty(),
+                    headers = resp.headers.toMap()
+                )
+            }
+        }
+}

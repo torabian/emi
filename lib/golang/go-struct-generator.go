@@ -56,10 +56,6 @@ type GoCommonStructContext struct {
 }
 
 func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx GoCommonStructContext) []goRenderedStruct {
-	if len(fields) == 0 {
-		return nil
-	}
-
 	GoDoc := NewGoDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("type %v struct", prefixName)
 
@@ -96,6 +92,10 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Complex != "" && field.Type == core.FieldTypeComplex {
 				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
 			}
@@ -116,6 +116,10 @@ func DetectIfComplexIsUsed(fields []*core.EmiField) bool {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Complex != "" && field.Type == core.FieldTypeComplex {
 				result = true
 			}
@@ -136,15 +140,22 @@ func DetectIfEmiGoIsUsed(fields []*core.EmiField) bool {
 
 	// As of recent changes, since we are having cli tools,
 	// always emigo is included, it seems.
-	if len(fields) > 0 {
-		return true
-	}
+
+	/// As a recent change, always emi go is used, because even empty dto has import.
+	return true
+	// if len(fields) > 0 {
+	// 	return true
+	// }
 
 	var result bool = false
 
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			// At least in this case, a nullable value has been used.
 			if strings.Contains(string(field.Type), "?") {
 				result = true
@@ -191,6 +202,10 @@ func CollectTargets(fields []*core.EmiField, currentName string) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if field.Provider != "" {
 				if field.Provider != currentName {
 					result = append(result, field.Provider)
@@ -361,27 +376,66 @@ func goPrimitiveDetect(fieldType string) string {
 	return ""
 }
 
-func goListAndObjectTypes(field fieldLike) string {
+var SELF_FIELD = "self@"
 
-	prefix := "emigo."
+func getSelfReferencingField(fieldTaret string, parentChain string) (bool, string) {
+	if !strings.HasPrefix(fieldTaret, SELF_FIELD) {
+		return false, ""
+	}
+
+	return true, strings.ReplaceAll(fieldTaret, SELF_FIELD, strings.Split(parentChain, ".")[0])
+}
+
+func goListAndObjectTypes(field fieldLike, parentChain string) string {
+
+	// prefix := "emigo."
 	switch field.GetType() {
 
-	case core.FieldTypeOne:
-		if field.GetModule() != "" {
-			return field.GetModule() + "." + field.GetTarget()
+	case core.FieldTypeMap, core.FieldTypeMapNullable:
+		keyType := "any"
+		pairType := "any"
+
+		if field.GetMapKeyType() != "" {
+			keyType = field.GetMapKeyType()
 		}
-		return field.GetTarget()
+
+		if field.GetMapValueType() != "" {
+			pairType = field.GetMapValueType()
+		}
+
+		return fmt.Sprintf("map[%v]%v", keyType, pairType)
+
+	case core.FieldTypeOne, core.FieldTypeOneNullable:
+		target := field.GetTarget()
+
+		isSelf, value := getSelfReferencingField(target, parentChain)
+		if isSelf {
+			target = value
+		}
+
+		if field.GetModule() != "" {
+			return field.GetModule() + "." + target
+
+		}
+		return target
 	case core.FieldTypeArray:
 		return field.PublicName()
-	case core.FieldTypeCollection:
-		if field.GetModule() != "" {
-			return "[]" + field.GetModule() + "." + field.GetTarget()
+	case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
+		target := field.GetTarget()
+
+		isSelf, value := getSelfReferencingField(target, parentChain)
+		if isSelf {
+			target = value
 		}
-		return "[]" + field.GetTarget()
+
+		if field.GetModule() != "" {
+			return "[]" + field.GetModule() + "." + target
+		}
+		return "[]" + target
 	case core.FieldTypeSlice:
-		return "[]" + goPrimitiveDetect(field.GetPrimitive())
+		return "[]" + DefaultIfEmpty(goPrimitiveDetect(field.GetPrimitive()), "interface{}")
 	case core.FieldTypeSliceNullable:
-		return prefix + "Nullable[[]" + goPrimitiveDetect(field.GetPrimitive()) + "]"
+		return "[]" + DefaultIfEmpty(goPrimitiveDetect(field.GetPrimitive()), "interface{}")
 	case core.FieldTypeObject:
 		return field.PublicName()
 	default:
@@ -389,13 +443,21 @@ func goListAndObjectTypes(field fieldLike) string {
 	}
 }
 
-func goComputedField(field fieldLike) string {
+func DefaultIfEmpty(value string, defaultV string) string {
+	if value == "" {
+		return defaultV
+	}
+
+	return value
+}
+
+func goComputedField(field fieldLike, parentChain string) string {
 
 	if goprimitive := goPrimitiveDetect(string(field.GetType())); goprimitive != "" {
 		return goprimitive
 	}
 
-	if computedType := goListAndObjectTypes(field); computedType != "" {
+	if computedType := goListAndObjectTypes(field, parentChain); computedType != "" {
 		if core.IsNullable(string(field.GetType())) {
 			return fmt.Sprintf("emigo.Nullable[%v]", computedType)
 		} else {
@@ -433,6 +495,6 @@ func goFieldTypeOnNestedClasses(
 	case core.FieldTypeArrayNullable:
 		return fmt.Sprintf("emigo.Nullable[[]%v]", prefix)
 	default:
-		return goComputedField(field)
+		return goComputedField(field, goctx.RootClassName)
 	}
 }

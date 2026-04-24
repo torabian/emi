@@ -1,3 +1,4 @@
+import { type PartialDeep } from './sdk/common/fetchx';
 /**
   * The base class definition for anonymouse
   **/
@@ -489,6 +490,7 @@ get float32Field () { return this.#float32Field }
   * @type {number}
   **/
 set float32Field (value: number) {
+		this.#float32Field = value;
 }
 setFloat32Field (value: number) {
 	this.float32Field = value
@@ -509,6 +511,7 @@ get float32FieldWithValue () { return this.#float32FieldWithValue }
   * @type {number}
   **/
 set float32FieldWithValue (value: number) {
+		this.#float32FieldWithValue = value;
 }
 setFloat32FieldWithValue (value: number) {
 	this.float32FieldWithValue = value
@@ -579,6 +582,7 @@ get float64Field () { return this.#float64Field }
   * @type {number}
   **/
 set float64Field (value: number) {
+		this.#float64Field = value;
 }
 setFloat64Field (value: number) {
 	this.float64Field = value
@@ -599,6 +603,7 @@ get float64FieldWithValue () { return this.#float64FieldWithValue }
   * @type {number}
   **/
 set float64FieldWithValue (value: number) {
+		this.#float64FieldWithValue = value;
 }
 setFloat64FieldWithValue (value: number) {
 	this.float64FieldWithValue = value
@@ -814,13 +819,6 @@ setNullableFloat64FieldWithValue (value: number | null | undefined) {
 export abstract class AnonymouseFactory {
 	abstract create(data: unknown): Anonymouse;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 	/**
   * The base type definition for anonymouse
   **/

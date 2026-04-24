@@ -1,14 +1,13 @@
 package golang
 
 import (
-	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
 )
 
 type goActionRealms struct {
+	IdealResponseType    string
 	ActionName           string
 	SafeUrl              string
 	HttpMethod           string
@@ -24,13 +23,15 @@ type goActionRealms struct {
 	RequestClassName     string
 }
 
-var GENERATE_GO_CLINET = true
+var GEN_GO_SKIP_CLIENT = "no-client"
 
 func GoActionRealms(
 	action core.EmiRpcAction,
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 ) (goActionRealms, []core.CodeChunkDependency, error) {
+
+	skipGoClient := strings.Contains(ctx.Tags, GEN_GO_SKIP_CLIENT)
 
 	type Flags struct {
 		Emigo       string `json:"emigo,omitempty"`
@@ -40,24 +41,34 @@ func GoActionRealms(
 		Emigo:       "github.com/torabian/emi/emigo",
 		PackageName: DEFAULT_GO_PACKAGE,
 	}
-	if err := json.Unmarshal([]byte(ctx.Flags), &f); err != nil {
-		fmt.Println("Flags provided are not correct:", ctx.Flags)
+
+	if val, ok := ctx.Flags["emigo"]; ok && val != "" {
+		f.Emigo = val
+	}
+
+	if val, ok := ctx.Flags["pkg"]; ok && val != "" {
+		f.PackageName = val
 	}
 
 	deps := []core.CodeChunkDependency{
 		{
 			Location: "net/http",
 		},
-
+		core.CodeChunkDependency{Location: "io"},
 		{
 			Location: "github.com/gin-gonic/gin",
 		},
+
+		{
+			Location: "github.com/urfave/cli",
+		},
+
 		{
 			Location: f.Emigo,
 		},
 	}
 
-	if GENERATE_GO_CLINET {
+	if !skipGoClient {
 		deps = append(
 			deps,
 			core.CodeChunkDependency{Location: "encoding/json"},
@@ -66,9 +77,6 @@ func GoActionRealms(
 			core.CodeChunkDependency{Location: "net/url"},
 		)
 
-		if action.MethodUpper() != "GET" {
-			deps = append(deps, core.CodeChunkDependency{Location: "bytes"})
-		}
 	}
 
 	realms := goActionRealms{
@@ -125,6 +133,7 @@ func GoActionRealms(
 		}
 		deps = append(deps, fields.CodeChunkDependensies...)
 		realms.ResponseClass = fields
+		realms.IdealResponseType = outClassName
 	} else if action.HasResponseDto() {
 		realms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
 		// Not sure if this is needed in golang
@@ -138,7 +147,7 @@ func GoActionRealms(
 	}
 
 	// At the moment we need bytes when the request class is there for golang.
-	if realms.RequestClass != nil {
+	if realms.RequestClass != nil && !skipGoClient {
 		deps = append(deps, core.CodeChunkDependency{
 			Location: "bytes",
 		})

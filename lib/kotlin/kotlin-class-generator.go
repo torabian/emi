@@ -51,9 +51,6 @@ type commonClassContext struct {
 }
 
 func renderClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx commonClassContext) []renderedClass {
-	if len(fields) == 0 {
-		return nil
-	}
 
 	GoDoc := NewGoDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("@Serializable\r\ndata class %v", prefixName)
@@ -90,6 +87,10 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
 		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
 			if strings.Contains(field.Complex, "+") {
 				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
 			}

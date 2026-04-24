@@ -6,10 +6,15 @@ export class TypedResponse extends Response {
 export async function fetchx(input, init, ctx) {
     let url = input.toString();
     let reqInit = init || {};
+    let res;
+    let fetchFn = fetch;
     if (ctx) {
         [url, reqInit] = await ctx.apply(url, reqInit);
+        if (ctx.fetchOverrideFn) {
+            fetchFn = ctx.fetchOverrideFn;
+        }
     }
-    let res = (await fetch(url, reqInit));
+    res = (await fetchFn(url, reqInit));
     if (ctx) {
         res = await ctx.handle(res);
     }
@@ -96,11 +101,17 @@ export const SSEFetch = (res, onMessage, signal) => {
     return { response: res, done };
 };
 export class FetchxContext {
-    constructor(baseUrl = "", defaultHeaders = {}, requestInterceptor, responseInterceptor) {
+    constructor(baseUrl = "", defaultHeaders = {}, requestInterceptor, responseInterceptor, 
+    /**
+     * Overrides the browser fetch function, for different purposes. It would recieve the same first 2 arguments as fetch,
+     * as well as third one of fetchx context. If you pass the fetch itself to override, it should have no effect.
+     */
+    fetchOverrideFn = null) {
         this.baseUrl = baseUrl;
         this.defaultHeaders = defaultHeaders;
         this.requestInterceptor = requestInterceptor;
         this.responseInterceptor = responseInterceptor;
+        this.fetchOverrideFn = fetchOverrideFn;
     }
     async apply(url, init) {
         // prefix baseUrl

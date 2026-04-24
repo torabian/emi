@@ -59,6 +59,13 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	res.Tokens = append(res.Tokens, tsClass.Tokens...)
 	res.CodeChunkDependensies = append(res.CodeChunkDependensies, tsClass.CodeChunkDependensies...)
 
+	if isTypeScript {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Objects:  []string{"type PartialDeep"},
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
+		})
+	}
+
 	const tmpl = `
 {{ if .tsClass }}
 	{{ b2s .tsClass.ActualScript }}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"math/big"
 	"net/http"
 	"os"
@@ -108,37 +109,63 @@ func CastEmiFlagToUrfave(flags []emigo.CliFlag) []cli.Flag {
 func runServer(addr string) error {
 	r := gin.Default()
 
+	var tmpl = template.Must(template.New("page").Parse(`
+<html>
+<body>
+	<h1>Hello</h1>
+	{{range .Items}}
+		<p>chunk {{.}}</p>
+	{{end}}
+</body>
+</html>
+`))
+
+	unk.StreamingHtmlActionGin(r, func(c unk.StreamingHtmlActionRequest) (*unk.StreamingHtmlActionResponse, error) {
+
+		w := c.GinCtx.Writer
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+
+		data := struct {
+			Items []int
+		}{
+			Items: []int{0, 1, 2, 3, 4},
+		}
+
+		return nil, tmpl.Execute(w, data)
+	})
+
 	// ----------- HTTP -----------
-	unk.ComputeApiAction(r, func(req unk.ComputeApiActionRequest, c *gin.Context) (*unk.ComputeApiActionResponse, error) {
+	unk.ComputeApiActionGin(r, func(req unk.ComputeApiActionRequest) (*unk.ComputeApiActionResponse, error) {
 		output := sumVectors(req.Body.InitialVector1, req.Body.InitialVector2)
 
-		return &unk.ComputeApiActionResponse{
+		return (&unk.ComputeApiActionResponse{
 			StatusCode: http.StatusOK,
 			Payload: unk.ComputeApiActionRes{
 				OutputVector: output,
 			},
-		}, nil
+		}), nil
 	})
 
 	// ----------- SSE -----------
-	unk.ComputeApiSseAction(r, func(req unk.ComputeApiSseActionRequest, g *gin.Context) (*unk.ComputeApiSseActionResponse, error) {
+	unk.ComputeApiSseActionGin(r, func(req unk.ComputeApiSseActionRequest) (*unk.ComputeApiSseActionResponse, error) {
 		output := sumVectors(req.Body.InitialVector1, req.Body.InitialVector2)
 
-		g.Writer.Header().Set("Content-Type", "text/event-stream")
-		g.Writer.Header().Set("Cache-Control", "no-cache")
-		g.Writer.Header().Set("Connection", "keep-alive")
+		req.GinCtx.Writer.Header().Set("Content-Type", "text/event-stream")
+		req.GinCtx.Writer.Header().Set("Cache-Control", "no-cache")
+		req.GinCtx.Writer.Header().Set("Connection", "keep-alive")
 
 		for i := 0; i < 10; i++ {
-			fmt.Fprintf(g.Writer, "data: %v\n\n", output)
-			g.Writer.Flush()
+			fmt.Fprintf(req.GinCtx.Writer, "data: %v\n\n", output)
+			req.GinCtx.Writer.Flush()
 			time.Sleep(500 * time.Millisecond)
 		}
 		return nil, nil
 	})
 
-	unk.ComputeApiSseChannelAction(r, func(req unk.ComputeApiSseChannelActionRequest, g *gin.Context) (*unk.ComputeApiSseChannelActionResponse, error) {
+	unk.ComputeApiSseChannelActionGin(r, func(req unk.ComputeApiSseChannelActionRequest) (*unk.ComputeApiSseChannelActionResponse, error) {
 		ch := computeViaChannel(req.Body.InitialVector1, req.Body.InitialVector2)
-		SSEStream(g, ch)
+		SSEStream(req.GinCtx, ch)
 		return nil, nil
 	})
 
@@ -154,32 +181,6 @@ func runServer(addr string) error {
 		})
 
 		return msg.Conn.WriteMessage(websocket.TextMessage, resBytes)
-	})
-
-	// ----------- WebSocket (duplex channel) -----------
-	unk.ComputeReactiveActionDuplex(r, func(ctx *unk.ComputeReactiveActionSession) {
-
-		fmt.Println(ctx.PathParams.Age + ctx.PathParams.Id)
-
-		ctx.Out <- unk.ComputeReactiveActionMessage{
-			MessageType: websocket.TextMessage,
-			Raw:         []byte(fmt.Sprintf("Query Param 1: %v", ctx.QueryParams.QueryParam1)),
-		}
-
-		for {
-			select {
-			case msg, ok := <-ctx.In:
-				if !ok {
-					return
-				}
-				ctx.Out <- unk.ComputeReactiveActionMessage{
-					MessageType: websocket.TextMessage,
-					Raw:         msg.Raw,
-				}
-			case <-ctx.Done:
-				return
-			}
-		}
 	})
 
 	fmt.Println("Server running on", addr)

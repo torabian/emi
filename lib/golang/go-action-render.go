@@ -2,6 +2,7 @@ package golang
 
 import (
 	"bytes"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -16,6 +17,7 @@ func GoActionRender(
 	if action.GetMethod() == "reactive" {
 		return GoActionRenderReactive(action, ctx, complexes)
 	}
+	skipGoClient := strings.Contains(ctx.Tags, GEN_GO_SKIP_CLIENT)
 
 	realms, deps, err := GoActionRealms(action, ctx, complexes)
 	if err != nil {
@@ -41,17 +43,20 @@ func {{ .realms.ActionName }}Meta() struct {
 	CliName   string
     URL    string
     Method string
+	Description string
 } {
     return struct {
         Name   string
         CliName   string
         URL    string
         Method string
+		Description string
     }{
         Name:   "{{ .realms.ActionName }}",
         CliName:   "{{ .realms.CliName }}",
         URL:    "{{ .realms.SafeUrl }}",
         Method: "{{ UPPER .action.Method }}",
+		Description: ` + "`" + `{{ .action.Description }}` + "`" + `,
     }
 }
 
@@ -73,6 +78,63 @@ type {{ .realms.ActionName }}Response struct {
 	Payload    interface{}
 }
 
+
+func (x *{{ .realms.ActionName }}Response) SetContentType(contentType string) *{{ .realms.ActionName }}Response {
+	if x.Headers == nil {
+		x.Headers = make(map[string]string)
+	}
+
+	x.Headers["Content-Type"] = contentType
+	return x
+}
+
+func (x *{{ .realms.ActionName }}Response) AsStream(r io.Reader, contentType string) *{{ .realms.ActionName }}Response {
+	x.Payload = r
+	x.SetContentType(contentType)
+	return x
+}
+
+func (x *{{ .realms.ActionName }}Response) AsJSON(payload any) *{{ .realms.ActionName }}Response {
+	x.Payload = payload
+	x.SetContentType("application/json")
+	return x
+}
+
+
+{{ if .realms.IdealResponseType }}
+// When the response is expected as documentation, you call this to get some type
+// safety for the action which is happening.
+func (x *{{ .realms.ActionName }}Response) WithIdeal(payload {{ .realms.IdealResponseType }}) *{{ .realms.ActionName }}Response {
+	x.Payload = payload
+	return x
+}
+{{ end }}
+
+func (x *{{ .realms.ActionName }}Response) AsHTML(payload string) *{{ .realms.ActionName }}Response {
+	x.Payload = payload
+	x.SetContentType("text/html; charset=utf-8")
+	return x
+}
+
+func (x *{{ .realms.ActionName }}Response) AsBytes(payload []byte) *{{ .realms.ActionName }}Response {
+	x.Payload = payload
+	x.SetContentType("application/octet-stream")
+	return x
+}
+
+func (x {{ .realms.ActionName }}Response) GetStatusCode() int {
+	return x.StatusCode
+}
+
+func (x {{ .realms.ActionName }}Response) GetRespHeaders() map[string]string {
+	return x.Headers
+}
+
+func (x {{ .realms.ActionName }}Response) GetPayload() interface{} {
+	return x.Payload
+}
+
+
 // {{ .realms.ActionName }}Raw registers a raw Gin route for the {{ .realms.ActionName }} action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
@@ -80,9 +142,8 @@ func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	r.Handle(meta.Method, meta.URL, handlers...)
 }
 
-{{- define "ginFn" -}}
-	func(c {{ .ActionName }}Request, gin *gin.Context) (*{{ .ActionName }}Response, error)
-{{- end -}}
+
+type {{ .realms.ActionName }}RequestSig = func(c {{ .realms.ActionName }}Request) (*{{ .realms.ActionName }}Response, error)
 
 
 
@@ -90,7 +151,7 @@ func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
 func {{ .realms.ActionName }}Handler(
-	handler {{template "ginFn" .realms -}},
+	handler {{ .realms.ActionName }}RequestSig,
 ) (method, url string, h gin.HandlerFunc) {
 	meta := {{ .realms.ActionName }}Meta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
@@ -105,17 +166,20 @@ func {{ .realms.ActionName }}Handler(
 		// Build typed request wrapper
 		req := {{ .realms.ActionName }}Request{
 			{{ if .realms.RequestClassName }}
-			Body:        body,
+				Body:        body,
+			{{ else }}
+				Body: nil,
 			{{ end }}
 			{{ if .realms.PathParameter }}
 			Params: {{ .realms.ActionName }}PathParameterFromGin(m),
 			{{ end }}
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
+			GinCtx: m,
 		}
 
 
-		resp, err := handler(req, m)
+		resp, err := handler(req)
 		if err != nil {
 			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -148,7 +212,7 @@ func {{ .realms.ActionName }}Handler(
 // {{ .realms.ActionName }} is a high-level convenience wrapper around {{ .realms.ActionName }}Handler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func {{ .realms.ActionName }}(r gin.IRoutes, handler {{template "ginFn" .realms -}},) {
+func {{ .realms.ActionName }}Gin(r gin.IRoutes, handler {{ .realms.ActionName }}RequestSig,) {
 	method, url, h := {{ .realms.ActionName }}Handler(handler)
 	r.Handle(method, url, h)
 }
@@ -165,12 +229,16 @@ func {{ .realms.ActionName }}(r gin.IRoutes, handler {{template "ginFn" .realms 
 type {{ .realms.ActionName }}Request struct {
 	{{ if .realms.RequestClassName }}
 	Body {{ .realms.RequestClassName }}
+	{{ else }}
+	Body interface{}
 	{{ end }}
 	{{ if .realms.PathParameter }}
 	Params {{ .realms.ActionName }}PathParameter
 	{{ end }}
 	QueryParams url.Values
 	Headers http.Header
+	GinCtx      *gin.Context
+	CliCtx *cli.Context
 }
 
 type {{ .realms.ActionName }}Result struct {
@@ -178,6 +246,7 @@ type {{ .realms.ActionName }}Result struct {
 	Payload interface{}
 }
 
+{{ if .EnableClientRequest }}
 
 func {{ .realms.ActionName }}Call(
 	req {{ .realms.ActionName }}Request,
@@ -247,16 +316,17 @@ func {{ .realms.ActionName }}Call(
 
 	return &result, nil
 }
-
+{{ end }}
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"action":       action,
-		"realms":       realms,
-		"shouldExport": true,
+		"action":              action,
+		"realms":              realms,
+		"shouldExport":        true,
+		"EnableClientRequest": !skipGoClient,
 	}); err != nil {
 		return nil, err
 	}

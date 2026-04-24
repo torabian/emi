@@ -3,7 +3,6 @@ package {{ .GoPackageName }}
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
     "regexp"
 )
@@ -27,9 +26,6 @@ func {{ .FuncName }}(db *sql.DB, ctx {{ .FuncName }}Context,{{ if .Params }}, {{
     if err != nil {
 		return nil, err
 	}
-
-
-    log.Default().Println(script)
 
 	res, err := db.Exec(script, ctx.Placeholders...)
 	if err != nil {

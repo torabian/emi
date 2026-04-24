@@ -99,7 +99,7 @@ func reactQueryCommonFnFunction(options reactQueryCommonFnOptions, ctx core.Micr
 	if isTypeScript {
 		deps = append(deps, core.CodeChunkDependency{
 			Objects:  []string{"type TypedResponse"},
-			Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
 		})
 	}
 	return templateResult, deps, nil

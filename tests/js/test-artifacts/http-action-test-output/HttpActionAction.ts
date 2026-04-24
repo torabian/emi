@@ -1,10 +1,11 @@
+import { buildUrl } from "./sdk/common/buildUrl";
 import {
-  FetchxContext,
   fetchx,
   handleFetchResponse,
+  type FetchxContext,
+  type PartialDeep,
   type TypedRequestInit,
 } from "./sdk/common/fetchx";
-import { buildUrl } from "./sdk/common/buildUrl";
 /**
  * Action to communicate with the action httpAction
  */
@@ -58,7 +59,7 @@ export class HttpActionAction {
     const res = await HttpActionAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,
-      (item) => creatorFn(item),
+      (item) => (creatorFn ? creatorFn(item) : item),
       onMessage,
       init?.signal,
     );
@@ -279,13 +280,6 @@ export class HttpActionActionReq {
 export abstract class HttpActionActionReqFactory {
   abstract create(data: unknown): HttpActionActionReq;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for httpActionActionReq
  **/
@@ -424,13 +418,6 @@ export class HttpActionActionRes {
 export abstract class HttpActionActionResFactory {
   abstract create(data: unknown): HttpActionActionRes;
 }
-type PartialDeep<T> = {
-  [P in keyof T]?: T[P] extends Array<infer U>
-    ? Array<PartialDeep<U>>
-    : T[P] extends object
-      ? PartialDeep<T[P]>
-      : T[P];
-};
 /**
  * The base type definition for httpActionActionRes
  **/

@@ -20,7 +20,33 @@ type PackageJSON struct {
 	Dependencies map[string]string `json:"dependencies"`
 }
 
-func GeneratePackageJSON(packageName string, locations []string) ([]byte, error) {
+type reactqueryinfo struct {
+	PackageName    string
+	PackageVersion string
+}
+
+func getReactQueryInfo(ctx core.MicroGenContext) reactqueryinfo {
+
+	info := reactqueryinfo{}
+	if ctx.Flags["react-query"] == "" {
+		info.PackageName = "@tanstack/react-query"
+		info.PackageVersion = "^5.85.5"
+	} else {
+		packageAndVersion := strings.Split(ctx.Flags["react-query"], "@")
+		pname := packageAndVersion[0]
+		pversion := "latest"
+		if len(packageAndVersion) > 1 && packageAndVersion[1] != "" {
+			pversion = packageAndVersion[1]
+		}
+
+		info.PackageName = pname
+		info.PackageVersion = pversion
+	}
+
+	return info
+}
+
+func GeneratePackageJSON(packageName string, locations []string, ctx core.MicroGenContext) ([]byte, error) {
 	// remove duplicates
 	locMap := map[string]struct{}{}
 	for _, loc := range locations {
@@ -29,10 +55,12 @@ func GeneratePackageJSON(packageName string, locations []string) ([]byte, error)
 
 	// Used versions
 	var packagesUsedVersions = map[string]string{
-		"@tanstack/react-query": "^5.85.5",
-		"qs":                    "^6.14.0",
-		"@types/qs":             "^6.14.0",
+		"qs":        "^6.14.0",
+		"@types/qs": "^6.14.0",
 	}
+
+	reactQueryLocation := getReactQueryInfo(ctx)
+	packagesUsedVersions[reactQueryLocation.PackageName] = reactQueryLocation.PackageVersion
 
 	var sortedLocs []string
 	for loc := range locMap {
@@ -71,7 +99,7 @@ func GeneratePackageJSON(packageName string, locations []string) ([]byte, error)
 	return json.MarshalIndent(pkg, "", "  ")
 }
 
-func CombineImportsJsWorld(chunk core.CodeChunkCompiled) string {
+func CombineImportsJsWorld(chunk core.CodeChunkCompiled, discardTypePrefix bool) string {
 	// group by location
 	locMap := map[string]map[string]struct{}{}
 
@@ -92,6 +120,17 @@ func CombineImportsJsWorld(chunk core.CodeChunkCompiled) string {
 		for obj := range objs {
 			objSlice = append(objSlice, obj)
 		}
+
+		if discardTypePrefix {
+			// In older ts compiler maybe import { type M } not available,
+			// so we have an flag to clean them.
+			for index, item := range objSlice {
+				if strings.HasPrefix(item, "type ") {
+					objSlice[index] = item[5:]
+				}
+			}
+		}
+
 		sort.Strings(objSlice)
 		statement := fmt.Sprintf("import { %s } from '%s';", strings.Join(objSlice, ", "), loc)
 		importsList = append(importsList, statement)
@@ -119,7 +158,7 @@ func commonJsActionStringCompiler(
 		return "", err
 	}
 
-	return AsFullDocument(result), nil
+	return AsFullDocument(result, ctx), nil
 }
 
 func commonJsObjectStringCompiler(
@@ -133,12 +172,12 @@ func commonJsObjectStringCompiler(
 	}
 
 	// In this case, the only flag is the virtual class name which will be passed
-	result, err := callback(fields, ctx, JsCommonObjectContext{RootClassName: ctx.Flags})
+	result, err := callback(fields, ctx, JsCommonObjectContext{RootClassName: ctx.Flags["name"]})
 	if err != nil {
 		return "", err
 	}
 
-	return AsFullDocument(result), nil
+	return AsFullDocument(result, ctx), nil
 }
 
 func commonJsDtoStringCompiler(
@@ -152,12 +191,12 @@ func commonJsDtoStringCompiler(
 	}
 
 	// In this case, the only flag is the virtual class name which will be passed
-	result, err := callback(fields, ctx, JsCommonObjectContext{RootClassName: ctx.Flags})
+	result, err := callback(fields, ctx, JsCommonObjectContext{RootClassName: ctx.Flags["name"]})
 	if err != nil {
 		return "", err
 	}
 
-	return AsFullDocument(result), nil
+	return AsFullDocument(result, ctx), nil
 }
 
 func commonJsModuleFileCompiler(
@@ -176,4 +215,16 @@ func commonJsModuleFileCompiler(
 	}
 
 	return result, nil
+}
+
+func getSdkAwareLocation(ctx core.MicroGenContext, pathPlaceHolder string) string {
+
+	// By default, the location is ./sdk. Flag such as --js-sdk-location=../../../sdk can change that.
+	prefix := "./sdk"
+
+	if val, ok := ctx.Flags["js-sdk-location"]; ok && val != "" {
+		prefix = val
+	}
+
+	return strings.ReplaceAll(pathPlaceHolder, "{sdk}", prefix)
 }

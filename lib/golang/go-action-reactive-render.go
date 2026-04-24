@@ -21,7 +21,11 @@ func GoActionRenderReactive(
 	// For socket, we need some extra dependencies
 	deps = append(deps, core.CodeChunkDependency{
 		Location: "github.com/gorilla/websocket",
-	})
+	},
+
+		core.CodeChunkDependency{
+			Location: "unicode/utf8",
+		})
 
 	res := &core.CodeChunkCompiled{
 		Tokens: []core.GeneratedScriptToken{
@@ -53,15 +57,21 @@ func {{ .realms.ActionName }}Meta() struct {
     Name   string
     URL    string
     Method string
+	CliName string
+	Description string
 } {
     return struct {
         Name   string
         URL    string
         Method string
+		CliName string
+		Description string
     }{
         Name:   "{{ .realms.ActionName }}",
         URL:    "{{ .realms.SafeUrl }}",
         Method: "{{ UPPER .action.Method }}",
+		CliName: "{{ .action.CliName }}",
+		Description: "{{ .action.Description }}",
     }
 }
 
@@ -88,8 +98,6 @@ type {{ .realms.ActionName }}Message struct {
 	{{ if .realms.PathParameter }}
 	PathParams {{ .realms.ActionName }}PathParameter
 	{{ end}}
-
-	QueryParams {{ .realms.ActionName }}Query
 }
 
 // Developer handler type
@@ -116,7 +124,6 @@ func {{ .realms.ActionName }}(r *gin.Engine, handler {{ .realms.ActionName }}Han
 			msg.PathParams = pathParams
 			{{ end}}
 
-			msg.QueryParams = {{ .realms.ActionName }}QueryFromGin(c)
 			
 			// Provide raw message to developer handler
 			if err := handler(msg); err != nil {
@@ -129,122 +136,98 @@ func {{ .realms.ActionName }}(r *gin.Engine, handler {{ .realms.ActionName }}Han
 	})
 }
 
-
 type {{ .realms.ActionName }}Session struct {
-	In   <-chan {{ .realms.ActionName }}Message
-	Out  chan<- {{ .realms.ActionName }}Message
-	Done <-chan struct{}
-
-	Close func(err error)
-
-	{{ if .realms.PathParameter }}
-	PathParams {{ .realms.ActionName }}PathParameter
-	{{ end}}
-
+	Ctx    *gin.Context
+	Socket *websocket.Conn
+	Done   chan bool
+	Read   chan {{ .realms.ActionName }}ReadChan
 	QueryParams {{ .realms.ActionName }}Query
-
 }
 
 type {{ .realms.ActionName }}HandlerDuplex func(*{{ .realms.ActionName }}Session)
 
 
-// {{ .realms.ActionName }}Duplex upgrades the HTTP connection to a WebSocket and
-// exposes it as a full-duplex, blocking session.
-//
-// The provided handler owns the lifetime of the connection.
-// The WebSocket remains open as long as the handler is running.
-// Returning from the handler will close the connection.
-//
-// Session channels:
-//   - ctx.In   : incoming messages from the client (closed on disconnect)
-//   - ctx.Out  : outgoing messages to the client (blocking send)
-//   - ctx.Done : closed when the server terminates the session
-//
-// Usage pattern:
-//
-//	{{ .realms.PackageName }}.{{ .realms.ActionName }}Duplex(r, func(ctx *{{ .realms.PackageName }}.{{ .realms.ActionName }}Session) {
-//		for {
-//			select {
-//			case msg, ok := <-ctx.In:
-//				if !ok {
-//					return // client disconnected
-//				}
-//				ctx.Out <- {{ .realms.PackageName }}.{{ .realms.ActionName }}Message{
-//					MessageType: websocket.TextMessage,
-//					Raw:         msg.Raw,
-//				}
-//
-//			case <-ctx.Done:
-//				return // server-side close
-//			}
-//		}
-//	})
-//
-// Important:
-//   - Always read the generated code, don't use blindly.
-//   - If there is an error on write, you'll get a message back, with message type -1 (instead of default websocket message type int.)
-//   - The handler MUST block (typically via a loop).
-//   - Returning from the handler closes the WebSocket.
-//   - Do not treat this as a per-message callback.
-func {{ .realms.ActionName }}Duplex(r *gin.Engine, handler {{ .realms.ActionName }}HandlerDuplex) {
-	meta := {{ .realms.ActionName }}Meta()
-
-	// The actual callback is extracted, in case you need to handle multiple handlers or customize, use it directly.
-	r.GET(meta.URL, func(ctx *gin.Context) {
-		{{ .realms.ActionName }}DuplexGinHandler(ctx, handler)
-	})
+type {{ .realms.ActionName }}ReadChan struct {
+	Data  []byte
+	Error error
 }
 
-func {{ .realms.ActionName }}DuplexGinHandler(c *gin.Context, handler {{ .realms.ActionName }}HandlerDuplex) {
-	{{ template "upgradeSequence" . }}
 
-	in := make(chan {{ .realms.ActionName }}Message)
-	out := make(chan {{ .realms.ActionName }}Message)
-	done := make(chan struct{})
+func {{ .realms.ActionName }}ReactiveHandler(factory func(
+	session {{ .realms.ActionName }}Session,
+) (chan []byte, error)) gin.HandlerFunc {
 
-	session := &{{ .realms.ActionName }}Session{
-		In:   in,
-		Out:  out,
-		Done: done,
-		Close: func(err error) {
-			close(done)
-			ws.Close()
-		},
-	}
+	return func(ctx *gin.Context) {
 
-	{{ if .realms.PathParameter }}
-		session.PathParams = pathParams
-	{{ end }}
+		read := make(chan {{ .realms.ActionName }}ReadChan)
+		done := make(chan bool)
 
-	session.QueryParams = {{ .realms.ActionName }}QueryFromGin(c)
+		c, err := upgrader{{ .realms.ActionName }}.Upgrade(ctx.Writer, ctx.Request, nil)
+		if err != nil {
+			c.WriteMessage(websocket.TextMessage, []byte(err.Error()))
 
-	// Read loop
-	go func() {
-		defer close(in)
-		for {
-			mt, raw, err := ws.ReadMessage()
-			in <- {{ .realms.ActionName }}Message{MessageType: mt, Raw: raw, Error: err}
+			c.Close()
+			return
 		}
-	}()
 
-	// Write loop
-	go func() {
-		for msg := range out {
-			if err := ws.WriteMessage(msg.MessageType, msg.Raw); err != nil {
-				// When message is -1, means it's internal error coming out
-				in <- {{ .realms.ActionName }}Message{MessageType: -1, Error: err}
-				return
+		session := {{ .realms.ActionName }}Session{
+			Ctx:    ctx,
+			Socket: c,
+			Done:   done,
+			Read:   read,
+		}
+		session.QueryParams = {{ .realms.ActionName }}QueryFromGin(ctx)
+
+		write, err := factory(session)
+
+		if err != nil {
+			c.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+		}
+
+		go func() {
+			for {
+				_, data, err := c.ReadMessage()
+				read <- {{ .realms.ActionName }}ReadChan{
+					Data:  data,
+					Error: err,
+				}
+
+				if err != nil {
+					return
+				}
 			}
-		}
-	}()
+		}()
 
-	// Run developer code (blocking)
-	handler(session)
+		go func() {
+			for {
+				select {
+				case msg, ok := <-write:
+					if !ok {
+						// Channel closed; shutdown
+						c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+						done <- true
+						return
+					}
+					msgType := websocket.TextMessage
+					if !utf8.Valid(msg) {
+						msgType = websocket.BinaryMessage
+					}
+					err := c.WriteMessage(msgType, msg)
 
-	// Cleanup
-	close(out)
-	ws.Close()
+					if err != nil {
+						// Optionally log the error or send to a logger
+						done <- true
+						return
+					}
+				case <-done:
+					c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+					return
+				}
+			}
+		}()
+	}
 }
+
 
 `
 

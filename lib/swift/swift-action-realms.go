@@ -1,6 +1,8 @@
 package swift
 
 import (
+	"reflect"
+
 	"github.com/torabian/emi/lib/core"
 )
 
@@ -26,10 +28,13 @@ func GetActionRealms(
 
 ) (actionRealms, []core.CodeChunkDependency, error) {
 	deps := []core.CodeChunkDependency{}
+	realms := actionRealms{}
 
-	realms := actionRealms{
-		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
+	if action == nil || reflect.ValueOf(action).IsNil() {
+		return realms, deps, nil
 	}
+
+	realms.ActionName = core.ToUpper(core.NormaliseKey(action.GetName()))
 
 	// Header is the http headers, extending the Headers class from standard javascript
 	pathParameter, err := SwiftActionPathParams(action)

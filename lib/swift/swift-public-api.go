@@ -1,7 +1,6 @@
 package swift
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -23,16 +22,13 @@ func GetSwiftPublicActions() core.PublicAPIActions {
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
 
-				var m map[string]string = map[string]string{}
-				json.Unmarshal([]byte(ctx.Flags), &m)
-
 				emiDto, err := core.StringToEmiDto(ctx.Content)
 				if err != nil {
 					return "", err
 				}
 
 				emiLocation := ""
-				if val, ok := m["emi-runtime"]; ok && val != "" && val != "<nil>" {
+				if val, ok := ctx.Flags["emi-runtime"]; ok && val != "" && val != "<nil>" {
 					emiLocation = val
 				}
 
@@ -41,7 +37,7 @@ func GetSwiftPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				return AsFullDocument(res, m["package"]), nil
+				return AsFullDocument(res, ctx.Flags["pkg"]), nil
 
 			},
 		}, {
@@ -53,22 +49,19 @@ func GetSwiftPublicActions() core.PublicAPIActions {
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
 
-				var m map[string]string = map[string]string{}
-
-				json.Unmarshal([]byte(ctx.Flags), &m)
 				headers, err := core.StringToEmiHeaders(ctx.Content)
 				if err != nil {
 					return "", err
 				}
 
 				res, err := SwiftHeaderStruct(
-					swiftHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: m["package"]},
+					swiftHeaderStructContext{ClassName: "Anonymouse", Columns: headers, PackageName: ctx.Flags["pkg"]},
 					ctx,
 				)
 				if err != nil {
 					return "", err
 				}
-				return AsFullDocument(res, m["package"]), nil
+				return AsFullDocument(res, ctx.Flags["pkg"]), nil
 
 			},
 		},
@@ -111,18 +104,19 @@ func GetSwiftPublicActions() core.PublicAPIActions {
 }
 
 // Finds the ts/js compatible types.
-func discoverComplexes(module *core.Emi) []RecognizedComplex {
-	items := []RecognizedComplex{}
-	for _, complex := range module.Complexes {
+func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
 
-		// only pick general or js/ts specific complexes for js-modules
-		if complex.Compiler == "go" {
-			items = append(items, RecognizedComplex{
-				Symbol:         complex.Name,
-				ImportLocation: complex.Location,
-			})
-		}
-	}
+	// Not implemented for swift yet.
+
+	items := []RecognizedComplex{}
+	// for _, complex := range module.Complexes {
+	// 	if complex.Compiler == "go" {
+	// 		items = append(items, RecognizedComplex{
+	// 			Symbol:         complex.Name,
+	// 			ImportLocation: complex.Location,
+	// 		})
+	// 	}
+	// }
 
 	return items
 }
@@ -140,11 +134,14 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
-	complexes := discoverComplexes(module)
+	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
 
 	config := GoModuleGenerationFlags{}
-	json.Unmarshal([]byte(ctx.Flags), &config)
+	if ctx.Flags["dtos"] != "" {
+		str := ctx.Flags["dtos"]
+		config.Dtos = &str
+	}
 
 	var entitiesAndDtos []*core.CodeChunkCompiled
 

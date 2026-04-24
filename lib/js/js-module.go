@@ -4,9 +4,12 @@ package js
 // the webrequestX based class for communication
 
 import (
+	"bytes"
 	"embed"
-	"encoding/json"
+	"os"
+	"os/exec"
 	"path"
+	"path/filepath"
 	"slices"
 	"strings"
 
@@ -17,12 +20,65 @@ import (
 	tssdk "github.com/torabian/emi/lib/js/ts-sdk"
 )
 
-func AsFullDocument(x *core.CodeChunkCompiled) string {
-	importsList := CombineImportsJsWorld(*x)
+func AsFullDocument(x *core.CodeChunkCompiled, ctx core.MicroGenContext) string {
+	discardTypePrefix := ctx.Flags["discard-type-prefix"] != ""
+
+	importsList := CombineImportsJsWorld(*x, discardTypePrefix)
 	var finalContent string = importsList + "\r\n" + string(x.ActualScript)
 
-	finalContent = string(core.EscapeLines([]byte(finalContent)))
+	// Assumed it's typescript for both js and ts. Not sure the impact.
+	finalContent = FormatWithPrettier(string(core.EscapeLines([]byte(finalContent))), true)
 	return finalContent
+}
+
+func FormatWithPrettier(code string, isTypeScript bool) string {
+	// 1. Check env var
+	prettierCmd := os.Getenv("PRETTIER_PATH")
+	useNode := false
+
+	// 2. Fallback to local .bin
+	if prettierCmd == "" {
+		localBin := filepath.Join("node_modules", ".bin", "prettier")
+		if _, err := os.Stat(localBin); err == nil {
+			prettierCmd = localBin
+		}
+	}
+
+	// 3. Fallback to local prettier.cjs
+	if prettierCmd == "" {
+		localCJS := filepath.Join("node_modules", "prettier", "bin", "prettier.cjs")
+		if _, err := os.Stat(localCJS); err == nil {
+			prettierCmd = localCJS
+			useNode = true
+		}
+	}
+
+	// 4. Fallback to global prettier
+	if prettierCmd == "" {
+		prettierCmd = "prettier"
+	}
+
+	args := []string{"--stdin-filepath", "file.js"}
+	if isTypeScript {
+		args = []string{"--stdin-filepath", "file.ts", "--parser", "typescript"}
+	}
+
+	// If we need node, prepend it to command
+	var cmd *exec.Cmd
+	if useNode {
+		args = append([]string{prettierCmd}, args...)
+		cmd = exec.Command("node", args...)
+	} else {
+		cmd = exec.Command(prettierCmd, args...)
+	}
+
+	cmd.Stdin = bytes.NewBufferString(code)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return code
+	}
+	return out.String()
 }
 
 type JsModuleGenerationConfig struct {
@@ -54,7 +110,7 @@ func (x JsModuleGenerationFlags) GetEntities() []string {
 }
 
 // Finds the ts/js compatible types.
-func discoverComplexes(module *core.Emi) []RecognizedComplex {
+func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
 	items := []RecognizedComplex{}
 	for _, complex := range module.Complexes {
 
@@ -75,11 +131,14 @@ func discoverComplexes(module *core.Emi) []RecognizedComplex {
 func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
-	complexes := discoverComplexes(module)
+	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
-
 	config := JsModuleGenerationFlags{}
-	json.Unmarshal([]byte(ctx.Flags), &config)
+
+	if ctx.Flags["dtos"] != "" {
+		str := ctx.Flags["dtos"]
+		config.Dtos = &str
+	}
 
 	var actionsRendered []*core.CodeChunkCompiled
 
@@ -106,7 +165,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		files = append(files, core.VirtualFile{
 			Name:         enumRendered.SuggestedFileName,
 			Extension:    enumRendered.SuggestedExtension,
-			ActualScript: AsFullDocument(enumRendered),
+			ActualScript: AsFullDocument(enumRendered, ctx),
 		})
 	}
 
@@ -145,7 +204,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	for _, action := range actionsRendered {
 
 		for _, loc := range action.CodeChunkDependensies {
-			if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
+			if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION)) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION)) {
 
 				internalUsage = append(internalUsage, loc.Location)
 				continue
@@ -156,13 +215,13 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		files = append(files, core.VirtualFile{
 			Name:         action.SuggestedFileName,
 			Extension:    action.SuggestedExtension,
-			ActualScript: AsFullDocument(action),
+			ActualScript: AsFullDocument(action, ctx),
 		})
 	}
 
 	for _, dtoItem := range dtos {
 		for _, loc := range dtoItem.CodeChunkDependensies {
-			if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
+			if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION)) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION)) {
 				internalUsage = append(internalUsage, loc.Location)
 				continue
 			}
@@ -172,12 +231,12 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		files = append(files, core.VirtualFile{
 			Name:         dtoItem.SuggestedFileName,
 			Extension:    dtoItem.SuggestedExtension,
-			ActualScript: AsFullDocument(dtoItem),
+			ActualScript: AsFullDocument(dtoItem, ctx),
 		})
 	}
 
 	// Let's add a package.json :)
-	pkg, err := GeneratePackageJSON("sdk", globalPacakges)
+	pkg, err := GeneratePackageJSON("sdk", globalPacakges, ctx)
 	if err != nil {
 		return nil, err
 	}

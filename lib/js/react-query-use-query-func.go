@@ -96,13 +96,14 @@ export const {{ .className }}Query = (
 	for key, value := range claimsRendered {
 		templateResult = strings.ReplaceAll(templateResult, fmt.Sprintf("|@%v|", key), value)
 	}
+	reactQueryLocation := getReactQueryInfo(ctx)
 
 	res := &core.CodeChunkCompiled{
 		ActualScript: []byte(templateResult),
 		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"useQuery"},
-				Location: "@tanstack/react-query",
+				Location: reactQueryLocation.PackageName,
 			},
 			{
 				Objects:  []string{"useState"},
@@ -110,11 +111,11 @@ export const {{ .className }}Query = (
 			},
 			{
 				Objects:  []string{"type TypedResponse"},
-				Location: INTERNAL_SDK_JS_LOCATION + "/fetchx",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
 			},
 			{
 				Objects:  []string{"useFetchxContext"},
-				Location: INTERNAL_SDK_REACT_LOCATION + "/useFetchx",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION) + "/useFetchx",
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{
