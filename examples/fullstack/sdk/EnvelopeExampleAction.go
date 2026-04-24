@@ -3,12 +3,13 @@ package external
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/examples/fullstack/emigo"
-	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
 )
 
 /**
@@ -85,6 +86,13 @@ func (x *EnvelopeExampleActionResponse) AsStream(r io.Reader, contentType string
 func (x *EnvelopeExampleActionResponse) AsJSON(payload any) *EnvelopeExampleActionResponse {
 	x.Payload = payload
 	x.SetContentType("application/json")
+	return x
+}
+
+// When the response is expected as documentation, you call this to get some type
+// safety for the action which is happening.
+func (x *EnvelopeExampleActionResponse) WithIdeal(payload EnvelopeExampleActionRes) *EnvelopeExampleActionResponse {
+	x.Payload = payload
 	return x
 }
 func (x *EnvelopeExampleActionResponse) AsHTML(payload string) *EnvelopeExampleActionResponse {

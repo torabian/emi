@@ -10,7 +10,7 @@ export class ComputeApiSseAction {
   //
   static URL = "/compute/sse";
   static NewUrl = (qs) => buildUrl(ComputeApiSseAction.URL, undefined, qs);
-  static Method = "get";
+  static Method = "post";
   static Fetch$ = async (qs, ctx, init, overrideUrl) => {
     return fetchx(
       overrideUrl ?? ComputeApiSseAction.NewUrl(qs),
@@ -39,7 +39,7 @@ export class ComputeApiSseAction {
   static Definition = {
     name: "computeApiSse",
     url: "/compute/sse",
-    method: "get",
+    method: "post",
     description:
       "The same compute api, but it would return the response as SSE.",
     in: {

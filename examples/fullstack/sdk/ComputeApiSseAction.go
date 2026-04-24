@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/examples/fullstack/emigo"
-	"github.com/urfave/cli"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
 )
 
 /**
@@ -32,7 +33,7 @@ func ComputeApiSseActionMeta() struct {
 		Name:        "ComputeApiSseAction",
 		CliName:     "compute-api-sse-action",
 		URL:         "/compute/sse",
-		Method:      "GET",
+		Method:      "POST",
 		Description: `The same compute api, but it would return the response as SSE.`,
 	}
 }
@@ -130,6 +131,13 @@ func (x *ComputeApiSseActionResponse) AsStream(r io.Reader, contentType string) 
 func (x *ComputeApiSseActionResponse) AsJSON(payload any) *ComputeApiSseActionResponse {
 	x.Payload = payload
 	x.SetContentType("application/json")
+	return x
+}
+
+// When the response is expected as documentation, you call this to get some type
+// safety for the action which is happening.
+func (x *ComputeApiSseActionResponse) WithIdeal(payload ComputeApiSseActionRes) *ComputeApiSseActionResponse {
+	x.Payload = payload
 	return x
 }
 func (x *ComputeApiSseActionResponse) AsHTML(payload string) *ComputeApiSseActionResponse {

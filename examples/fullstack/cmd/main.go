@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"math/big"
 	"net/http"
 	"os"
@@ -108,16 +109,42 @@ func CastEmiFlagToUrfave(flags []emigo.CliFlag) []cli.Flag {
 func runServer(addr string) error {
 	r := gin.Default()
 
+	var tmpl = template.Must(template.New("page").Parse(`
+<html>
+<body>
+	<h1>Hello</h1>
+	{{range .Items}}
+		<p>chunk {{.}}</p>
+	{{end}}
+</body>
+</html>
+`))
+
+	unk.StreamingHtmlActionGin(r, func(c unk.StreamingHtmlActionRequest) (*unk.StreamingHtmlActionResponse, error) {
+
+		w := c.GinCtx.Writer
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+
+		data := struct {
+			Items []int
+		}{
+			Items: []int{0, 1, 2, 3, 4},
+		}
+
+		return nil, tmpl.Execute(w, data)
+	})
+
 	// ----------- HTTP -----------
 	unk.ComputeApiActionGin(r, func(req unk.ComputeApiActionRequest) (*unk.ComputeApiActionResponse, error) {
 		output := sumVectors(req.Body.InitialVector1, req.Body.InitialVector2)
 
-		return &unk.ComputeApiActionResponse{
+		return (&unk.ComputeApiActionResponse{
 			StatusCode: http.StatusOK,
 			Payload: unk.ComputeApiActionRes{
 				OutputVector: output,
 			},
-		}, nil
+		}), nil
 	})
 
 	// ----------- SSE -----------

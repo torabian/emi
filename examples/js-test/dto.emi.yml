@@ -8,6 +8,8 @@ dtos:
       - name: max
         type: int
         description: Maximum number which can be generated
+      - name: items
+        type: slice
       - name: count
         type: int
         description: >-

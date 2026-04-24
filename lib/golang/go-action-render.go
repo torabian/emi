@@ -100,6 +100,16 @@ func (x *{{ .realms.ActionName }}Response) AsJSON(payload any) *{{ .realms.Actio
 	return x
 }
 
+
+{{ if .realms.IdealResponseType }}
+// When the response is expected as documentation, you call this to get some type
+// safety for the action which is happening.
+func (x *{{ .realms.ActionName }}Response) WithIdeal(payload {{ .realms.IdealResponseType }}) *{{ .realms.ActionName }}Response {
+	x.Payload = payload
+	return x
+}
+{{ end }}
+
 func (x *{{ .realms.ActionName }}Response) AsHTML(payload string) *{{ .realms.ActionName }}Response {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")

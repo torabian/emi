@@ -5,14 +5,15 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/torabian/emi/examples/fullstack/emigo"
-	"github.com/urfave/cli"
 	"io"
 	"math/big"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli"
 )
 
 /**
@@ -131,6 +132,13 @@ func (x *ComputeExpActionResponse) AsStream(r io.Reader, contentType string) *Co
 func (x *ComputeExpActionResponse) AsJSON(payload any) *ComputeExpActionResponse {
 	x.Payload = payload
 	x.SetContentType("application/json")
+	return x
+}
+
+// When the response is expected as documentation, you call this to get some type
+// safety for the action which is happening.
+func (x *ComputeExpActionResponse) WithIdeal(payload ComputeExpActionRes) *ComputeExpActionResponse {
+	x.Payload = payload
 	return x
 }
 func (x *ComputeExpActionResponse) AsHTML(payload string) *ComputeExpActionResponse {

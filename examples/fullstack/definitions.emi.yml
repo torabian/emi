@@ -9,6 +9,7 @@ complexes:
     namespace: big
 
 dtos:
+
   - name: commonVectorCompute
     fields:
       - name: initialVector1
@@ -52,6 +53,23 @@ dtos:
         target: CommonVectorComputeDto
 
 actions:
+  - name: streamingHtml
+    url: /stream/html
+    method: get
+    out:
+      primitive: bytes
+
+  - name: allData
+    url: /res/22
+    out:
+      fields:
+        - name: stringType
+          type: string
+        - name: stringTypeNull
+          type: string?
+        - name: collection
+          type: collection
+          target: CommonVectorResponseDto
 
   - name: allData
     url: /res/22
@@ -148,7 +166,7 @@ actions:
           primitive: int
   - name: computeApiSse
     description: The same compute api, but it would return the response as SSE.
-    method: get
+    method: post
     url: /compute/sse
     in:
       fields:

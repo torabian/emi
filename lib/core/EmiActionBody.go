@@ -19,8 +19,5 @@ type EmiActionBody struct {
 	Dto string `yaml:"dto,omitempty" json:"dto,omitempty" jsonschema:"Selects the DTO existing in the module from Golang It can also be a pure Go struct but those do not compile"`
 
 	// Uses a primitive type instead, such as a string or int64.
-	Primitive string `yaml:"primitive,omitempty" json:"primitive,omitempty" jsonschema:"Uses a primitive type instead such as a string or int64"`
-
-	// Returns the page as XHTML format from arura file. Simply used for showing html content, or post back architecture
-	XHtml bool `yaml:"xhtml,omitempty" json:"xhtml,omitempty" jsonschema:"Returns the page as XHTML format from arura file. Simply used for showing html content, or post back architecture"`
+	Primitive string `yaml:"primitive,omitempty" json:"primitive,omitempty" jsonschema:"enum=string,enum=bool,enum=int,enum=int32,enum=int64,enum=float32,enum=float64,enum=bytes,description=The primitve that is allowed for the slice is limited to following values"`
 }

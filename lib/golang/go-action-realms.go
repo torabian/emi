@@ -7,6 +7,7 @@ import (
 )
 
 type goActionRealms struct {
+	IdealResponseType    string
 	ActionName           string
 	SafeUrl              string
 	HttpMethod           string
@@ -132,6 +133,7 @@ func GoActionRealms(
 		}
 		deps = append(deps, fields.CodeChunkDependensies...)
 		realms.ResponseClass = fields
+		realms.IdealResponseType = outClassName
 	} else if action.HasResponseDto() {
 		realms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
 		// Not sure if this is needed in golang

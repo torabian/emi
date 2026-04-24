@@ -3,19 +3,18 @@ package external
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/examples/fullstack/emigo"
 	"github.com/urfave/cli"
+	"io"
+	"net/http"
+	"net/url"
 )
 
 /**
-* Action to communicate with the action AllDataAction
+* Action to communicate with the action StreamingHtmlAction
  */
-func AllDataActionMeta() struct {
+func StreamingHtmlActionMeta() struct {
 	Name        string
 	CliName     string
 	URL         string
@@ -29,124 +28,76 @@ func AllDataActionMeta() struct {
 		Method      string
 		Description string
 	}{
-		Name:        "AllDataAction",
-		CliName:     "all-data-action",
-		URL:         "/res/22",
-		Method:      "",
+		Name:        "StreamingHtmlAction",
+		CliName:     "streaming-html-action",
+		URL:         "/stream/html",
+		Method:      "GET",
 		Description: ``,
 	}
 }
-func GetAllDataActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "string-type",
-			Type: "string",
-		},
-		{
-			Name: prefix + "string-type-null",
-			Type: "string?",
-		},
-		{
-			Name: prefix + "collection",
-			Type: "collection",
-		},
-	}
-}
-func CastAllDataActionResFromCli(c emigo.CliCastable) AllDataActionRes {
-	data := AllDataActionRes{}
-	if c.IsSet("string-type") {
-		data.StringType = c.String("string-type")
-	}
-	if c.IsSet("string-type-null") {
-		emigo.ParseNullable(c.String("string-type-null"), &data.StringTypeNull)
-	}
-	return data
-}
 
-// The base class definition for allDataActionRes
-type AllDataActionRes struct {
-	StringType     string                    `json:"stringType" yaml:"stringType"`
-	StringTypeNull emigo.Nullable[string]    `json:"stringTypeNull" yaml:"stringTypeNull"`
-	Collection     []CommonVectorResponseDto `json:"collection" yaml:"collection"`
-}
-
-func (x *AllDataActionRes) Json() string {
-	if x != nil {
-		str, _ := json.MarshalIndent(x, "", "  ")
-		return string(str)
-	}
-	return ""
-}
-
-type AllDataActionResponse struct {
+type StreamingHtmlActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
 }
 
-func (x *AllDataActionResponse) SetContentType(contentType string) *AllDataActionResponse {
+func (x *StreamingHtmlActionResponse) SetContentType(contentType string) *StreamingHtmlActionResponse {
 	if x.Headers == nil {
 		x.Headers = make(map[string]string)
 	}
 	x.Headers["Content-Type"] = contentType
 	return x
 }
-func (x *AllDataActionResponse) AsStream(r io.Reader, contentType string) *AllDataActionResponse {
+func (x *StreamingHtmlActionResponse) AsStream(r io.Reader, contentType string) *StreamingHtmlActionResponse {
 	x.Payload = r
 	x.SetContentType(contentType)
 	return x
 }
-func (x *AllDataActionResponse) AsJSON(payload any) *AllDataActionResponse {
+func (x *StreamingHtmlActionResponse) AsJSON(payload any) *StreamingHtmlActionResponse {
 	x.Payload = payload
 	x.SetContentType("application/json")
 	return x
 }
-
-// When the response is expected as documentation, you call this to get some type
-// safety for the action which is happening.
-func (x *AllDataActionResponse) WithIdeal(payload AllDataActionRes) *AllDataActionResponse {
-	x.Payload = payload
-	return x
-}
-func (x *AllDataActionResponse) AsHTML(payload string) *AllDataActionResponse {
+func (x *StreamingHtmlActionResponse) AsHTML(payload string) *StreamingHtmlActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
 	return x
 }
-func (x *AllDataActionResponse) AsBytes(payload []byte) *AllDataActionResponse {
+func (x *StreamingHtmlActionResponse) AsBytes(payload []byte) *StreamingHtmlActionResponse {
 	x.Payload = payload
 	x.SetContentType("application/octet-stream")
 	return x
 }
-func (x AllDataActionResponse) GetStatusCode() int {
+func (x StreamingHtmlActionResponse) GetStatusCode() int {
 	return x.StatusCode
 }
-func (x AllDataActionResponse) GetRespHeaders() map[string]string {
+func (x StreamingHtmlActionResponse) GetRespHeaders() map[string]string {
 	return x.Headers
 }
-func (x AllDataActionResponse) GetPayload() interface{} {
+func (x StreamingHtmlActionResponse) GetPayload() interface{} {
 	return x.Payload
 }
 
-// AllDataActionRaw registers a raw Gin route for the AllDataAction action.
+// StreamingHtmlActionRaw registers a raw Gin route for the StreamingHtmlAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
-func AllDataActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
-	meta := AllDataActionMeta()
+func StreamingHtmlActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
+	meta := StreamingHtmlActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
 }
 
-type AllDataActionRequestSig = func(c AllDataActionRequest) (*AllDataActionResponse, error)
+type StreamingHtmlActionRequestSig = func(c StreamingHtmlActionRequest) (*StreamingHtmlActionResponse, error)
 
-// AllDataActionHandler returns the HTTP method, route URL, and a typed Gin handler for the AllDataAction action.
+// StreamingHtmlActionHandler returns the HTTP method, route URL, and a typed Gin handler for the StreamingHtmlAction action.
 // Developers implement their business logic as a function that receives a typed request object
 // and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
-func AllDataActionHandler(
-	handler AllDataActionRequestSig,
+func StreamingHtmlActionHandler(
+	handler StreamingHtmlActionRequestSig,
 ) (method, url string, h gin.HandlerFunc) {
-	meta := AllDataActionMeta()
+	meta := StreamingHtmlActionMeta()
 	return meta.Method, meta.URL, func(m *gin.Context) {
 		// Build typed request wrapper
-		req := AllDataActionRequest{
+		req := StreamingHtmlActionRequest{
 			Body:        nil,
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
@@ -178,26 +129,26 @@ func AllDataActionHandler(
 	}
 }
 
-// AllDataAction is a high-level convenience wrapper around AllDataActionHandler.
+// StreamingHtmlAction is a high-level convenience wrapper around StreamingHtmlActionHandler.
 // It automatically constructs and registers the typed route on the Gin engine.
 // Use this when you don't need custom middleware or route grouping.
-func AllDataActionGin(r gin.IRoutes, handler AllDataActionRequestSig) {
-	method, url, h := AllDataActionHandler(handler)
+func StreamingHtmlActionGin(r gin.IRoutes, handler StreamingHtmlActionRequestSig) {
+	method, url, h := StreamingHtmlActionHandler(handler)
 	r.Handle(method, url, h)
 }
 
 /**
- * Query parameters for AllDataAction
+ * Query parameters for StreamingHtmlAction
  */
 // Query wrapper with private fields
-type AllDataActionQuery struct {
+type StreamingHtmlActionQuery struct {
 	values url.Values
 	mapped map[string]interface{}
 	// Typesafe fields
 }
 
-func AllDataActionQueryFromString(rawQuery string) AllDataActionQuery {
-	v := AllDataActionQuery{}
+func StreamingHtmlActionQueryFromString(rawQuery string) StreamingHtmlActionQuery {
+	v := StreamingHtmlActionQuery{}
 	values, _ := url.ParseQuery(rawQuery)
 	mapped := map[string]interface{}{}
 	if result, err := emigo.UnmarshalQs(rawQuery); err == nil {
@@ -215,44 +166,44 @@ func AllDataActionQueryFromString(rawQuery string) AllDataActionQuery {
 	v.mapped = mapped
 	return v
 }
-func AllDataActionQueryFromGin(c *gin.Context) AllDataActionQuery {
-	return AllDataActionQueryFromString(c.Request.URL.RawQuery)
+func StreamingHtmlActionQueryFromGin(c *gin.Context) StreamingHtmlActionQuery {
+	return StreamingHtmlActionQueryFromString(c.Request.URL.RawQuery)
 }
-func AllDataActionQueryFromHttp(r *http.Request) AllDataActionQuery {
-	return AllDataActionQueryFromString(r.URL.RawQuery)
+func StreamingHtmlActionQueryFromHttp(r *http.Request) StreamingHtmlActionQuery {
+	return StreamingHtmlActionQueryFromString(r.URL.RawQuery)
 }
-func (q AllDataActionQuery) Values() url.Values {
+func (q StreamingHtmlActionQuery) Values() url.Values {
 	return q.values
 }
-func (q AllDataActionQuery) Mapped() map[string]interface{} {
+func (q StreamingHtmlActionQuery) Mapped() map[string]interface{} {
 	return q.mapped
 }
-func (q *AllDataActionQuery) SetValues(v url.Values) {
+func (q *StreamingHtmlActionQuery) SetValues(v url.Values) {
 	q.values = v
 }
-func (q *AllDataActionQuery) SetMapped(m map[string]interface{}) {
+func (q *StreamingHtmlActionQuery) SetMapped(m map[string]interface{}) {
 	q.mapped = m
 }
 
-type AllDataActionRequest struct {
+type StreamingHtmlActionRequest struct {
 	Body        interface{}
 	QueryParams url.Values
 	Headers     http.Header
 	GinCtx      *gin.Context
 	CliCtx      *cli.Context
 }
-type AllDataActionResult struct {
+type StreamingHtmlActionResult struct {
 	resp    *http.Response // embed original response
 	Payload interface{}
 }
 
-func AllDataActionCall(
-	req AllDataActionRequest,
+func StreamingHtmlActionCall(
+	req StreamingHtmlActionRequest,
 	config *emigo.APIClient, // optional pre-built request
-) (*AllDataActionResult, error) {
+) (*StreamingHtmlActionResult, error) {
 	var httpReq *http.Request
 	if config == nil || config.Httpr == nil {
-		meta := AllDataActionMeta()
+		meta := StreamingHtmlActionMeta()
 		baseURL := meta.URL
 		// Build final URL with query string
 		u, err := url.Parse(baseURL)
@@ -276,7 +227,7 @@ func AllDataActionCall(
 	if err != nil {
 		return nil, err
 	}
-	var result AllDataActionResult
+	var result StreamingHtmlActionResult
 	result.resp = resp
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
