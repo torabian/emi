@@ -75,6 +75,13 @@ type CodeChunkDependency struct {
 // Template Helpers
 // ====================
 
+func escapeBackTick(value string) string {
+	if value == "" {
+		return value
+	}
+	return `"` + strings.ReplaceAll(value, `"`, `\"`) + `"`
+}
+
 var CommonMap = template.FuncMap{
 	"endsWithDto":       func(s string) bool { return strings.HasSuffix(s, "Dto") },
 	"last":              func(x int, a interface{}) bool { return x == reflect.ValueOf(a).Len()-1 },
@@ -85,6 +92,7 @@ var CommonMap = template.FuncMap{
 	"b2s":               func(b []byte) string { return string(b) },
 	"trim":              strings.TrimSpace,
 	"UPPER":             strings.ToUpper,
+	"escapeBackTick":    escapeBackTick,
 	"upper":             ToUpper,
 	"lower":             ToLower,
 	"snakeUpper":        ToSnakeUpper,
