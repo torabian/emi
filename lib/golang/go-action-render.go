@@ -236,9 +236,20 @@ type {{ .realms.ActionName }}Request struct {
 	Params {{ .realms.ActionName }}PathParameter
 	{{ end }}
 	QueryParams url.Values
+
+	// Automatically casted headers, for purpose of typesafe headers in later versions
 	Headers http.Header
+
+	// Gin context for each request in case of a direct access requirement
 	GinCtx      *gin.Context
+
+	// Urfave context, per each request
 	CliCtx *cli.Context
+
+	// Reference to the application instance, in such scenarios that entire
+	// application is wrapped into a single struct that holds database connection,
+	// routes, etc.
+	Application interface{}
 }
 
 type {{ .realms.ActionName }}Result struct {
