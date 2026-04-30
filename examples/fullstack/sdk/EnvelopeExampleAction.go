@@ -3,13 +3,12 @@ package external
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
-
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/examples/fullstack/emigo"
 	"github.com/urfave/cli"
+	"io"
+	"net/http"
+	"net/url"
 )
 
 /**

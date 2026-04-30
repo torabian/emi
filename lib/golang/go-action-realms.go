@@ -16,6 +16,7 @@ type goActionRealms struct {
 	RequestClass         *core.CodeChunkCompiled
 	ResponseClass        *core.CodeChunkCompiled
 	CliName              string
+	CliShort             string
 	QueryStringClass     *core.CodeChunkCompiled
 	QueryParams          *core.CodeChunkCompiled
 	RequestHeadersClass  *core.CodeChunkCompiled
@@ -72,7 +73,6 @@ func GoActionRealms(
 		deps = append(
 			deps,
 			core.CodeChunkDependency{Location: "encoding/json"},
-			core.CodeChunkDependency{Location: "fmt"},
 			core.CodeChunkDependency{Location: "io"},
 			core.CodeChunkDependency{Location: "net/url"},
 		)
@@ -83,6 +83,10 @@ func GoActionRealms(
 		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
 		CliName:    ActionToCliName(action),
 		SafeUrl:    core.RemoveTypeAnnotations(action.GetUrl()),
+	}
+
+	if action.GetCliShort() != "" {
+		realms.CliShort = action.GetCliShort()
 	}
 
 	pathParameter, err := GoActionPathParams(action)

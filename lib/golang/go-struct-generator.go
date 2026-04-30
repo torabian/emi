@@ -294,6 +294,9 @@ func Get{{ .FullClassName }}CliFlags(prefix string) []emigo.CliFlag {
 			{{ if eq .Type "object" }}
 			Children: Get{{ $.FullClassName }}{{upper .Name}}CliFlags("{{ .CliName }}-"),
 			{{ end }}
+			{{ if .Description }}
+			Description: {{escapeBackTick .Description}},
+			{{ end }}
 		},
 		{{ end }}
 	}

@@ -15,6 +15,7 @@ type goRenderedField struct {
 	PrivateField        string
 	CliCaptureStatement string
 	CliName             string
+	Description         string
 }
 
 type goFieldVariable struct {
@@ -163,6 +164,7 @@ type fieldLike interface {
 	GetTarget() string
 	GetName() string
 	GetCliName() string
+	GetCliShort() string
 	GetComplex() string
 	GetDescription() string
 	GetPrimitive() string
@@ -210,6 +212,7 @@ func goRenderField(
 		Name:                field.GetName(),
 		Type:                string(field.GetType()),
 		PrivateField:        privateField,
+		Description:         field.GetDescription(),
 		CliCaptureStatement: privateFieldToken.CliCaptureStatement(),
 		CliName:             ComputedCliName(field),
 	}

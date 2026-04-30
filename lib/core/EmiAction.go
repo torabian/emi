@@ -13,6 +13,9 @@ type EmiAction struct {
 	// Overrides the CLI action name if specified otherwise defaults to Name.
 	CliName string `yaml:"cliName,omitempty" json:"cliName,omitempty" jsonschema:"description=Overrides the CLI action name if specified otherwise defaults to Name"`
 
+	// Shortcut to be used along side of the cliName as a shorter alternative.
+	CliShort string `yaml:"cliShort,omitempty" json:"cliShort,omitempty" jsonschema:"description=Shortcut to be used along side of the cliName as a shorter alternative"`
+
 	// HTTP route of the action; if not specified the action is CLI-only.
 	Url string `yaml:"url,omitempty" json:"url,omitempty" jsonschema:"description=HTTP route of the action; if not specified the action is CLI-only"`
 
@@ -147,4 +150,8 @@ func (x *EmiAction) Upper() string {
 
 func (x EmiAction) GetCliName() string {
 	return x.CliName
+}
+
+func (x EmiAction) GetCliShort() string {
+	return x.CliShort
 }

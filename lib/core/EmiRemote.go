@@ -14,6 +14,9 @@ type EmiRemote struct {
 	// Remote action cli name, which will be used to call in case of using cli apps
 	CliName string `yaml:"cli,omitempty" json:"cli,omitempty" jsonschema:"description=Remote action cli name, which will be used to call in case of using cli apps"`
 
+	// Shortcut to be used along side of the cliName as a shorter alternative.
+	CliShort string `yaml:"cliShort,omitempty" json:"cliShort,omitempty" jsonschema:"description=Shortcut to be used along side of the cliName as a shorter alternative"`
+
 	// Standard HTTP methods
 	Method string `yaml:"method,omitempty" json:"method,omitempty" jsonschema:"enum=get,enum=post,enum=put,enum=delete,enum=patch,enum=options,enum=head,description=Standard HTTP methods"`
 
@@ -80,6 +83,10 @@ func (x EmiRemote) GetRequestHeaders() []EmiHeader {
 
 func (x EmiRemote) GetCliName() string {
 	return x.CliName
+}
+
+func (x EmiRemote) GetCliShort() string {
+	return x.CliShort
 }
 
 func (x EmiRemote) HasResponse() bool {
