@@ -70,6 +70,10 @@
           "type": "string",
           "description": "Overrides the CLI action name if specified otherwise defaults to Name"
         },
+        "cliShort": {
+          "type": "string",
+          "description": "Shortcut to be used along side of the cliName as a shorter alternative"
+        },
         "url": {
           "type": "string",
           "description": "HTTP route of the action; if not specified the action is CLI-only"
@@ -465,6 +469,10 @@
         "cli": {
           "type": "string",
           "description": "Remote action cli name"
+        },
+        "cliShort": {
+          "type": "string",
+          "description": "Shortcut to be used along side of the cliName as a shorter alternative"
         },
         "method": {
           "type": "string",

@@ -4,6 +4,8 @@ package core
 type EmiRpcAction interface {
 	GetName() string
 	GetCliName() string
+	GetCliShort() string
+
 	GetUrl() string
 	GetMethod() string
 	MethodUpper() string

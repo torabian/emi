@@ -87,6 +87,10 @@ func (x *EmiField) GetComplex() string {
 	return x.Complex
 }
 
+func (x *EmiField) GetCliShort() string {
+	return ""
+}
+
 func (x *EmiField) GetCliName() string {
 	if x.CliName != "" {
 		return x.CliName

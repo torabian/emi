@@ -164,6 +164,7 @@ type fieldLike interface {
 	GetTarget() string
 	GetName() string
 	GetCliName() string
+	GetCliShort() string
 	GetComplex() string
 	GetDescription() string
 	GetPrimitive() string
