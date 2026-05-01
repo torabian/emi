@@ -118,10 +118,10 @@ func {{ .TypeName }}FromGin(g *gin.Context) {{ .TypeName }} {
 
 	// It uses fmt.Sprintf, to handle all type of data.
 	if len(placeholders) > 0 {
-		res.CodeChunkDependensies = []core.CodeChunkDependency{
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, []core.CodeChunkDependency{
 			{Location: "fmt"},
 			{Location: "strings"},
-		}
+		}...)
 	}
 
 	t := template.Must(template.New("pathParams").Parse(tmpl))

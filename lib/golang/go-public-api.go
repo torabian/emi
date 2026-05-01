@@ -221,6 +221,20 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		})
 	}
 
+	output, err := GoConfigGenerate(module.Config, ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if output != nil {
+		files = append(files, core.VirtualFile{
+			Name:         output.SuggestedFileName,
+			Extension:    output.SuggestedExtension,
+			ActualScript: AsFullDocument(output, f.PackageName),
+		})
+	}
+
 	return files, nil
 }
 

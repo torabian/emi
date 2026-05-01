@@ -55,6 +55,13 @@
           },
           "type": "array",
           "description": "Remotes are definition of external services which could be contacted via http and Emi developer can make them typesafe by defining them here."
+        },
+        "config": {
+          "items": {
+            "$ref": "#/definitions/EmiConfig"
+          },
+          "type": "array",
+          "description": "Server side configuration manager"
         }
       },
       "additionalProperties": false,
@@ -183,6 +190,43 @@
             "ts"
           ],
           "description": "Different compilers can import the definition from different locations"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiConfig": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name is the identifier for the configuration field used both in Go code and the environment file. By default the name will be converted to uppercase with underscores to reference the environment variable unless overridden by the 'env' field."
+        },
+        "type": {
+          "type": "string",
+          "description": "Type defines the data type for the environment variable. It supports standard Go types. such as string"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description explains the purpose of the configuration field. It can be helpful for developers and also used in CLI for interactive configuration."
+        },
+        "default": {
+          "type": "string",
+          "description": "Default specifies the default value for the configuration field if it is not defined."
+        },
+        "hint": {
+          "type": "string",
+          "description": "Hint is the value that will be shown in auto complete or cli context as default value - but only to help user for understanding."
+        },
+        "env": {
+          "type": "string",
+          "description": "Env allows you to override the default environment variable name"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiConfig"
+          },
+          "type": "array",
+          "description": "Fields defines child configuration fields in case the current field represents an object or an array of subfields. Note that support for nested fields may be limited."
         }
       },
       "additionalProperties": false,

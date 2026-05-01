@@ -8,8 +8,11 @@ complexes:
     location: math/big
     namespace: big
 
+config:
+  - name: sampleString
+    type: string
+    description: Sample string
 dtos:
-
   - name: commonVectorCompute
     fields:
       - name: initialVector1

@@ -16,6 +16,8 @@ import (
 // right away with urfave v3
 type CliCastable interface {
 	String(field string) string
+	Int(field string) int
+	Int32(field string) int32
 	Int64(field string) int64
 	Float64(field string) float64
 	Bool(field string) bool

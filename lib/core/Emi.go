@@ -30,6 +30,9 @@ type Emi struct {
 
 	// Remotes are definition of external services which could be contacted via http and Emi developer can make them typesafe by defining them here.
 	Remotes []*EmiRemote `yaml:"remotes,omitempty" json:"remotes,omitempty" jsonschema:"description=Remotes are definition of external services which could be contacted via http and Emi developer can make them typesafe by defining them here."`
+
+	// Server side configuration manager, with limited data types, good option for casting .env files.
+	Config []EmiConfig `yaml:"config,omitempty" json:"config,omitempty" jsonschema:"description=Server side configuration manager, with limited data types, good option for casting .env files."`
 }
 
 func (x *Emi) ActionsAsList() []string {
