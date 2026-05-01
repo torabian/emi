@@ -47,8 +47,8 @@ type ComputeReactiveActionPathParameter struct {
 
 // Converts a placeholder url, and applies the parameters to it.
 func ComputeReactiveActionPathParameterApply(params ComputeReactiveActionPathParameter, templateUrl string) string {
-	templateUrl = strings.ReplaceAll(templateUrl, "id", fmt.Sprintf("%v", params.Id))
-	templateUrl = strings.ReplaceAll(templateUrl, "age", fmt.Sprintf("%v", params.Age))
+	templateUrl = strings.ReplaceAll(templateUrl, ":id", fmt.Sprintf("%v", params.Id))
+	templateUrl = strings.ReplaceAll(templateUrl, ":age", fmt.Sprintf("%v", params.Age))
 	return templateUrl
 }
 
