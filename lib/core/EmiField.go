@@ -40,6 +40,9 @@ type EmiField struct {
 	// The go project module of the important target for one or collection fields if its from external library
 	Provider string `yaml:"provider,omitempty" json:"provider,omitempty" jsonschema:"description=The go project module of the important target for one or collection fields if its from exte"`
 
+	// You can set an alias for the provider so the import will be done using that name instead of auto detection. Useful ingolang implementation.
+	ProviderAlias string `yaml:"providerAlias,omitempty" json:"providerAlias,omitempty" jsonschema:"description=You can set an alias for the provider so the import will be done using that name instead of auto detection. Useful ingolang implementation."`
+
 	// List of enum values in case of enum type for the field. Check EmiEnumInline for more details how to define them.
 	OfType []*EmiEnumInline `yaml:"of,omitempty" json:"of,omitempty" jsonschema:"description=List of enum values in case of enum type for the field. Check EmiEnumInline for more d"`
 

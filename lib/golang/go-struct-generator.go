@@ -208,7 +208,11 @@ func CollectTargets(fields []*core.EmiField, currentName string) []string {
 
 			if field.Provider != "" {
 				if field.Provider != currentName {
-					result = append(result, field.Provider)
+					provider := field.Provider
+					if field.Module != "" {
+						provider = field.Module + " " + field.Provider
+					}
+					result = append(result, provider)
 				}
 			}
 

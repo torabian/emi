@@ -1,10 +1,11 @@
 package external
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/torabian/emi/examples/fullstack/emigo"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v3"
 )
 
 /**
@@ -17,7 +18,7 @@ type Config struct {
 
 func GetConfigCliFlags() []cli.Flag {
 	return []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:  "sample-string",
 			Usage: "Sample string",
 		},
@@ -28,22 +29,22 @@ func CastConfigFromCli(config *Config, c emigo.CliCastable) {
 		config.SampleString = c.String("sample-string")
 	}
 }
-func GetConfigCli() []cli.Command {
-	return []cli.Command{
+func GetConfigCli() []*cli.Command {
+	return []*cli.Command{
 		{
 			Name:  "sample-string",
 			Usage: "Sample string (string)",
-			Subcommands: []cli.Command{
+			Commands: []*cli.Command{
 				{
 					Name: "get",
-					Action: func(c *cli.Context) error {
+					Action: func(ctx context.Context, c *cli.Command) error {
 						fmt.Println(config.SampleString)
 						return nil
 					},
 				},
 				{
 					Name: "set",
-					Action: func(c *cli.Context) error {
+					Action: func(ctx context.Context, c *cli.Command) error {
 						return emigo.ConfigSetString(c, config.SampleString, func(value string) {
 							config.SampleString = value
 							config.Save(".env")

@@ -139,6 +139,10 @@
           "type": "string",
           "description": "The go project module of the important target for one or collection fields if its from exte"
         },
+        "providerAlias": {
+          "type": "string",
+          "description": "You can set an alias for the provider so the import will be done using that name instead of auto detection. Useful ingolang implementation."
+        },
         "of": {
           "items": {
             "$ref": "#/definitions/EmiEnumInline"
