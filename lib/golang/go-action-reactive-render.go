@@ -269,9 +269,9 @@ type {{ .realms.ActionName }}ClientOptions struct {
 // it via opts.TLSConfig. The handshake completes before the websocket upgrade
 // is sent, so a bad cert fails this call rather than later on Read/Write.
 //
-//	sess, err := edgehubdefs.{{ .realms.ActionName }}Client(
+//	sess, err := {{ .realms.ActionName }}Client(
 //	    "wss://hub.example.com",
-//	    edgehubdefs.{{ .realms.ActionName }}ClientOptions{TLSConfig: tlsCfg},
+//	    {{ .realms.ActionName }}ClientOptions{TLSConfig: tlsCfg},
 //	)
 //	if err != nil {
 //	    log.Fatal(err)

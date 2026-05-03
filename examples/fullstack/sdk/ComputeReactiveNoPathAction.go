@@ -3,12 +3,13 @@ package external
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"github.com/torabian/emi/examples/fullstack/emigo"
 	"net/http"
 	"net/url"
 	"unicode/utf8"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/torabian/emi/examples/fullstack/emigo"
 )
 
 /**
@@ -242,9 +243,9 @@ type ComputeReactiveNoPathActionClientOptions struct {
 // it via opts.TLSConfig. The handshake completes before the websocket upgrade
 // is sent, so a bad cert fails this call rather than later on Read/Write.
 //
-//	sess, err := edgehubdefs.ComputeReactiveNoPathActionClient(
+//	sess, err := ComputeReactiveNoPathActionClient(
 //	    "wss://hub.example.com",
-//	    edgehubdefs.ComputeReactiveNoPathActionClientOptions{TLSConfig: tlsCfg},
+//	    ComputeReactiveNoPathActionClientOptions{TLSConfig: tlsCfg},
 //	)
 //	if err != nil {
 //	    log.Fatal(err)
