@@ -272,7 +272,7 @@ type {{ .realms.ActionName }}Request struct {
 	GinCtx      *gin.Context
 
 	// Urfave context, per each request
-	CliCtx *cli.Context
+	CliCtx *cli.Command
 
 	// Reference to the application instance, in such scenarios that entire
 	// application is wrapped into a single struct that holds database connection,

@@ -63,37 +63,37 @@ func GetConfigCliFlags() []cli.Flag {
 	return []cli.Flag{
     {{ range .fields }} 
       {{ if or (eq .Type "string") (eq .Type "")}}
-        cli.StringFlag{
+        &cli.StringFlag{
           Name:  "{{ .DashedName }}",
           Usage: "{{ .Description }}",
         },
       {{ end }}
       {{ if or (eq .Type "int64") }}
-        cli.Int64Flag{
+        &cli.Int64Flag{
           Name:  "{{ .DashedName }}",
           Usage: "{{ .Description }}",
         },
       {{ end }}
       {{ if or (eq .Type "float64") }}
-        cli.Float64Flag{
+        &cli.Float64Flag{
           Name:  "{{ .DashedName }}",
           Usage: "{{ .Description }}",
         },
       {{ end }}
       {{ if or (eq .Type "int") }}
-        cli.IntFlag{
+        &cli.IntFlag{
           Name:  "{{ .DashedName }}",
           Usage: "{{ .Description }}",
         },
       {{ end }}
       {{ if or (eq .Type "bool") (eq .Type "boolean") }}
-        cli.BoolFlag{
+        &cli.BoolFlag{
           Name:  "{{ .DashedName }}",
           Usage: "{{ .Description }}",
         },
       {{ end }}
       {{ if or (eq .Type "int32") }}
-        cli.Int32Flag{
+        &cli.Int32Flag{
           Name:  "{{ .DashedName }}",
           Usage: "{{ .Description }}",
         },
@@ -129,24 +129,24 @@ func CastConfigFromCli(config *Config, c emigo.CliCastable) {
 }
 
 
-func GetConfigCli() []cli.Command {
-	return []cli.Command{
+func GetConfigCli() []*cli.Command {
+	return []*cli.Command{
     {{ range .fields }}
 		{
 			Name:  "{{ .DashedName }}",
 			Usage: "{{ .Description }} ({{ if or (eq .Type "string") (eq .Type "")}}string{{else}}{{.Type}}{{end}})",
 
-      Subcommands: []cli.Command{
+      Commands: []*cli.Command{
 				{
 					Name: "get",
-					Action: func(c *cli.Context) error {
+					Action: func(ctx context.Context, c *cli.Command) error {
 						fmt.Println(config.{{ upper .Name }})
 						return nil
 					},
 				},
 				{
 					Name: "set",
-					Action: func(c *cli.Context) error {
+					Action: func(ctx context.Context, c *cli.Command) error {
             {{ if or (eq .Type "bool") (eq .Type "boolean") }}
               return emigo.ConfigSetBoolean(c, config.{{ upper .Name }}, func(value bool) {
                 config.{{ upper .Name }} = value
@@ -259,10 +259,13 @@ func (x *Config) Save(filepath string) error {
 					Location: "encoding/json",
 				},
 				{
+					Location: "context",
+				},
+				{
 					Location: "fmt",
 				},
 				{
-					Location: "github.com/urfave/cli",
+					Location: "github.com/urfave/cli/v3",
 				},
 				{
 					Location: f.Emigo,

@@ -255,7 +255,19 @@ func castDtoNameToCodeChunk(dtoName string) *core.CodeChunkCompiled {
 	)
 
 	for _, name := range names {
-		directory, className := core.ParseDtoPath(strings.TrimSpace(name))
+
+		var className = ""
+		directory, className2 := core.ParseDtoPath(strings.TrimSpace(name))
+
+		// When it has an empty space, it means that the import class is already mentioned
+		if strings.Contains(name, " ") {
+			m := strings.Split(name, " ")
+			className = m[0]
+			directory = m[1]
+		} else {
+			className = className2
+		}
+
 
 		chunk.CodeChunkDependensies = append(chunk.CodeChunkDependensies,
 			core.CodeChunkDependency{

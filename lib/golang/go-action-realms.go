@@ -61,7 +61,7 @@ func GoActionRealms(
 		},
 
 		{
-			Location: "github.com/urfave/cli",
+			Location: "github.com/urfave/cli/v3",
 		},
 
 		{

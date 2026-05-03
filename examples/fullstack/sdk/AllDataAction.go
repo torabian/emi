@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/examples/fullstack/emigo"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v3"
 	"io"
 	"net/http"
 	"net/url"
@@ -253,7 +253,7 @@ type AllDataActionRequest struct {
 	// Gin context for each request in case of a direct access requirement
 	GinCtx *gin.Context
 	// Urfave context, per each request
-	CliCtx *cli.Context
+	CliCtx *cli.Command
 	// Reference to the application instance, in such scenarios that entire
 	// application is wrapped into a single struct that holds database connection,
 	// routes, etc.
