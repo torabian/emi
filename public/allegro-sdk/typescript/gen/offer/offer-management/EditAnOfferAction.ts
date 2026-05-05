@@ -1634,7 +1634,9 @@ export class EditAnOfferActionReq {
    *
    * @type {{[key: string]: any}}
    **/
-  set additionalMarketplaces(value: { [key: string]: any }) {}
+  set additionalMarketplaces(value: { [key: string]: any }) {
+    this.#additionalMarketplaces = value;
+  }
   setAdditionalMarketplaces(value: { [key: string]: any }) {
     this.additionalMarketplaces = value;
     return this;
@@ -1691,7 +1693,9 @@ export class EditAnOfferActionReq {
    *
    * @type {string[]}
    **/
-  set images(value: string[]) {}
+  set images(value: string[]) {
+    this.#images = value;
+  }
   setImages(value: string[]) {
     this.images = value;
     return this;
@@ -2648,7 +2652,9 @@ export class EditAnOfferActionReq {
        *
        * @type {string[]}
        **/
-      set images(value: string[]) {}
+      set images(value: string[]) {
+        this.#images = value;
+      }
       setImages(value: string[]) {
         this.images = value;
         return this;
@@ -2889,7 +2895,9 @@ export class EditAnOfferActionReq {
          *
          * @type {string[]}
          **/
-        set values(value: string[]) {}
+        set values(value: string[]) {
+          this.#values = value;
+        }
         setValues(value: string[]) {
           this.values = value;
           return this;
@@ -2910,7 +2918,9 @@ export class EditAnOfferActionReq {
          *
          * @type {string[]}
          **/
-        set valuesIds(value: string[]) {}
+        set valuesIds(value: string[]) {
+          this.#valuesIds = value;
+        }
         setValuesIds(value: string[]) {
           this.valuesIds = value;
           return this;
@@ -10954,7 +10964,9 @@ export class EditAnOfferActionRes {
    *
    * @type {string[]}
    **/
-  set warnings(value: string[]) {}
+  set warnings(value: string[]) {
+    this.#warnings = value;
+  }
   setWarnings(value: string[]) {
     this.warnings = value;
     return this;
@@ -11374,7 +11386,9 @@ export class EditAnOfferActionRes {
    *
    * @type {string[]}
    **/
-  set images(value: string[]) {}
+  set images(value: string[]) {
+    this.#images = value;
+  }
   setImages(value: string[]) {
     this.images = value;
     return this;
@@ -12268,7 +12282,9 @@ export class EditAnOfferActionRes {
          *
          * @type {string[]}
          **/
-        set values(value: string[]) {}
+        set values(value: string[]) {
+          this.#values = value;
+        }
         setValues(value: string[]) {
           this.values = value;
           return this;
@@ -12289,7 +12305,9 @@ export class EditAnOfferActionRes {
          *
          * @type {string[]}
          **/
-        set valuesIds(value: string[]) {}
+        set valuesIds(value: string[]) {
+          this.#valuesIds = value;
+        }
         setValuesIds(value: string[]) {
           this.valuesIds = value;
           return this;
@@ -16237,7 +16255,9 @@ export class EditAnOfferActionRes {
            *
            * @type {string[]}
            **/
-          set maxAllowedPriceDecreasePercent(value: string[]) {}
+          set maxAllowedPriceDecreasePercent(value: string[]) {
+            this.#maxAllowedPriceDecreasePercent = value;
+          }
           setMaxAllowedPriceDecreasePercent(value: string[]) {
             this.maxAllowedPriceDecreasePercent = value;
             return this;

@@ -12,7 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/manifoldco/promptui"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v3"
 )
 
 func structToEnvMap(config interface{}) (map[string]string, error) {
@@ -75,11 +75,11 @@ func SaveEnvFile(config interface{}, filename string) error {
 
 func HandleEnvVars(spec interface{}) {
 	env := os.Getenv("ENV")
-	if env == "" {
-		env = "local"
+	filename := ".env"
+	if env != "" {
+		filename += "." + env
 	}
 
-	filename := ".env." + env
 	err := godotenv.Load(filename)
 	if err != nil {
 		log.Printf("environment variable file expected: %s was not loaded. Error: %v", filename, err)
@@ -88,10 +88,10 @@ func HandleEnvVars(spec interface{}) {
 	envconfig.MustProcess("", spec)
 }
 
-func ConfigSetBoolean(c *cli.Context, currentValue bool, setValue func(value bool)) error {
-	if len(c.Args()) > 0 {
+func ConfigSetBoolean(c *cli.Command, currentValue bool, setValue func(value bool)) error {
+	if c.Args().Len() > 0 {
 		var value bool = false
-		read := c.Args()[0]
+		read := c.Args().First()
 		if read == "true" || read == "1" || read == "yes" {
 			value = true
 		} else if read == "false" || read == "0" || read == "no" {
@@ -121,9 +121,9 @@ func ConfigSetBoolean(c *cli.Context, currentValue bool, setValue func(value boo
 	return nil
 }
 
-func ConfigSetString(c *cli.Context, currentValue string, setValue func(value string)) error {
-	if len(c.Args()) > 0 {
-		var value string = c.Args()[0]
+func ConfigSetString(c *cli.Command, currentValue string, setValue func(value string)) error {
+	if c.Args().Len() > 0 {
+		var value string = c.Args().First()
 		setValue(value)
 	} else {
 		result := AskForInput("Set the value to?", currentValue)
@@ -133,9 +133,9 @@ func ConfigSetString(c *cli.Context, currentValue string, setValue func(value st
 	return nil
 }
 
-func ConfigSetInt64(c *cli.Context, currentValue int64, setValue func(value int64)) error {
-	if len(c.Args()) > 0 {
-		var value string = c.Args()[0]
+func ConfigSetInt64(c *cli.Command, currentValue int64, setValue func(value int64)) error {
+	if c.Args().Len() > 0 {
+		var value string = c.Args().First()
 
 		intValue, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
@@ -158,10 +158,9 @@ func ConfigSetInt64(c *cli.Context, currentValue int64, setValue func(value int6
 	return nil
 }
 
-func ConfigSetInt(c *cli.Context, currentValue int, setValue func(value int)) error {
-	if len(c.Args()) > 0 {
-		var value string = c.Args()[0]
-
+func ConfigSetInt(c *cli.Command, currentValue int, setValue func(value int)) error {
+	if c.Args().Len() > 0 {
+		var value string = c.Args().First()
 		intValue, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			fmt.Println("Error:", err)
@@ -183,9 +182,9 @@ func ConfigSetInt(c *cli.Context, currentValue int, setValue func(value int)) er
 	return nil
 }
 
-func ConfigSetFloat64(c *cli.Context, currentValue float64, setValue func(value float64)) error {
-	if len(c.Args()) > 0 {
-		var value string = c.Args()[0]
+func ConfigSetFloat64(c *cli.Command, currentValue float64, setValue func(value float64)) error {
+	if c.Args().Len() > 0 {
+		var value string = c.Args().First()
 
 		floatValue, err := strconv.ParseFloat(value, 64)
 		if err != nil {

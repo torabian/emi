@@ -1,15 +1,15 @@
 package unknownpackage
-import okhttp3.RequestBody.Companion.toRequestBody
-import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.*
-import okhttp3.*
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import kotlinx.coroutines.withContext
-import emikot.ClientContext
 import kotlinx.serialization.json.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import emikot.MaybeField
 import emikot.Maybe
-import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import emikot.ClientContext
 /**
  * Action to communicate with the action GetAllAvailableOfferPromotionPackagesAction
  */

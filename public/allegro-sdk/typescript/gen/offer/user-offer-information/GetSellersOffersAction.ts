@@ -1077,7 +1077,9 @@ export class GetSellersOffersActionRes {
      **/
     set additionalMarketplaces(
       value: { [key: string]: any } | null | undefined,
-    ) {}
+    ) {
+      this.#additionalMarketplaces = value;
+    }
     setAdditionalMarketplaces(
       value: { [key: string]: any } | null | undefined,
     ) {
