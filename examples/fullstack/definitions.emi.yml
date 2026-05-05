@@ -12,6 +12,7 @@ config:
   - name: sampleString
     type: string
     description: Sample string
+
 dtos:
   - name: commonVectorCompute
     fields:
@@ -56,6 +57,18 @@ dtos:
         target: CommonVectorComputeDto
 
 actions:
+  - name: getQueryParams
+    url: /stream/:addres1/:addressName2 string/:count int
+    method: get
+    description: 
+      The goal is to check that if query params also become available
+      in the cli params
+    out:
+      fields:
+        - name: name
+          type: string
+
+
   - name: streamingHtml
     url: /stream/html
     method: get

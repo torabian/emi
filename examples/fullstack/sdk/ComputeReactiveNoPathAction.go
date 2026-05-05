@@ -3,13 +3,12 @@ package external
 import (
 	"crypto/tls"
 	"fmt"
-	"net/http"
-	"net/url"
-	"unicode/utf8"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/torabian/emi/examples/fullstack/emigo"
+	"net/http"
+	"net/url"
+	"unicode/utf8"
 )
 
 /**

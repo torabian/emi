@@ -245,6 +245,21 @@ type ComputeExpActionPathParameter struct {
 	Second string
 }
 
+func GetComputeExpActionPathParameterCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "pp-first",
+			Type:     "string",
+			Required: true,
+		},
+		{
+			Name:     prefix + "pp-second",
+			Type:     "string",
+			Required: true,
+		},
+	}
+}
+
 // Converts a placeholder url, and applies the parameters to it.
 func ComputeExpActionPathParameterApply(params ComputeExpActionPathParameter, templateUrl string) string {
 	templateUrl = strings.ReplaceAll(templateUrl, ":first", fmt.Sprintf("%v", params.First))
@@ -252,12 +267,25 @@ func ComputeExpActionPathParameterApply(params ComputeExpActionPathParameter, te
 	return templateUrl
 }
 
-// Creates the parameters from the gin
-// Creates the parameters from the gin
+// Extracts the path parameter from a gin request context
 func ComputeExpActionPathParameterFromGin(g *gin.Context) ComputeExpActionPathParameter {
+	return ComputeExpActionPathParameterFromFn(func(key string) string {
+		return g.Param(key)
+	})
+}
+
+// Extracts the path parameter from a urfave v3 cli.
+func ComputeExpActionPathParameterFromCli(c *cli.Command) ComputeExpActionPathParameter {
+	return ComputeExpActionPathParameterFromFn(func(key string) string {
+		return c.String(key)
+	})
+}
+
+// General purpose to extract the value and cast based on type.
+func ComputeExpActionPathParameterFromFn(fn func(key string) string) ComputeExpActionPathParameter {
 	res := ComputeExpActionPathParameter{}
-	res.First = g.Param("first")
-	res.Second = g.Param("second")
+	res.First = fn("first")
+	res.Second = fn("second")
 	return res
 }
 

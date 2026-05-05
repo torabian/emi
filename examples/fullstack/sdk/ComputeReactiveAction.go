@@ -3,15 +3,15 @@ package external
 import (
 	"crypto/tls"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
+	"github.com/torabian/emi/examples/fullstack/emigo"
+	"github.com/urfave/cli/v3"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
-	"github.com/torabian/emi/examples/fullstack/emigo"
 )
 
 /**
@@ -47,6 +47,21 @@ type ComputeReactiveActionPathParameter struct {
 	Age int32
 }
 
+func GetComputeReactiveActionPathParameterCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "pp-id",
+			Type:     "int32",
+			Required: true,
+		},
+		{
+			Name:     prefix + "pp-age",
+			Type:     "int32",
+			Required: true,
+		},
+	}
+}
+
 // Converts a placeholder url, and applies the parameters to it.
 func ComputeReactiveActionPathParameterApply(params ComputeReactiveActionPathParameter, templateUrl string) string {
 	templateUrl = strings.ReplaceAll(templateUrl, ":id", fmt.Sprintf("%v", params.Id))
@@ -54,15 +69,28 @@ func ComputeReactiveActionPathParameterApply(params ComputeReactiveActionPathPar
 	return templateUrl
 }
 
-// Creates the parameters from the gin
-// Creates the parameters from the gin
+// Extracts the path parameter from a gin request context
 func ComputeReactiveActionPathParameterFromGin(g *gin.Context) ComputeReactiveActionPathParameter {
+	return ComputeReactiveActionPathParameterFromFn(func(key string) string {
+		return g.Param(key)
+	})
+}
+
+// Extracts the path parameter from a urfave v3 cli.
+func ComputeReactiveActionPathParameterFromCli(c *cli.Command) ComputeReactiveActionPathParameter {
+	return ComputeReactiveActionPathParameterFromFn(func(key string) string {
+		return c.String(key)
+	})
+}
+
+// General purpose to extract the value and cast based on type.
+func ComputeReactiveActionPathParameterFromFn(fn func(key string) string) ComputeReactiveActionPathParameter {
 	res := ComputeReactiveActionPathParameter{}
-	if v := g.Param("id"); v != "" {
+	if v := fn("id"); v != "" {
 		t, _ := strconv.ParseInt(v, 10, 32)
 		res.Id = int32(t)
 	}
-	if v := g.Param("age"); v != "" {
+	if v := fn("age"); v != "" {
 		t, _ := strconv.ParseInt(v, 10, 32)
 		res.Age = int32(t)
 	}
