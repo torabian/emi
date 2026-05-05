@@ -235,7 +235,9 @@ func GetQueryParamsActionPathParameterFromGin(g *gin.Context) GetQueryParamsActi
 // Extracts the path parameter from a urfave v3 cli.
 func GetQueryParamsActionPathParameterFromCli(c *cli.Command) GetQueryParamsActionPathParameter {
 	return GetQueryParamsActionPathParameterFromFn(func(key string) string {
-		return c.String(key)
+		// In cli, they are prefixed with pp, to avoid conflict with other params coming from 'in'
+		// section of the definition.
+		return c.String("pp-" + key)
 	})
 }
 

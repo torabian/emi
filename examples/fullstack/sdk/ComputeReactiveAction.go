@@ -79,7 +79,9 @@ func ComputeReactiveActionPathParameterFromGin(g *gin.Context) ComputeReactiveAc
 // Extracts the path parameter from a urfave v3 cli.
 func ComputeReactiveActionPathParameterFromCli(c *cli.Command) ComputeReactiveActionPathParameter {
 	return ComputeReactiveActionPathParameterFromFn(func(key string) string {
-		return c.String(key)
+		// In cli, they are prefixed with pp, to avoid conflict with other params coming from 'in'
+		// section of the definition.
+		return c.String("pp-" + key)
 	})
 }
 

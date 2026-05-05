@@ -277,7 +277,9 @@ func ComputeExpActionPathParameterFromGin(g *gin.Context) ComputeExpActionPathPa
 // Extracts the path parameter from a urfave v3 cli.
 func ComputeExpActionPathParameterFromCli(c *cli.Command) ComputeExpActionPathParameter {
 	return ComputeExpActionPathParameterFromFn(func(key string) string {
-		return c.String(key)
+		// In cli, they are prefixed with pp, to avoid conflict with other params coming from 'in'
+		// section of the definition.
+		return c.String("pp-" + key)
 	})
 }
 
