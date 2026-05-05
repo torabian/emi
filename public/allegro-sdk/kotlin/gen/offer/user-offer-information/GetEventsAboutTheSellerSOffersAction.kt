@@ -1,14 +1,14 @@
 package unknownpackage
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
+import okhttp3.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import emikot.ClientContext
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import emikot.MaybeField
 import emikot.Maybe
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.HttpUrl.Companion.toHttpUrl
 /**
  * Action to communicate with the action GetEventsAboutTheSellerSOffersAction

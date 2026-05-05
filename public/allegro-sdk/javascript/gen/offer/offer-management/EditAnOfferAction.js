@@ -1600,7 +1600,9 @@ export class EditAnOfferActionReq {
    *
    * @type {{[key: string]: any}}
    **/
-  set additionalMarketplaces(value) {}
+  set additionalMarketplaces(value) {
+    this.#additionalMarketplaces = value;
+  }
   setAdditionalMarketplaces(value) {
     this.additionalMarketplaces = value;
     return this;
@@ -1651,7 +1653,9 @@ export class EditAnOfferActionReq {
    *
    * @type {string[]}
    **/
-  set images(value) {}
+  set images(value) {
+    this.#images = value;
+  }
   setImages(value) {
     this.images = value;
     return this;
@@ -2509,7 +2513,9 @@ export class EditAnOfferActionReq {
        *
        * @type {string[]}
        **/
-      set images(value) {}
+      set images(value) {
+        this.#images = value;
+      }
       setImages(value) {
         this.images = value;
         return this;
@@ -2730,7 +2736,9 @@ export class EditAnOfferActionReq {
          *
          * @type {string[]}
          **/
-        set values(value) {}
+        set values(value) {
+          this.#values = value;
+        }
         setValues(value) {
           this.values = value;
           return this;
@@ -2751,7 +2759,9 @@ export class EditAnOfferActionReq {
          *
          * @type {string[]}
          **/
-        set valuesIds(value) {}
+        set valuesIds(value) {
+          this.#valuesIds = value;
+        }
         setValuesIds(value) {
           this.valuesIds = value;
           return this;
@@ -9512,7 +9522,9 @@ export class EditAnOfferActionRes {
    *
    * @type {string[]}
    **/
-  set warnings(value) {}
+  set warnings(value) {
+    this.#warnings = value;
+  }
   setWarnings(value) {
     this.warnings = value;
     return this;
@@ -9902,7 +9914,9 @@ export class EditAnOfferActionRes {
    *
    * @type {string[]}
    **/
-  set images(value) {}
+  set images(value) {
+    this.#images = value;
+  }
   setImages(value) {
     this.images = value;
     return this;
@@ -10701,7 +10715,9 @@ export class EditAnOfferActionRes {
          *
          * @type {string[]}
          **/
-        set values(value) {}
+        set values(value) {
+          this.#values = value;
+        }
         setValues(value) {
           this.values = value;
           return this;
@@ -10722,7 +10738,9 @@ export class EditAnOfferActionRes {
          *
          * @type {string[]}
          **/
-        set valuesIds(value) {}
+        set valuesIds(value) {
+          this.#valuesIds = value;
+        }
         setValuesIds(value) {
           this.valuesIds = value;
           return this;
@@ -14404,7 +14422,9 @@ export class EditAnOfferActionRes {
            *
            * @type {string[]}
            **/
-          set maxAllowedPriceDecreasePercent(value) {}
+          set maxAllowedPriceDecreasePercent(value) {
+            this.#maxAllowedPriceDecreasePercent = value;
+          }
           setMaxAllowedPriceDecreasePercent(value) {
             this.maxAllowedPriceDecreasePercent = value;
             return this;

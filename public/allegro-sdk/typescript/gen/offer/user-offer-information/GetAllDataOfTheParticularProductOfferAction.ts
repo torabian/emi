@@ -1310,7 +1310,9 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
    *
    * @type {string[]}
    **/
-  set images(value: string[]) {}
+  set images(value: string[]) {
+    this.#images = value;
+  }
   setImages(value: string[]) {
     this.images = value;
     return this;
@@ -1515,9 +1517,9 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
    *
    * @type {{[key: string]: any}}
    **/
-  set additionalMarketplaces(
-    value: { [key: string]: any } | null | undefined,
-  ) {}
+  set additionalMarketplaces(value: { [key: string]: any } | null | undefined) {
+    this.#additionalMarketplaces = value;
+  }
   setAdditionalMarketplaces(value: { [key: string]: any } | null | undefined) {
     this.additionalMarketplaces = value;
     return this;

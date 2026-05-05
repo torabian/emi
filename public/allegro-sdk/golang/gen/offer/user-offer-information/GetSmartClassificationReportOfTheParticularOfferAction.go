@@ -2,10 +2,9 @@ package external
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v3"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,6 +13,15 @@ import (
 /**
 * Action to communicate with the action GetSmartClassificationReportOfTheParticularOfferAction
  */
+/*
+Here is a quick function implementation to make your life easier:
+// Actual implementation of GetSmartClassificationReportOfTheParticularOfferAction
+func GetSmartClassificationReportOfTheParticularOfferAction(c GetSmartClassificationReportOfTheParticularOfferActionRequest) (*GetSmartClassificationReportOfTheParticularOfferActionResponse, error) {
+	return &GetSmartClassificationReportOfTheParticularOfferActionResponse{
+		// Payload is an interface. Use it at carefully.
+	}, nil
+}
+*/
 func GetSmartClassificationReportOfTheParticularOfferActionMeta() struct {
 	Name        string
 	CliName     string
@@ -38,21 +46,25 @@ func GetSmartClassificationReportOfTheParticularOfferActionMeta() struct {
 func GetGetSmartClassificationReportOfTheParticularOfferActionResCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
-			Name: prefix + "scheduled-for-reclassification",
-			Type: "bool",
+			Name:        prefix + "scheduled-for-reclassification",
+			Type:        "bool",
+			Description: "Indicates if offer is queued for reclassification",
 		},
 		{
-			Name:     prefix + "classification",
-			Type:     "object",
-			Children: GetGetSmartClassificationReportOfTheParticularOfferActionResClassificationCliFlags("classification-"),
+			Name:        prefix + "classification",
+			Type:        "object",
+			Children:    GetGetSmartClassificationReportOfTheParticularOfferActionResClassificationCliFlags("classification-"),
+			Description: "Offer classification status and last change date",
 		},
 		{
-			Name: prefix + "smart-delivery-methods",
-			Type: "array",
+			Name:        prefix + "smart-delivery-methods",
+			Type:        "array",
+			Description: "List of smart delivery method identifiers",
 		},
 		{
-			Name: prefix + "conditions",
-			Type: "array",
+			Name:        prefix + "conditions",
+			Type:        "array",
+			Description: "List of classification conditions with delivery method checks",
 		},
 	}
 }
@@ -88,12 +100,14 @@ type GetSmartClassificationReportOfTheParticularOfferActionRes struct {
 func GetGetSmartClassificationReportOfTheParticularOfferActionResClassificationCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
-			Name: prefix + "fulfilled",
-			Type: "bool",
+			Name:        prefix + "fulfilled",
+			Type:        "bool",
+			Description: "Whether the classification conditions are fulfilled",
 		},
 		{
-			Name: prefix + "last-changed",
-			Type: "string",
+			Name:        prefix + "last-changed",
+			Type:        "string",
+			Description: "ISO8601 timestamp of last classification change",
 		},
 	}
 }
@@ -140,28 +154,34 @@ type GetSmartClassificationReportOfTheParticularOfferActionResSmartDeliveryMetho
 func GetGetSmartClassificationReportOfTheParticularOfferActionResConditionsCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
-			Name: prefix + "code",
-			Type: "string",
+			Name:        prefix + "code",
+			Type:        "string",
+			Description: "Condition code identifier",
 		},
 		{
-			Name: prefix + "name",
-			Type: "string",
+			Name:        prefix + "name",
+			Type:        "string",
+			Description: "Human-readable condition name",
 		},
 		{
-			Name: prefix + "description",
-			Type: "string",
+			Name:        prefix + "description",
+			Type:        "string",
+			Description: "Detailed condition description",
 		},
 		{
-			Name: prefix + "fulfilled",
-			Type: "bool",
+			Name:        prefix + "fulfilled",
+			Type:        "bool",
+			Description: "Indicates if this condition is fulfilled",
 		},
 		{
-			Name: prefix + "passed-delivery-methods",
-			Type: "array",
+			Name:        prefix + "passed-delivery-methods",
+			Type:        "array",
+			Description: "Delivery methods that passed validation for this condition",
 		},
 		{
-			Name: prefix + "failed-delivery-methods",
-			Type: "array",
+			Name:        prefix + "failed-delivery-methods",
+			Type:        "array",
+			Description: "Delivery methods that failed validation for this condition",
 		},
 	}
 }
@@ -258,6 +278,10 @@ type GetSmartClassificationReportOfTheParticularOfferActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
+	// Do not manually fill this in. It has no effect. This is only useful when you are using
+	// client code, and want to get access to the original response. When sending response from your
+	// application it will be ignored.
+	resp *http.Response
 }
 
 func (x *GetSmartClassificationReportOfTheParticularOfferActionResponse) SetContentType(contentType string) *GetSmartClassificationReportOfTheParticularOfferActionResponse {
@@ -275,6 +299,13 @@ func (x *GetSmartClassificationReportOfTheParticularOfferActionResponse) AsStrea
 func (x *GetSmartClassificationReportOfTheParticularOfferActionResponse) AsJSON(payload any) *GetSmartClassificationReportOfTheParticularOfferActionResponse {
 	x.Payload = payload
 	x.SetContentType("application/json")
+	return x
+}
+
+// When the response is expected as documentation, you call this to get some type
+// safety for the action which is happening.
+func (x *GetSmartClassificationReportOfTheParticularOfferActionResponse) WithIdeal(payload GetSmartClassificationReportOfTheParticularOfferActionRes) *GetSmartClassificationReportOfTheParticularOfferActionResponse {
+	x.Payload = payload
 	return x
 }
 func (x *GetSmartClassificationReportOfTheParticularOfferActionResponse) AsHTML(payload string) *GetSmartClassificationReportOfTheParticularOfferActionResponse {
@@ -316,6 +347,7 @@ func GetSmartClassificationReportOfTheParticularOfferActionHandler(
 	return meta.Method, meta.URL, func(m *gin.Context) {
 		// Build typed request wrapper
 		req := GetSmartClassificationReportOfTheParticularOfferActionRequest{
+			Body:        nil,
 			QueryParams: m.Request.URL.Query(),
 			Headers:     m.Request.Header,
 			GinCtx:      m,
@@ -403,58 +435,105 @@ func (q *GetSmartClassificationReportOfTheParticularOfferActionQuery) SetMapped(
 }
 
 type GetSmartClassificationReportOfTheParticularOfferActionRequest struct {
+	Body        interface{}
 	QueryParams url.Values
-	Headers     http.Header
-	GinCtx      *gin.Context
-	CliCtx      *cli.Context
-}
-type GetSmartClassificationReportOfTheParticularOfferActionResult struct {
-	resp    *http.Response // embed original response
-	Payload interface{}
+	// Automatically casted headers, for purpose of typesafe headers in later versions
+	Headers http.Header
+	// Gin context for each request in case of a direct access requirement
+	GinCtx *gin.Context
+	// Urfave context, per each request
+	CliCtx *cli.Command
+	// Reference to the application instance, in such scenarios that entire
+	// application is wrapped into a single struct that holds database connection,
+	// routes, etc.
+	Application interface{}
 }
 
-func GetSmartClassificationReportOfTheParticularOfferActionCall(
+func (x GetSmartClassificationReportOfTheParticularOfferActionRequest) IsGin() bool {
+	return x.GinCtx != nil
+}
+func (x GetSmartClassificationReportOfTheParticularOfferActionRequest) IsCli() bool {
+	return x.CliCtx != nil
+}
+
+// type GetSmartClassificationReportOfTheParticularOfferActionResult struct {
+// /resp *http.Response
+// /	Payload interface{}
+// /}
+func GetSmartClassificationReportOfTheParticularOfferActionClientCreateUrl(
 	req GetSmartClassificationReportOfTheParticularOfferActionRequest,
 	config *emigo.APIClient, // optional pre-built request
-) (*GetSmartClassificationReportOfTheParticularOfferActionResult, error) {
-	var httpReq *http.Request
-	if config == nil || config.Httpr == nil {
-		meta := GetSmartClassificationReportOfTheParticularOfferActionMeta()
-		baseURL := meta.URL
-		// Build final URL with query string
-		u, err := url.Parse(baseURL)
-		if err != nil {
-			return nil, err
-		}
-		// if UrlValues present, encode and append
-		if len(req.QueryParams) > 0 {
-			u.RawQuery = req.QueryParams.Encode()
-		}
-		req0, err := http.NewRequest(meta.Method, u.String(), nil)
-		if err != nil {
-			return nil, err
-		}
-		httpReq = req0
-	} else {
-		httpReq = config.Httpr
+) (*url.URL, error) {
+	meta := GetSmartClassificationReportOfTheParticularOfferActionMeta()
+	urlAddr := meta.URL
+	urlAddr = config.BaseURL + urlAddr
+	// Build final URL with query string
+	u, err := url.Parse(urlAddr)
+	if err != nil {
+		return nil, err
 	}
-	httpReq.Header = req.Headers
+	// if UrlValues present, encode and append
+	if len(req.QueryParams) > 0 {
+		u.RawQuery = req.QueryParams.Encode()
+	}
+	return u, nil
+}
+func GetSmartClassificationReportOfTheParticularOfferActionClientExecuteTyped(httpReq *http.Request) (*GetSmartClassificationReportOfTheParticularOfferActionResponse, error) {
 	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
 		return nil, err
 	}
-	var result GetSmartClassificationReportOfTheParticularOfferActionResult
+	// At this point, response is valid, and we need to return the results.
+	var result GetSmartClassificationReportOfTheParticularOfferActionResponse
 	result.resp = resp
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &result, err
-	}
-	if resp.StatusCode >= 400 {
-		return &result, fmt.Errorf("request failed: %s", respBody)
+		return &GetSmartClassificationReportOfTheParticularOfferActionResponse{Payload: result}, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &result, err
+		return &GetSmartClassificationReportOfTheParticularOfferActionResponse{Payload: result}, err
 	}
-	return &result, nil
+	return &GetSmartClassificationReportOfTheParticularOfferActionResponse{Payload: result}, nil
+}
+func GetSmartClassificationReportOfTheParticularOfferActionClientBuildRequest(req GetSmartClassificationReportOfTheParticularOfferActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
+	meta := GetSmartClassificationReportOfTheParticularOfferActionMeta()
+	httpReq, err := http.NewRequest(meta.Method, reqUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	httpReq.Header = make(http.Header)
+	// copy defaults
+	for k, v := range config.Headers {
+		for _, vv := range v {
+			httpReq.Header.Add(k, vv)
+		}
+	}
+	// override with request-specific headers
+	for k, v := range req.Headers {
+		httpReq.Header.Del(k) // ensure override, not duplicate
+		for _, vv := range v {
+			httpReq.Header.Add(k, vv)
+		}
+	}
+	return httpReq, nil
+}
+func GetSmartClassificationReportOfTheParticularOfferActionCall(
+	req GetSmartClassificationReportOfTheParticularOfferActionRequest,
+	config *emigo.APIClient, // optional pre-built request
+) (*GetSmartClassificationReportOfTheParticularOfferActionResponse, error) {
+	// This function intentionally is split into 3 different sections, so in case
+	// of some modifications that we did not anticipate, at least a part would become quite useful.
+	// first we create url, apply all path parameters, query params, etc
+	u, err := GetSmartClassificationReportOfTheParticularOfferActionClientCreateUrl(req, config)
+	if err != nil {
+		return nil, err
+	}
+	// We create the request from the body in second stage
+	r, err := GetSmartClassificationReportOfTheParticularOfferActionClientBuildRequest(req, u, config)
+	if err != nil {
+		return nil, err
+	}
+	// This one would execute the request and cast the result.
+	return GetSmartClassificationReportOfTheParticularOfferActionClientExecuteTyped(r)
 }

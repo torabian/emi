@@ -3,10 +3,9 @@ package external
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v3"
 	"io"
 	"net/http"
 	"net/url"
@@ -15,6 +14,15 @@ import (
 /**
 * Action to communicate with the action ModifyTheBuyNowPriceInAnOfferAction
  */
+/*
+Here is a quick function implementation to make your life easier:
+// Actual implementation of ModifyTheBuyNowPriceInAnOfferAction
+func ModifyTheBuyNowPriceInAnOfferAction(c ModifyTheBuyNowPriceInAnOfferActionRequest) (*ModifyTheBuyNowPriceInAnOfferActionResponse, error) {
+	return &ModifyTheBuyNowPriceInAnOfferActionResponse{
+		// Payload is an interface. Use it at carefully.
+	}, nil
+}
+*/
 func ModifyTheBuyNowPriceInAnOfferActionMeta() struct {
 	Name        string
 	CliName     string
@@ -338,6 +346,10 @@ type ModifyTheBuyNowPriceInAnOfferActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
 	Payload    interface{}
+	// Do not manually fill this in. It has no effect. This is only useful when you are using
+	// client code, and want to get access to the original response. When sending response from your
+	// application it will be ignored.
+	resp *http.Response
 }
 
 func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) SetContentType(contentType string) *ModifyTheBuyNowPriceInAnOfferActionResponse {
@@ -355,6 +367,13 @@ func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) AsStream(r io.Reader, cont
 func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) AsJSON(payload any) *ModifyTheBuyNowPriceInAnOfferActionResponse {
 	x.Payload = payload
 	x.SetContentType("application/json")
+	return x
+}
+
+// When the response is expected as documentation, you call this to get some type
+// safety for the action which is happening.
+func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) WithIdeal(payload ModifyTheBuyNowPriceInAnOfferActionRes) *ModifyTheBuyNowPriceInAnOfferActionResponse {
+	x.Payload = payload
 	return x
 }
 func (x *ModifyTheBuyNowPriceInAnOfferActionResponse) AsHTML(payload string) *ModifyTheBuyNowPriceInAnOfferActionResponse {
@@ -491,61 +510,107 @@ func (q *ModifyTheBuyNowPriceInAnOfferActionQuery) SetMapped(m map[string]interf
 type ModifyTheBuyNowPriceInAnOfferActionRequest struct {
 	Body        ModifyTheBuyNowPriceInAnOfferActionReq
 	QueryParams url.Values
-	Headers     http.Header
-	GinCtx      *gin.Context
-	CliCtx      *cli.Context
-}
-type ModifyTheBuyNowPriceInAnOfferActionResult struct {
-	resp    *http.Response // embed original response
-	Payload interface{}
+	// Automatically casted headers, for purpose of typesafe headers in later versions
+	Headers http.Header
+	// Gin context for each request in case of a direct access requirement
+	GinCtx *gin.Context
+	// Urfave context, per each request
+	CliCtx *cli.Command
+	// Reference to the application instance, in such scenarios that entire
+	// application is wrapped into a single struct that holds database connection,
+	// routes, etc.
+	Application interface{}
 }
 
-func ModifyTheBuyNowPriceInAnOfferActionCall(
+func (x ModifyTheBuyNowPriceInAnOfferActionRequest) IsGin() bool {
+	return x.GinCtx != nil
+}
+func (x ModifyTheBuyNowPriceInAnOfferActionRequest) IsCli() bool {
+	return x.CliCtx != nil
+}
+
+// type ModifyTheBuyNowPriceInAnOfferActionResult struct {
+// /resp *http.Response
+// /	Payload interface{}
+// /}
+func ModifyTheBuyNowPriceInAnOfferActionClientCreateUrl(
 	req ModifyTheBuyNowPriceInAnOfferActionRequest,
 	config *emigo.APIClient, // optional pre-built request
-) (*ModifyTheBuyNowPriceInAnOfferActionResult, error) {
-	var httpReq *http.Request
-	if config == nil || config.Httpr == nil {
-		meta := ModifyTheBuyNowPriceInAnOfferActionMeta()
-		baseURL := meta.URL
-		// Build final URL with query string
-		u, err := url.Parse(baseURL)
-		if err != nil {
-			return nil, err
-		}
-		// if UrlValues present, encode and append
-		if len(req.QueryParams) > 0 {
-			u.RawQuery = req.QueryParams.Encode()
-		}
-		bodyBytes, err := json.Marshal(req.Body)
-		if err != nil {
-			return nil, err
-		}
-		req0, err := http.NewRequest(meta.Method, u.String(), bytes.NewReader(bodyBytes))
-		if err != nil {
-			return nil, err
-		}
-		httpReq = req0
-	} else {
-		httpReq = config.Httpr
+) (*url.URL, error) {
+	meta := ModifyTheBuyNowPriceInAnOfferActionMeta()
+	urlAddr := meta.URL
+	urlAddr = config.BaseURL + urlAddr
+	// Build final URL with query string
+	u, err := url.Parse(urlAddr)
+	if err != nil {
+		return nil, err
 	}
-	httpReq.Header = req.Headers
+	// if UrlValues present, encode and append
+	if len(req.QueryParams) > 0 {
+		u.RawQuery = req.QueryParams.Encode()
+	}
+	return u, nil
+}
+func ModifyTheBuyNowPriceInAnOfferActionClientExecuteTyped(httpReq *http.Request) (*ModifyTheBuyNowPriceInAnOfferActionResponse, error) {
 	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
 		return nil, err
 	}
-	var result ModifyTheBuyNowPriceInAnOfferActionResult
+	// At this point, response is valid, and we need to return the results.
+	var result ModifyTheBuyNowPriceInAnOfferActionResponse
 	result.resp = resp
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &result, err
-	}
-	if resp.StatusCode >= 400 {
-		return &result, fmt.Errorf("request failed: %s", respBody)
+		return &ModifyTheBuyNowPriceInAnOfferActionResponse{Payload: result}, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &result, err
+		return &ModifyTheBuyNowPriceInAnOfferActionResponse{Payload: result}, err
 	}
-	return &result, nil
+	return &ModifyTheBuyNowPriceInAnOfferActionResponse{Payload: result}, nil
+}
+func ModifyTheBuyNowPriceInAnOfferActionClientBuildRequest(req ModifyTheBuyNowPriceInAnOfferActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
+	meta := ModifyTheBuyNowPriceInAnOfferActionMeta()
+	bodyBytes, err := json.Marshal(req.Body)
+	if err != nil {
+		return nil, err
+	}
+	httpReq, err := http.NewRequest(meta.Method, reqUrl.String(), bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, err
+	}
+	httpReq.Header = make(http.Header)
+	// copy defaults
+	for k, v := range config.Headers {
+		for _, vv := range v {
+			httpReq.Header.Add(k, vv)
+		}
+	}
+	// override with request-specific headers
+	for k, v := range req.Headers {
+		httpReq.Header.Del(k) // ensure override, not duplicate
+		for _, vv := range v {
+			httpReq.Header.Add(k, vv)
+		}
+	}
+	return httpReq, nil
+}
+func ModifyTheBuyNowPriceInAnOfferActionCall(
+	req ModifyTheBuyNowPriceInAnOfferActionRequest,
+	config *emigo.APIClient, // optional pre-built request
+) (*ModifyTheBuyNowPriceInAnOfferActionResponse, error) {
+	// This function intentionally is split into 3 different sections, so in case
+	// of some modifications that we did not anticipate, at least a part would become quite useful.
+	// first we create url, apply all path parameters, query params, etc
+	u, err := ModifyTheBuyNowPriceInAnOfferActionClientCreateUrl(req, config)
+	if err != nil {
+		return nil, err
+	}
+	// We create the request from the body in second stage
+	r, err := ModifyTheBuyNowPriceInAnOfferActionClientBuildRequest(req, u, config)
+	if err != nil {
+		return nil, err
+	}
+	// This one would execute the request and cast the result.
+	return ModifyTheBuyNowPriceInAnOfferActionClientExecuteTyped(r)
 }

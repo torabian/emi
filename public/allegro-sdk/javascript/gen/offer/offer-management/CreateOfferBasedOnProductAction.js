@@ -906,7 +906,9 @@ export class CreateOfferBasedOnProductActionReq {
    *
    * @type {{[key: string]: any}}
    **/
-  set additionalMarketplaces(value) {}
+  set additionalMarketplaces(value) {
+    this.#additionalMarketplaces = value;
+  }
   setAdditionalMarketplaces(value) {
     this.additionalMarketplaces = value;
     return this;
@@ -956,7 +958,9 @@ export class CreateOfferBasedOnProductActionReq {
    *
    * @type {string[]}
    **/
-  set images(value) {}
+  set images(value) {
+    this.#images = value;
+  }
   setImages(value) {
     this.images = value;
     return this;
@@ -1852,7 +1856,9 @@ export class CreateOfferBasedOnProductActionReq {
        *
        * @type {string[]}
        **/
-      set images(value) {}
+      set images(value) {
+        this.#images = value;
+      }
       setImages(value) {
         this.images = value;
         return this;
@@ -2073,7 +2079,9 @@ export class CreateOfferBasedOnProductActionReq {
          *
          * @type {string[]}
          **/
-        set values(value) {}
+        set values(value) {
+          this.#values = value;
+        }
         setValues(value) {
           this.values = value;
           return this;
@@ -2094,7 +2102,9 @@ export class CreateOfferBasedOnProductActionReq {
          *
          * @type {string[]}
          **/
-        set valuesIds(value) {}
+        set valuesIds(value) {
+          this.#valuesIds = value;
+        }
         setValuesIds(value) {
           this.valuesIds = value;
           return this;

@@ -1177,7 +1177,9 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
    *
    * @type {string[]}
    **/
-  set images(value) {}
+  set images(value) {
+    this.#images = value;
+  }
   setImages(value) {
     this.images = value;
     return this;
@@ -1342,7 +1344,9 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
    *
    * @type {{[key: string]: any}}
    **/
-  set additionalMarketplaces(value) {}
+  set additionalMarketplaces(value) {
+    this.#additionalMarketplaces = value;
+  }
   setAdditionalMarketplaces(value) {
     this.additionalMarketplaces = value;
     return this;

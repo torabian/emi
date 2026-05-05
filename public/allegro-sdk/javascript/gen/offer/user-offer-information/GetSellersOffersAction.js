@@ -975,7 +975,9 @@ export class GetSellersOffersActionRes {
      * Marketplace-specific extensions for offer
      * @type {{[key: string]: any}}
      **/
-    set additionalMarketplaces(value) {}
+    set additionalMarketplaces(value) {
+      this.#additionalMarketplaces = value;
+    }
     setAdditionalMarketplaces(value) {
       this.additionalMarketplaces = value;
       return this;

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -17,14 +18,14 @@ import (
 	"github.com/torabian/emi/lib/querypredict"
 	"github.com/torabian/emi/lib/swift"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v3"
 )
 
 func main() {
 
-	commands := []cli.Command{
-		DirCommand,
-		GenerateCommand,
+	commands := []*cli.Command{
+		&DirCommand,
+		&GenerateCommand,
 	}
 	commands = append(commands,
 		cliCommandFromTextActions(js.GetJsPublicActions().TextActions)...)
@@ -51,13 +52,13 @@ func main() {
 	commands = append(commands,
 		cliCommandFromFileActions(swift.GetSwiftPublicActions().FileActions)...)
 
-	app := &cli.App{
+	app := &cli.Command{
 		Name:     "Emi compiler",
 		Usage:    "Backend-for-Frontend with automatic SDK generation.",
 		Commands: commands,
 	}
 
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(context.Background(), os.Args); err != nil {
 		fmt.Println(err)
 	}
 }
@@ -70,18 +71,18 @@ func cliFlagsFromDefs(defs []core.FlagDef) []cli.Flag {
 		switch f.Type {
 
 		case core.FlagBool:
-			flags = append(flags, cli.BoolFlag{
+			flags = append(flags, &cli.BoolFlag{
 				Name:  f.Name,
 				Usage: f.Usage,
 			})
 		case core.FlagInt:
-			flags = append(flags, cli.IntFlag{
+			flags = append(flags, &cli.IntFlag{
 				Name:  f.Name,
 				Usage: f.Usage,
 			})
 
 		default:
-			flags = append(flags, cli.StringFlag{
+			flags = append(flags, &cli.StringFlag{
 				Name:     f.Name,
 				Usage:    f.Usage,
 				Required: f.Required,
@@ -93,38 +94,40 @@ func cliFlagsFromDefs(defs []core.FlagDef) []cli.Flag {
 	return flags
 }
 
-func cliCommandFromTextActions(actions []core.ActionText) []cli.Command {
-	items := []cli.Command{}
+func cliCommandFromTextActions(actions []core.ActionText) []*cli.Command {
+	items := []*cli.Command{}
 	for _, item := range actions {
-		items = append(items, cliCommandFromTextAction(item))
+		command := cliCommandFromTextAction(item)
+		items = append(items, &command)
 	}
 	return items
 }
 
-func cliCommandFromFileActions(actions []core.ActionFile) []cli.Command {
-	items := []cli.Command{}
+func cliCommandFromFileActions(actions []core.ActionFile) []*cli.Command {
+	items := []*cli.Command{}
 	for _, item := range actions {
-		items = append(items, cliCommandFromFileAction(item))
+		command := cliCommandFromFileAction(item)
+		items = append(items, &command)
 	}
 	return items
 }
 
 var commonFlags []cli.Flag = []cli.Flag{
-	cli.StringFlag{
+	&cli.StringFlag{
 		Name:  "path",
 		Usage: "Path of the file on the disk",
 	},
-	cli.StringFlag{
+	&cli.StringFlag{
 		Name:  "output",
 		Usage: "The directory which the generated files will be rewritten to",
 	},
-	cli.StringFlag{
+	&cli.StringFlag{
 		Name:  "tags",
 		Usage: "A set of string flags separated by comma (,) to add or remove compile feature. Such as 'nestjs-headers-decorator'",
 	},
 }
 
-func createCliContext(c *cli.Context, flags []core.FlagDef) (core.MicroGenContext, error) {
+func createCliContext(c *cli.Command, flags []core.FlagDef) (core.MicroGenContext, error) {
 	ctx := core.MicroGenContext{
 		Tags:   c.String("tags"),
 		Output: c.String("output"),
@@ -154,7 +157,7 @@ type MicroGenContext struct {
 	Document querypredict.QueryDocument
 }
 
-func createCliContextQp(c *cli.Context) (MicroGenContext, error) {
+func createCliContextQp(c *cli.Command) (MicroGenContext, error) {
 	ctx := MicroGenContext{
 		Tags:   c.String("tags"),
 		Output: c.String("output"),
@@ -192,7 +195,7 @@ func cliCommandFromTextAction(a core.ActionText) cli.Command {
 		Description: a.Description,
 		Usage:       a.Description,
 		Flags:       flags,
-		Action: func(c *cli.Context) error {
+		Action: func(ctx2 context.Context, c *cli.Command) error {
 			ctx, err := createCliContext(c, a.Flags)
 			if err != nil {
 				return err
@@ -226,7 +229,7 @@ var GenerateCommand = cli.Command{
 	Description: "Generate the query predict golang files from a query predict yaml definition",
 	Usage:       "Generate the query predict golang files from a query predict yaml definition",
 	Flags:       commonFlags,
-	Action: func(c *cli.Context) error {
+	Action: func(ctx2 context.Context, c *cli.Command) error {
 		ctx, err := createCliContextQp(c)
 		if err != nil {
 			return err
@@ -264,7 +267,7 @@ func cliCommandFromFileAction(a core.ActionFile) cli.Command {
 		Description: a.Description,
 		Usage:       a.Description,
 		Flags:       flags,
-		Action: func(c *cli.Context) error {
+		Action: func(ctx2 context.Context, c *cli.Command) error {
 			ctx, err := createCliContext(c, a.Flags)
 
 			if err != nil {
@@ -304,7 +307,7 @@ var DirCommand = cli.Command{
 	Description: "Searches for .sql files in given directory, considering maximum depth, and would generate querypredict golang files in output ",
 	Usage:       "Scan a directory for .sql files (with optional depth) and generate QueryPredict Go code.",
 	Flags:       commonFlags,
-	Action: func(c *cli.Context) error {
+	Action: func(ctx2 context.Context, c *cli.Command) error {
 
 		files := []core.VirtualFile{}
 		doc := querypredict.QueryDocument{}

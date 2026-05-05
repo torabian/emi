@@ -167,3 +167,11 @@ func ActionToCliName(x core.EmiRpcAction) string {
 
 	return strings.ReplaceAll(core.ToSnakeCase((x.GetName())), "_", "-")
 }
+
+func FieldToCliName(x string) string {
+	if x != "" {
+		return x
+	}
+
+	return strings.ReplaceAll(core.ToSnakeCase((x)), "_", "-")
+}
