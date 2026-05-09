@@ -33,6 +33,9 @@ type Emi struct {
 
 	// Server side configuration manager, with limited data types, good option for casting .env files.
 	Config []EmiConfig `yaml:"config,omitempty" json:"config,omitempty" jsonschema:"description=Server side configuration manager, with limited data types, good option for casting .env files."`
+
+	// Manifests are a way to create actions bundle, to implement them easier, or wrap them into a single module.
+	Manifests []EmiManifest `yaml:"manifests,omitempty" json:"manifests,omitempty" jsonschema:"description=Manifests are a way to create actions bundle, to implement them easier, or wrap them into a single module."`
 }
 
 func (x *Emi) ActionsAsList() []string {
