@@ -62,6 +62,13 @@
           },
           "type": "array",
           "description": "Server side configuration manager"
+        },
+        "manifests": {
+          "items": {
+            "$ref": "#/definitions/EmiManifest"
+          },
+          "type": "array",
+          "description": "Manifests are a way to create actions bundle"
         }
       },
       "additionalProperties": false,
@@ -466,6 +473,64 @@
       },
       "additionalProperties": false,
       "type": "object"
+    },
+    "EmiManifest": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "title": "Name",
+          "description": "Unique name of the manifest"
+        },
+        "package": {
+          "type": "string",
+          "title": "Name",
+          "description": "Package name used in some programming languages with package"
+        },
+        "mod": {
+          "type": "string",
+          "title": "Name",
+          "description": "Mod package name such as github.com/org/package"
+        },
+        "types": {
+          "items": {
+            "type": "string",
+            "enum": [
+              "go-gin",
+              "go-wasm"
+            ]
+          },
+          "type": "array",
+          "uniqueItems": true,
+          "title": "Types",
+          "description": "List of supported types"
+        },
+        "includes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Includes",
+          "description": "Included actions or patterns (supports wildcards)"
+        },
+        "dist": {
+          "type": "string",
+          "title": "Dist",
+          "description": "The location that manifest will be written"
+        },
+        "excludes": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "title": "Excludes",
+          "description": "Excluded conditions or patterns"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name"
+      ]
     },
     "EmiQueryField": {
       "properties": {

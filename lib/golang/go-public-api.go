@@ -150,7 +150,6 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	}
 
 	if val, ok := ctx.Flags["pkg"]; ok && val != "" {
-		fmt.Println("Setting packagename", val)
 		f.PackageName = val
 	}
 
@@ -185,8 +184,6 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
 	}
 
-	// internalUsage := []string{}
-
 	for _, dtoItem := range entitiesAndDtos {
 		for _, loc := range dtoItem.CodeChunkDependensies {
 			// I don't remember this
@@ -204,8 +201,6 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		})
 	}
 
-	// var actionsRendered []*core.CodeChunkCompiled
-
 	for _, action := range module.Actions {
 
 		output, err := GoActionRender(action, ctx, complexes)
@@ -218,6 +213,19 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 			Name:         output.SuggestedFileName,
 			Extension:    output.SuggestedExtension,
 			ActualScript: AsFullDocument(output, f.PackageName),
+		})
+	}
+
+	for _, manifest := range module.Manifests {
+		gomanifest, err := GoManifest(manifest, module, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, core.VirtualFile{
+			Name:         gomanifest.SuggestedFileName,
+			Extension:    gomanifest.SuggestedExtension,
+			ActualScript: AsFullDocument(gomanifest, f.PackageName),
 		})
 	}
 
@@ -249,6 +257,11 @@ func FormatGoCode(code string) string {
 }
 
 func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
+
+	if item := core.FindTokenByName(x.Tokens, "PACKAGE_NAME"); item != nil {
+		packageName = item.Value
+	}
+
 	importsList := CombineGoImports(*x)
 	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + string(x.ActualScript)
 
