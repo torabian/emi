@@ -8,8 +8,11 @@ other sharable details with a single yaml definition, and then compile multiple
 targets out of the same definition. Golden tool for creating SDKs which work
 with an API system.
 
-Main focus is on **JavaScript, TypeScript, Golang** environment, also supports a basic
-version of **Swift** and **Kotlin** which is more limited (PR Welcome)
+Emi definitions are primarily designed around Golang for backend development, while generating code for other languages on the frontend side (including Golang itself).
+
+As a side effect, the generated JavaScript code can also be used perfectly in backend environments such as Node.js, although that is not the primary goal.
+
+JavaScript, React, Kotlin, Swift, and other supported languages are mainly intended to act as clients or frontend layers, rather than as server-side service implementations or system-level development environments — although they can still be used that way if needed.
 
 Code written in Emi aims to be framework agnostic, but still there are following
 libraries used:
