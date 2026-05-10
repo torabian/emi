@@ -1,7 +1,9 @@
 package emigo
 
 import (
+	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 
 	"gopkg.in/yaml.v3"
 )
@@ -51,6 +53,71 @@ func NullableOfPtr[T any](v *T) Nullable[T] {
 type Nullable[T any] struct {
 	value *T   // Actual value; can be nil
 	isSet bool // True if value has been explicitly set (including nil)
+}
+
+func (n Nullable[T]) Value() (driver.Value, error) {
+	if !n.isSet || n.value == nil {
+		return nil, nil
+	}
+
+	switch v := any(*n.value).(type) {
+	case string, []byte, int64, float64, bool, int, int32, int16, int8,
+		uint, uint64, uint32, uint16, uint8:
+		return v, nil
+	default:
+		// fallback json
+		return json.Marshal(v)
+	}
+}
+
+func (n *Nullable[T]) Scan(value interface{}) error {
+	if value == nil {
+		n.value = nil
+		n.isSet = true
+		return nil
+	}
+
+	var v T
+
+	switch val := value.(type) {
+	case []byte:
+		// try json first
+		if err := json.Unmarshal(val, &v); err == nil {
+			n.value = &v
+			n.isSet = true
+			return nil
+		}
+
+		// fallback string cast
+		casted, err := CastPrimitive[T](string(val))
+		if err != nil {
+			return err
+		}
+
+		n.value = &casted
+		n.isSet = true
+		return nil
+
+	case string:
+		casted, err := CastPrimitive[T](val)
+		if err != nil {
+			return err
+		}
+
+		n.value = &casted
+		n.isSet = true
+		return nil
+
+	default:
+		typed, ok := value.(T)
+		if !ok {
+			return fmt.Errorf("cannot scan %T into Nullable", value)
+		}
+
+		n.value = &typed
+		n.isSet = true
+		return nil
+	}
 }
 
 // MarshalJSON implements JSON marshalling for Nullable.
