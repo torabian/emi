@@ -106,7 +106,7 @@ export class FetchxContext {
      * Overrides the browser fetch function, for different purposes. It would recieve the same first 2 arguments as fetch,
      * as well as third one of fetchx context. If you pass the fetch itself to override, it should have no effect.
      */
-    fetchOverrideFn = null) {
+    fetchOverrideFn) {
         this.baseUrl = baseUrl;
         this.defaultHeaders = defaultHeaders;
         this.requestInterceptor = requestInterceptor;
