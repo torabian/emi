@@ -35,7 +35,7 @@ export type GetSinglePostActionQueryOptions = Omit<
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
   };
 export const useGetSinglePostActionQuery = (
   options: GetSinglePostActionQueryOptions,
@@ -82,7 +82,7 @@ export type GetSinglePostActionMutationOptions = Omit<
   "mutationFn"
 > &
   GetSinglePostActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -149,7 +149,7 @@ export class GetSinglePostAction {
   static Fetch$ = async (
     params: GetSinglePostActionPathParameter,
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -174,7 +174,7 @@ export class GetSinglePostAction {
     }: {
       creatorFn?: ((item: unknown) => GetSinglePostActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

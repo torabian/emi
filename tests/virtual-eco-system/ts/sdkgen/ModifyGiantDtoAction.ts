@@ -23,7 +23,7 @@ export class ModifyGiantDtoAction { //
   static Method = 'post';
 	static Fetch$ = async (
 		qs?: URLSearchParams,
-		ctx?: FetchxContext,
+		ctx?: FetchxContext | null,
 		init?: TypedRequestInit<GiantDto, unknown>,
 		overrideUrl?: string,
 	) => {
@@ -50,7 +50,7 @@ export class ModifyGiantDtoAction { //
 			: {
 				creatorFn?: ((item: unknown) => GiantDto) | undefined,
 			qs?: URLSearchParams,
-			ctx?: FetchxContext,
+			ctx?: FetchxContext | null,
 			onMessage?: (ev: MessageEvent) => void,
 			overrideUrl?: string,		
 		} 

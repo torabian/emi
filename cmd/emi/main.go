@@ -15,7 +15,11 @@ import (
 	"github.com/torabian/emi/lib/golang"
 	"github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
+	"github.com/torabian/emi/lib/md"
+	"github.com/torabian/emi/lib/openapi"
+	"github.com/torabian/emi/lib/postman"
 	"github.com/torabian/emi/lib/querypredict"
+	emistrings "github.com/torabian/emi/lib/strings"
 	"github.com/torabian/emi/lib/swift"
 
 	"github.com/urfave/cli/v3"
@@ -26,6 +30,7 @@ func main() {
 	commands := []*cli.Command{
 		&DirCommand,
 		&GenerateCommand,
+		&StringsCommand,
 	}
 	commands = append(commands,
 		cliCommandFromTextActions(js.GetJsPublicActions().TextActions)...)
@@ -34,8 +39,18 @@ func main() {
 
 	commands = append(commands,
 		cliCommandFromTextActions(querypredict.GetQPPublicActions().TextActions)...)
+
 	commands = append(commands,
 		cliCommandFromFileActions(querypredict.GetQPPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromFileActions(md.GetMdPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromFileActions(openapi.GetOpenAPIPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromFileActions(postman.GetPostmanPublicActions().FileActions)...)
 
 	commands = append(commands,
 		cliCommandFromTextActions(golang.GetGolangPublicActions().TextActions)...)
@@ -140,6 +155,10 @@ func createCliContext(c *cli.Command, flags []core.FlagDef) (core.MicroGenContex
 	for _, flag := range flags {
 		if c.IsSet(flag.Name) {
 			m[flag.Name] = c.String(flag.Name)
+
+			if flag.Type == core.FlagBool && c.String(flag.Name) != "false" && c.String(flag.Name) != "no" {
+				m[flag.Name] = "true"
+			}
 		}
 	}
 
@@ -387,6 +406,47 @@ func (e EmbedFS) ReadDir(dirname string) ([]fs.DirEntry, error) {
 
 func (e EmbedFS) ReadFile(name string) ([]byte, error) {
 	return e.FS.ReadFile(filepath.Join(e.Root, name))
+}
+
+var StringsCommand = cli.Command{
+	Name:  "strings",
+	Usage: "Language resource translation runner",
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:     "path",
+			Usage:    "Translation yaml or json entry point",
+			Required: true,
+		},
+		&cli.StringFlag{
+			Name:     "langs",
+			Usage:    "The languages that you are supporting. Make them attached and separate with comma. for example --langs en,fa,pl,de ",
+			Required: false,
+		},
+	},
+	Action: func(ctx0 context.Context, c *cli.Command) error {
+		ctx := emistrings.TranslationResourceCatalog{
+			EntryPoint: c.String("path"),
+			Languages:  []string{"en"},
+			FileFormat: "yml",
+		}
+
+		if c.IsSet("langs") {
+			items := strings.Split(c.String("langs"), ",")
+			for _, item := range items {
+				n := strings.TrimSpace(item)
+				n = strings.ToLower(n)
+
+				if n == "en" {
+					continue
+				}
+				ctx.Languages = append(ctx.Languages, n)
+			}
+		}
+
+		emistrings.TranslateResource(ctx)
+
+		return nil
+	},
 }
 
 // ReadSQLFiles walks the FS and reads all .sql files up to maxDepth

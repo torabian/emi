@@ -25,7 +25,7 @@ export class CreateOfferBasedOnProductAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<CreateOfferBasedOnProductActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -47,7 +47,7 @@ export class CreateOfferBasedOnProductAction {
       overrideUrl,
     }: {
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {},

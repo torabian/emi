@@ -1,6 +1,8 @@
 # Complex Types in Emi
+
 In Emi modules, you can define **complexes** as reusable types. Each complex requires a class name and a location where it should be imported from.
 Instead of using primitive types like `number` or `string`, you can specify `complex: ClassName` inside the action field definition.
+
 - If you prefix the complex with **"+"**, like `+ClassName`, Emi will automatically instantiate the value when parsing the response.
 - Built-in types such as `Date` can be used directly as complexes.
 - User-defined types such as `Money` need to be registered in the **complexes** array of your module.
@@ -10,6 +12,7 @@ Instead of using primitive types like `number` or `string`, you can specify `com
 Here you can see based on defining 2 complex fields, we are generating them as class instances
 
 Example schema:
+
 ```yaml
 name: emiComplexFields
 complexes:
@@ -29,7 +32,6 @@ actions:
         - name: money
           complex: +Money
           description: External money type
-
 ```
 
 ## Example Generated Code
@@ -62,7 +64,7 @@ export class SampleAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -86,7 +88,7 @@ export class SampleAction {
     }: {
       creatorFn?: ((item: unknown) => SampleActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {
@@ -304,7 +306,6 @@ export type SampleActionResType = {
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace SampleActionResType {}
-
 ```
 
 ## Notes

@@ -29,7 +29,7 @@ export type StreamingHtmlActionQueryOptions = Omit<
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
   };
 export const useStreamingHtmlActionQuery = (
   options: StreamingHtmlActionQueryOptions,
@@ -75,7 +75,7 @@ export type StreamingHtmlActionMutationOptions = Omit<
   "mutationFn"
 > &
   StreamingHtmlActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -130,7 +130,7 @@ export class StreamingHtmlAction {
   static Method = "get";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -152,7 +152,7 @@ export class StreamingHtmlAction {
       overrideUrl,
     }: {
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {},

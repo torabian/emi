@@ -29,7 +29,7 @@ export type {{ .className }} = Omit<
 > &
 	{{ .rmoptions.ActionMutationOptionsName }}
 & {
-	ctx?: FetchxContext;
+	ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
