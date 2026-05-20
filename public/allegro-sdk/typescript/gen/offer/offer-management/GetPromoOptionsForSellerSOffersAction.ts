@@ -25,7 +25,7 @@ export class GetPromoOptionsForSellerSOffersAction {
   static Method = "get";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -51,7 +51,7 @@ export class GetPromoOptionsForSellerSOffersAction {
         | ((item: unknown) => GetPromoOptionsForSellerSOffersActionRes)
         | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

@@ -57,7 +57,7 @@ export type {{ .className }} = Omit<
 	onMessage?: (ev: MessageEvent) => void;
 	overrideUrl?: string;
 	headers?: Headers;
-	ctx?: FetchxContext;
+	ctx?: FetchxContext | null;
 }
 
 	`

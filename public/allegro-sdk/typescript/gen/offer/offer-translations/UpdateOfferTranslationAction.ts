@@ -26,7 +26,7 @@ export class UpdateOfferTranslationAction {
   static Method = "patch";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<UpdateOfferTranslationActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -48,7 +48,7 @@ export class UpdateOfferTranslationAction {
       overrideUrl,
     }: {
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {},

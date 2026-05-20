@@ -26,7 +26,7 @@ export class ModifyTheBuyNowPriceInAnOfferAction {
   static Method = "put";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<ModifyTheBuyNowPriceInAnOfferActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -56,7 +56,7 @@ export class ModifyTheBuyNowPriceInAnOfferAction {
         | ((item: unknown) => ModifyTheBuyNowPriceInAnOfferActionRes)
         | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

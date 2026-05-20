@@ -25,7 +25,7 @@ export class EditAnOfferAction {
   static Method = "patch";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<EditAnOfferActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -49,7 +49,7 @@ export class EditAnOfferAction {
     }: {
       creatorFn?: ((item: unknown) => EditAnOfferActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

@@ -22,7 +22,7 @@ export type ComputeApiSseActionMutationOptions = Omit<
   "mutationFn"
 > &
   ComputeApiSseActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -79,7 +79,7 @@ export class ComputeApiSseAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<ComputeApiSseActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -103,7 +103,7 @@ export class ComputeApiSseAction {
     }: {
       creatorFn?: ((item: unknown) => ComputeApiSseActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

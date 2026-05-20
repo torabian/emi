@@ -32,7 +32,7 @@ export class GetAsGiantsAction { //
 	static Fetch$ = async (
 			params: GetAsGiantsActionPathParameter,
 		qs?: URLSearchParams,
-		ctx?: FetchxContext,
+		ctx?: FetchxContext | null,
 		init?: TypedRequestInit<unknown, unknown>,
 		overrideUrl?: string,
 	) => {
@@ -61,7 +61,7 @@ export class GetAsGiantsAction { //
 			: {
 				creatorFn?: ((item: unknown) => GiantDto) | undefined,
 			qs?: URLSearchParams,
-			ctx?: FetchxContext,
+			ctx?: FetchxContext | null,
 			onMessage?: (ev: MessageEvent) => void,
 			overrideUrl?: string,		
 		} 

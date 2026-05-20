@@ -15,6 +15,7 @@ import (
 	"github.com/torabian/emi/lib/golang"
 	"github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
+	"github.com/torabian/emi/lib/md"
 	"github.com/torabian/emi/lib/querypredict"
 	"github.com/torabian/emi/lib/swift"
 
@@ -34,8 +35,12 @@ func main() {
 
 	commands = append(commands,
 		cliCommandFromTextActions(querypredict.GetQPPublicActions().TextActions)...)
+
 	commands = append(commands,
 		cliCommandFromFileActions(querypredict.GetQPPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromFileActions(md.GetMdPublicActions().FileActions)...)
 
 	commands = append(commands,
 		cliCommandFromTextActions(golang.GetGolangPublicActions().TextActions)...)
