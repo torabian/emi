@@ -24,7 +24,7 @@ export class HttpActionAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<HttpActionActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -48,7 +48,7 @@ export class HttpActionAction {
     }: {
       creatorFn?: ((item: unknown) => HttpActionActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

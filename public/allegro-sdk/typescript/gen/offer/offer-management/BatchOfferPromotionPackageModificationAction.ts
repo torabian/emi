@@ -26,7 +26,7 @@ export class BatchOfferPromotionPackageModificationAction {
   static Method = "put";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<
       BatchOfferPromotionPackageModificationActionReq,
       unknown
@@ -62,7 +62,7 @@ export class BatchOfferPromotionPackageModificationAction {
         | ((item: unknown) => BatchOfferPromotionPackageModificationActionRes)
         | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

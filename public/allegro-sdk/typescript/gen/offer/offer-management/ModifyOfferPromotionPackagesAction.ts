@@ -26,7 +26,7 @@ export class ModifyOfferPromotionPackagesAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<ModifyOfferPromotionPackagesActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -56,7 +56,7 @@ export class ModifyOfferPromotionPackagesAction {
         | ((item: unknown) => ModifyOfferPromotionPackagesActionRes)
         | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

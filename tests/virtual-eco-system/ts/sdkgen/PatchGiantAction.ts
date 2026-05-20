@@ -32,7 +32,7 @@ export class PatchGiantAction { //
 	static Fetch$ = async (
 			params: PatchGiantActionPathParameter,
 		qs?: URLSearchParams,
-		ctx?: FetchxContext,
+		ctx?: FetchxContext | null,
 		init?: TypedRequestInit<GiantDto, unknown>,
 		overrideUrl?: string,
 	) => {
@@ -59,7 +59,7 @@ export class PatchGiantAction { //
 		} 
 			: {
 			qs?: URLSearchParams,
-			ctx?: FetchxContext,
+			ctx?: FetchxContext | null,
 			onMessage?: (ev: MessageEvent) => void,
 			overrideUrl?: string,		
 		} 

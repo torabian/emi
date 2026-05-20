@@ -143,7 +143,7 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 		},
 		{
 			Key: "fetch.ctx",
-			Ts:  "ctx?: FetchxContext",
+			Ts:  "ctx?: FetchxContext | null",
 			Js:  "ctx",
 		},
 

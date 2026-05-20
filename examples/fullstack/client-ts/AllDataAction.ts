@@ -24,7 +24,7 @@ export type AllDataActionMutationOptions = Omit<
   "mutationFn"
 > &
   AllDataActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -79,7 +79,7 @@ export class AllDataAction {
   static Method = "";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -103,7 +103,7 @@ export class AllDataAction {
     }: {
       creatorFn?: ((item: unknown) => AllDataActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

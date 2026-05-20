@@ -34,7 +34,7 @@ export type GetQueryParamsActionQueryOptions = Omit<
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
   };
 export const useGetQueryParamsActionQuery = (
   options: GetQueryParamsActionQueryOptions,
@@ -81,7 +81,7 @@ export type GetQueryParamsActionMutationOptions = Omit<
   "mutationFn"
 > &
   GetQueryParamsActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -150,7 +150,7 @@ export class GetQueryParamsAction {
   static Fetch$ = async (
     params: GetQueryParamsActionPathParameter,
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -175,7 +175,7 @@ export class GetQueryParamsAction {
     }: {
       creatorFn?: ((item: unknown) => GetQueryParamsActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

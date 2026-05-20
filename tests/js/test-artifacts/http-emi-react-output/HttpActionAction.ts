@@ -34,7 +34,7 @@ export type HttpActionActionQueryOptions = Omit<
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
   };
 export const useHttpActionActionQuery = (
   options: HttpActionActionQueryOptions,
@@ -80,7 +80,7 @@ export type HttpActionActionMutationOptions = Omit<
   "mutationFn"
 > &
   HttpActionActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -137,7 +137,7 @@ export class HttpActionAction {
   static Method = "get";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -161,7 +161,7 @@ export class HttpActionAction {
     }: {
       creatorFn?: ((item: unknown) => HttpActionActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

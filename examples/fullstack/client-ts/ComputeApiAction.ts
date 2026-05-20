@@ -23,7 +23,7 @@ export type ComputeApiActionMutationOptions = Omit<
   "mutationFn"
 > &
   ComputeApiActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -80,7 +80,7 @@ export class ComputeApiAction {
   static Method = "post";
   static Fetch$ = async (
     qs?: ComputeApiActionQueryParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<ComputeApiActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -104,7 +104,7 @@ export class ComputeApiAction {
     }: {
       creatorFn?: ((item: unknown) => ComputeApiActionRes) | undefined;
       qs?: ComputeApiActionQueryParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

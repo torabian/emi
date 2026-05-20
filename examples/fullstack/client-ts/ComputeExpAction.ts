@@ -23,7 +23,7 @@ export type ComputeExpActionMutationOptions = Omit<
   "mutationFn"
 > &
   ComputeExpActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -91,7 +91,7 @@ export class ComputeExpAction {
   static Fetch$ = async (
     params: ComputeExpActionPathParameter,
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<ComputeExpActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -116,7 +116,7 @@ export class ComputeExpAction {
     }: {
       creatorFn?: ((item: unknown) => ComputeExpActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

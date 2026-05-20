@@ -33,7 +33,7 @@ export type ComputeApiSseChannelActionQueryOptions = Omit<
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
   };
 export const useComputeApiSseChannelActionQuery = (
   options: ComputeApiSseChannelActionQueryOptions,
@@ -79,7 +79,7 @@ export type ComputeApiSseChannelActionMutationOptions = Omit<
   "mutationFn"
 > &
   ComputeApiSseChannelActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -136,7 +136,7 @@ export class ComputeApiSseChannelAction {
   static Method = "get";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<ComputeApiSseChannelActionReq, unknown>,
     overrideUrl?: string,
   ) => {
@@ -166,7 +166,7 @@ export class ComputeApiSseChannelAction {
         | ((item: unknown) => ComputeApiSseChannelActionRes)
         | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

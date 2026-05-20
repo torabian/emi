@@ -33,7 +33,7 @@ export type SampleSseActionQueryOptions = Omit<
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
   };
 export const useSampleSseActionQuery = (
   options: SampleSseActionQueryOptions,
@@ -79,7 +79,7 @@ export type SampleSseActionMutationOptions = Omit<
   "mutationFn"
 > &
   SampleSseActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -136,7 +136,7 @@ export class SampleSseAction {
   static Method = "get";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -160,7 +160,7 @@ export class SampleSseAction {
     }: {
       creatorFn?: ((item: unknown) => SampleSseActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {

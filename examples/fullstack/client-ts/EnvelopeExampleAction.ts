@@ -39,7 +39,7 @@ export type EnvelopeExampleActionQueryOptions = Omit<
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
   };
 export const useEnvelopeExampleActionQuery = (
   options: EnvelopeExampleActionQueryOptions,
@@ -85,7 +85,7 @@ export type EnvelopeExampleActionMutationOptions = Omit<
   "mutationFn"
 > &
   EnvelopeExampleActionOptions & {
-    ctx?: FetchxContext;
+    ctx?: FetchxContext | null;
     onMessage?: (ev: MessageEvent) => void;
     overrideUrl?: string;
     headers?: Headers;
@@ -142,7 +142,7 @@ export class EnvelopeExampleAction {
   static Method = "get";
   static Fetch$ = async (
     qs?: URLSearchParams,
-    ctx?: FetchxContext,
+    ctx?: FetchxContext | null,
     init?: TypedRequestInit<unknown, unknown>,
     overrideUrl?: string,
   ) => {
@@ -166,7 +166,7 @@ export class EnvelopeExampleAction {
     }: {
       creatorFn?: ((item: unknown) => EnvelopeExampleActionRes) | undefined;
       qs?: URLSearchParams;
-      ctx?: FetchxContext;
+      ctx?: FetchxContext | null;
       onMessage?: (ev: MessageEvent) => void;
       overrideUrl?: string;
     } = {
