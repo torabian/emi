@@ -36,6 +36,14 @@ type Emi struct {
 
 	// Manifests are a way to create actions bundle, to implement them easier, or wrap them into a single module.
 	Manifests []EmiManifest `yaml:"manifests,omitempty" json:"manifests,omitempty" jsonschema:"description=Manifests are a way to create actions bundle, to implement them easier, or wrap them into a single module."`
+
+	// Vsqls are typed virtual SQL queries. Each entry pairs a raw SQL string with a typed parameter struct that Emi generates.
+	Vsqls []EmiVsql `yaml:"vsqls,omitempty" json:"vsqls,omitempty" jsonschema:"description=Typed virtual SQL queries. Each entry pairs a raw SQL string with a typed parameter struct that Emi generates."`
+
+	// Templates is a scratch area of reusable shape definitions (dtos, actions)
+	// that are NOT compiled into output files. They exist only to be referenced
+	// by other parts of the module — most notably as capture sources.
+	Templates *EmiTemplate `yaml:"templates,omitempty" json:"templates,omitempty" jsonschema:"description=Reusable shape definitions (dtos, actions) that are not compiled. Available as capture sources."`
 }
 
 func (x *Emi) ActionsAsList() []string {

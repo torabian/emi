@@ -69,6 +69,17 @@
           },
           "type": "array",
           "description": "Manifests are a way to create actions bundle"
+        },
+        "vsqls": {
+          "items": {
+            "$ref": "#/definitions/EmiVsql"
+          },
+          "type": "array",
+          "description": "Typed virtual SQL queries. Each entry pairs a raw SQL string with a typed parameter struct that Emi generates."
+        },
+        "templates": {
+          "$ref": "#/definitions/EmiTemplate",
+          "description": "Reusable shape definitions (dtos"
         }
       },
       "additionalProperties": false,
@@ -171,6 +182,42 @@
             "bytes"
           ],
           "description": "The primitve that is allowed for the slice is limited to following values"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiCapture": {
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Description of the capture. Used in generated documentation."
+        },
+        "dto": {
+          "type": "string",
+          "description": "Source EmiDto name from top-level Emi.Dto. Preferred over Template if both are set."
+        },
+        "template": {
+          "type": "string",
+          "description": "Source EmiDto name from Emi.Templates.Dtos. Ignored when Dto is set."
+        },
+        "action": {
+          "type": "string",
+          "description": "Source action body fields. Format: name"
+        },
+        "include": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Whitelist of field names to capture from the source DTO. The token 'self.fields' inlines the owner's own fields at that position."
+        },
+        "exclude": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Field names to drop from the captured set (applied after Include)."
         }
       },
       "additionalProperties": false,
@@ -618,6 +665,58 @@
           },
           "type": "array",
           "description": "Query params for the address if you want to define them in Golang dynamically instead of URL."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiTemplate": {
+      "properties": {
+        "dtos": {
+          "items": {
+            "$ref": "#/definitions/EmiDto"
+          },
+          "type": "array",
+          "description": "DTOs defined for reuse only. Never compiled into output files; available as capture sources."
+        },
+        "actions": {
+          "items": {
+            "$ref": "#/definitions/EmiAction"
+          },
+          "type": "array",
+          "description": "Actions defined for reuse only. Never compiled; in/out fields are available as capture sources."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiVsql": {
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Description of what the query does. Used in generated code documentation."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the vsql query in camel case. Used as the file and identifier base."
+        },
+        "params": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "Typed parameter list for the query"
+        },
+        "captures": {
+          "items": {
+            "$ref": "#/definitions/EmiCapture"
+          },
+          "type": "array",
+          "description": "Capture fields from existing DTOs into Params. Resolved during preprocessing."
+        },
+        "query": {
+          "type": "string",
+          "description": "Raw SQL string the query will execute."
         }
       },
       "additionalProperties": false,

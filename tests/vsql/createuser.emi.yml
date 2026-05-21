@@ -1,0 +1,187 @@
+dtos:
+  - name: createUser
+    description: Payload for inserting a new user row. Nullable fields (?) are
+      omitted from the generated SQL when unset. The `preferences` object is
+      JSON-encoded into a single column; the `tags` array is expanded by the
+      template into multiple user_tags rows.
+    fields:
+      - name: id
+        type: int64
+      - name: name
+        type: string
+      - name: email
+        type: string?
+      - name: age
+        type: int
+      - name: preferences
+        type: object
+        fields:
+          - name: theme
+            type: string
+          - name: locale
+            type: string
+      - name: tags
+        type: array
+        fields:
+          - name: key
+            type: string
+          - name: value
+            type: string
+
+      - name: address
+        type: object
+        description: Insert payload for the addresses table. The `location` field is
+          a complex type (GeoPoint) defined in the consumer's package; emi just
+          references it by name so the renderer's SQLValuer hook can take over.
+        fields:
+          - name: id
+            type: int64
+          - name: userId
+            type: int64
+          - name: street
+            type: string
+          - name: city
+            type: string
+          - name: postcode
+            type: string?
+          - name: location
+            type: complex
+            complex: GeoPoint
+
+  - name: dataTypes
+    description: Probe DTO covering every emi data type, used by the test
+      suite to exercise the renderer end-to-end. Each section groups related
+      types so tests can assert on a meaningful subset.
+    fields:
+      # ── primitives ────────────────────────────────────────────────────
+      - name: stringField
+        type: string
+      - name: stringFieldNullable
+        type: string?
+      - name: boolField
+        type: bool
+      - name: boolFieldNullable
+        type: bool?
+      - name: intField
+        type: int
+      - name: intFieldNullable
+        type: int?
+      - name: int32Field
+        type: int32
+      - name: int32FieldNullable
+        type: int32?
+      - name: int64Field
+        type: int64
+      - name: int64FieldNullable
+        type: int64?
+      - name: float32Field
+        type: float32
+      - name: float32FieldNullable
+        type: float32?
+      - name: float64Field
+        type: float64
+      - name: float64FieldNullable
+        type: float64?
+
+      # ── enum (string-backed) ─────────────────────────────────────────
+      - name: enumField
+        type: enum
+        of:
+          - k: Alpha
+          - k: Beta
+      - name: enumFieldNullable
+        type: enum?
+        of:
+          - k: Gamma
+          - k: Delta
+
+      # ── nested object — flattens with parent_child column names ──────
+      - name: objectField
+        type: object
+        fields:
+          - name: nestedString
+            type: string
+          - name: nestedInt
+            type: int
+      - name: objectFieldNullable
+        type: object?
+        fields:
+          - name: optionalString
+            type: string
+
+      # ── array — slice of struct, handled by {{ range }} in templates ─
+      - name: arrayField
+        type: array
+        fields:
+          - name: key
+            type: string
+          - name: value
+            type: int
+      - name: arrayFieldNullable
+        type: array?
+        fields:
+          - name: key
+            type: string
+
+      # ── slice of primitive ───────────────────────────────────────────
+      - name: sliceField
+        type: slice
+        primitive: string
+      - name: sliceFieldNullable
+        type: slice?
+        primitive: int
+
+      # ── any / map (interface{} on the Go side, JSON-encoded in SQL) ──
+      - name: anyField
+        type: any
+      - name: mapField
+        type: map
+      - name: mapFieldNullable
+        type: map?
+
+      # ── complex — consumer-owned type with SQLValuer ────────────────
+      - name: complexField
+        type: complex
+        complex: GeoPoint
+
+      # ── one / collection — DTO references ────────────────────────────
+      - name: oneRef
+        type: one
+        target: CreateUserDtoTags
+      - name: oneRefNullable
+        type: one?
+        target: CreateUserDtoTags
+      - name: collectionRef
+        type: collection
+        target: CreateUserDtoTags
+      - name: collectionRefNullable
+        type: collection?
+        target: CreateUserDtoTags
+
+  - name: updateUser
+    description: Patch payload — every field is nullable. The SQL template only
+      emits SET clauses for fields that were explicitly set; unset fields are
+      skipped entirely, preserving the existing column value.
+    fields:
+      - name: id
+        type: int64?
+      - name: name
+        type: string?
+      - name: email
+        type: string?
+      - name: age
+        type: int?
+      - name: preferences
+        type: object?
+        fields:
+          - name: theme
+            type: string
+          - name: locale
+            type: string
+      - name: tags
+        type: array?
+        fields:
+          - name: key
+            type: string
+          - name: value
+            type: string

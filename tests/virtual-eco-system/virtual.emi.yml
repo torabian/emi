@@ -2,7 +2,75 @@ name: virtual
 description: Virtual eco system of actions, dtos, which covers entire 
   features of the compiler for different languages.
 
+vsqls:
+  - name: insertUser
+    description: Inserts user into database
+    captures:
+      - template: userentity
+    
+    query: |
 
+      BEGIN;
+
+      {{ $u := sqlFieldsExcept . "tags" -}}
+      INSERT INTO users ({{ $u.Columns }})
+      VALUES ({{ $u.Values }});
+
+      {{ $a := sqlFields .Address -}}
+      INSERT INTO addresses ({{ $a.Columns }})
+      VALUES ({{ $a.Values }});
+
+      {{- if .Tags }}
+      INSERT INTO user_tags (user_id, key, value) VALUES
+      {{- range $i, $t := .Tags }}{{ if $i }},{{ end }}
+        ({{ sql $.Id }}, {{ sql $t.Key }}, {{ sql $t.Value }})
+      {{- end }};
+      {{- end }}
+
+      COMMIT;
+
+
+templates:
+  dtos:
+  - name: userentity
+    fields:
+      - name: name
+        type: string
+      - name: email
+        type: string?
+      - name: age
+        type: int
+      - name: preferences
+        type: object
+        fields:
+          - name: theme
+            type: string
+          - name: locale
+            type: string
+      - name: tags
+        type: array
+        fields:
+          - name: key
+            type: string
+          - name: value
+            type: string
+
+      - name: address
+        type: object
+        description: Insert payload for the addresses table. The `location` field is
+          a complex type (GeoPoint) defined in the consumer's package; emi just
+          references it by name so the renderer's SQLValuer hook can take over.
+        fields:
+          - name: id
+            type: int64
+          - name: userId
+            type: int64
+          - name: street
+            type: string
+          - name: city
+            type: string
+          - name: postcode
+            type: string?
 dtos:
   - name: giant
     fields:
@@ -31,9 +99,9 @@ dtos:
       - name: collectionItemsNullable
         type: collection?
         target: GiantDto
-      - name: dateObject
-        type: complex
-        complex: Date
+      # - name: dateObject
+      #   type: complex
+      #   complex: Date
       - name: singleRefNullable
         type: one?
         target: GiantDto

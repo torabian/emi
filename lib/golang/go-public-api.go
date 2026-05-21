@@ -216,6 +216,12 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		})
 	}
 
+	vsqlFiles, err := GoVsqlsGenerate(module, ctx, complexes, f.Emigo, f.PackageName)
+	if err != nil {
+		return nil, err
+	}
+	files = append(files, vsqlFiles...)
+
 	for _, manifest := range module.Manifests {
 		gomanifest, err := GoManifest(manifest, module, ctx)
 		if err != nil {
