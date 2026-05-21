@@ -1,15 +1,15 @@
 package unknownpackage
-import kotlinx.serialization.*
-import emikot.Maybe
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.*
-import emikot.MaybeField
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import kotlinx.coroutines.Dispatchers
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import emikot.ClientContext
+import kotlinx.serialization.json.*
+import emikot.MaybeField
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.*
+import emikot.Maybe
 /**
  * Action to communicate with the action GetAllDataOfTheParticularProductOfferAction
  */

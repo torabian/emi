@@ -124,7 +124,7 @@ func CastUpdateOfferTranslationActionReqDescriptionTranslationFromCli(c emigo.Cl
 
 // The base class definition for translation
 type UpdateOfferTranslationActionReqDescriptionTranslation struct {
-	Sections []UpdateOfferTranslationActionReqDescriptionTranslationSections `json:"sections" yaml:"sections"`
+	Sections emigo.Array[UpdateOfferTranslationActionReqDescriptionTranslationSections] `json:"sections" yaml:"sections"`
 }
 
 func GetUpdateOfferTranslationActionReqDescriptionTranslationSectionsCliFlags(prefix string) []emigo.CliFlag {
@@ -145,7 +145,7 @@ func CastUpdateOfferTranslationActionReqDescriptionTranslationSectionsFromCli(c 
 
 // The base class definition for sections
 type UpdateOfferTranslationActionReqDescriptionTranslationSections struct {
-	Items []UpdateOfferTranslationActionReqDescriptionTranslationSectionsItems `json:"items" yaml:"items"`
+	Items emigo.Array[UpdateOfferTranslationActionReqDescriptionTranslationSectionsItems] `json:"items" yaml:"items"`
 }
 
 func GetUpdateOfferTranslationActionReqDescriptionTranslationSectionsItemsCliFlags(prefix string) []emigo.CliFlag {
@@ -208,7 +208,7 @@ func CastUpdateOfferTranslationActionReqSafetyInformationFromCli(c emigo.CliCast
 
 // The base class definition for safetyInformation
 type UpdateOfferTranslationActionReqSafetyInformation struct {
-	Products []UpdateOfferTranslationActionReqSafetyInformationProducts `json:"products" yaml:"products"`
+	Products emigo.Array[UpdateOfferTranslationActionReqSafetyInformationProducts] `json:"products" yaml:"products"`
 }
 
 func GetUpdateOfferTranslationActionReqSafetyInformationProductsCliFlags(prefix string) []emigo.CliFlag {

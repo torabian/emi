@@ -70,8 +70,8 @@ func CastBatchOfferPublishUnpublishActionReqFromCli(c emigo.CliCastable) BatchOf
 
 // The base class definition for batchOfferPublishUnpublishActionReq
 type BatchOfferPublishUnpublishActionReq struct {
-	OfferCriteria []BatchOfferPublishUnpublishActionReqOfferCriteria `json:"offerCriteria" yaml:"offerCriteria"`
-	Publication   BatchOfferPublishUnpublishActionReqPublication     `json:"publication" yaml:"publication"`
+	OfferCriteria emigo.Array[BatchOfferPublishUnpublishActionReqOfferCriteria] `json:"offerCriteria" yaml:"offerCriteria"`
+	Publication   BatchOfferPublishUnpublishActionReqPublication                `json:"publication" yaml:"publication"`
 }
 
 func GetBatchOfferPublishUnpublishActionReqOfferCriteriaCliFlags(prefix string) []emigo.CliFlag {
@@ -99,8 +99,8 @@ func CastBatchOfferPublishUnpublishActionReqOfferCriteriaFromCli(c emigo.CliCast
 
 // The base class definition for offerCriteria
 type BatchOfferPublishUnpublishActionReqOfferCriteria struct {
-	Offers []BatchOfferPublishUnpublishActionReqOfferCriteriaOffers `json:"offers" yaml:"offers"`
-	Type   string                                                   `json:"type" yaml:"type"`
+	Offers emigo.Array[BatchOfferPublishUnpublishActionReqOfferCriteriaOffers] `json:"offers" yaml:"offers"`
+	Type   string                                                              `json:"type" yaml:"type"`
 }
 
 func GetBatchOfferPublishUnpublishActionReqOfferCriteriaOffersCliFlags(prefix string) []emigo.CliFlag {

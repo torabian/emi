@@ -38,9 +38,9 @@ type CliFlag struct {
 }
 
 // When on cli it's passed as array, then we need to get it this way.
-func CapturePossibleArray[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) []T {
-	var result []T
-	json.Unmarshal([]byte(c.String(fieldName)), &result)
+func CapturePossibleArray[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) Array[T] {
+	var result Array[T]
+	json.Unmarshal([]byte(c.String(fieldName)), &result.Items)
 
 	return result
 }

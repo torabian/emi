@@ -246,31 +246,31 @@ func CastEditAnOfferActionReqFromCli(c emigo.CliCastable) EditAnOfferActionReq {
 
 // The base class definition for editAnOfferActionReq
 type EditAnOfferActionReq struct {
-	Name                    string                                      `json:"name" yaml:"name"`
-	Language                string                                      `json:"language" yaml:"language"`
-	Category                EditAnOfferActionReqCategory                `json:"category" yaml:"category"`
-	ProductSet              []EditAnOfferActionReqProductSet            `json:"productSet" yaml:"productSet"`
-	Stock                   EditAnOfferActionReqStock                   `json:"stock" yaml:"stock"`
-	SellingMode             EditAnOfferActionReqSellingMode             `json:"sellingMode" yaml:"sellingMode"`
-	Payments                EditAnOfferActionReqPayments                `json:"payments" yaml:"payments"`
-	Delivery                EditAnOfferActionReqDelivery                `json:"delivery" yaml:"delivery"`
-	Publication             EditAnOfferActionReqPublication             `json:"publication" yaml:"publication"`
-	AdditionalMarketplaces  map[any]any                                 `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
-	CompatibilityList       EditAnOfferActionReqCompatibilityList       `json:"compatibilityList" yaml:"compatibilityList"`
-	Images                  []string                                    `json:"images" yaml:"images"`
-	Description             EditAnOfferActionReqDescription             `json:"description" yaml:"description"`
-	B2b                     EditAnOfferActionReqB2b                     `json:"b2b" yaml:"b2b"`
-	Attachments             []EditAnOfferActionReqAttachments           `json:"attachments" yaml:"attachments"`
-	FundraisingCampaign     EditAnOfferActionReqFundraisingCampaign     `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
-	AdditionalServices      EditAnOfferActionReqAdditionalServices      `json:"additionalServices" yaml:"additionalServices"`
-	AfterSalesServices      EditAnOfferActionReqAfterSalesServices      `json:"afterSalesServices" yaml:"afterSalesServices"`
-	SizeTable               EditAnOfferActionReqSizeTable               `json:"sizeTable" yaml:"sizeTable"`
-	Contact                 EditAnOfferActionReqContact                 `json:"contact" yaml:"contact"`
-	Discounts               EditAnOfferActionReqDiscounts               `json:"discounts" yaml:"discounts"`
-	Location                EditAnOfferActionReqLocation                `json:"location" yaml:"location"`
-	External                EditAnOfferActionReqExternal                `json:"external" yaml:"external"`
-	TaxSettings             EditAnOfferActionReqTaxSettings             `json:"taxSettings" yaml:"taxSettings"`
-	MessageToSellerSettings EditAnOfferActionReqMessageToSellerSettings `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
+	Name                    string                                       `json:"name" yaml:"name"`
+	Language                string                                       `json:"language" yaml:"language"`
+	Category                EditAnOfferActionReqCategory                 `json:"category" yaml:"category"`
+	ProductSet              emigo.Array[EditAnOfferActionReqProductSet]  `json:"productSet" yaml:"productSet"`
+	Stock                   EditAnOfferActionReqStock                    `json:"stock" yaml:"stock"`
+	SellingMode             EditAnOfferActionReqSellingMode              `json:"sellingMode" yaml:"sellingMode"`
+	Payments                EditAnOfferActionReqPayments                 `json:"payments" yaml:"payments"`
+	Delivery                EditAnOfferActionReqDelivery                 `json:"delivery" yaml:"delivery"`
+	Publication             EditAnOfferActionReqPublication              `json:"publication" yaml:"publication"`
+	AdditionalMarketplaces  map[any]any                                  `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	CompatibilityList       EditAnOfferActionReqCompatibilityList        `json:"compatibilityList" yaml:"compatibilityList"`
+	Images                  []string                                     `json:"images" yaml:"images"`
+	Description             EditAnOfferActionReqDescription              `json:"description" yaml:"description"`
+	B2b                     EditAnOfferActionReqB2b                      `json:"b2b" yaml:"b2b"`
+	Attachments             emigo.Array[EditAnOfferActionReqAttachments] `json:"attachments" yaml:"attachments"`
+	FundraisingCampaign     EditAnOfferActionReqFundraisingCampaign      `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
+	AdditionalServices      EditAnOfferActionReqAdditionalServices       `json:"additionalServices" yaml:"additionalServices"`
+	AfterSalesServices      EditAnOfferActionReqAfterSalesServices       `json:"afterSalesServices" yaml:"afterSalesServices"`
+	SizeTable               EditAnOfferActionReqSizeTable                `json:"sizeTable" yaml:"sizeTable"`
+	Contact                 EditAnOfferActionReqContact                  `json:"contact" yaml:"contact"`
+	Discounts               EditAnOfferActionReqDiscounts                `json:"discounts" yaml:"discounts"`
+	Location                EditAnOfferActionReqLocation                 `json:"location" yaml:"location"`
+	External                EditAnOfferActionReqExternal                 `json:"external" yaml:"external"`
+	TaxSettings             EditAnOfferActionReqTaxSettings              `json:"taxSettings" yaml:"taxSettings"`
+	MessageToSellerSettings EditAnOfferActionReqMessageToSellerSettings  `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
 }
 
 func GetEditAnOfferActionReqCategoryCliFlags(prefix string) []emigo.CliFlag {
@@ -359,13 +359,13 @@ func CastEditAnOfferActionReqProductSetFromCli(c emigo.CliCastable) EditAnOfferA
 
 // The base class definition for productSet
 type EditAnOfferActionReqProductSet struct {
-	Product                      EditAnOfferActionReqProductSetProduct             `json:"product" yaml:"product"`
-	Quantity                     EditAnOfferActionReqProductSetQuantity            `json:"quantity" yaml:"quantity"`
-	ResponsiblePerson            EditAnOfferActionReqProductSetResponsiblePerson   `json:"responsiblePerson" yaml:"responsiblePerson"`
-	ResponsibleProducer          EditAnOfferActionReqProductSetResponsibleProducer `json:"responsibleProducer" yaml:"responsibleProducer"`
-	SafetyInformation            EditAnOfferActionReqProductSetSafetyInformation   `json:"safetyInformation" yaml:"safetyInformation"`
-	MarketedBeforeGPSRObligation bool                                              `json:"marketedBeforeGPSRObligation" yaml:"marketedBeforeGPSRObligation"`
-	Deposits                     []EditAnOfferActionReqProductSetDeposits          `json:"deposits" yaml:"deposits"`
+	Product                      EditAnOfferActionReqProductSetProduct               `json:"product" yaml:"product"`
+	Quantity                     EditAnOfferActionReqProductSetQuantity              `json:"quantity" yaml:"quantity"`
+	ResponsiblePerson            EditAnOfferActionReqProductSetResponsiblePerson     `json:"responsiblePerson" yaml:"responsiblePerson"`
+	ResponsibleProducer          EditAnOfferActionReqProductSetResponsibleProducer   `json:"responsibleProducer" yaml:"responsibleProducer"`
+	SafetyInformation            EditAnOfferActionReqProductSetSafetyInformation     `json:"safetyInformation" yaml:"safetyInformation"`
+	MarketedBeforeGPSRObligation bool                                                `json:"marketedBeforeGPSRObligation" yaml:"marketedBeforeGPSRObligation"`
+	Deposits                     emigo.Array[EditAnOfferActionReqProductSetDeposits] `json:"deposits" yaml:"deposits"`
 }
 
 func GetEditAnOfferActionReqProductSetProductCliFlags(prefix string) []emigo.CliFlag {
@@ -422,12 +422,12 @@ func CastEditAnOfferActionReqProductSetProductFromCli(c emigo.CliCastable) EditA
 
 // The base class definition for product
 type EditAnOfferActionReqProductSetProduct struct {
-	Id         string                                            `json:"id" yaml:"id"`
-	IdType     string                                            `json:"idType" yaml:"idType"`
-	Name       string                                            `json:"name" yaml:"name"`
-	Category   EditAnOfferActionReqProductSetProductCategory     `json:"category" yaml:"category"`
-	Parameters []EditAnOfferActionReqProductSetProductParameters `json:"parameters" yaml:"parameters"`
-	Images     []string                                          `json:"images" yaml:"images"`
+	Id         string                                                       `json:"id" yaml:"id"`
+	IdType     string                                                       `json:"idType" yaml:"idType"`
+	Name       string                                                       `json:"name" yaml:"name"`
+	Category   EditAnOfferActionReqProductSetProductCategory                `json:"category" yaml:"category"`
+	Parameters emigo.Array[EditAnOfferActionReqProductSetProductParameters] `json:"parameters" yaml:"parameters"`
+	Images     []string                                                     `json:"images" yaml:"images"`
 }
 
 func GetEditAnOfferActionReqProductSetProductCategoryCliFlags(prefix string) []emigo.CliFlag {
@@ -994,7 +994,7 @@ func CastEditAnOfferActionReqCompatibilityListFromCli(c emigo.CliCastable) EditA
 
 // The base class definition for compatibilityList
 type EditAnOfferActionReqCompatibilityList struct {
-	Items []EditAnOfferActionReqCompatibilityListItems `json:"items" yaml:"items"`
+	Items emigo.Array[EditAnOfferActionReqCompatibilityListItems] `json:"items" yaml:"items"`
 }
 
 func GetEditAnOfferActionReqCompatibilityListItemsCliFlags(prefix string) []emigo.CliFlag {
@@ -1044,7 +1044,7 @@ func CastEditAnOfferActionReqDescriptionFromCli(c emigo.CliCastable) EditAnOffer
 
 // The base class definition for description
 type EditAnOfferActionReqDescription struct {
-	Sections []EditAnOfferActionReqDescriptionSections `json:"sections" yaml:"sections"`
+	Sections emigo.Array[EditAnOfferActionReqDescriptionSections] `json:"sections" yaml:"sections"`
 }
 
 func GetEditAnOfferActionReqDescriptionSectionsCliFlags(prefix string) []emigo.CliFlag {
@@ -1065,7 +1065,7 @@ func CastEditAnOfferActionReqDescriptionSectionsFromCli(c emigo.CliCastable) Edi
 
 // The base class definition for sections
 type EditAnOfferActionReqDescriptionSections struct {
-	Items []EditAnOfferActionReqDescriptionSectionsItems `json:"items" yaml:"items"`
+	Items emigo.Array[EditAnOfferActionReqDescriptionSectionsItems] `json:"items" yaml:"items"`
 }
 
 func GetEditAnOfferActionReqDescriptionSectionsItemsCliFlags(prefix string) []emigo.CliFlag {
@@ -1523,9 +1523,9 @@ func CastEditAnOfferActionReqTaxSettingsFromCli(c emigo.CliCastable) EditAnOffer
 
 // The base class definition for taxSettings
 type EditAnOfferActionReqTaxSettings struct {
-	Subject   string                                 `json:"subject" yaml:"subject"`
-	Exemption string                                 `json:"exemption" yaml:"exemption"`
-	Rates     []EditAnOfferActionReqTaxSettingsRates `json:"rates" yaml:"rates"`
+	Subject   string                                            `json:"subject" yaml:"subject"`
+	Exemption string                                            `json:"exemption" yaml:"exemption"`
+	Rates     emigo.Array[EditAnOfferActionReqTaxSettingsRates] `json:"rates" yaml:"rates"`
 }
 
 func GetEditAnOfferActionReqTaxSettingsRatesCliFlags(prefix string) []emigo.CliFlag {
@@ -1835,36 +1835,36 @@ func CastEditAnOfferActionResFromCli(c emigo.CliCastable) EditAnOfferActionRes {
 
 // The base class definition for editAnOfferActionRes
 type EditAnOfferActionRes struct {
-	Id                      string                                      `json:"id" yaml:"id"`
-	Name                    string                                      `json:"name" yaml:"name"`
-	Language                string                                      `json:"language" yaml:"language"`
-	Category                EditAnOfferActionResCategory                `json:"category" yaml:"category"`
-	ProductSet              []EditAnOfferActionResProductSet            `json:"productSet" yaml:"productSet"`
-	Stock                   EditAnOfferActionResStock                   `json:"stock" yaml:"stock"`
-	Payments                EditAnOfferActionResPayments                `json:"payments" yaml:"payments"`
-	SellingMode             EditAnOfferActionResSellingMode             `json:"sellingMode" yaml:"sellingMode"`
-	Delivery                EditAnOfferActionResDelivery                `json:"delivery" yaml:"delivery"`
-	Publication             EditAnOfferActionResPublication             `json:"publication" yaml:"publication"`
-	AdditionalMarketplaces  EditAnOfferActionResAdditionalMarketplaces  `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
-	B2b                     EditAnOfferActionResB2b                     `json:"b2b" yaml:"b2b"`
-	CompatibilityList       EditAnOfferActionResCompatibilityList       `json:"compatibilityList" yaml:"compatibilityList"`
-	Validation              EditAnOfferActionResValidation              `json:"validation" yaml:"validation"`
-	Warnings                []string                                    `json:"warnings" yaml:"warnings"`
-	AfterSalesServices      EditAnOfferActionResAfterSalesServices      `json:"afterSalesServices" yaml:"afterSalesServices"`
-	Discounts               EditAnOfferActionResDiscounts               `json:"discounts" yaml:"discounts"`
-	Contact                 EditAnOfferActionResContact                 `json:"contact" yaml:"contact"`
-	Attachments             []EditAnOfferActionResAttachments           `json:"attachments" yaml:"attachments"`
-	FundraisingCampaign     EditAnOfferActionResFundraisingCampaign     `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
-	AdditionalServices      EditAnOfferActionResAdditionalServices      `json:"additionalServices" yaml:"additionalServices"`
-	SizeTable               EditAnOfferActionResSizeTable               `json:"sizeTable" yaml:"sizeTable"`
-	Location                EditAnOfferActionResLocation                `json:"location" yaml:"location"`
-	External                EditAnOfferActionResExternal                `json:"external" yaml:"external"`
-	TaxSettings             EditAnOfferActionResTaxSettings             `json:"taxSettings" yaml:"taxSettings"`
-	MessageToSellerSettings EditAnOfferActionResMessageToSellerSettings `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
-	CreatedAt               string                                      `json:"createdAt" yaml:"createdAt"`
-	UpdatedAt               string                                      `json:"updatedAt" yaml:"updatedAt"`
-	Images                  []string                                    `json:"images" yaml:"images"`
-	Description             EditAnOfferActionResDescription             `json:"description" yaml:"description"`
+	Id                      string                                       `json:"id" yaml:"id"`
+	Name                    string                                       `json:"name" yaml:"name"`
+	Language                string                                       `json:"language" yaml:"language"`
+	Category                EditAnOfferActionResCategory                 `json:"category" yaml:"category"`
+	ProductSet              emigo.Array[EditAnOfferActionResProductSet]  `json:"productSet" yaml:"productSet"`
+	Stock                   EditAnOfferActionResStock                    `json:"stock" yaml:"stock"`
+	Payments                EditAnOfferActionResPayments                 `json:"payments" yaml:"payments"`
+	SellingMode             EditAnOfferActionResSellingMode              `json:"sellingMode" yaml:"sellingMode"`
+	Delivery                EditAnOfferActionResDelivery                 `json:"delivery" yaml:"delivery"`
+	Publication             EditAnOfferActionResPublication              `json:"publication" yaml:"publication"`
+	AdditionalMarketplaces  EditAnOfferActionResAdditionalMarketplaces   `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	B2b                     EditAnOfferActionResB2b                      `json:"b2b" yaml:"b2b"`
+	CompatibilityList       EditAnOfferActionResCompatibilityList        `json:"compatibilityList" yaml:"compatibilityList"`
+	Validation              EditAnOfferActionResValidation               `json:"validation" yaml:"validation"`
+	Warnings                []string                                     `json:"warnings" yaml:"warnings"`
+	AfterSalesServices      EditAnOfferActionResAfterSalesServices       `json:"afterSalesServices" yaml:"afterSalesServices"`
+	Discounts               EditAnOfferActionResDiscounts                `json:"discounts" yaml:"discounts"`
+	Contact                 EditAnOfferActionResContact                  `json:"contact" yaml:"contact"`
+	Attachments             emigo.Array[EditAnOfferActionResAttachments] `json:"attachments" yaml:"attachments"`
+	FundraisingCampaign     EditAnOfferActionResFundraisingCampaign      `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
+	AdditionalServices      EditAnOfferActionResAdditionalServices       `json:"additionalServices" yaml:"additionalServices"`
+	SizeTable               EditAnOfferActionResSizeTable                `json:"sizeTable" yaml:"sizeTable"`
+	Location                EditAnOfferActionResLocation                 `json:"location" yaml:"location"`
+	External                EditAnOfferActionResExternal                 `json:"external" yaml:"external"`
+	TaxSettings             EditAnOfferActionResTaxSettings              `json:"taxSettings" yaml:"taxSettings"`
+	MessageToSellerSettings EditAnOfferActionResMessageToSellerSettings  `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
+	CreatedAt               string                                       `json:"createdAt" yaml:"createdAt"`
+	UpdatedAt               string                                       `json:"updatedAt" yaml:"updatedAt"`
+	Images                  []string                                     `json:"images" yaml:"images"`
+	Description             EditAnOfferActionResDescription              `json:"description" yaml:"description"`
 }
 
 func GetEditAnOfferActionResCategoryCliFlags(prefix string) []emigo.CliFlag {
@@ -1953,13 +1953,13 @@ func CastEditAnOfferActionResProductSetFromCli(c emigo.CliCastable) EditAnOfferA
 
 // The base class definition for productSet
 type EditAnOfferActionResProductSet struct {
-	Quantity                     EditAnOfferActionResProductSetQuantity            `json:"quantity" yaml:"quantity"`
-	Product                      EditAnOfferActionResProductSetProduct             `json:"product" yaml:"product"`
-	ResponsiblePerson            EditAnOfferActionResProductSetResponsiblePerson   `json:"responsiblePerson" yaml:"responsiblePerson"`
-	ResponsibleProducer          EditAnOfferActionResProductSetResponsibleProducer `json:"responsibleProducer" yaml:"responsibleProducer"`
-	SafetyInformation            EditAnOfferActionResProductSetSafetyInformation   `json:"safetyInformation" yaml:"safetyInformation"`
-	MarketedBeforeGPSRObligation bool                                              `json:"marketedBeforeGPSRObligation" yaml:"marketedBeforeGPSRObligation"`
-	Deposits                     []EditAnOfferActionResProductSetDeposits          `json:"deposits" yaml:"deposits"`
+	Quantity                     EditAnOfferActionResProductSetQuantity              `json:"quantity" yaml:"quantity"`
+	Product                      EditAnOfferActionResProductSetProduct               `json:"product" yaml:"product"`
+	ResponsiblePerson            EditAnOfferActionResProductSetResponsiblePerson     `json:"responsiblePerson" yaml:"responsiblePerson"`
+	ResponsibleProducer          EditAnOfferActionResProductSetResponsibleProducer   `json:"responsibleProducer" yaml:"responsibleProducer"`
+	SafetyInformation            EditAnOfferActionResProductSetSafetyInformation     `json:"safetyInformation" yaml:"safetyInformation"`
+	MarketedBeforeGPSRObligation bool                                                `json:"marketedBeforeGPSRObligation" yaml:"marketedBeforeGPSRObligation"`
+	Deposits                     emigo.Array[EditAnOfferActionResProductSetDeposits] `json:"deposits" yaml:"deposits"`
 }
 
 func GetEditAnOfferActionResProductSetQuantityCliFlags(prefix string) []emigo.CliFlag {
@@ -2023,10 +2023,10 @@ func CastEditAnOfferActionResProductSetProductFromCli(c emigo.CliCastable) EditA
 
 // The base class definition for product
 type EditAnOfferActionResProductSetProduct struct {
-	Id            string                                            `json:"id" yaml:"id"`
-	IsAiCoCreated bool                                              `json:"isAiCoCreated" yaml:"isAiCoCreated"`
-	Publication   EditAnOfferActionResProductSetProductPublication  `json:"publication" yaml:"publication"`
-	Parameters    []EditAnOfferActionResProductSetProductParameters `json:"parameters" yaml:"parameters"`
+	Id            string                                                       `json:"id" yaml:"id"`
+	IsAiCoCreated bool                                                         `json:"isAiCoCreated" yaml:"isAiCoCreated"`
+	Publication   EditAnOfferActionResProductSetProductPublication             `json:"publication" yaml:"publication"`
+	Parameters    emigo.Array[EditAnOfferActionResProductSetProductParameters] `json:"parameters" yaml:"parameters"`
 }
 
 func GetEditAnOfferActionResProductSetProductPublicationCliFlags(prefix string) []emigo.CliFlag {
@@ -2581,8 +2581,8 @@ func CastEditAnOfferActionResPublicationMarketplacesFromCli(c emigo.CliCastable)
 
 // The base class definition for marketplaces
 type EditAnOfferActionResPublicationMarketplaces struct {
-	Base       EditAnOfferActionResPublicationMarketplacesBase         `json:"base" yaml:"base"`
-	Additional []EditAnOfferActionResPublicationMarketplacesAdditional `json:"additional" yaml:"additional"`
+	Base       EditAnOfferActionResPublicationMarketplacesBase                    `json:"base" yaml:"base"`
+	Additional emigo.Array[EditAnOfferActionResPublicationMarketplacesAdditional] `json:"additional" yaml:"additional"`
 }
 
 func GetEditAnOfferActionResPublicationMarketplacesBaseCliFlags(prefix string) []emigo.CliFlag {
@@ -2734,8 +2734,8 @@ func CastEditAnOfferActionResAdditionalMarketplacesPublicationFromCli(c emigo.Cl
 
 // The base class definition for publication
 type EditAnOfferActionResAdditionalMarketplacesPublication struct {
-	State          string                                                                `json:"state" yaml:"state"`
-	RefusalReasons []EditAnOfferActionResAdditionalMarketplacesPublicationRefusalReasons `json:"refusalReasons" yaml:"refusalReasons"`
+	State          string                                                                           `json:"state" yaml:"state"`
+	RefusalReasons emigo.Array[EditAnOfferActionResAdditionalMarketplacesPublicationRefusalReasons] `json:"refusalReasons" yaml:"refusalReasons"`
 }
 
 func GetEditAnOfferActionResAdditionalMarketplacesPublicationRefusalReasonsCliFlags(prefix string) []emigo.CliFlag {
@@ -2871,9 +2871,9 @@ func CastEditAnOfferActionResValidationFromCli(c emigo.CliCastable) EditAnOfferA
 
 // The base class definition for validation
 type EditAnOfferActionResValidation struct {
-	ValidatedAt string                                   `json:"validatedAt" yaml:"validatedAt"`
-	Errors      []EditAnOfferActionResValidationErrors   `json:"errors" yaml:"errors"`
-	Warnings    []EditAnOfferActionResValidationWarnings `json:"warnings" yaml:"warnings"`
+	ValidatedAt string                                              `json:"validatedAt" yaml:"validatedAt"`
+	Errors      emigo.Array[EditAnOfferActionResValidationErrors]   `json:"errors" yaml:"errors"`
+	Warnings    emigo.Array[EditAnOfferActionResValidationWarnings] `json:"warnings" yaml:"warnings"`
 }
 
 func GetEditAnOfferActionResValidationErrorsCliFlags(prefix string) []emigo.CliFlag {
@@ -3391,9 +3391,9 @@ func CastEditAnOfferActionResTaxSettingsFromCli(c emigo.CliCastable) EditAnOffer
 
 // The base class definition for taxSettings
 type EditAnOfferActionResTaxSettings struct {
-	Subject   string                                 `json:"subject" yaml:"subject"`
-	Exemption string                                 `json:"exemption" yaml:"exemption"`
-	Rates     []EditAnOfferActionResTaxSettingsRates `json:"rates" yaml:"rates"`
+	Subject   string                                            `json:"subject" yaml:"subject"`
+	Exemption string                                            `json:"exemption" yaml:"exemption"`
+	Rates     emigo.Array[EditAnOfferActionResTaxSettingsRates] `json:"rates" yaml:"rates"`
 }
 
 func GetEditAnOfferActionResTaxSettingsRatesCliFlags(prefix string) []emigo.CliFlag {
@@ -3472,7 +3472,7 @@ func CastEditAnOfferActionResDescriptionFromCli(c emigo.CliCastable) EditAnOffer
 
 // The base class definition for description
 type EditAnOfferActionResDescription struct {
-	Sections []EditAnOfferActionResDescriptionSections `json:"sections" yaml:"sections"`
+	Sections emigo.Array[EditAnOfferActionResDescriptionSections] `json:"sections" yaml:"sections"`
 }
 
 func GetEditAnOfferActionResDescriptionSectionsCliFlags(prefix string) []emigo.CliFlag {
@@ -3493,7 +3493,7 @@ func CastEditAnOfferActionResDescriptionSectionsFromCli(c emigo.CliCastable) Edi
 
 // The base class definition for sections
 type EditAnOfferActionResDescriptionSections struct {
-	Items []EditAnOfferActionResDescriptionSectionsItems `json:"items" yaml:"items"`
+	Items emigo.Array[EditAnOfferActionResDescriptionSectionsItems] `json:"items" yaml:"items"`
 }
 
 func GetEditAnOfferActionResDescriptionSectionsItemsCliFlags(prefix string) []emigo.CliFlag {

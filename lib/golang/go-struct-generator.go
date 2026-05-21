@@ -430,15 +430,20 @@ func goListAndObjectTypes(field fieldLike, parentChain string) string {
 	case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
 		target := field.GetTarget()
 
+		klass := "emigo.Collection"
+		if field.GetType() == core.FieldTypeCollectionNullable {
+			klass = "emigo.CollectionNullable"
+		}
+
 		isSelf, value := getSelfReferencingField(target, parentChain)
 		if isSelf {
 			target = value
 		}
 
 		if field.GetModule() != "" {
-			return "[]" + field.GetModule() + "." + target
+			return klass + "[" + field.GetModule() + "." + target + "]"
 		}
-		return "[]" + target
+		return klass + "[" + target + "]"
 	case core.FieldTypeSlice:
 		return "[]" + DefaultIfEmpty(goPrimitiveDetect(field.GetPrimitive()), "interface{}")
 	case core.FieldTypeSliceNullable:
@@ -496,11 +501,11 @@ func goFieldTypeOnNestedClasses(
 	case core.FieldTypeObject:
 		return fmt.Sprintf(" %v", prefix)
 	case core.FieldTypeArray:
-		return fmt.Sprintf("[]%v", prefix)
+		return fmt.Sprintf("emigo.Array[%v]", prefix)
+	case core.FieldTypeArrayNullable:
+		return fmt.Sprintf("emigo.ArrayNullable[%v]", prefix)
 	case core.FieldTypeObjectNullable:
 		return fmt.Sprintf("emigo.Nullable[%v]", prefix)
-	case core.FieldTypeArrayNullable:
-		return fmt.Sprintf("emigo.Nullable[[]%v]", prefix)
 	default:
 		return goComputedField(field, goctx.RootClassName)
 	}

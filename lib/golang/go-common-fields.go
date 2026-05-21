@@ -2,6 +2,7 @@ package golang
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -92,7 +93,61 @@ func (x goFieldVariable) Compile() string {
 
 func (x goFieldVariable) CliCaptureStatement() string {
 	possibleType := core.FieldType(x.Type)
-	statement := ""
+
+	wrapIfSet := func(statement string) string {
+		return fmt.Sprintf(
+			"if c.IsSet(\"%v\") { \r\n data.%v = %v \r\n }",
+			x.CliName,
+			x.Upper(),
+			statement,
+		)
+	}
+
+	genericParam := func() string {
+		re := regexp.MustCompile(`^emigo\.\w+\[(.+)\]$`)
+		if m := re.FindStringSubmatch(x.ComputedType); len(m) > 1 {
+			return m[1]
+		}
+		return ""
+	}
+
+	// Array and ArrayNullable, Collection and CollectionNullable
+	// are being also casted with special function
+	switch possibleType {
+	case core.FieldTypeArray, core.FieldTypeArrayNullable:
+		captureFn := "CapturePossibleArray"
+		if possibleType == core.FieldTypeArrayNullable {
+			captureFn = "CapturePossibleArrayNullable"
+		}
+		return wrapIfSet(fmt.Sprintf(
+			"emigo.%v(Cast%vFromCli, \"%v\", c)",
+			captureFn,
+			genericParam(),
+			x.CliName,
+		))
+
+	case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
+		captureFn := "CapturePossibleCollection"
+		if possibleType == core.FieldTypeCollectionNullable {
+			captureFn = "CapturePossibleCollectionNullable"
+		}
+
+		pureFn := genericParam()
+		externalPackage, targetItem := "", pureFn
+		if strings.Contains(pureFn, ".") {
+			mt := strings.Split(pureFn, ".")
+			externalPackage = mt[0] + "."
+			targetItem = mt[1]
+		}
+
+		return wrapIfSet(fmt.Sprintf(
+			"emigo. %v(%v Cast%vFromCli, \"%v\", c)",
+			captureFn,
+			externalPackage,
+			targetItem,
+			x.CliName,
+		))
+	}
 
 	// Nullable fields are automatically captured by compiler, all we do is use ParseNullable from string
 	// to the target object field and types are infered via generics in golang itself.
@@ -107,21 +162,13 @@ func (x goFieldVariable) CliCaptureStatement() string {
 
 	switch possibleType {
 	case core.FieldTypeString:
-		statement = fmt.Sprintf("c.String(\"%v\")", x.CliName)
+		return wrapIfSet(fmt.Sprintf("c.String(\"%v\")", x.CliName))
 	case core.FieldTypeInt, core.FieldTypeInt32, core.FieldTypeInt64:
-		statement = fmt.Sprintf("%v(c.Int64(\"%v\"))", x.ComputedType, x.CliName)
+		return wrapIfSet(fmt.Sprintf("%v(c.Int64(\"%v\"))", x.ComputedType, x.CliName))
 	case core.FieldTypeFloat32, core.FieldTypeFloat64:
-		statement = fmt.Sprintf("%v(c.Float64(\"%v\"))", x.ComputedType, x.CliName)
+		return wrapIfSet(fmt.Sprintf("%v(c.Float64(\"%v\"))", x.ComputedType, x.CliName))
 	case core.FieldTypeBool:
-		statement = fmt.Sprintf("%v(c.Bool(\"%v\"))", x.ComputedType, x.CliName)
-
-	// On arrays, since there is it's own function we look for that
-	case core.FieldTypeArray:
-		statement = fmt.Sprintf(
-			"emigo.CapturePossibleArray(Cast%vFromCli, \"%v\", c)",
-			strings.ReplaceAll(x.ComputedType, "[]", ""),
-			x.CliName,
-		)
+		return wrapIfSet(fmt.Sprintf("%v(c.Bool(\"%v\"))", x.ComputedType, x.CliName))
 	case core.FieldTypeSlice:
 		return fmt.Sprintf(
 			"if c.IsSet(\"%v\") { \r\n emigo.InflatePossibleSlice(c.String(\"%v\"), &data.%v) \r\n}",
@@ -131,27 +178,13 @@ func (x goFieldVariable) CliCaptureStatement() string {
 		)
 	case core.FieldTypeComplex:
 		return fmt.Sprintf(
-
 			"if c.IsSet(\"%v\") { \r\n if u, ok := any(&data.%v).(encoding.TextUnmarshaler); ok { u.UnmarshalText([]byte(c.String(\"%v\"))) } \r\n}",
 			x.CliName,
 			x.Upper(),
 			x.CliName,
 		)
-		// On arrays, since there is it's own function we look for that
 	case core.FieldTypeObject:
-		statement = fmt.Sprintf(
-			"Cast%vFromCli(c)",
-			strings.TrimSpace(x.ComputedType),
-		)
-	}
-
-	if statement != "" {
-		return fmt.Sprintf(
-			"if c.IsSet(\"%v\") { \r\n data.%v = %v \r\n }",
-			x.CliName,
-			x.Upper(),
-			statement,
-		)
+		return wrapIfSet(fmt.Sprintf("Cast%vFromCli(c)", strings.TrimSpace(x.ComputedType)))
 	}
 
 	return ""
@@ -267,7 +300,6 @@ func castDtoNameToCodeChunk(dtoName string) *core.CodeChunkCompiled {
 		} else {
 			className = className2
 		}
-
 
 		chunk.CodeChunkDependensies = append(chunk.CodeChunkDependensies,
 			core.CodeChunkDependency{

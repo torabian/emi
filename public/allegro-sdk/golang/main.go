@@ -7,5 +7,5 @@ import (
 )
 
 func main() {
-	fmt.Println(unknownpackage.BatchOfferPromotionPackageModificationAction)
+	fmt.Println(unknownpackage.BatchOfferPromotionPackageModificationActionGin)
 }

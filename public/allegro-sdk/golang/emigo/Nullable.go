@@ -1,9 +1,12 @@
 package emigo
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"strconv"
+	"reflect"
+
+	"gopkg.in/yaml.v3"
 )
 
 // Note: This file is referenced in torabian.github.io/trainings/
@@ -53,6 +56,103 @@ type Nullable[T any] struct {
 	isSet bool // True if value has been explicitly set (including nil)
 }
 
+func (n Nullable[T]) Value() (driver.Value, error) {
+	if !n.isSet || n.value == nil {
+		return nil, nil
+	}
+
+	switch v := any(*n.value).(type) {
+	case string, []byte, int64, float64, bool, int, int32, int16, int8,
+		uint, uint64, uint32, uint16, uint8:
+		return v, nil
+	default:
+		// fallback json
+		return json.Marshal(v)
+	}
+}
+
+func (n *Nullable[T]) Scan(value interface{}) error {
+	if value == nil {
+		n.value = nil
+		n.isSet = true
+		return nil
+	}
+
+	var v T
+
+	switch val := value.(type) {
+	case []byte:
+		// try json first
+		if err := json.Unmarshal(val, &v); err == nil {
+			n.value = &v
+			n.isSet = true
+			return nil
+		}
+
+		// fallback string cast
+		casted, err := CastPrimitive[T](string(val))
+		if err != nil {
+			return err
+		}
+
+		n.value = &casted
+		n.isSet = true
+		return nil
+	case int64:
+		rv := reflect.ValueOf(&v).Elem()
+
+		switch rv.Kind() {
+		case reflect.Bool:
+			rv.SetBool(val != 0)
+
+		case reflect.Int,
+			reflect.Int8,
+			reflect.Int16,
+			reflect.Int32,
+			reflect.Int64:
+			rv.SetInt(val)
+
+		case reflect.Uint,
+			reflect.Uint8,
+			reflect.Uint16,
+			reflect.Uint32,
+			reflect.Uint64:
+			rv.SetUint(uint64(val))
+
+		case reflect.Float32,
+			reflect.Float64:
+			rv.SetFloat(float64(val))
+
+		default:
+			return fmt.Errorf("cannot convert int64 into %T", v)
+		}
+
+		n.value = &v
+		n.isSet = true
+		return nil
+
+	case string:
+		casted, err := CastPrimitive[T](val)
+		if err != nil {
+			return err
+		}
+
+		n.value = &casted
+		n.isSet = true
+		return nil
+
+	default:
+		typed, ok := value.(T)
+		if !ok {
+			return fmt.Errorf("cannot scan %T into Nullable", value)
+		}
+
+		n.value = &typed
+		n.isSet = true
+		return nil
+	}
+}
+
 // MarshalJSON implements JSON marshalling for Nullable.
 // If the value is not set, returns JSON null.
 // If value is set (even nil), marshals the actual value.
@@ -79,6 +179,40 @@ func (n *Nullable[T]) UnmarshalJSON(data []byte) error {
 	}
 	var v T
 	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+	n.value = &v
+	n.isSet = true
+	return nil
+}
+
+// MarshalYAML implements YAML marshalling for Nullable[T].
+// If the value is not set, returns nil so that YAML omits the field if "omitempty" is used.
+// If the value is set (even nil), marshals the actual value.
+func (n Nullable[T]) MarshalYAML() (interface{}, error) {
+	if !n.isSet {
+		// undefined → YAML omitempty will omit the field
+		return nil, nil
+	}
+	if n.value == nil {
+		// explicit null
+		return nil, nil
+	}
+	return *n.value, nil
+}
+
+// UnmarshalYAML implements YAML unmarshalling for Nullable[T].
+// Detects whether the field was present in YAML.
+func (n *Nullable[T]) UnmarshalYAML(node *yaml.Node) error {
+	if node.Kind == yaml.ScalarNode && node.Tag == "!!null" {
+		// Explicit null
+		n.value = nil
+		n.isSet = true
+		return nil
+	}
+
+	var v T
+	if err := node.Decode(&v); err != nil {
 		return err
 	}
 	n.value = &v
@@ -252,33 +386,4 @@ func ParseNullable[T any](s string, n *Nullable[T]) error {
 // Example: Ptr(42) returns *int pointing to 42
 func Ptr[T any](v T) *T {
 	return &v
-}
-
-func CastPrimitive[T any](s string) (T, error) {
-	var zero T
-
-	switch any(zero).(type) {
-
-	case string:
-		return any(s).(T), nil
-
-	case int:
-		v, err := strconv.Atoi(s)
-		return any(v).(T), err
-
-	case int64:
-		v, err := strconv.ParseInt(s, 10, 64)
-		return any(v).(T), err
-
-	case float64:
-		v, err := strconv.ParseFloat(s, 64)
-		return any(v).(T), err
-
-	case bool:
-		v, err := strconv.ParseBool(s)
-		return any(v).(T), err
-
-	default:
-		return zero, fmt.Errorf("unsupported slice type")
-	}
 }

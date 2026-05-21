@@ -61,7 +61,7 @@ func CastGetOfferTranslationsActionResFromCli(c emigo.CliCastable) GetOfferTrans
 
 // The base class definition for getOfferTranslationsActionRes
 type GetOfferTranslationsActionRes struct {
-	Translations []GetOfferTranslationsActionResTranslations `json:"translations" yaml:"translations"`
+	Translations emigo.Array[GetOfferTranslationsActionResTranslations] `json:"translations" yaml:"translations"`
 }
 
 func GetGetOfferTranslationsActionResTranslationsCliFlags(prefix string) []emigo.CliFlag {
@@ -189,7 +189,7 @@ func CastGetOfferTranslationsActionResTranslationsDescriptionTranslationFromCli(
 
 // The base class definition for translation
 type GetOfferTranslationsActionResTranslationsDescriptionTranslation struct {
-	Sections []GetOfferTranslationsActionResTranslationsDescriptionTranslationSections `json:"sections" yaml:"sections"`
+	Sections emigo.Array[GetOfferTranslationsActionResTranslationsDescriptionTranslationSections] `json:"sections" yaml:"sections"`
 }
 
 func GetGetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsCliFlags(prefix string) []emigo.CliFlag {
@@ -210,7 +210,7 @@ func CastGetOfferTranslationsActionResTranslationsDescriptionTranslationSections
 
 // The base class definition for sections
 type GetOfferTranslationsActionResTranslationsDescriptionTranslationSections struct {
-	Items []GetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItems `json:"items" yaml:"items"`
+	Items emigo.Array[GetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItems] `json:"items" yaml:"items"`
 }
 
 func GetGetOfferTranslationsActionResTranslationsDescriptionTranslationSectionsItemsCliFlags(prefix string) []emigo.CliFlag {
@@ -252,7 +252,7 @@ func CastGetOfferTranslationsActionResTranslationsSafetyInformationFromCli(c emi
 
 // The base class definition for safetyInformation
 type GetOfferTranslationsActionResTranslationsSafetyInformation struct {
-	Products []GetOfferTranslationsActionResTranslationsSafetyInformationProducts `json:"products" yaml:"products"`
+	Products emigo.Array[GetOfferTranslationsActionResTranslationsSafetyInformationProducts] `json:"products" yaml:"products"`
 }
 
 func GetGetOfferTranslationsActionResTranslationsSafetyInformationProductsCliFlags(prefix string) []emigo.CliFlag {
