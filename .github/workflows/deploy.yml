@@ -41,17 +41,17 @@ jobs:
         run: cd playground && npm run build
         
       - name: install emi-npm deps
-        run: cd ./examples/emi-wasm-helper && npm i
+        run: cd emi-npm && npm i
 
       - name: Javascript tests
-        run: cd ./examples/js && npm i -f && npx vitest run
+        run: cd tests/js && npm i -f && npx vitest run
       
       - name: The the virtual ecosystem
-        run: cd ./examples/virtual-eco-system && make build
+        run: cd tests/virtual-eco-system && make build
       
 
       - name: Compile the web veresion (docs, and only after running tests because they create document)
-        run: cd ./examples/emi-web && npm i -f && npm run build
+        run: cd emi-web && npm i -f && npm run build
 
 
       - name: Add web version and playground into same
@@ -141,13 +141,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: artifacts/emi_arm64_windows.zip
           asset_name: emi_arm64_windows.zip
-          asset_content_type: application/zip
-      - name: Upload node.js wasm
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: artifacts/emi-node-wasm-package.zip
-          asset_name: emi-node-wasm-package.zip
           asset_content_type: application/zip
