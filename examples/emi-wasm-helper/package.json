@@ -1,0 +1,12 @@
+{
+  "name": "emi-wasm-helper",
+  "version": "1.0.0",
+  "bin": {
+    "emicc": "./index.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "commander": "^14.0.0",
+    "prettier": "^3.6.2"
+  }
+}

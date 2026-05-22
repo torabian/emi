@@ -14,18 +14,18 @@ unix:
 	go build -ldflags "-s -w" -o ./emi ./cmd/emi
 
 build-js-sdks:
-	cd js-sdk-kit && npm run build && rm -rf ../lib/js/ts-sdk && cp -R build ../lib/js/ts-sdk && \
+	cd ./examples/js-sdk-kit && npm run build && rm -rf ../../lib/js/ts-sdk && cp -R build ../../lib/js/ts-sdk && \
 	cd - && \
 	cp ./lib/js/index.go.txt ./lib/js/ts-sdk/index.go && \
-	rm -rf ./lib/js/ts-sdk && cp -R ./js-sdk-kit/src ./lib/js/ts-sdk && \
+	rm -rf ./lib/js/ts-sdk && cp -R ./examples/js-sdk-kit/src ./lib/js/ts-sdk && \
 	cp ./lib/js/index.go.txt ./lib/js/ts-sdk/index.go
 
 build-envelopes:
-	cd envelopes && npm run compile && cd -  && \
+	cd ./examples/envelopes && npm run compile && cd -  && \
 	rm -rf ./lib/js/ts-envelopes && \
-	cp -R ./envelopes/src ./lib/js/ts-envelopes && \
+	cp -R ./examples/envelopes/src ./lib/js/ts-envelopes && \
 	cp ./lib/js/index.go.txt ./lib/js/ts-envelopes/index.go && \
-	rm -rf ./lib/js/ts-envelopes && cp -R ./envelopes/src ./lib/js/ts-envelopes && \
+	rm -rf ./lib/js/ts-envelopes && cp -R ./examples/envelopes/src ./lib/js/ts-envelopes && \
 	cp ./lib/js/index.go.txt ./lib/js/ts-envelopes/index.go
 
 all: 
@@ -35,10 +35,10 @@ sample:
 
 wasm:
 	GOOS=js GOARCH=wasm go build -o ./playground/public/emi-compiler.wasm ./cmd/emi-wasm/main.go && \
-	cp ./playground/public/emi-compiler.wasm  ./emi-npm/bin/emi-compiler.wasm
+	cp ./playground/public/emi-compiler.wasm  ./examples/emi-wasm-helper/emi-compiler.wasm
 
 jstests:
-	cd tests/js && npm i && npx vitest run
+	cd examples/js && npm i && npx vitest run
 ci:
 	make build;
 	cd playground && npm run build && cd -;
@@ -46,7 +46,7 @@ ci:
 	make jstests;
 
 compile-github:
-	rm -rf __webdir && cp -R emi-web/build __webdir && touch __webdir/.nojekyll && cp -R playground/dist __webdir/playground
+	rm -rf __webdir && cp -R ./examples/emi-web/build __webdir && touch __webdir/.nojekyll && cp -R playground/dist __webdir/playground
 
 
 qpsamples:
@@ -59,7 +59,7 @@ go:
 	./emi.exe go --path ./examples/fullstack/definitions.emi.yml --output ./examples/fullstack/sdk --emigo github.com/torabian/emi/examples/fullstack/emigo
 
 nullabletest:
-	go test ./tests/nullable-test/...
+	go test ./examples/nullable-test/...
 
 collectiontest:
 	go test -v ./tests/collection/... && go test -v ./tests/array/...
