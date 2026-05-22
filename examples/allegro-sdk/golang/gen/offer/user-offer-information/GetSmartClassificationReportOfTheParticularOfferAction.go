@@ -92,9 +92,9 @@ type GetSmartClassificationReportOfTheParticularOfferActionRes struct {
 	// Offer classification status and last change date
 	Classification GetSmartClassificationReportOfTheParticularOfferActionResClassification `json:"classification" yaml:"classification"`
 	// List of smart delivery method identifiers
-	SmartDeliveryMethods []GetSmartClassificationReportOfTheParticularOfferActionResSmartDeliveryMethods `json:"smartDeliveryMethods" yaml:"smartDeliveryMethods"`
+	SmartDeliveryMethods emigo.Array[GetSmartClassificationReportOfTheParticularOfferActionResSmartDeliveryMethods] `json:"smartDeliveryMethods" yaml:"smartDeliveryMethods"`
 	// List of classification conditions with delivery method checks
-	Conditions []GetSmartClassificationReportOfTheParticularOfferActionResConditions `json:"conditions" yaml:"conditions"`
+	Conditions emigo.Array[GetSmartClassificationReportOfTheParticularOfferActionResConditions] `json:"conditions" yaml:"conditions"`
 }
 
 func GetGetSmartClassificationReportOfTheParticularOfferActionResClassificationCliFlags(prefix string) []emigo.CliFlag {
@@ -219,9 +219,9 @@ type GetSmartClassificationReportOfTheParticularOfferActionResConditions struct 
 	// Indicates if this condition is fulfilled
 	Fulfilled bool `json:"fulfilled" yaml:"fulfilled"`
 	// Delivery methods that passed validation for this condition
-	PassedDeliveryMethods []GetSmartClassificationReportOfTheParticularOfferActionResConditionsPassedDeliveryMethods `json:"passedDeliveryMethods" yaml:"passedDeliveryMethods"`
+	PassedDeliveryMethods emigo.Array[GetSmartClassificationReportOfTheParticularOfferActionResConditionsPassedDeliveryMethods] `json:"passedDeliveryMethods" yaml:"passedDeliveryMethods"`
 	// Delivery methods that failed validation for this condition
-	FailedDeliveryMethods []GetSmartClassificationReportOfTheParticularOfferActionResConditionsFailedDeliveryMethods `json:"failedDeliveryMethods" yaml:"failedDeliveryMethods"`
+	FailedDeliveryMethods emigo.Array[GetSmartClassificationReportOfTheParticularOfferActionResConditionsFailedDeliveryMethods] `json:"failedDeliveryMethods" yaml:"failedDeliveryMethods"`
 }
 
 func GetGetSmartClassificationReportOfTheParticularOfferActionResConditionsPassedDeliveryMethodsCliFlags(prefix string) []emigo.CliFlag {

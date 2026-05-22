@@ -283,30 +283,30 @@ type GetAllDataOfTheParticularProductOfferActionRes struct {
 	// Offer creation timestamp (ISO8601)
 	CreatedAt string `json:"createdAt" yaml:"createdAt"`
 	// Offer last update timestamp (ISO8601)
-	UpdatedAt               string                                                                `json:"updatedAt" yaml:"updatedAt"`
-	Category                GetAllDataOfTheParticularProductOfferActionResCategory                `json:"category" yaml:"category"`
-	Stock                   GetAllDataOfTheParticularProductOfferActionResStock                   `json:"stock" yaml:"stock"`
-	Contact                 GetAllDataOfTheParticularProductOfferActionResContact                 `json:"contact" yaml:"contact"`
-	Publication             GetAllDataOfTheParticularProductOfferActionResPublication             `json:"publication" yaml:"publication"`
-	SellingMode             GetAllDataOfTheParticularProductOfferActionResSellingMode             `json:"sellingMode" yaml:"sellingMode"`
-	Payments                GetAllDataOfTheParticularProductOfferActionResPayments                `json:"payments" yaml:"payments"`
-	Delivery                GetAllDataOfTheParticularProductOfferActionResDelivery                `json:"delivery" yaml:"delivery"`
-	AfterSalesServices      GetAllDataOfTheParticularProductOfferActionResAfterSalesServices      `json:"afterSalesServices" yaml:"afterSalesServices"`
-	Discounts               GetAllDataOfTheParticularProductOfferActionResDiscounts               `json:"discounts" yaml:"discounts"`
-	Description             GetAllDataOfTheParticularProductOfferActionResDescription             `json:"description" yaml:"description"`
-	Images                  []string                                                              `json:"images" yaml:"images"`
-	ProductSet              []GetAllDataOfTheParticularProductOfferActionResProductSet            `json:"productSet" yaml:"productSet"`
-	Attachments             []GetAllDataOfTheParticularProductOfferActionResAttachments           `json:"attachments" yaml:"attachments"`
-	FundraisingCampaign     GetAllDataOfTheParticularProductOfferActionResFundraisingCampaign     `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
-	AdditionalServices      GetAllDataOfTheParticularProductOfferActionResAdditionalServices      `json:"additionalServices" yaml:"additionalServices"`
-	AdditionalMarketplaces  emigo.Nullable[map[any]any]                                           `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
-	B2b                     GetAllDataOfTheParticularProductOfferActionResB2b                     `json:"b2b" yaml:"b2b"`
-	CompatibilityList       GetAllDataOfTheParticularProductOfferActionResCompatibilityList       `json:"compatibilityList" yaml:"compatibilityList"`
-	Validation              GetAllDataOfTheParticularProductOfferActionResValidation              `json:"validation" yaml:"validation"`
-	External                GetAllDataOfTheParticularProductOfferActionResExternal                `json:"external" yaml:"external"`
-	SizeTable               GetAllDataOfTheParticularProductOfferActionResSizeTable               `json:"sizeTable" yaml:"sizeTable"`
-	TaxSettings             GetAllDataOfTheParticularProductOfferActionResTaxSettings             `json:"taxSettings" yaml:"taxSettings"`
-	MessageToSellerSettings GetAllDataOfTheParticularProductOfferActionResMessageToSellerSettings `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
+	UpdatedAt               string                                                                 `json:"updatedAt" yaml:"updatedAt"`
+	Category                GetAllDataOfTheParticularProductOfferActionResCategory                 `json:"category" yaml:"category"`
+	Stock                   GetAllDataOfTheParticularProductOfferActionResStock                    `json:"stock" yaml:"stock"`
+	Contact                 GetAllDataOfTheParticularProductOfferActionResContact                  `json:"contact" yaml:"contact"`
+	Publication             GetAllDataOfTheParticularProductOfferActionResPublication              `json:"publication" yaml:"publication"`
+	SellingMode             GetAllDataOfTheParticularProductOfferActionResSellingMode              `json:"sellingMode" yaml:"sellingMode"`
+	Payments                GetAllDataOfTheParticularProductOfferActionResPayments                 `json:"payments" yaml:"payments"`
+	Delivery                GetAllDataOfTheParticularProductOfferActionResDelivery                 `json:"delivery" yaml:"delivery"`
+	AfterSalesServices      GetAllDataOfTheParticularProductOfferActionResAfterSalesServices       `json:"afterSalesServices" yaml:"afterSalesServices"`
+	Discounts               GetAllDataOfTheParticularProductOfferActionResDiscounts                `json:"discounts" yaml:"discounts"`
+	Description             GetAllDataOfTheParticularProductOfferActionResDescription              `json:"description" yaml:"description"`
+	Images                  []string                                                               `json:"images" yaml:"images"`
+	ProductSet              emigo.Array[GetAllDataOfTheParticularProductOfferActionResProductSet]  `json:"productSet" yaml:"productSet"`
+	Attachments             emigo.Array[GetAllDataOfTheParticularProductOfferActionResAttachments] `json:"attachments" yaml:"attachments"`
+	FundraisingCampaign     GetAllDataOfTheParticularProductOfferActionResFundraisingCampaign      `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
+	AdditionalServices      GetAllDataOfTheParticularProductOfferActionResAdditionalServices       `json:"additionalServices" yaml:"additionalServices"`
+	AdditionalMarketplaces  emigo.Nullable[map[any]any]                                            `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	B2b                     GetAllDataOfTheParticularProductOfferActionResB2b                      `json:"b2b" yaml:"b2b"`
+	CompatibilityList       GetAllDataOfTheParticularProductOfferActionResCompatibilityList        `json:"compatibilityList" yaml:"compatibilityList"`
+	Validation              GetAllDataOfTheParticularProductOfferActionResValidation               `json:"validation" yaml:"validation"`
+	External                GetAllDataOfTheParticularProductOfferActionResExternal                 `json:"external" yaml:"external"`
+	SizeTable               GetAllDataOfTheParticularProductOfferActionResSizeTable                `json:"sizeTable" yaml:"sizeTable"`
+	TaxSettings             GetAllDataOfTheParticularProductOfferActionResTaxSettings              `json:"taxSettings" yaml:"taxSettings"`
+	MessageToSellerSettings GetAllDataOfTheParticularProductOfferActionResMessageToSellerSettings  `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
 }
 
 func GetGetAllDataOfTheParticularProductOfferActionResCategoryCliFlags(prefix string) []emigo.CliFlag {
@@ -476,8 +476,8 @@ func CastGetAllDataOfTheParticularProductOfferActionResPublicationMarketplacesFr
 
 // The base class definition for marketplaces
 type GetAllDataOfTheParticularProductOfferActionResPublicationMarketplaces struct {
-	Base       GetAllDataOfTheParticularProductOfferActionResPublicationMarketplacesBase         `json:"base" yaml:"base"`
-	Additional []GetAllDataOfTheParticularProductOfferActionResPublicationMarketplacesAdditional `json:"additional" yaml:"additional"`
+	Base       GetAllDataOfTheParticularProductOfferActionResPublicationMarketplacesBase                    `json:"base" yaml:"base"`
+	Additional emigo.Array[GetAllDataOfTheParticularProductOfferActionResPublicationMarketplacesAdditional] `json:"additional" yaml:"additional"`
 }
 
 func GetGetAllDataOfTheParticularProductOfferActionResPublicationMarketplacesBaseCliFlags(prefix string) []emigo.CliFlag {
@@ -909,7 +909,7 @@ func CastGetAllDataOfTheParticularProductOfferActionResDescriptionFromCli(c emig
 
 // The base class definition for description
 type GetAllDataOfTheParticularProductOfferActionResDescription struct {
-	Sections []GetAllDataOfTheParticularProductOfferActionResDescriptionSections `json:"sections" yaml:"sections"`
+	Sections emigo.Array[GetAllDataOfTheParticularProductOfferActionResDescriptionSections] `json:"sections" yaml:"sections"`
 }
 
 func GetGetAllDataOfTheParticularProductOfferActionResDescriptionSectionsCliFlags(prefix string) []emigo.CliFlag {
@@ -930,7 +930,7 @@ func CastGetAllDataOfTheParticularProductOfferActionResDescriptionSectionsFromCl
 
 // The base class definition for sections
 type GetAllDataOfTheParticularProductOfferActionResDescriptionSections struct {
-	Items []GetAllDataOfTheParticularProductOfferActionResDescriptionSectionsItems `json:"items" yaml:"items"`
+	Items emigo.Array[GetAllDataOfTheParticularProductOfferActionResDescriptionSectionsItems] `json:"items" yaml:"items"`
 }
 
 func GetGetAllDataOfTheParticularProductOfferActionResDescriptionSectionsItemsCliFlags(prefix string) []emigo.CliFlag {
@@ -1019,13 +1019,13 @@ func CastGetAllDataOfTheParticularProductOfferActionResProductSetFromCli(c emigo
 
 // The base class definition for productSet
 type GetAllDataOfTheParticularProductOfferActionResProductSet struct {
-	Quantity                     GetAllDataOfTheParticularProductOfferActionResProductSetQuantity            `json:"quantity" yaml:"quantity"`
-	Product                      GetAllDataOfTheParticularProductOfferActionResProductSetProduct             `json:"product" yaml:"product"`
-	ResponsiblePerson            GetAllDataOfTheParticularProductOfferActionResProductSetResponsiblePerson   `json:"responsiblePerson" yaml:"responsiblePerson"`
-	ResponsibleProducer          GetAllDataOfTheParticularProductOfferActionResProductSetResponsibleProducer `json:"responsibleProducer" yaml:"responsibleProducer"`
-	SafetyInformation            GetAllDataOfTheParticularProductOfferActionResProductSetSafetyInformation   `json:"safetyInformation" yaml:"safetyInformation"`
-	MarketedBeforeGPSRObligation bool                                                                        `json:"marketedBeforeGPSRObligation" yaml:"marketedBeforeGPSRObligation"`
-	Deposits                     []GetAllDataOfTheParticularProductOfferActionResProductSetDeposits          `json:"deposits" yaml:"deposits"`
+	Quantity                     GetAllDataOfTheParticularProductOfferActionResProductSetQuantity              `json:"quantity" yaml:"quantity"`
+	Product                      GetAllDataOfTheParticularProductOfferActionResProductSetProduct               `json:"product" yaml:"product"`
+	ResponsiblePerson            GetAllDataOfTheParticularProductOfferActionResProductSetResponsiblePerson     `json:"responsiblePerson" yaml:"responsiblePerson"`
+	ResponsibleProducer          GetAllDataOfTheParticularProductOfferActionResProductSetResponsibleProducer   `json:"responsibleProducer" yaml:"responsibleProducer"`
+	SafetyInformation            GetAllDataOfTheParticularProductOfferActionResProductSetSafetyInformation     `json:"safetyInformation" yaml:"safetyInformation"`
+	MarketedBeforeGPSRObligation bool                                                                          `json:"marketedBeforeGPSRObligation" yaml:"marketedBeforeGPSRObligation"`
+	Deposits                     emigo.Array[GetAllDataOfTheParticularProductOfferActionResProductSetDeposits] `json:"deposits" yaml:"deposits"`
 }
 
 func GetGetAllDataOfTheParticularProductOfferActionResProductSetQuantityCliFlags(prefix string) []emigo.CliFlag {
@@ -1089,10 +1089,10 @@ func CastGetAllDataOfTheParticularProductOfferActionResProductSetProductFromCli(
 
 // The base class definition for product
 type GetAllDataOfTheParticularProductOfferActionResProductSetProduct struct {
-	Id            string                                                                      `json:"id" yaml:"id"`
-	IsAiCoCreated bool                                                                        `json:"isAiCoCreated" yaml:"isAiCoCreated"`
-	Publication   GetAllDataOfTheParticularProductOfferActionResProductSetProductPublication  `json:"publication" yaml:"publication"`
-	Parameters    []GetAllDataOfTheParticularProductOfferActionResProductSetProductParameters `json:"parameters" yaml:"parameters"`
+	Id            string                                                                                 `json:"id" yaml:"id"`
+	IsAiCoCreated bool                                                                                   `json:"isAiCoCreated" yaml:"isAiCoCreated"`
+	Publication   GetAllDataOfTheParticularProductOfferActionResProductSetProductPublication             `json:"publication" yaml:"publication"`
+	Parameters    emigo.Array[GetAllDataOfTheParticularProductOfferActionResProductSetProductParameters] `json:"parameters" yaml:"parameters"`
 }
 
 func GetGetAllDataOfTheParticularProductOfferActionResProductSetProductPublicationCliFlags(prefix string) []emigo.CliFlag {
@@ -1163,11 +1163,11 @@ func CastGetAllDataOfTheParticularProductOfferActionResProductSetProductParamete
 
 // The base class definition for parameters
 type GetAllDataOfTheParticularProductOfferActionResProductSetProductParameters struct {
-	Id         string                                                                               `json:"id" yaml:"id"`
-	Name       string                                                                               `json:"name" yaml:"name"`
-	RangeValue GetAllDataOfTheParticularProductOfferActionResProductSetProductParametersRangeValue  `json:"rangeValue" yaml:"rangeValue"`
-	Values     []GetAllDataOfTheParticularProductOfferActionResProductSetProductParametersValues    `json:"values" yaml:"values"`
-	ValuesIds  []GetAllDataOfTheParticularProductOfferActionResProductSetProductParametersValuesIds `json:"valuesIds" yaml:"valuesIds"`
+	Id         string                                                                                          `json:"id" yaml:"id"`
+	Name       string                                                                                          `json:"name" yaml:"name"`
+	RangeValue GetAllDataOfTheParticularProductOfferActionResProductSetProductParametersRangeValue             `json:"rangeValue" yaml:"rangeValue"`
+	Values     emigo.Array[GetAllDataOfTheParticularProductOfferActionResProductSetProductParametersValues]    `json:"values" yaml:"values"`
+	ValuesIds  emigo.Array[GetAllDataOfTheParticularProductOfferActionResProductSetProductParametersValuesIds] `json:"valuesIds" yaml:"valuesIds"`
 }
 
 func GetGetAllDataOfTheParticularProductOfferActionResProductSetProductParametersRangeValueCliFlags(prefix string) []emigo.CliFlag {
@@ -1460,9 +1460,9 @@ func CastGetAllDataOfTheParticularProductOfferActionResValidationFromCli(c emigo
 
 // The base class definition for validation
 type GetAllDataOfTheParticularProductOfferActionResValidation struct {
-	ValidatedAt string                                                             `json:"validatedAt" yaml:"validatedAt"`
-	Errors      []GetAllDataOfTheParticularProductOfferActionResValidationErrors   `json:"errors" yaml:"errors"`
-	Warnings    []GetAllDataOfTheParticularProductOfferActionResValidationWarnings `json:"warnings" yaml:"warnings"`
+	ValidatedAt string                                                                        `json:"validatedAt" yaml:"validatedAt"`
+	Errors      emigo.Array[GetAllDataOfTheParticularProductOfferActionResValidationErrors]   `json:"errors" yaml:"errors"`
+	Warnings    emigo.Array[GetAllDataOfTheParticularProductOfferActionResValidationWarnings] `json:"warnings" yaml:"warnings"`
 }
 
 func GetGetAllDataOfTheParticularProductOfferActionResValidationErrorsCliFlags(prefix string) []emigo.CliFlag {
@@ -1705,9 +1705,9 @@ func CastGetAllDataOfTheParticularProductOfferActionResTaxSettingsFromCli(c emig
 
 // The base class definition for taxSettings
 type GetAllDataOfTheParticularProductOfferActionResTaxSettings struct {
-	Subject   string                                                           `json:"subject" yaml:"subject"`
-	Exemption string                                                           `json:"exemption" yaml:"exemption"`
-	Rates     []GetAllDataOfTheParticularProductOfferActionResTaxSettingsRates `json:"rates" yaml:"rates"`
+	Subject   string                                                                      `json:"subject" yaml:"subject"`
+	Exemption string                                                                      `json:"exemption" yaml:"exemption"`
+	Rates     emigo.Array[GetAllDataOfTheParticularProductOfferActionResTaxSettingsRates] `json:"rates" yaml:"rates"`
 }
 
 func GetGetAllDataOfTheParticularProductOfferActionResTaxSettingsRatesCliFlags(prefix string) []emigo.CliFlag {

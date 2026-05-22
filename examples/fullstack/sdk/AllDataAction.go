@@ -67,14 +67,17 @@ func CastAllDataActionResFromCli(c emigo.CliCastable) AllDataActionRes {
 	if c.IsSet("string-type-null") {
 		emigo.ParseNullable(c.String("string-type-null"), &data.StringTypeNull)
 	}
+	if c.IsSet("collection") {
+		data.Collection = emigo.CapturePossibleCollection(CastCommonVectorResponseDtoFromCli, "collection", c)
+	}
 	return data
 }
 
 // The base class definition for allDataActionRes
 type AllDataActionRes struct {
-	StringType     string                    `json:"stringType" yaml:"stringType"`
-	StringTypeNull emigo.Nullable[string]    `json:"stringTypeNull" yaml:"stringTypeNull"`
-	Collection     []CommonVectorResponseDto `json:"collection" yaml:"collection"`
+	StringType     string                                    `json:"stringType" yaml:"stringType"`
+	StringTypeNull emigo.Nullable[string]                    `json:"stringTypeNull" yaml:"stringTypeNull"`
+	Collection     emigo.Collection[CommonVectorResponseDto] `json:"collection" yaml:"collection"`
 }
 
 func (x *AllDataActionRes) Json() string {

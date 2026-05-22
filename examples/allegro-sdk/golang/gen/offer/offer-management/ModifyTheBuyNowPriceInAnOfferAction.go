@@ -247,8 +247,8 @@ func CastModifyTheBuyNowPriceInAnOfferActionResOutputFromCli(c emigo.CliCastable
 
 // The base class definition for output
 type ModifyTheBuyNowPriceInAnOfferActionResOutput struct {
-	Status string                                               `json:"status" yaml:"status"`
-	Errors []ModifyTheBuyNowPriceInAnOfferActionResOutputErrors `json:"errors" yaml:"errors"`
+	Status string                                                          `json:"status" yaml:"status"`
+	Errors emigo.Array[ModifyTheBuyNowPriceInAnOfferActionResOutputErrors] `json:"errors" yaml:"errors"`
 }
 
 func GetModifyTheBuyNowPriceInAnOfferActionResOutputErrorsCliFlags(prefix string) []emigo.CliFlag {

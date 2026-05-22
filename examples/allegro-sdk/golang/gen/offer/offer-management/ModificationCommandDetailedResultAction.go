@@ -76,9 +76,9 @@ func CastModificationCommandDetailedResultActionResFromCli(c emigo.CliCastable) 
 
 // The base class definition for modificationCommandDetailedResultActionRes
 type ModificationCommandDetailedResultActionRes struct {
-	Tasks                  []ModificationCommandDetailedResultActionResTasks                  `json:"tasks" yaml:"tasks"`
-	Modification           ModificationCommandDetailedResultActionResModification             `json:"modification" yaml:"modification"`
-	AdditionalMarketplaces []ModificationCommandDetailedResultActionResAdditionalMarketplaces `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	Tasks                  emigo.Array[ModificationCommandDetailedResultActionResTasks]                  `json:"tasks" yaml:"tasks"`
+	Modification           ModificationCommandDetailedResultActionResModification                        `json:"modification" yaml:"modification"`
+	AdditionalMarketplaces emigo.Array[ModificationCommandDetailedResultActionResAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
 }
 
 func GetModificationCommandDetailedResultActionResTasksCliFlags(prefix string) []emigo.CliFlag {
@@ -135,12 +135,12 @@ func CastModificationCommandDetailedResultActionResTasksFromCli(c emigo.CliCasta
 
 // The base class definition for tasks
 type ModificationCommandDetailedResultActionResTasks struct {
-	Offer         ModificationCommandDetailedResultActionResTasksOffer    `json:"offer" yaml:"offer"`
-	MarketplaceId string                                                  `json:"marketplaceId" yaml:"marketplaceId"`
-	ScheduledAt   string                                                  `json:"scheduledAt" yaml:"scheduledAt"`
-	FinishedAt    string                                                  `json:"finishedAt" yaml:"finishedAt"`
-	Status        string                                                  `json:"status" yaml:"status"`
-	Errors        []ModificationCommandDetailedResultActionResTasksErrors `json:"errors" yaml:"errors"`
+	Offer         ModificationCommandDetailedResultActionResTasksOffer               `json:"offer" yaml:"offer"`
+	MarketplaceId string                                                             `json:"marketplaceId" yaml:"marketplaceId"`
+	ScheduledAt   string                                                             `json:"scheduledAt" yaml:"scheduledAt"`
+	FinishedAt    string                                                             `json:"finishedAt" yaml:"finishedAt"`
+	Status        string                                                             `json:"status" yaml:"status"`
+	Errors        emigo.Array[ModificationCommandDetailedResultActionResTasksErrors] `json:"errors" yaml:"errors"`
 }
 
 func GetModificationCommandDetailedResultActionResTasksOfferCliFlags(prefix string) []emigo.CliFlag {
@@ -280,9 +280,9 @@ func CastModificationCommandDetailedResultActionResModificationFromCli(c emigo.C
 
 // The base class definition for modification
 type ModificationCommandDetailedResultActionResModification struct {
-	BasePackage      ModificationCommandDetailedResultActionResModificationBasePackage     `json:"basePackage" yaml:"basePackage"`
-	ExtraPackages    []ModificationCommandDetailedResultActionResModificationExtraPackages `json:"extraPackages" yaml:"extraPackages"`
-	ModificationTime string                                                                `json:"modificationTime" yaml:"modificationTime"`
+	BasePackage      ModificationCommandDetailedResultActionResModificationBasePackage                `json:"basePackage" yaml:"basePackage"`
+	ExtraPackages    emigo.Array[ModificationCommandDetailedResultActionResModificationExtraPackages] `json:"extraPackages" yaml:"extraPackages"`
+	ModificationTime string                                                                           `json:"modificationTime" yaml:"modificationTime"`
 }
 
 func GetModificationCommandDetailedResultActionResModificationBasePackageCliFlags(prefix string) []emigo.CliFlag {
@@ -390,9 +390,9 @@ func CastModificationCommandDetailedResultActionResAdditionalMarketplacesModific
 
 // The base class definition for modification
 type ModificationCommandDetailedResultActionResAdditionalMarketplacesModification struct {
-	BasePackage      ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackage     `json:"basePackage" yaml:"basePackage"`
-	ExtraPackages    []ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationExtraPackages `json:"extraPackages" yaml:"extraPackages"`
-	ModificationTime string                                                                                      `json:"modificationTime" yaml:"modificationTime"`
+	BasePackage      ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackage                `json:"basePackage" yaml:"basePackage"`
+	ExtraPackages    emigo.Array[ModificationCommandDetailedResultActionResAdditionalMarketplacesModificationExtraPackages] `json:"extraPackages" yaml:"extraPackages"`
+	ModificationTime string                                                                                                 `json:"modificationTime" yaml:"modificationTime"`
 }
 
 func GetModificationCommandDetailedResultActionResAdditionalMarketplacesModificationBasePackageCliFlags(prefix string) []emigo.CliFlag {

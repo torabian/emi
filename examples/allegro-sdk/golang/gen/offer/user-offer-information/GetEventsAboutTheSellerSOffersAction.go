@@ -64,7 +64,7 @@ func CastGetEventsAboutTheSellerSOffersActionResFromCli(c emigo.CliCastable) Get
 // The base class definition for getEventsAboutTheSellerSOffersActionRes
 type GetEventsAboutTheSellerSOffersActionRes struct {
 	// List of events related to offer state changes
-	OfferEvents []GetEventsAboutTheSellerSOffersActionResOfferEvents `json:"offerEvents" yaml:"offerEvents"`
+	OfferEvents emigo.Array[GetEventsAboutTheSellerSOffersActionResOfferEvents] `json:"offerEvents" yaml:"offerEvents"`
 }
 
 func GetGetEventsAboutTheSellerSOffersActionResOfferEventsCliFlags(prefix string) []emigo.CliFlag {
