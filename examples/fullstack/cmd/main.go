@@ -137,6 +137,8 @@ func runServer(addr string) error {
 
 	// ----------- HTTP -----------
 	unk.ComputeApiActionGin(r, func(req unk.ComputeApiActionRequest) (*unk.ComputeApiActionResponse, error) {
+
+		fmt.Println(req.Body.Json())
 		output := sumVectors(req.Body.InitialVector1, req.Body.InitialVector2)
 
 		return (&unk.ComputeApiActionResponse{

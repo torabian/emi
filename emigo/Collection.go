@@ -107,7 +107,15 @@ func (c Collection[T]) MarshalJSON() ([]byte, error) {
 		Operation string `json:"__operation"`
 		Items     []T    `json:"items"`
 	}
-	return json.Marshal(alias{Operation: c.Operation, Items: c.Items})
+
+	// When operation is replace, we simply return the content
+	// directly, because replace is implicit. This way code works both on
+	// Client and Backend part of the Golang generator
+	if c.Operation == "replace" || c.Operation == "" {
+		return json.Marshal(alias{Operation: c.Operation, Items: c.Items})
+	}
+
+	return json.Marshal(c.Items)
 }
 
 // UnmarshalJSON accepts a bare Collection, a tagged object, or null. Any of these

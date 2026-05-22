@@ -1,3 +1,4 @@
+import { CommonVectorResponseDto } from "./CommonVectorResponseDto";
 import { URLSearchParamsX } from "./sdk/common/URLSearchParamsX";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
@@ -11,6 +12,7 @@ import {
 import { type UseMutationOptions, useMutation } from "react-query";
 import { useFetchxContext } from "./sdk/react/useFetchx";
 import { useState } from "react";
+import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * Action to communicate with the action computeApi
  */
@@ -152,6 +154,11 @@ export class ComputeApiAction {
           type: "slice",
           primitive: "int",
         },
+        {
+          name: "lastResponse",
+          type: "one",
+          target: "CommonVectorResponseDto",
+        },
       ],
     },
     out: {
@@ -240,8 +247,37 @@ export class ComputeApiActionReq {
     this.initialVector2 = value;
     return this;
   }
+  /**
+   *
+   * @type {CommonVectorResponseDto}
+   **/
+  #lastResponse!: CommonVectorResponseDto;
+  /**
+   *
+   * @returns {CommonVectorResponseDto}
+   **/
+  get lastResponse() {
+    return this.#lastResponse;
+  }
+  /**
+   *
+   * @type {CommonVectorResponseDto}
+   **/
+  set lastResponse(value: CommonVectorResponseDto) {
+    // For objects, the sub type needs to always be instance of the sub class.
+    if (value instanceof CommonVectorResponseDto) {
+      this.#lastResponse = value;
+    } else {
+      this.#lastResponse = new CommonVectorResponseDto(value);
+    }
+  }
+  setLastResponse(value: CommonVectorResponseDto) {
+    this.lastResponse = value;
+    return this;
+  }
   constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
+      this.#lateInitFields();
       return;
     }
     if (typeof data === "string") {
@@ -285,6 +321,19 @@ export class ComputeApiActionReq {
     if (d.initialVector2 !== undefined) {
       this.initialVector2 = d.initialVector2;
     }
+    if (d.lastResponse !== undefined) {
+      this.lastResponse = d.lastResponse;
+    }
+    this.#lateInitFields(data);
+  }
+  /**
+   * These are the class instances, which need to be initialised, regardless of the constructor incoming data
+   **/
+  #lateInitFields(data = {}) {
+    const d = data as Partial<ComputeApiActionReq>;
+    if (!(d.lastResponse instanceof CommonVectorResponseDto)) {
+      this.lastResponse = new CommonVectorResponseDto(d.lastResponse || {});
+    }
   }
   /**
    *	Special toJSON override, since the field are private,
@@ -295,6 +344,7 @@ export class ComputeApiActionReq {
       initialVector1: this.#initialVector1,
       value: this.#value,
       initialVector2: this.#initialVector2,
+      lastResponse: this.#lastResponse,
     };
   }
   toString() {
@@ -310,6 +360,10 @@ export class ComputeApiActionReq {
       initialVector2$: "initialVector2",
       get initialVector2() {
         return "initialVector2[:i]";
+      },
+      lastResponse$: "lastResponse",
+      get lastResponse() {
+        return withPrefix("lastResponse", CommonVectorResponseDto.Fields);
       },
     };
   }
@@ -360,6 +414,11 @@ export type ComputeApiActionReqType = {
    * @type {number[]}
    **/
   initialVector2: number[];
+  /**
+   *
+   * @type {CommonVectorResponseDto}
+   **/
+  lastResponse: CommonVectorResponseDto;
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace ComputeApiActionReqType {}

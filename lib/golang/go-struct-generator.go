@@ -415,16 +415,22 @@ func goListAndObjectTypes(field fieldLike, parentChain string) string {
 	case core.FieldTypeOne, core.FieldTypeOneNullable:
 		target := field.GetTarget()
 
+		wrapper := "emigo.One"
+		if field.GetType() == core.FieldTypeOneNullable {
+			wrapper = "emigo.OneNullable"
+		}
+
 		isSelf, value := getSelfReferencingField(target, parentChain)
 		if isSelf {
 			target = value
 		}
 
 		if field.GetModule() != "" {
-			return field.GetModule() + "." + target
+			return fmt.Sprintf("%v[%v]", wrapper, field.GetModule()+"."+target)
 
 		}
-		return target
+		return fmt.Sprintf("%v[%v]", wrapper, target)
+
 	case core.FieldTypeArray:
 		return field.PublicName()
 	case core.FieldTypeCollection, core.FieldTypeCollectionNullable:

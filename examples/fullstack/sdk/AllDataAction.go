@@ -67,6 +67,9 @@ func CastAllDataActionResFromCli(c emigo.CliCastable) AllDataActionRes {
 	if c.IsSet("string-type-null") {
 		emigo.ParseNullable(c.String("string-type-null"), &data.StringTypeNull)
 	}
+	if c.IsSet("collection") {
+		data.Collection = emigo.CapturePossibleCollection(CastCommonVectorResponseDtoFromCli, "collection", c)
+	}
 	return data
 }
 

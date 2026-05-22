@@ -107,7 +107,15 @@ func (c Array[T]) MarshalJSON() ([]byte, error) {
 		Operation string `json:"__operation"`
 		Items     []T    `json:"items"`
 	}
-	return json.Marshal(alias{Operation: c.Operation, Items: c.Items})
+
+	// When operation is replace, we simply return the content
+	// directly, because replace is implicit. This way code works both on
+	// Client and Backend part of the Golang generator
+	if c.Operation == "replace" || c.Operation == "" {
+		return json.Marshal(alias{Operation: c.Operation, Items: c.Items})
+	}
+
+	return json.Marshal(c.Items)
 }
 
 // UnmarshalJSON accepts a bare array, a tagged object, or null. Any of these
@@ -146,4 +154,48 @@ func (c *Array[T]) UnmarshalJSON(data []byte) error {
 	c.Items = a.Items
 	c.isSet = true
 	return nil
+}
+
+// NewArray builds a "replace" patch from a variadic list of items. It is a
+// convenience over [ArrayReplace] for call sites that already have the items
+// individually rather than in a slice.
+func NewArray[T any](items ...T) Array[T] {
+	return Array[T]{Operation: "replace", Items: items, isSet: true}
+}
+
+// Append adds items to the Items slice and marks the Array as populated.
+// If Operation is unset, it defaults to "append"; otherwise the existing
+// Operation is preserved so callers can grow either a "replace" or "append"
+// payload incrementally.
+func (c *Array[T]) Append(items ...T) *Array[T] {
+	if c.Operation == "" {
+		c.Operation = "append"
+	}
+	c.Items = append(c.Items, items...)
+	c.isSet = true
+	return c
+}
+
+// Len returns the number of items currently held.
+func (c Array[T]) Len() int {
+	return len(c.Items)
+}
+
+// IsAppend reports whether the Operation is "append".
+func (c Array[T]) IsAppend() bool {
+	return c.Operation == "append"
+}
+
+// IsReplace reports whether the Operation is "replace".
+func (c Array[T]) IsReplace() bool {
+	return c.Operation == "replace"
+}
+
+// Clear empties Items while keeping isSet=true. Use this when the caller
+// wants to explicitly send an empty list — distinct from [Array.Reset],
+// which returns the Array to its unset zero value.
+func (c *Array[T]) Clear() *Array[T] {
+	c.Items = nil
+	c.isSet = true
+	return c
 }

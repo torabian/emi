@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"reflect"
 
 	"gopkg.in/yaml.v3"
 )
@@ -95,6 +96,38 @@ func (n *Nullable[T]) Scan(value interface{}) error {
 		}
 
 		n.value = &casted
+		n.isSet = true
+		return nil
+	case int64:
+		rv := reflect.ValueOf(&v).Elem()
+
+		switch rv.Kind() {
+		case reflect.Bool:
+			rv.SetBool(val != 0)
+
+		case reflect.Int,
+			reflect.Int8,
+			reflect.Int16,
+			reflect.Int32,
+			reflect.Int64:
+			rv.SetInt(val)
+
+		case reflect.Uint,
+			reflect.Uint8,
+			reflect.Uint16,
+			reflect.Uint32,
+			reflect.Uint64:
+			rv.SetUint(uint64(val))
+
+		case reflect.Float32,
+			reflect.Float64:
+			rv.SetFloat(float64(val))
+
+		default:
+			return fmt.Errorf("cannot convert int64 into %T", v)
+		}
+
+		n.value = &v
 		n.isSet = true
 		return nil
 

@@ -20,12 +20,12 @@ import (
 //  1. `null` — the field was explicitly cleared. IsSet() reports true,
 //     Operation/Items remain zero.
 //
-//  2. Bare array — full replacement (existing rows are deleted first):
+//  2. Bare Collection — full replacement (existing rows are deleted first):
 //     [{"key": "plan", "value": "pro"}]
 //     → Collection{Operation: "replace", Items: [...], isSet: true}
 //
 //  3. Tagged object — explicit operation:
-//     {"operation": "append", "items": [{"key": "x", "value": "y"}]}
+//     {"__operation": "append", "items": [{"key": "x", "value": "y"}]}
 //     → Collection{Operation: "append", Items: [...], isSet: true}
 //
 // The vsql renderer treats Collection as opted-out via [Collection.SQLValue]
@@ -34,7 +34,7 @@ import (
 // Hand-written templates can still inspect .Operation / .Items / .IsSet
 // directly to drive DELETE/INSERT semantics on child tables.
 type Collection[T any] struct {
-	Operation string `json:"operation"`
+	Operation string `json:"__operation"`
 	Items     []T    `json:"items"`
 	isSet     bool
 }
@@ -104,13 +104,21 @@ func (c Collection[T]) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	type alias struct {
-		Operation string `json:"operation"`
+		Operation string `json:"__operation"`
 		Items     []T    `json:"items"`
 	}
-	return json.Marshal(alias{Operation: c.Operation, Items: c.Items})
+
+	// When operation is replace, we simply return the content
+	// directly, because replace is implicit. This way code works both on
+	// Client and Backend part of the Golang generator
+	if c.Operation == "replace" || c.Operation == "" {
+		return json.Marshal(alias{Operation: c.Operation, Items: c.Items})
+	}
+
+	return json.Marshal(c.Items)
 }
 
-// UnmarshalJSON accepts a bare array, a tagged object, or null. Any of these
+// UnmarshalJSON accepts a bare Collection, a tagged object, or null. Any of these
 // flips isSet to true — explicit null still counts as "the caller said
 // something about this field."
 func (c *Collection[T]) UnmarshalJSON(data []byte) error {
@@ -132,7 +140,7 @@ func (c *Collection[T]) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	type alias struct {
-		Operation string `json:"operation"`
+		Operation string `json:"__operation"`
 		Items     []T    `json:"items"`
 	}
 	var a alias
@@ -146,4 +154,48 @@ func (c *Collection[T]) UnmarshalJSON(data []byte) error {
 	c.Items = a.Items
 	c.isSet = true
 	return nil
+}
+
+// NewCollection builds a "replace" patch from a variadic list of items. It is a
+// convenience over [CollectionReplace] for call sites that already have the items
+// individually rather than in a slice.
+func NewCollection[T any](items ...T) Collection[T] {
+	return Collection[T]{Operation: "replace", Items: items, isSet: true}
+}
+
+// Append adds items to the Items slice and marks the Collection as populated.
+// If Operation is unset, it defaults to "append"; otherwise the existing
+// Operation is preserved so callers can grow either a "replace" or "append"
+// payload incrementally.
+func (c *Collection[T]) Append(items ...T) *Collection[T] {
+	if c.Operation == "" {
+		c.Operation = "append"
+	}
+	c.Items = append(c.Items, items...)
+	c.isSet = true
+	return c
+}
+
+// Len returns the number of items currently held.
+func (c Collection[T]) Len() int {
+	return len(c.Items)
+}
+
+// IsAppend reports whether the Operation is "append".
+func (c Collection[T]) IsAppend() bool {
+	return c.Operation == "append"
+}
+
+// IsReplace reports whether the Operation is "replace".
+func (c Collection[T]) IsReplace() bool {
+	return c.Operation == "replace"
+}
+
+// Clear empties Items while keeping isSet=true. Use this when the caller
+// wants to explicitly send an empty list — distinct from [Collection.Reset],
+// which returns the Collection to its unset zero value.
+func (c *Collection[T]) Clear() *Collection[T] {
+	c.Items = nil
+	c.isSet = true
+	return c
 }
