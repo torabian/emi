@@ -61,6 +61,9 @@ go:
 nullabletest:
 	go test ./tests/nullable-test/...
 
+collectiontest:
+	go test -v ./tests/collection/... && go test -v ./tests/array/...
+
 
 test_examples:
 	cd examples/fullstack && make

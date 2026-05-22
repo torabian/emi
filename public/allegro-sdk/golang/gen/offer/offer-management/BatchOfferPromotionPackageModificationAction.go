@@ -77,9 +77,9 @@ func CastBatchOfferPromotionPackageModificationActionReqFromCli(c emigo.CliCasta
 
 // The base class definition for batchOfferPromotionPackageModificationActionReq
 type BatchOfferPromotionPackageModificationActionReq struct {
-	OfferCriteria          []BatchOfferPromotionPackageModificationActionReqOfferCriteria          `json:"offerCriteria" yaml:"offerCriteria"`
-	Modification           BatchOfferPromotionPackageModificationActionReqModification             `json:"modification" yaml:"modification"`
-	AdditionalMarketplaces []BatchOfferPromotionPackageModificationActionReqAdditionalMarketplaces `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	OfferCriteria          emigo.Array[BatchOfferPromotionPackageModificationActionReqOfferCriteria]          `json:"offerCriteria" yaml:"offerCriteria"`
+	Modification           BatchOfferPromotionPackageModificationActionReqModification                        `json:"modification" yaml:"modification"`
+	AdditionalMarketplaces emigo.Array[BatchOfferPromotionPackageModificationActionReqAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
 }
 
 func GetBatchOfferPromotionPackageModificationActionReqOfferCriteriaCliFlags(prefix string) []emigo.CliFlag {
@@ -107,8 +107,8 @@ func CastBatchOfferPromotionPackageModificationActionReqOfferCriteriaFromCli(c e
 
 // The base class definition for offerCriteria
 type BatchOfferPromotionPackageModificationActionReqOfferCriteria struct {
-	Offers []BatchOfferPromotionPackageModificationActionReqOfferCriteriaOffers `json:"offers" yaml:"offers"`
-	Type   string                                                               `json:"type" yaml:"type"`
+	Offers emigo.Array[BatchOfferPromotionPackageModificationActionReqOfferCriteriaOffers] `json:"offers" yaml:"offers"`
+	Type   string                                                                          `json:"type" yaml:"type"`
 }
 
 func GetBatchOfferPromotionPackageModificationActionReqOfferCriteriaOffersCliFlags(prefix string) []emigo.CliFlag {
@@ -165,9 +165,9 @@ func CastBatchOfferPromotionPackageModificationActionReqModificationFromCli(c em
 
 // The base class definition for modification
 type BatchOfferPromotionPackageModificationActionReqModification struct {
-	BasePackage      BatchOfferPromotionPackageModificationActionReqModificationBasePackage     `json:"basePackage" yaml:"basePackage"`
-	ExtraPackages    []BatchOfferPromotionPackageModificationActionReqModificationExtraPackages `json:"extraPackages" yaml:"extraPackages"`
-	ModificationTime string                                                                     `json:"modificationTime" yaml:"modificationTime"`
+	BasePackage      BatchOfferPromotionPackageModificationActionReqModificationBasePackage                `json:"basePackage" yaml:"basePackage"`
+	ExtraPackages    emigo.Array[BatchOfferPromotionPackageModificationActionReqModificationExtraPackages] `json:"extraPackages" yaml:"extraPackages"`
+	ModificationTime string                                                                                `json:"modificationTime" yaml:"modificationTime"`
 }
 
 func GetBatchOfferPromotionPackageModificationActionReqModificationBasePackageCliFlags(prefix string) []emigo.CliFlag {
@@ -275,9 +275,9 @@ func CastBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesMo
 
 // The base class definition for modification
 type BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModification struct {
-	BasePackage      BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackage     `json:"basePackage" yaml:"basePackage"`
-	ExtraPackages    []BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationExtraPackages `json:"extraPackages" yaml:"extraPackages"`
-	ModificationTime string                                                                                           `json:"modificationTime" yaml:"modificationTime"`
+	BasePackage      BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackage                `json:"basePackage" yaml:"basePackage"`
+	ExtraPackages    emigo.Array[BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationExtraPackages] `json:"extraPackages" yaml:"extraPackages"`
+	ModificationTime string                                                                                                      `json:"modificationTime" yaml:"modificationTime"`
 }
 
 func GetBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackageCliFlags(prefix string) []emigo.CliFlag {

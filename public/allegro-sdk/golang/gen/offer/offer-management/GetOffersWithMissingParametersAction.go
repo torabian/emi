@@ -75,9 +75,9 @@ func CastGetOffersWithMissingParametersActionResFromCli(c emigo.CliCastable) Get
 
 // The base class definition for getOffersWithMissingParametersActionRes
 type GetOffersWithMissingParametersActionRes struct {
-	Offers     []GetOffersWithMissingParametersActionResOffers `json:"offers" yaml:"offers"`
-	Count      int                                             `json:"count" yaml:"count"`
-	TotalCount int                                             `json:"totalCount" yaml:"totalCount"`
+	Offers     emigo.Array[GetOffersWithMissingParametersActionResOffers] `json:"offers" yaml:"offers"`
+	Count      int                                                        `json:"count" yaml:"count"`
+	TotalCount int                                                        `json:"totalCount" yaml:"totalCount"`
 }
 
 func GetGetOffersWithMissingParametersActionResOffersCliFlags(prefix string) []emigo.CliFlag {
@@ -113,9 +113,9 @@ func CastGetOffersWithMissingParametersActionResOffersFromCli(c emigo.CliCastabl
 
 // The base class definition for offers
 type GetOffersWithMissingParametersActionResOffers struct {
-	Id         string                                                    `json:"id" yaml:"id"`
-	Parameters []GetOffersWithMissingParametersActionResOffersParameters `json:"parameters" yaml:"parameters"`
-	Category   GetOffersWithMissingParametersActionResOffersCategory     `json:"category" yaml:"category"`
+	Id         string                                                               `json:"id" yaml:"id"`
+	Parameters emigo.Array[GetOffersWithMissingParametersActionResOffersParameters] `json:"parameters" yaml:"parameters"`
+	Category   GetOffersWithMissingParametersActionResOffersCategory                `json:"category" yaml:"category"`
 }
 
 func GetGetOffersWithMissingParametersActionResOffersParametersCliFlags(prefix string) []emigo.CliFlag {

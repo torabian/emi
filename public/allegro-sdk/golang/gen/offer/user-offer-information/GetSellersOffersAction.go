@@ -80,8 +80,8 @@ type GetSellersOffersActionRes struct {
 	// Number of offers in this page
 	Count int `json:"count" yaml:"count"`
 	// Total number of offers available
-	TotalCount int                               `json:"totalCount" yaml:"totalCount"`
-	Offers     []GetSellersOffersActionResOffers `json:"offers" yaml:"offers"`
+	TotalCount int                                          `json:"totalCount" yaml:"totalCount"`
+	Offers     emigo.Array[GetSellersOffersActionResOffers] `json:"offers" yaml:"offers"`
 }
 
 func GetGetSellersOffersActionResOffersCliFlags(prefix string) []emigo.CliFlag {
@@ -678,8 +678,8 @@ func CastGetSellersOffersActionResOffersPublicationMarketplacesFromCli(c emigo.C
 
 // The base class definition for marketplaces
 type GetSellersOffersActionResOffersPublicationMarketplaces struct {
-	Base       GetSellersOffersActionResOffersPublicationMarketplacesBase         `json:"base" yaml:"base"`
-	Additional []GetSellersOffersActionResOffersPublicationMarketplacesAdditional `json:"additional" yaml:"additional"`
+	Base       GetSellersOffersActionResOffersPublicationMarketplacesBase                    `json:"base" yaml:"base"`
+	Additional emigo.Array[GetSellersOffersActionResOffersPublicationMarketplacesAdditional] `json:"additional" yaml:"additional"`
 }
 
 func GetGetSellersOffersActionResOffersPublicationMarketplacesBaseCliFlags(prefix string) []emigo.CliFlag {

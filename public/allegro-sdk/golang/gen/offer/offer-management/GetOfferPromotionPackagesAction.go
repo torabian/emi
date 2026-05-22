@@ -98,12 +98,12 @@ func CastGetOfferPromotionPackagesActionResFromCli(c emigo.CliCastable) GetOffer
 
 // The base class definition for getOfferPromotionPackagesActionRes
 type GetOfferPromotionPackagesActionRes struct {
-	OfferId                string                                                     `json:"offerId" yaml:"offerId"`
-	MarketplaceId          string                                                     `json:"marketplaceId" yaml:"marketplaceId"`
-	BasePackage            GetOfferPromotionPackagesActionResBasePackage              `json:"basePackage" yaml:"basePackage"`
-	ExtraPackages          []GetOfferPromotionPackagesActionResExtraPackages          `json:"extraPackages" yaml:"extraPackages"`
-	PendingChanges         GetOfferPromotionPackagesActionResPendingChanges           `json:"pendingChanges" yaml:"pendingChanges"`
-	AdditionalMarketplaces []GetOfferPromotionPackagesActionResAdditionalMarketplaces `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	OfferId                string                                                                `json:"offerId" yaml:"offerId"`
+	MarketplaceId          string                                                                `json:"marketplaceId" yaml:"marketplaceId"`
+	BasePackage            GetOfferPromotionPackagesActionResBasePackage                         `json:"basePackage" yaml:"basePackage"`
+	ExtraPackages          emigo.Array[GetOfferPromotionPackagesActionResExtraPackages]          `json:"extraPackages" yaml:"extraPackages"`
+	PendingChanges         GetOfferPromotionPackagesActionResPendingChanges                      `json:"pendingChanges" yaml:"pendingChanges"`
+	AdditionalMarketplaces emigo.Array[GetOfferPromotionPackagesActionResAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
 }
 
 func GetGetOfferPromotionPackagesActionResBasePackageCliFlags(prefix string) []emigo.CliFlag {
@@ -304,10 +304,10 @@ func CastGetOfferPromotionPackagesActionResAdditionalMarketplacesFromCli(c emigo
 
 // The base class definition for additionalMarketplaces
 type GetOfferPromotionPackagesActionResAdditionalMarketplaces struct {
-	MarketplaceId  string                                                                  `json:"marketplaceId" yaml:"marketplaceId"`
-	BasePackage    GetOfferPromotionPackagesActionResAdditionalMarketplacesBasePackage     `json:"basePackage" yaml:"basePackage"`
-	ExtraPackages  []GetOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages `json:"extraPackages" yaml:"extraPackages"`
-	PendingChanges GetOfferPromotionPackagesActionResAdditionalMarketplacesPendingChanges  `json:"pendingChanges" yaml:"pendingChanges"`
+	MarketplaceId  string                                                                             `json:"marketplaceId" yaml:"marketplaceId"`
+	BasePackage    GetOfferPromotionPackagesActionResAdditionalMarketplacesBasePackage                `json:"basePackage" yaml:"basePackage"`
+	ExtraPackages  emigo.Array[GetOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages] `json:"extraPackages" yaml:"extraPackages"`
+	PendingChanges GetOfferPromotionPackagesActionResAdditionalMarketplacesPendingChanges             `json:"pendingChanges" yaml:"pendingChanges"`
 }
 
 func GetGetOfferPromotionPackagesActionResAdditionalMarketplacesBasePackageCliFlags(prefix string) []emigo.CliFlag {

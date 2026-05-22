@@ -61,7 +61,7 @@ func CastPublishCommandDetailedReportActionResFromCli(c emigo.CliCastable) Publi
 
 // The base class definition for publishCommandDetailedReportActionRes
 type PublishCommandDetailedReportActionRes struct {
-	Tasks []PublishCommandDetailedReportActionResTasks `json:"tasks" yaml:"tasks"`
+	Tasks emigo.Array[PublishCommandDetailedReportActionResTasks] `json:"tasks" yaml:"tasks"`
 }
 
 func GetPublishCommandDetailedReportActionResTasksCliFlags(prefix string) []emigo.CliFlag {
@@ -111,11 +111,11 @@ func CastPublishCommandDetailedReportActionResTasksFromCli(c emigo.CliCastable) 
 
 // The base class definition for tasks
 type PublishCommandDetailedReportActionResTasks struct {
-	Field   string                                             `json:"field" yaml:"field"`
-	Message string                                             `json:"message" yaml:"message"`
-	Offer   PublishCommandDetailedReportActionResTasksOffer    `json:"offer" yaml:"offer"`
-	Status  string                                             `json:"status" yaml:"status"`
-	Errors  []PublishCommandDetailedReportActionResTasksErrors `json:"errors" yaml:"errors"`
+	Field   string                                                        `json:"field" yaml:"field"`
+	Message string                                                        `json:"message" yaml:"message"`
+	Offer   PublishCommandDetailedReportActionResTasksOffer               `json:"offer" yaml:"offer"`
+	Status  string                                                        `json:"status" yaml:"status"`
+	Errors  emigo.Array[PublishCommandDetailedReportActionResTasksErrors] `json:"errors" yaml:"errors"`
 }
 
 func GetPublishCommandDetailedReportActionResTasksOfferCliFlags(prefix string) []emigo.CliFlag {

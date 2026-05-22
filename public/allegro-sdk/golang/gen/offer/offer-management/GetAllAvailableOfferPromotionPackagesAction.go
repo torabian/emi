@@ -82,10 +82,10 @@ func CastGetAllAvailableOfferPromotionPackagesActionResFromCli(c emigo.CliCastab
 
 // The base class definition for getAllAvailableOfferPromotionPackagesActionRes
 type GetAllAvailableOfferPromotionPackagesActionRes struct {
-	MarketplaceId          string                                                                 `json:"marketplaceId" yaml:"marketplaceId"`
-	BasePackages           []GetAllAvailableOfferPromotionPackagesActionResBasePackages           `json:"basePackages" yaml:"basePackages"`
-	ExtraPackages          []GetAllAvailableOfferPromotionPackagesActionResExtraPackages          `json:"extraPackages" yaml:"extraPackages"`
-	AdditionalMarketplaces []GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplaces `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	MarketplaceId          string                                                                            `json:"marketplaceId" yaml:"marketplaceId"`
+	BasePackages           emigo.Array[GetAllAvailableOfferPromotionPackagesActionResBasePackages]           `json:"basePackages" yaml:"basePackages"`
+	ExtraPackages          emigo.Array[GetAllAvailableOfferPromotionPackagesActionResExtraPackages]          `json:"extraPackages" yaml:"extraPackages"`
+	AdditionalMarketplaces emigo.Array[GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
 }
 
 func GetGetAllAvailableOfferPromotionPackagesActionResBasePackagesCliFlags(prefix string) []emigo.CliFlag {
@@ -194,9 +194,9 @@ func CastGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesFro
 
 // The base class definition for additionalMarketplaces
 type GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplaces struct {
-	MarketplaceId string                                                                              `json:"marketplaceId" yaml:"marketplaceId"`
-	BasePackages  []GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesBasePackages  `json:"basePackages" yaml:"basePackages"`
-	ExtraPackages []GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages `json:"extraPackages" yaml:"extraPackages"`
+	MarketplaceId string                                                                                         `json:"marketplaceId" yaml:"marketplaceId"`
+	BasePackages  emigo.Array[GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesBasePackages]  `json:"basePackages" yaml:"basePackages"`
+	ExtraPackages emigo.Array[GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages] `json:"extraPackages" yaml:"extraPackages"`
 }
 
 func GetGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesBasePackagesCliFlags(prefix string) []emigo.CliFlag {
