@@ -16,4 +16,4 @@ release:
 	GOARCH=amd64 GOOS=linux go build -ldflags "-s -w" -o ../../artifacts/emi ./main.go
 	cd ../../artifacts/ && zip emi_amd64_linux.zip emi && cd -
 	rm -rf ../../artifacts/emi ../../artifacts/emi.exe && \
-	cd ../.. && zip -r artifacts/emi-node-wasm-package.zip emi-npm
+	cd ../.. && zip -r artifacts/emi-node-wasm-package.zip examples/emi-wasm-helper
