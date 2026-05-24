@@ -58,6 +58,10 @@ func GetComputeApiActionReqCliFlags(prefix string) []emigo.CliFlag {
 			Name: prefix + "initial-vector2",
 			Type: "slice",
 		},
+		{
+			Name: prefix + "last-response",
+			Type: "one",
+		},
 	}
 }
 func CastComputeApiActionReqFromCli(c emigo.CliCastable) ComputeApiActionReq {
@@ -76,9 +80,10 @@ func CastComputeApiActionReqFromCli(c emigo.CliCastable) ComputeApiActionReq {
 
 // The base class definition for computeApiActionReq
 type ComputeApiActionReq struct {
-	InitialVector1 []int                  `json:"initialVector1" yaml:"initialVector1"`
-	Value          emigo.Nullable[string] `json:"value" yaml:"value"`
-	InitialVector2 []int                  `json:"initialVector2" yaml:"initialVector2"`
+	InitialVector1 []int                              `json:"initialVector1" yaml:"initialVector1"`
+	Value          emigo.Nullable[string]             `json:"value" yaml:"value"`
+	InitialVector2 []int                              `json:"initialVector2" yaml:"initialVector2"`
+	LastResponse   emigo.One[CommonVectorResponseDto] `json:"lastResponse" yaml:"lastResponse"`
 }
 
 func (x *ComputeApiActionReq) Json() string {

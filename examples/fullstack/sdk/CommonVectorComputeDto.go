@@ -83,15 +83,15 @@ func CastCommonVectorComputeDtoFromCli(c emigo.CliCastable) CommonVectorComputeD
 
 // The base class definition for commonVectorComputeDto
 type CommonVectorComputeDto struct {
-	InitialVector1   []int                                  `json:"initialVector1" yaml:"initialVector1"`
-	Value            emigo.Nullable[string]                 `json:"value" yaml:"value"`
-	Valuex           string                                 `json:"valuex" yaml:"valuex"`
-	InitialVector2   []int                                  `json:"initialVector2" yaml:"initialVector2"`
-	FieldTypeArray   []CommonVectorComputeDtoFieldTypeArray `json:"fieldTypeArray" yaml:"fieldTypeArray"`
-	FieldTypeSlice   []string                               `json:"fieldTypeSlice" yaml:"fieldTypeSlice"`
-	FieldInt         int                                    `json:"fieldInt" yaml:"fieldInt"`
-	FieldIntNullable emigo.Nullable[int]                    `json:"fieldIntNullable" yaml:"fieldIntNullable"`
-	ComplexMoney     complexes.Money                        `json:"complexMoney" yaml:"complexMoney"`
+	InitialVector1   []int                                             `json:"initialVector1" yaml:"initialVector1"`
+	Value            emigo.Nullable[string]                            `json:"value" yaml:"value"`
+	Valuex           string                                            `json:"valuex" yaml:"valuex"`
+	InitialVector2   []int                                             `json:"initialVector2" yaml:"initialVector2"`
+	FieldTypeArray   emigo.Array[CommonVectorComputeDtoFieldTypeArray] `json:"fieldTypeArray" yaml:"fieldTypeArray"`
+	FieldTypeSlice   []string                                          `json:"fieldTypeSlice" yaml:"fieldTypeSlice"`
+	FieldInt         int                                               `json:"fieldInt" yaml:"fieldInt"`
+	FieldIntNullable emigo.Nullable[int]                               `json:"fieldIntNullable" yaml:"fieldIntNullable"`
+	ComplexMoney     complexes.Money                                   `json:"complexMoney" yaml:"complexMoney"`
 }
 
 func GetCommonVectorComputeDtoFieldTypeArrayCliFlags(prefix string) []emigo.CliFlag {
@@ -119,8 +119,8 @@ func CastCommonVectorComputeDtoFieldTypeArrayFromCli(c emigo.CliCastable) Common
 
 // The base class definition for fieldTypeArray
 type CommonVectorComputeDtoFieldTypeArray struct {
-	ArrayField1 string                                            `json:"arrayField1" yaml:"arrayField1"`
-	ArrayField2 []CommonVectorComputeDtoFieldTypeArrayArrayField2 `json:"arrayField2" yaml:"arrayField2"`
+	ArrayField1 string                                                       `json:"arrayField1" yaml:"arrayField1"`
+	ArrayField2 emigo.Array[CommonVectorComputeDtoFieldTypeArrayArrayField2] `json:"arrayField2" yaml:"arrayField2"`
 }
 
 func GetCommonVectorComputeDtoFieldTypeArrayArrayField2CliFlags(prefix string) []emigo.CliFlag {

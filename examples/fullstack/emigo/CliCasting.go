@@ -38,9 +38,30 @@ type CliFlag struct {
 }
 
 // When on cli it's passed as array, then we need to get it this way.
-func CapturePossibleArray[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) []T {
-	var result []T
-	json.Unmarshal([]byte(c.String(fieldName)), &result)
+func CapturePossibleArray[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) Array[T] {
+	var result Array[T]
+	json.Unmarshal([]byte(c.String(fieldName)), &result.Items)
+
+	return result
+}
+
+func CapturePossibleArrayNullable[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) ArrayNullable[T] {
+	var result ArrayNullable[T]
+	json.Unmarshal([]byte(c.String(fieldName)), &result.Items)
+
+	return result
+}
+
+func CapturePossibleCollection[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) Collection[T] {
+	var result Collection[T]
+	json.Unmarshal([]byte(c.String(fieldName)), &result.Items)
+
+	return result
+}
+
+func CapturePossibleCollectionNullable[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) CollectionNullable[T] {
+	var result CollectionNullable[T]
+	json.Unmarshal([]byte(c.String(fieldName)), &result.Items)
 
 	return result
 }
@@ -73,7 +94,6 @@ func CastPrimitive[T any](s string) (T, error) {
 		return zero, fmt.Errorf("unsupported slice type")
 	}
 }
-
 func InflatePossibleSlice[T any](raw string, target *[]T) error {
 	raw = strings.TrimSpace(raw)
 	if raw == "" {

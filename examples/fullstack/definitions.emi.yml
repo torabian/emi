@@ -220,6 +220,9 @@ actions:
         - name: initialVector2
           type: slice
           primitive: int
+        - name: lastResponse
+          type: one
+          target: CommonVectorResponseDto
     out:
       fields:
         - name: outputVector
