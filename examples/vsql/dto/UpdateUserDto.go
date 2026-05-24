@@ -1,7 +1,10 @@
 package dto
 
-import "encoding/json"
-import emigo "github.com/torabian/emi/emigo"
+import (
+	"encoding/json"
+
+	emigo "github.com/torabian/emi/emigo"
+)
 
 func GetUpdateUserDtoCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{

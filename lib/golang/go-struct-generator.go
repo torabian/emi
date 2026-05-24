@@ -452,7 +452,6 @@ func goListAndObjectTypes(field fieldLike, parentChain string) string {
 			finalValue = klass + "[" + field.GetModule() + "." + target + "]"
 		}
 
-		fmt.Println("Final value:", finalValue)
 		return finalValue
 	case core.FieldTypeSlice:
 		return "[]" + DefaultIfEmpty(goPrimitiveDetect(field.GetPrimitive()), "interface{}")
