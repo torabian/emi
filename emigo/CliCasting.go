@@ -66,6 +66,20 @@ func CapturePossibleCollectionNullable[T any](generator func(c CliCastable) T, f
 	return result
 }
 
+func CapturePossibleOne[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) One[T] {
+	var result One[T]
+	json.Unmarshal([]byte(c.String(fieldName)), &result.Item)
+
+	return result
+}
+
+func CapturePossibleOneNullable[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) OneNullable[T] {
+	var result OneNullable[T]
+	json.Unmarshal([]byte(c.String(fieldName)), &result.Item)
+
+	return result
+}
+
 func CastPrimitive[T any](s string) (T, error) {
 	var zero T
 

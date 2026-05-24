@@ -446,10 +446,13 @@ func goListAndObjectTypes(field fieldLike, parentChain string) string {
 			target = value
 		}
 
+		finalValue := klass + "[" + target + "]"
+
 		if field.GetModule() != "" {
-			return klass + "[" + field.GetModule() + "." + target + "]"
+			finalValue = klass + "[" + field.GetModule() + "." + target + "]"
 		}
-		return klass + "[" + target + "]"
+
+		return finalValue
 	case core.FieldTypeSlice:
 		return "[]" + DefaultIfEmpty(goPrimitiveDetect(field.GetPrimitive()), "interface{}")
 	case core.FieldTypeSliceNullable:
@@ -469,6 +472,19 @@ func DefaultIfEmpty(value string, defaultV string) string {
 	return value
 }
 
+// Computed nullable fields are in Golang those, which have their own special
+// Nullable wrapper. Means, CollectionNullable, OneNullable, and so on.
+// These do not need to be wrapped with Nullable Generric, because they have more logic
+// and it's better off to use them directly.
+func IsComputedNullable(fieldType core.FieldType) bool {
+
+	if fieldType == core.FieldTypeCollectionNullable || fieldType == core.FieldTypeOneNullable || fieldType == core.FieldTypeArrayNullable {
+		return true
+	}
+
+	return false
+}
+
 func goComputedField(field fieldLike, parentChain string) string {
 
 	if goprimitive := goPrimitiveDetect(string(field.GetType())); goprimitive != "" {
@@ -476,7 +492,7 @@ func goComputedField(field fieldLike, parentChain string) string {
 	}
 
 	if computedType := goListAndObjectTypes(field, parentChain); computedType != "" {
-		if core.IsNullable(string(field.GetType())) {
+		if core.IsNullable(string(field.GetType())) && !IsComputedNullable(field.GetType()) {
 			return fmt.Sprintf("emigo.Nullable[%v]", computedType)
 		} else {
 			return computedType

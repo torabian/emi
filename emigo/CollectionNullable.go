@@ -112,10 +112,10 @@ func (c CollectionNullable[T]) MarshalJSON() ([]byte, error) {
 	// directly, because replace is implicit. This way code works both on
 	// Client and Backend part of the Golang generator
 	if c.Operation == "replace" || c.Operation == "" {
-		return json.Marshal(alias{Operation: c.Operation, Items: c.Items})
+		return json.Marshal(c.Items)
 	}
 
-	return json.Marshal(c.Items)
+	return json.Marshal(alias{Operation: c.Operation, Items: c.Items})
 }
 
 // UnmarshalJSON accepts a bare array, a tagged object, or null. Any of these

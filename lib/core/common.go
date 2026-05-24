@@ -298,8 +298,13 @@ func StringToEmiDto(content string) (EmiDto, error) {
 
 func StringToEmi(content string) (Emi, error) {
 	var module Emi
-	err := yaml.Unmarshal([]byte(content), &module)
-	return module, err
+	if err := yaml.Unmarshal([]byte(content), &module); err != nil {
+		return module, err
+	}
+	if err := module.Preprocess(); err != nil {
+		return module, err
+	}
+	return module, nil
 }
 
 // Based on the emi tag on the root, we detect what is the type of compile.
@@ -330,6 +335,9 @@ func DetectEmiStringContentType(content string) (string, error) {
 func ReadEmiFromString(content string) (*Emi, error) {
 	var data Emi
 	if err := yaml.Unmarshal([]byte(content), &data); err != nil {
+		return nil, err
+	}
+	if err := data.Preprocess(); err != nil {
 		return nil, err
 	}
 	return &data, nil

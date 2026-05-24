@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/torabian/emi/lib/core/emi-dto",
+  "$ref": "#/definitions/EmiDto",
+  "definitions": {
+    "EmiDto": {
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Description about the purpose of the dto. It will be used in CLI and codegen documentation."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the dto in camel case the rest of the code related to this dto is being generated based on this"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "List of fields and body definitions of the dto"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiEnumInline": {
+      "properties": {
+        "k": {
+          "type": "string",
+          "description": "Enum key which will be used in golang generation and validation"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the enum for developers. It's not translated or meant to be shown to end users."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiField": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the field in camel case. Will be upper case automatically when necessary"
+        },
+        "cli": {
+          "type": "string",
+          "description": "The field name apperance on the cli tools"
+        },
+        "recommended": {
+          "type": "boolean",
+          "description": "Recommended field will be asked upon an interactive cli operation."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description about the field for developers and generated documents."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "array",
+            "map?",
+            "map",
+            "slice",
+            "one",
+            "collection",
+            "object",
+            "enum",
+            "string",
+            "bool",
+            "int",
+            "int32",
+            "int64",
+            "float32",
+            "float64",
+            "array?",
+            "slice?",
+            "one?",
+            "collection?",
+            "object?",
+            "enum?",
+            "string?",
+            "bool?",
+            "int?",
+            "int32?",
+            "int64?",
+            "float32?",
+            "float64?",
+            "any",
+            "complex"
+          ],
+          "description": "Type of the field based on Emi types."
+        },
+        "mapKeyOf": {
+          "type": "string",
+          "enum": [
+            "string",
+            "int",
+            "any"
+          ],
+          "description": "In case of type map this is the map key type"
+        },
+        "mapPairOf": {
+          "type": "string",
+          "enum": [
+            "string",
+            "int",
+            "any"
+          ],
+          "description": "In case of type map this is the map key type"
+        },
+        "primitive": {
+          "type": "string",
+          "enum": [
+            "string",
+            "bool",
+            "int",
+            "int32",
+            "int64",
+            "float32",
+            "float64",
+            "bytes"
+          ],
+          "description": "The primitve that is allowed for the slice is limited to following values"
+        },
+        "target": {
+          "type": "string",
+          "description": "The entity in golang which will be operated on in case of type: one or type: collection"
+        },
+        "default": {
+          "description": "Default value of the field which will be added to the meta tags"
+        },
+        "module": {
+          "type": "string",
+          "description": "When using one or collection types you need to set the module name here to import tha"
+        },
+        "provider": {
+          "type": "string",
+          "description": "The go project module of the important target for one or collection fields if its from exte"
+        },
+        "providerAlias": {
+          "type": "string",
+          "description": "You can set an alias for the provider so the import will be done using that name instead of auto detection. Useful ingolang implementation."
+        },
+        "of": {
+          "items": {
+            "$ref": "#/definitions/EmiEnumInline"
+          },
+          "type": "array",
+          "description": "List of enum values in case of enum type for the field. Check EmiEnumInline for more d"
+        },
+        "complex": {
+          "type": "string",
+          "description": "In case of complex data type"
+        },
+        "matches": {
+          "items": {
+            "$ref": "#/definitions/EmiFieldMatch"
+          },
+          "type": "array",
+          "description": "On the json type this field will generate necessary code to cast it into different dtos"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "For types such as array or object children fields can be defined and will separate struct with name prefixed to parent"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Tags are key/pair values which might be useful in some languages - such as golang. There you can specifiy extra tags for language."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiFieldMatch": {
+      "properties": {
+        "dto": {
+          "type": "string",
+          "description": "The dto name from Emi which will be matched. Might be also work with any other go struct but check the generated code."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    }
+  }
+}

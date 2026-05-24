@@ -147,6 +147,27 @@ func (x goFieldVariable) CliCaptureStatement() string {
 			targetItem,
 			x.CliName,
 		))
+	case core.FieldTypeOne, core.FieldTypeOneNullable:
+		captureFn := "CapturePossibleOne"
+		if possibleType == core.FieldTypeOneNullable {
+			captureFn = "CapturePossibleOneNullable"
+		}
+
+		pureFn := genericParam()
+		externalPackage, targetItem := "", pureFn
+		if strings.Contains(pureFn, ".") {
+			mt := strings.Split(pureFn, ".")
+			externalPackage = mt[0] + "."
+			targetItem = mt[1]
+		}
+
+		return wrapIfSet(fmt.Sprintf(
+			"emigo. %v(%v Cast%vFromCli, \"%v\", c)",
+			captureFn,
+			externalPackage,
+			targetItem,
+			x.CliName,
+		))
 	}
 
 	// Nullable fields are automatically captured by compiler, all we do is use ParseNullable from string

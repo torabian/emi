@@ -14,7 +14,6 @@ data class GiantDto (
 		@SerialName("booleanFieldNullable")  val booleanFieldNullable: MaybeField<Boolean> ,
 		@SerialName("collectionItems")  val collectionItems: List<GiantDto>  = emptyList(),
 		@SerialName("collectionItemsNullable")  @Contextual  val collectionItemsNullable: Any ,
-		@SerialName("dateObject")  @Contextual  val dateObject: Any ,
 		@SerialName("singleRefNullable")  @Contextual  val singleRefNullable: Any ,
 		@SerialName("enumeration")  @Contextual  val enumeration: Any ,
 		@SerialName("enumerationNullable")  @Contextual  val enumerationNullable: Any ,
