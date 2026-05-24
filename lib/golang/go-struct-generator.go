@@ -452,6 +452,7 @@ func goListAndObjectTypes(field fieldLike, parentChain string) string {
 			finalValue = klass + "[" + field.GetModule() + "." + target + "]"
 		}
 
+		fmt.Println("Final value:", finalValue)
 		return finalValue
 	case core.FieldTypeSlice:
 		return "[]" + DefaultIfEmpty(goPrimitiveDetect(field.GetPrimitive()), "interface{}")
@@ -476,11 +477,9 @@ func DefaultIfEmpty(value string, defaultV string) string {
 // Nullable wrapper. Means, CollectionNullable, OneNullable, and so on.
 // These do not need to be wrapped with Nullable Generric, because they have more logic
 // and it's better off to use them directly.
-// NOTE: One is excluded, because the capture cli function has problem with it. This might require
-// to be fixed.
 func IsComputedNullable(fieldType core.FieldType) bool {
 
-	if fieldType == core.FieldTypeCollectionNullable || fieldType == core.FieldTypeArrayNullable {
+	if fieldType == core.FieldTypeCollectionNullable || fieldType == core.FieldTypeOneNullable || fieldType == core.FieldTypeArrayNullable {
 		return true
 	}
 

@@ -3,8 +3,9 @@ package dto
 import (
 	"encoding"
 	"encoding/json"
+
+	emigo "github.com/torabian/emi/emigo"
 )
-import emigo "github.com/torabian/emi/emigo"
 
 func GetDataTypesDtoCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
@@ -204,8 +205,11 @@ func CastDataTypesDtoFromCli(c emigo.CliCastable) DataTypesDto {
 			u.UnmarshalText([]byte(c.String("complex-field")))
 		}
 	}
+	if c.IsSet("one-ref") {
+		data.OneRef = emigo.CapturePossibleOne(CastCreateUserDtoTagsFromCli, "one-ref", c)
+	}
 	if c.IsSet("one-ref-nullable") {
-		emigo.ParseNullable(c.String("one-ref-nullable"), &data.OneRefNullable)
+		data.OneRefNullable = emigo.CapturePossibleOneNullable(CastCreateUserDtoTagsFromCli, "one-ref-nullable", c)
 	}
 	if c.IsSet("collection-ref") {
 		data.CollectionRef = emigo.CapturePossibleCollection(CastCreateUserDtoTagsFromCli, "collection-ref", c)
@@ -218,36 +222,36 @@ func CastDataTypesDtoFromCli(c emigo.CliCastable) DataTypesDto {
 
 // The base class definition for dataTypesDto
 type DataTypesDto struct {
-	StringField           string                                               `json:"stringField" yaml:"stringField"`
-	StringFieldNullable   emigo.Nullable[string]                               `json:"stringFieldNullable" yaml:"stringFieldNullable"`
-	BoolField             bool                                                 `json:"boolField" yaml:"boolField"`
-	BoolFieldNullable     emigo.Nullable[bool]                                 `json:"boolFieldNullable" yaml:"boolFieldNullable"`
-	IntField              int                                                  `json:"intField" yaml:"intField"`
-	IntFieldNullable      emigo.Nullable[int]                                  `json:"intFieldNullable" yaml:"intFieldNullable"`
-	Int32Field            int32                                                `json:"int32Field" yaml:"int32Field"`
-	Int32FieldNullable    emigo.Nullable[int32]                                `json:"int32FieldNullable" yaml:"int32FieldNullable"`
-	Int64Field            int64                                                `json:"int64Field" yaml:"int64Field"`
-	Int64FieldNullable    emigo.Nullable[int64]                                `json:"int64FieldNullable" yaml:"int64FieldNullable"`
-	Float32Field          float32                                              `json:"float32Field" yaml:"float32Field"`
-	Float32FieldNullable  emigo.Nullable[float32]                              `json:"float32FieldNullable" yaml:"float32FieldNullable"`
-	Float64Field          float64                                              `json:"float64Field" yaml:"float64Field"`
-	Float64FieldNullable  emigo.Nullable[float64]                              `json:"float64FieldNullable" yaml:"float64FieldNullable"`
-	EnumField             string                                               `json:"enumField" yaml:"enumField"`
-	EnumFieldNullable     emigo.Nullable[string]                               `json:"enumFieldNullable" yaml:"enumFieldNullable"`
-	ObjectField           DataTypesDtoObjectField                              `json:"objectField" yaml:"objectField"`
-	ObjectFieldNullable   emigo.Nullable[DataTypesDtoObjectFieldNullable]      `json:"objectFieldNullable" yaml:"objectFieldNullable"`
-	ArrayField            emigo.Array[DataTypesDtoArrayField]                  `json:"arrayField" yaml:"arrayField"`
-	ArrayFieldNullable    emigo.ArrayNullable[DataTypesDtoArrayFieldNullable]  `json:"arrayFieldNullable" yaml:"arrayFieldNullable"`
-	SliceField            []string                                             `json:"sliceField" yaml:"sliceField"`
-	SliceFieldNullable    emigo.Nullable[[]int]                                `json:"sliceFieldNullable" yaml:"sliceFieldNullable"`
-	AnyField              interface{}                                          `json:"anyField" yaml:"anyField"`
-	MapField              map[any]any                                          `json:"mapField" yaml:"mapField"`
-	MapFieldNullable      emigo.Nullable[map[any]any]                          `json:"mapFieldNullable" yaml:"mapFieldNullable"`
-	ComplexField          GeoPoint                                             `json:"complexField" yaml:"complexField"`
-	OneRef                emigo.One[CreateUserDtoTags]                         `json:"oneRef" yaml:"oneRef"`
-	OneRefNullable        emigo.Nullable[emigo.OneNullable[CreateUserDtoTags]] `json:"oneRefNullable" yaml:"oneRefNullable"`
-	CollectionRef         emigo.Collection[CreateUserDtoTags]                  `json:"collectionRef" yaml:"collectionRef"`
-	CollectionRefNullable emigo.CollectionNullable[CreateUserDtoTags]          `json:"collectionRefNullable" yaml:"collectionRefNullable"`
+	StringField           string                                              `json:"stringField" yaml:"stringField"`
+	StringFieldNullable   emigo.Nullable[string]                              `json:"stringFieldNullable" yaml:"stringFieldNullable"`
+	BoolField             bool                                                `json:"boolField" yaml:"boolField"`
+	BoolFieldNullable     emigo.Nullable[bool]                                `json:"boolFieldNullable" yaml:"boolFieldNullable"`
+	IntField              int                                                 `json:"intField" yaml:"intField"`
+	IntFieldNullable      emigo.Nullable[int]                                 `json:"intFieldNullable" yaml:"intFieldNullable"`
+	Int32Field            int32                                               `json:"int32Field" yaml:"int32Field"`
+	Int32FieldNullable    emigo.Nullable[int32]                               `json:"int32FieldNullable" yaml:"int32FieldNullable"`
+	Int64Field            int64                                               `json:"int64Field" yaml:"int64Field"`
+	Int64FieldNullable    emigo.Nullable[int64]                               `json:"int64FieldNullable" yaml:"int64FieldNullable"`
+	Float32Field          float32                                             `json:"float32Field" yaml:"float32Field"`
+	Float32FieldNullable  emigo.Nullable[float32]                             `json:"float32FieldNullable" yaml:"float32FieldNullable"`
+	Float64Field          float64                                             `json:"float64Field" yaml:"float64Field"`
+	Float64FieldNullable  emigo.Nullable[float64]                             `json:"float64FieldNullable" yaml:"float64FieldNullable"`
+	EnumField             string                                              `json:"enumField" yaml:"enumField"`
+	EnumFieldNullable     emigo.Nullable[string]                              `json:"enumFieldNullable" yaml:"enumFieldNullable"`
+	ObjectField           DataTypesDtoObjectField                             `json:"objectField" yaml:"objectField"`
+	ObjectFieldNullable   emigo.Nullable[DataTypesDtoObjectFieldNullable]     `json:"objectFieldNullable" yaml:"objectFieldNullable"`
+	ArrayField            emigo.Array[DataTypesDtoArrayField]                 `json:"arrayField" yaml:"arrayField"`
+	ArrayFieldNullable    emigo.ArrayNullable[DataTypesDtoArrayFieldNullable] `json:"arrayFieldNullable" yaml:"arrayFieldNullable"`
+	SliceField            []string                                            `json:"sliceField" yaml:"sliceField"`
+	SliceFieldNullable    emigo.Nullable[[]int]                               `json:"sliceFieldNullable" yaml:"sliceFieldNullable"`
+	AnyField              interface{}                                         `json:"anyField" yaml:"anyField"`
+	MapField              map[any]any                                         `json:"mapField" yaml:"mapField"`
+	MapFieldNullable      emigo.Nullable[map[any]any]                         `json:"mapFieldNullable" yaml:"mapFieldNullable"`
+	ComplexField          GeoPoint                                            `json:"complexField" yaml:"complexField"`
+	OneRef                emigo.One[CreateUserDtoTags]                        `json:"oneRef" yaml:"oneRef"`
+	OneRefNullable        emigo.OneNullable[CreateUserDtoTags]                `json:"oneRefNullable" yaml:"oneRefNullable"`
+	CollectionRef         emigo.Collection[CreateUserDtoTags]                 `json:"collectionRef" yaml:"collectionRef"`
+	CollectionRefNullable emigo.CollectionNullable[CreateUserDtoTags]         `json:"collectionRefNullable" yaml:"collectionRefNullable"`
 }
 
 func GetDataTypesDtoObjectFieldCliFlags(prefix string) []emigo.CliFlag {
