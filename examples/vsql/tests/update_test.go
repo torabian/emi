@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/torabian/emi/emigo"
-	"github.com/torabian/emi/vsql_test/dto"
-	"github.com/torabian/emi/vsql_test/sqlfiles"
-	"github.com/torabian/emi/vsql_test/vsql"
+	"github.com/torabian/emi/examples/vsql/dto"
+	"github.com/torabian/emi/examples/vsql/sqlfiles"
+	"github.com/torabian/emi/examples/vsql/vsql"
 )
 
 // TestUpdateReplaceTags drives the Collection "replace" path: the SQL must
@@ -17,7 +17,7 @@ func TestUpdateReplaceTags(t *testing.T) {
 		Id:   emigo.NullableOf[int64](1),
 		Name: emigo.NullableOf("Ali Renamed"),
 		Age:  emigo.NullableOf(35),
-		Tags: emigo.CollectionReplace([]dto.UpdateUserDtoTags{
+		Tags: emigo.ArrayNullableReplace([]dto.UpdateUserDtoTags{
 			{Key: "plan", Value: "enterprise"},
 		}),
 	}
@@ -34,7 +34,7 @@ func TestUpdateReplaceTags(t *testing.T) {
 func TestUpdateAppendTags(t *testing.T) {
 	patch := dto.UpdateUserDto{
 		Id: emigo.NullableOf[int64](1),
-		Tags: emigo.CollectionAppend([]dto.UpdateUserDtoTags{
+		Tags: emigo.ArrayNullableAppend([]dto.UpdateUserDtoTags{
 			{Key: "feature-flag", Value: "beta"},
 		}),
 	}

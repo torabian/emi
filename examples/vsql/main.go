@@ -6,9 +6,9 @@ import (
 	"fmt"
 
 	"github.com/torabian/emi/emigo"
-	"github.com/torabian/emi/vsql_test/dto"
-	"github.com/torabian/emi/vsql_test/sqlfiles"
-	"github.com/torabian/emi/vsql_test/vsql"
+	"github.com/torabian/emi/examples/vsql/dto"
+	"github.com/torabian/emi/examples/vsql/sqlfiles"
+	"github.com/torabian/emi/examples/vsql/vsql"
 )
 
 func main() {
@@ -21,9 +21,11 @@ func main() {
 			Theme:  "dark",
 			Locale: "en-US",
 		},
-		Tags: []dto.CreateUserDtoTags{
-			{Key: "role", Value: "admin"},
-			{Key: "plan", Value: "pro"},
+		Tags: emigo.Array[dto.CreateUserDtoTags]{
+			Items: []dto.CreateUserDtoTags{
+				{Key: "role", Value: "admin"},
+				{Key: "plan", Value: "pro"},
+			},
 		},
 		Address: dto.CreateUserDtoAddress{
 			Id:       100,

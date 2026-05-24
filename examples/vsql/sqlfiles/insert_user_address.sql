@@ -10,7 +10,7 @@ VALUES ({{ $a.Values }});
 
 {{- if .Tags }}
 INSERT INTO user_tags (user_id, key, value) VALUES
-{{- range $i, $t := .Tags }}{{ if $i }},{{ end }}
+{{- range $i, $t := .Tags.Items }}{{ if $i }},{{ end }}
   ({{ sql $.Id }}, {{ sql $t.Key }}, {{ sql $t.Value }})
 {{- end }};
 {{- end }}

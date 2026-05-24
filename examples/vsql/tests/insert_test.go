@@ -19,10 +19,10 @@ func TestInsertUserAddress(t *testing.T) {
 			Theme:  "dark",
 			Locale: "en-US",
 		},
-		Tags: []dto.CreateUserDtoTags{
+		Tags: emigo.ArrayReplace([]dto.CreateUserDtoTags{
 			{Key: "role", Value: "admin"},
 			{Key: "plan", Value: "pro"},
-		},
+		}),
 		Address: dto.CreateUserDtoAddress{
 			Id:       100,
 			UserId:   1,
