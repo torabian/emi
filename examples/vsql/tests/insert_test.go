@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/torabian/emi/emigo"
-	"github.com/torabian/emi/vsql_test/dto"
-	"github.com/torabian/emi/vsql_test/sqlfiles"
-	"github.com/torabian/emi/vsql_test/vsql"
+	"github.com/torabian/emi/examples/vsql/dto"
+	"github.com/torabian/emi/examples/vsql/sqlfiles"
+	"github.com/torabian/emi/examples/vsql/vsql"
 )
 
 func TestInsertUserAddress(t *testing.T) {

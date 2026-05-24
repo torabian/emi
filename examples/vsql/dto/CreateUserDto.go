@@ -69,12 +69,12 @@ func CastCreateUserDtoFromCli(c emigo.CliCastable) CreateUserDto {
 
 // The base class definition for createUserDto
 type CreateUserDto struct {
-	Id          int64                    `json:"id" yaml:"id"`
-	Name        string                   `json:"name" yaml:"name"`
-	Email       emigo.Nullable[string]   `json:"email" yaml:"email"`
-	Age         int                      `json:"age" yaml:"age"`
-	Preferences CreateUserDtoPreferences `json:"preferences" yaml:"preferences"`
-	Tags        []CreateUserDtoTags      `json:"tags" yaml:"tags"`
+	Id          int64                          `json:"id" yaml:"id"`
+	Name        string                         `json:"name" yaml:"name"`
+	Email       emigo.Nullable[string]         `json:"email" yaml:"email"`
+	Age         int                            `json:"age" yaml:"age"`
+	Preferences CreateUserDtoPreferences       `json:"preferences" yaml:"preferences"`
+	Tags        emigo.Array[CreateUserDtoTags] `json:"tags" yaml:"tags"`
 	// Insert payload for the addresses table. The `location` field is a complex type (GeoPoint) defined in the consumer's package; emi just references it by name so the renderer's SQLValuer hook can take over.
 	Address CreateUserDtoAddress `json:"address" yaml:"address"`
 }

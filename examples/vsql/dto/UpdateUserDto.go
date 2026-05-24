@@ -1,12 +1,5 @@
 package dto
 
-// ─────────────────────────────────────────────────────────────────────────
-// MANUALLY MODIFIED — running `make generate` will overwrite this file and
-// revert the Collection typing on Tags. Until emi's codegen emits
-// emigo.Collection[T] for `array?` patch fields, regenerate carefully and
-// reapply the diff.
-// ─────────────────────────────────────────────────────────────────────────
-
 import "encoding/json"
 import emigo "github.com/torabian/emi/emigo"
 
@@ -56,7 +49,7 @@ func CastUpdateUserDtoFromCli(c emigo.CliCastable) UpdateUserDto {
 		emigo.ParseNullable(c.String("preferences"), &data.Preferences)
 	}
 	if c.IsSet("tags") {
-		_ = json.Unmarshal([]byte(c.String("tags")), &data.Tags)
+		data.Tags = emigo.CapturePossibleArrayNullable(CastUpdateUserDtoTagsFromCli, "tags", c)
 	}
 	return data
 }
@@ -68,7 +61,7 @@ type UpdateUserDto struct {
 	Email       emigo.Nullable[string]                   `json:"email" yaml:"email"`
 	Age         emigo.Nullable[int]                      `json:"age" yaml:"age"`
 	Preferences emigo.Nullable[UpdateUserDtoPreferences] `json:"preferences" yaml:"preferences"`
-	Tags        emigo.Collection[UpdateUserDtoTags]      `json:"tags" yaml:"tags"`
+	Tags        emigo.ArrayNullable[UpdateUserDtoTags]   `json:"tags" yaml:"tags"`
 }
 
 func GetUpdateUserDtoPreferencesCliFlags(prefix string) []emigo.CliFlag {
