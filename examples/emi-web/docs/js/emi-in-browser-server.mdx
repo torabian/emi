@@ -4,11 +4,16 @@ sidebar_position: 10
 
 # Running the same server in the browser (Postgres in WASM)
 
+## Live Demo
+
+Before you read further, you can see it here working:
+https://torabian.github.io/emi/in-browser-server/
+
 One of the more surprising things you can build with Emi is a full HTTP
 server — routes, typed handlers, a Postgres database — that runs **entirely
 inside a browser tab**, with no network and no backend process. And it is not
-a separate, browser-only rewrite of your code: it is the *exact same* Go
-handlers, the *exact same* SQL, and the *exact same* generated request/response
+a separate, browser-only rewrite of your code: it is the _exact same_ Go
+handlers, the _exact same_ SQL, and the _exact same_ generated request/response
 classes you ship to a real server.
 
 This document walks through how the [`examples/in-browser-server`](https://github.com/torabian/emi/tree/main/examples/in-browser-server)
@@ -164,11 +169,11 @@ server:
 	go build -o ./browser/server ./cmd/server/main.go
 ```
 
-* `emi go` generates the typed Go handlers (`defs/`) — both a Gin binding and a
+- `emi go` generates the typed Go handlers (`defs/`) — both a Gin binding and a
   plain `net/http` binding for every action.
-* `emi js` generates the matching typed client classes (`browser/gen/`).
-* `make wasm` compiles the **browser** entrypoint to a `.wasm` file.
-* `make server` compiles the **real** Gin server from the same packages.
+- `emi js` generates the matching typed client classes (`browser/gen/`).
+- `make wasm` compiles the **browser** entrypoint to a `.wasm` file.
+- `make server` compiles the **real** Gin server from the same packages.
 
 The only thing that differs between the two binaries is which `main.go` is
 picked up, and that is decided entirely by Go build tags.
@@ -375,7 +380,11 @@ The CRUD UI does the same against `/users`:
 const res = await window.localFetch("/users", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ firstName: "Ada", lastName: "Lovelace", birthDate: "1815-12-10" }),
+  body: JSON.stringify({
+    firstName: "Ada",
+    lastName: "Lovelace",
+    birthDate: "1815-12-10",
+  }),
 });
 ```
 
@@ -386,17 +395,17 @@ the tab.
 
 ## Why this matters
 
-* **One implementation, two runtimes.** The handler code, the SQL, and the
+- **One implementation, two runtimes.** The handler code, the SQL, and the
   generated DTOs are identical between the Gin server and the browser. The only
   thing that changes is which `Database` implementation is injected, and that is
   a one-line decision in `main`.
-* **A real database, not a mock.** pglite is genuine Postgres. The same
+- **A real database, not a mock.** pglite is genuine Postgres. The same
   `INSERT ... RETURNING`, the same `SERIAL PRIMARY KEY`, the same error
   semantics. You are not testing against an approximation.
-* **Offline-first and zero-backend demos.** Because the data persists to
+- **Offline-first and zero-backend demos.** Because the data persists to
   IndexedDB, you can ship a fully interactive app — server logic and all — as
   static files. Great for demos, playgrounds, local-first apps, and tests.
-* **The transport is generated, the logic is yours.** Emi generates the Gin
+- **The transport is generated, the logic is yours.** Emi generates the Gin
   binding, the `net/http` binding, and the JS client from one spec, so adding a
   new action means editing the YAML and re-running `make def`. The hand-written
   parts stay small and shared.
