@@ -52,6 +52,13 @@ export default function Home(): ReactNode {
               Emi Compiler Training
             </a>
           </strong>
+          <br />
+          <br />
+          <pre>go install github.com/torabian/emi/cmd/emi@latest</pre>
+          or download the binaries in{" "}
+          <a href="https://github.com/torabian/emi/releases" target="blank">
+            https://github.com/torabian/emi/releases
+          </a>
         </div>
 
         <br />
