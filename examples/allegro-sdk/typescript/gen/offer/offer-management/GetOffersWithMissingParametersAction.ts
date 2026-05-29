@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -151,8 +159,7 @@ export class GetOffersWithMissingParametersActionRes {
       typeof GetOffersWithMissingParametersActionRes.Offers
     >[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -278,8 +285,7 @@ export class GetOffersWithMissingParametersActionRes {
         typeof GetOffersWithMissingParametersActionRes.Offers.Parameters
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (

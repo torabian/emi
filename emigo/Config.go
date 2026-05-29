@@ -1,3 +1,8 @@
+//go:build !wasm
+
+// This feature is not enabled, when it's built for wasm, and makes no sense
+// in such scenarios
+
 package emigo
 
 import (

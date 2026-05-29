@@ -3,9 +3,8 @@ package dto
 import (
 	"encoding"
 	"encoding/json"
-
-	emigo "github.com/torabian/emi/emigo"
 )
+import emigo "github.com/torabian/emi/emigo"
 
 func GetDataTypesDtoCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{

@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { Money } from "../Money";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {

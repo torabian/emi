@@ -1,5 +1,4 @@
 build:
-	go build -ldflags "-s -w" -o ./emi ./cmd/emi && \
 	make build-js-sdks && \
 	make build-envelopes && \
 	go build -ldflags "-s -w" -o ./emi ./cmd/emi && \
@@ -18,15 +17,20 @@ build-js-sdks:
 	cd - && \
 	cp ./lib/js/index.go.txt ./lib/js/ts-sdk/index.go && \
 	rm -rf ./lib/js/ts-sdk && cp -R ./examples/js-sdk-kit/src ./lib/js/ts-sdk && \
-	cp ./lib/js/index.go.txt ./lib/js/ts-sdk/index.go
+	rm -rf ./lib/js/js-sdk && cp -R ./examples/js-sdk-kit/build ./lib/js/js-sdk && \
+	cp ./lib/js/index.go.txt ./lib/js/ts-sdk/index.go && \
+	cp ./lib/js/index.go.txt ./lib/js/js-sdk/index.go
 
 build-envelopes:
-	cd ./examples/envelopes && npm run compile && cd -  && \
+	cd ./examples/envelopes && npm run compile && npm run build && cd -  && \
 	rm -rf ./lib/js/ts-envelopes && \
+	rm -rf ./lib/js/js-envelopes && \
 	cp -R ./examples/envelopes/src ./lib/js/ts-envelopes && \
+	cp -R ./examples/envelopes/build ./lib/js/js-envelopes && \
 	cp ./lib/js/index.go.txt ./lib/js/ts-envelopes/index.go && \
 	rm -rf ./lib/js/ts-envelopes && cp -R ./examples/envelopes/src ./lib/js/ts-envelopes && \
-	cp ./lib/js/index.go.txt ./lib/js/ts-envelopes/index.go
+	cp ./lib/js/index.go.txt ./lib/js/ts-envelopes/index.go && \
+	cp ./lib/js/index.go.txt ./lib/js/js-envelopes/index.go
 
 all: 
 	make build && make build-envelopes && make jstests && make sample && make nullabletest
@@ -46,7 +50,10 @@ ci:
 	make jstests;
 
 compile-github:
-	rm -rf __webdir && cp -R ./examples/emi-web/build __webdir && touch __webdir/.nojekyll && cp -R playground/dist __webdir/playground
+	rm -rf __webdir && \
+	cp -R ./examples/emi-web/build __webdir && touch __webdir/.nojekyll && \
+	cp -R playground/dist __webdir/playground && \
+	cp -Rexamples/in-browser-server/browser __webdir/in-browser-server
 
 
 qpsamples:

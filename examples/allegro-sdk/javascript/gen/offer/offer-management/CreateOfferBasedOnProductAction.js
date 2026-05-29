@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -727,8 +735,7 @@ export class CreateOfferBasedOnProductActionReq {
    * @type {CreateOfferBasedOnProductActionReq.ProductSet}
    **/
   set productSet(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -1040,8 +1047,7 @@ export class CreateOfferBasedOnProductActionReq {
    * @type {CreateOfferBasedOnProductActionReq.Attachments}
    **/
   set attachments(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -1672,8 +1678,7 @@ export class CreateOfferBasedOnProductActionReq {
      * @type {CreateOfferBasedOnProductActionReq.ProductSet.Deposits}
      **/
     set deposits(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -1817,8 +1822,7 @@ export class CreateOfferBasedOnProductActionReq {
        * @type {CreateOfferBasedOnProductActionReq.ProductSet.Product.Parameters}
        **/
       set parameters(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -5021,8 +5025,7 @@ export class CreateOfferBasedOnProductActionReq {
      * @type {CreateOfferBasedOnProductActionReq.CompatibilityList.Items}
      **/
     set items(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -5304,8 +5307,7 @@ export class CreateOfferBasedOnProductActionReq {
      * @type {CreateOfferBasedOnProductActionReq.Description.Sections}
      **/
     set sections(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -5346,8 +5348,7 @@ export class CreateOfferBasedOnProductActionReq {
        * @type {CreateOfferBasedOnProductActionReq.Description.Sections.Items}
        **/
       set items(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -7822,8 +7823,7 @@ export class CreateOfferBasedOnProductActionReq {
      * @type {CreateOfferBasedOnProductActionReq.TaxSettings.Rates}
      **/
     set rates(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (

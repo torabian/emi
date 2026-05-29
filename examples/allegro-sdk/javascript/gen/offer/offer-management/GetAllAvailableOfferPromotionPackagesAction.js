@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -188,8 +196,7 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
    * @type {GetAllAvailableOfferPromotionPackagesActionRes.BasePackages}
    **/
   set basePackages(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -226,8 +233,7 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
    * @type {GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages}
    **/
   set extraPackages(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -266,8 +272,7 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
    * @type {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces}
    **/
   set additionalMarketplaces(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -677,8 +682,7 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
      * @type {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages}
      **/
     set basePackages(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -718,8 +722,7 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
      * @type {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages}
      **/
     set extraPackages(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (

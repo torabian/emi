@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -290,8 +298,7 @@ export class ModifyOfferPromotionPackagesActionReq {
    * @type {ModifyOfferPromotionPackagesActionReq.Modifications}
    **/
   set modifications(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -326,8 +333,7 @@ export class ModifyOfferPromotionPackagesActionReq {
    * @type {ModifyOfferPromotionPackagesActionReq.AdditionalMarketplaces}
    **/
   set additionalMarketplaces(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -565,8 +571,7 @@ export class ModifyOfferPromotionPackagesActionReq {
      * @type {ModifyOfferPromotionPackagesActionReq.AdditionalMarketplaces.Modifications}
      **/
     set modifications(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -1058,8 +1063,7 @@ export class ModifyOfferPromotionPackagesActionRes {
    * @type {ModifyOfferPromotionPackagesActionRes.ExtraPackages}
    **/
   set extraPackages(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -1123,8 +1127,7 @@ export class ModifyOfferPromotionPackagesActionRes {
    * @type {ModifyOfferPromotionPackagesActionRes.AdditionalMarketplaces}
    **/
   set additionalMarketplaces(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -1976,8 +1979,7 @@ export class ModifyOfferPromotionPackagesActionRes {
      * @type {ModifyOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages}
      **/
     set extraPackages(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (

@@ -1,0 +1,77 @@
+actions:
+  - name: substring
+    url: /
+    method: post
+    in:
+      fields:
+        - name: input
+          description: The string you want to do substring
+          type: string
+        - name: start
+          type: int
+          description: Start position
+        - name: end
+          type: int
+          description: End position
+    out:
+      fields:
+        - name: result
+          type: string
+
+  - name: createUser
+    description: Insert a new user row and return the created record.
+    url: /users
+    method: post
+    in:
+      fields:
+        - name: firstName
+          type: string
+          description: User's first name
+        - name: lastName
+          type: string
+          description: User's last name
+        - name: birthDate
+          type: string
+          description: User's birth date, ISO format YYYY-MM-DD
+    out:
+      fields:
+        - name: id
+          type: int
+        - name: firstName
+          type: string
+        - name: lastName
+          type: string
+        - name: birthDate
+          type: string
+
+  - name: listUsers
+    description: Return every user row, ordered by id.
+    url: /users
+    method: get
+    out:
+      fields:
+        - name: users
+          type: array
+          fields:
+            - name: id
+              type: int
+            - name: firstName
+              type: string
+            - name: lastName
+              type: string
+            - name: birthDate
+              type: string
+
+  - name: deleteUser
+    description: Delete a single user row by id.
+    url: /users
+    method: delete
+    in:
+      fields:
+        - name: id
+          type: int
+          description: Id of the user to delete
+    out:
+      fields:
+        - name: deleted
+          type: bool

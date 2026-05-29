@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>In browser wasm test</title>
+    <style>
+      body {
+        background-color: black;
+        color: #ddd;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>In-browser server — POST /</h2>
+    <p id="status">booting…</p>
+    <div>
+      <label>input <input id="input" value="hello world" size="30" /></label
+      ><br />
+      <label>start <input id="start" type="number" value="0" /></label>
+      <label>end <input id="end" type="number" value="5" /></label><br />
+      <button id="call" disabled>POST /</button>
+    </div>
+    <pre id="out"></pre>
+
+    <hr />
+
+    <h2>Users CRUD — /users (pglite-backed)</h2>
+
+    <h3>Create user — POST /users</h3>
+    <div>
+      <label>first name <input id="firstName" value="Ada" /></label>
+      <label>last name <input id="lastName" value="Lovelace" /></label>
+      <label>birth date <input id="birthDate" value="1815-12-10" /></label>
+      <button id="createUser" disabled>Create</button>
+    </div>
+
+    <h3>Delete user — DELETE /users</h3>
+    <div>
+      <label>id <input id="deleteId" type="number" value="1" /></label>
+      <button id="deleteUser" disabled>Delete</button>
+    </div>
+
+    <h3>Query users — GET /users</h3>
+    <div>
+      <button id="listUsers" disabled>Refresh list</button>
+    </div>
+    <pre id="usersOut"></pre>
+
+    <script src="wasm_exec.js"></script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

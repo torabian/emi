@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -250,8 +258,7 @@ export class ModificationCommandDetailedResultActionRes {
       typeof ModificationCommandDetailedResultActionRes.Tasks
     >[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -337,8 +344,7 @@ export class ModificationCommandDetailedResultActionRes {
       typeof ModificationCommandDetailedResultActionRes.AdditionalMarketplaces
     >[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -524,8 +530,7 @@ export class ModificationCommandDetailedResultActionRes {
         typeof ModificationCommandDetailedResultActionRes.Tasks.Errors
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -1336,8 +1341,7 @@ export class ModificationCommandDetailedResultActionRes {
         typeof ModificationCommandDetailedResultActionRes.Modification.ExtraPackages
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -1922,8 +1926,7 @@ export class ModificationCommandDetailedResultActionRes {
           typeof ModificationCommandDetailedResultActionRes.AdditionalMarketplaces.Modification.ExtraPackages
         >[],
       ) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (

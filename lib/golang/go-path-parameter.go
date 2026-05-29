@@ -3,6 +3,7 @@ package golang
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -15,7 +16,7 @@ type GoPathParamer struct {
 	CliName          string
 }
 
-func GoActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error) {
+func GoActionPathParams(action core.EmiRpcAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
@@ -91,14 +92,16 @@ func {{ .TypeName }}Apply(params {{ .TypeName }}, templateUrl string) string {
 	return templateUrl
 }
 
-
+{{ if .EnabledGin }}
 // Extracts the path parameter from a gin request context
 func {{ .TypeName }}FromGin(g *gin.Context) {{ .TypeName }} {
 	return {{ .TypeName }}FromFn(func (key string) string {
 		return g.Param(key) 
 	})
 }
+{{ end }}
 
+{{ if .EnabledCli }}
 // Extracts the path parameter from a urfave v3 cli.
 func {{ .TypeName }}FromCli(c *cli.Command) {{ .TypeName }} {
 	return {{ .TypeName }}FromFn(func (key string) string {
@@ -108,6 +111,7 @@ func {{ .TypeName }}FromCli(c *cli.Command) {{ .TypeName }} {
 		return c.String("pp-" + key) 
 	})
 }
+{{ end }}
 
 // General purpose to extract the value and cast based on type.
 func {{ .TypeName }}FromFn(fn func(key string) string) {{ .TypeName }} {
@@ -163,12 +167,18 @@ func {{ .TypeName }}FromFn(fn func(key string) string) {{ .TypeName }} {
 		}...)
 	}
 
+	// By default cli and gin is enabled. But we can disable them
+	EnabledCli := !strings.Contains(ctx.Tags, "skip-cli")
+	EnabledGin := !strings.Contains(ctx.Tags, "skip-gin")
+
 	t := template.Must(template.New("pathParams").Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, map[string]any{
-		"ClassName": className,
-		"TypeName":  typeName,
-		"Params":    placeholders,
+		"ClassName":  className,
+		"TypeName":   typeName,
+		"Params":     placeholders,
+		"EnabledCli": EnabledCli,
+		"EnabledGin": EnabledGin,
 	}); err != nil {
 		return nil, err
 	}

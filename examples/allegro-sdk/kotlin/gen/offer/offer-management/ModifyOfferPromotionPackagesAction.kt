@@ -1,15 +1,15 @@
 package unknownpackage
+import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import emikot.MaybeField
-import emikot.Maybe
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import kotlinx.coroutines.Dispatchers
-import emikot.ClientContext
-import okhttp3.*
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.*
+import emikot.ClientContext
+import emikot.Maybe
+import okhttp3.*
 /**
  * Action to communicate with the action ModifyOfferPromotionPackagesAction
  */

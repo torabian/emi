@@ -85,6 +85,14 @@ pass number as many as you want, and it would replace [:i] statements to have pr
 
           
 ```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for anonymouse
@@ -130,8 +138,7 @@ export class Anonymouse {
    * @type {Anonymouse.LoginHistory}
    **/
   set loginHistory(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (value.length > 0 && value[0] instanceof Anonymouse.LoginHistory) {

@@ -333,7 +333,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
 				Objects:  []string{"fetchx"},
-				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "fetchx"),
 			},
 		},
 		Tokens: []core.GeneratedScriptToken{},
@@ -342,7 +342,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 	if isTypeScript {
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
 			Objects:  []string{"type FetchxContext"},
-			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "fetchx"),
 		})
 	}
 
@@ -356,7 +356,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 	res.CodeChunkDependensies = append(res.CodeChunkDependensies, []core.CodeChunkDependency{
 		{
 			Objects:  []string{"handleFetchResponse"},
-			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "fetchx"),
 		},
 	}...)
 
@@ -364,7 +364,7 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, []core.CodeChunkDependency{
 			{
 				Objects:  []string{"type TypedRequestInit"},
-				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
+				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "fetchx"),
 			},
 		}...)
 	}

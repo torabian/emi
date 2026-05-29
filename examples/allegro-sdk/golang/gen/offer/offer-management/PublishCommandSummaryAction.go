@@ -2,12 +2,11 @@ package external
 
 import (
 	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
-	"github.com/urfave/cli/v3"
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 )
 
 /**
@@ -188,63 +187,8 @@ func (x PublishCommandSummaryActionResponse) GetPayload() interface{} {
 	return x.Payload
 }
 
-// PublishCommandSummaryActionRaw registers a raw Gin route for the PublishCommandSummaryAction action.
-// This gives the developer full control over middleware, handlers, and response handling.
-func PublishCommandSummaryActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
-	meta := PublishCommandSummaryActionMeta()
-	r.Handle(meta.Method, meta.URL, handlers...)
-}
-
+// Request signature, which is here for refernece. Now it's inlined, so auto completions suggest the function body.
 type PublishCommandSummaryActionRequestSig = func(c PublishCommandSummaryActionRequest) (*PublishCommandSummaryActionResponse, error)
-
-// PublishCommandSummaryActionHandler returns the HTTP method, route URL, and a typed Gin handler for the PublishCommandSummaryAction action.
-// Developers implement their business logic as a function that receives a typed request object
-// and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
-func PublishCommandSummaryActionHandler(
-	handler PublishCommandSummaryActionRequestSig,
-) (method, url string, h gin.HandlerFunc) {
-	meta := PublishCommandSummaryActionMeta()
-	return meta.Method, meta.URL, func(m *gin.Context) {
-		// Build typed request wrapper
-		req := PublishCommandSummaryActionRequest{
-			Body:        nil,
-			QueryParams: m.Request.URL.Query(),
-			Headers:     m.Request.Header,
-			GinCtx:      m,
-		}
-		resp, err := handler(req)
-		if err != nil {
-			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		// If the handler returned nil (and no error), it means the response was handled manually.
-		if resp == nil {
-			return
-		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			m.Header(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			m.JSON(status, resp.Payload)
-		} else {
-			m.Status(status)
-		}
-	}
-}
-
-// PublishCommandSummaryAction is a high-level convenience wrapper around PublishCommandSummaryActionHandler.
-// It automatically constructs and registers the typed route on the Gin engine.
-// Use this when you don't need custom middleware or route grouping.
-func PublishCommandSummaryActionGin(r gin.IRoutes, handler PublishCommandSummaryActionRequestSig) {
-	method, url, h := PublishCommandSummaryActionHandler(handler)
-	r.Handle(method, url, h)
-}
 
 /**
  * Query parameters for Publish command summaryAction
@@ -275,9 +219,6 @@ func PublishCommandSummaryActionQueryFromString(rawQuery string) PublishCommandS
 	v.mapped = mapped
 	return v
 }
-func PublishCommandSummaryActionQueryFromGin(c *gin.Context) PublishCommandSummaryActionQuery {
-	return PublishCommandSummaryActionQueryFromString(c.Request.URL.RawQuery)
-}
 func PublishCommandSummaryActionQueryFromHttp(r *http.Request) PublishCommandSummaryActionQuery {
 	return PublishCommandSummaryActionQueryFromString(r.URL.RawQuery)
 }
@@ -300,26 +241,24 @@ type PublishCommandSummaryActionRequest struct {
 	// Automatically casted headers, for purpose of typesafe headers in later versions
 	Headers http.Header
 	// Gin context for each request in case of a direct access requirement
-	GinCtx *gin.Context
-	// Urfave context, per each request
-	CliCtx *cli.Command
+	// Now it's interface, so the code gen doesn't depend on the instance
+	// or gin package. Make sure you cast is later into *gin.Context, or whatever
+	// your framework is passing when creating a request.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	GinCtx interface{}
+	// Cli library helper (urfave) by default. The instance is interface{}, and you
+	// need to manually cast it to the *cli.Command, so gives you freedom and independence
+	// of external library.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	CliCtx interface{}
 	// Reference to the application instance, in such scenarios that entire
 	// application is wrapped into a single struct that holds database connection,
 	// routes, etc.
 	Application interface{}
 }
 
-func (x PublishCommandSummaryActionRequest) IsGin() bool {
-	return x.GinCtx != nil
-}
-func (x PublishCommandSummaryActionRequest) IsCli() bool {
-	return x.CliCtx != nil
-}
-
-// type PublishCommandSummaryActionResult struct {
-// /resp *http.Response
-// /	Payload interface{}
-// /}
 func PublishCommandSummaryActionClientCreateUrl(
 	req PublishCommandSummaryActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -396,4 +335,15 @@ func PublishCommandSummaryActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return PublishCommandSummaryActionClientExecuteTyped(r)
+}
+func (x PublishCommandSummaryActionRequest) IsCli() bool {
+	if x.CliCtx == nil {
+		return false
+	}
+	v := reflect.ValueOf(x.CliCtx)
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
+		return !v.IsNil()
+	}
+	return true
 }

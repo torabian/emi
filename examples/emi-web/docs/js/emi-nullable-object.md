@@ -36,6 +36,14 @@ fields:
 
 
 ```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { UncleDto } from "./UncleDto";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";

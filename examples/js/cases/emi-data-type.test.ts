@@ -236,8 +236,6 @@ describe("Generating numeric data types", () => {
     Tags: "react,typescript",
   });
 
-
-
   writeFileSync(path.join(__filename.replace(".test.ts", ".output.ts")), resp);
   it("should generate class and type", () => {
     expect(1).toBe(1);

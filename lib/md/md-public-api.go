@@ -13,7 +13,7 @@ func GetMdPublicActions() core.PublicAPIActions {
 			BaseAction: core.BaseAction{
 				Name:             "md",
 				Description:      "Describes the module in a markdown format",
-				WasmFunctionName: "goGen",
+				WasmFunctionName: "mdGen",
 				Flags:            []core.FlagDef{},
 			},
 			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {

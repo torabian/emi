@@ -201,7 +201,7 @@ func detectUsedFilesAndImports(
 	internalUsage := []string{}
 
 	for _, loc := range result.CodeChunkDependensies {
-		if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION)) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION)) {
+		if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "")) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION, "")) {
 			internalUsage = append(internalUsage, loc.Location)
 		}
 	}

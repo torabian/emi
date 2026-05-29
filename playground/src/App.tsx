@@ -9,11 +9,16 @@ import YamlEditor from "./components/YamlEditor/YamlEditor";
 import { usePlaygroundPresenter } from "./helpers/usePlaygroundPresenter";
 import { downloadZip } from "./helpers/zipTools";
 import SQLEditor from "./components/YamlEditor/SQLEditor";
+import MarkdownPreview from "./components/MarkdownPreview";
 const options = [
   { value: "goGen", label: "Golang" },
   { value: "kotlinGen", label: "Kotlin" },
   { value: "jsGenModule", label: "JavaScript" },
   { value: "sqlQueryPredict", label: "QueryPredict(SQL)" },
+  { value: "preprocessorGen", label: "Preprocessor" },
+  { value: "postmanGen", label: "Postman" },
+  { value: "openapiGen", label: "OpenApi" },
+  { value: "mdGen", label: "Markdown" },
   { value: "swiftGen", label: "Swift(All)" },
 ];
 
@@ -56,8 +61,7 @@ function App() {
           <span>
             <a target="_blank" href="https://github.com/torabian/emi">
               Github
-            </a>
-            {" "}
+            </a>{" "}
             <a target="_blank" href="https://torabian.github.io/emi">
               Documentation
             </a>
@@ -104,7 +108,15 @@ function App() {
           <div style={{ display: "flex" }}>
             {assemblyFunction === "goGen" ? (
               <FeatureSelector
-                options={["no-client"]}
+                options={[
+                  "no-client",
+                  "skip-gin",
+                  "split-gin",
+                  "skip-cli",
+                  "split-cli",
+                  "skip-http",
+                  "split-http",
+                ]}
                 setSelected={(value) => setFeatures(value)}
                 selected={features}
               />
@@ -149,16 +161,20 @@ function App() {
           </div>
           {activeFile ? (
             <>
-              <TypescriptEditor
-                key={activeFile.Name + activeFile.ActualScript} // force remount when content changes
-                allFiles={files}
-                value={activeFile.ActualScript}
-                onChange={(newValue) => {
-                  // Update the corresponding file content
-                  activeFile.ActualScript = newValue;
-                }}
-                file={activeFile}
-              />
+              {activeFile.Extension === ".md" ? (
+                <MarkdownPreview source={activeFile.ActualScript} />
+              ) : (
+                <TypescriptEditor
+                  key={activeFile.Name + activeFile.ActualScript} // force remount when content changes
+                  allFiles={files}
+                  value={activeFile.ActualScript}
+                  onChange={(newValue) => {
+                    // Update the corresponding file content
+                    activeFile.ActualScript = newValue;
+                  }}
+                  file={activeFile}
+                />
+              )}
             </>
           ) : null}
         </Panel>

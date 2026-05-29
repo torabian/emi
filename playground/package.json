@@ -12,6 +12,7 @@
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
     "file-saver": "^2.0.5",
+    "highlight.js": "^11.11.1",
     "jszip": "^3.10.1",
     "monaco-editor": "^0.52.2",
     "monaco-yaml": "^5.4.0",
@@ -19,7 +20,11 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-dropdown": "^1.11.0",
-    "react-resizable-panels": "^3.0.6"
+    "react-markdown": "^10.1.0",
+    "react-resizable-panels": "^3.0.6",
+    "rehype-highlight": "^7.0.2",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",

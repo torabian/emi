@@ -3,12 +3,11 @@ package external
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
-	"github.com/urfave/cli/v3"
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 )
 
 /**
@@ -1652,68 +1651,8 @@ func (x CreateOfferBasedOnProductActionResponse) GetPayload() interface{} {
 	return x.Payload
 }
 
-// CreateOfferBasedOnProductActionRaw registers a raw Gin route for the CreateOfferBasedOnProductAction action.
-// This gives the developer full control over middleware, handlers, and response handling.
-func CreateOfferBasedOnProductActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
-	meta := CreateOfferBasedOnProductActionMeta()
-	r.Handle(meta.Method, meta.URL, handlers...)
-}
-
+// Request signature, which is here for refernece. Now it's inlined, so auto completions suggest the function body.
 type CreateOfferBasedOnProductActionRequestSig = func(c CreateOfferBasedOnProductActionRequest) (*CreateOfferBasedOnProductActionResponse, error)
-
-// CreateOfferBasedOnProductActionHandler returns the HTTP method, route URL, and a typed Gin handler for the CreateOfferBasedOnProductAction action.
-// Developers implement their business logic as a function that receives a typed request object
-// and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
-func CreateOfferBasedOnProductActionHandler(
-	handler CreateOfferBasedOnProductActionRequestSig,
-) (method, url string, h gin.HandlerFunc) {
-	meta := CreateOfferBasedOnProductActionMeta()
-	return meta.Method, meta.URL, func(m *gin.Context) {
-		var body CreateOfferBasedOnProductActionReq
-		if err := m.ShouldBindJSON(&body); err != nil {
-			m.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
-			return
-		}
-		// Build typed request wrapper
-		req := CreateOfferBasedOnProductActionRequest{
-			Body:        body,
-			QueryParams: m.Request.URL.Query(),
-			Headers:     m.Request.Header,
-			GinCtx:      m,
-		}
-		resp, err := handler(req)
-		if err != nil {
-			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		// If the handler returned nil (and no error), it means the response was handled manually.
-		if resp == nil {
-			return
-		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			m.Header(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			m.JSON(status, resp.Payload)
-		} else {
-			m.Status(status)
-		}
-	}
-}
-
-// CreateOfferBasedOnProductAction is a high-level convenience wrapper around CreateOfferBasedOnProductActionHandler.
-// It automatically constructs and registers the typed route on the Gin engine.
-// Use this when you don't need custom middleware or route grouping.
-func CreateOfferBasedOnProductActionGin(r gin.IRoutes, handler CreateOfferBasedOnProductActionRequestSig) {
-	method, url, h := CreateOfferBasedOnProductActionHandler(handler)
-	r.Handle(method, url, h)
-}
 
 /**
  * Query parameters for Create offer based on productAction
@@ -1744,9 +1683,6 @@ func CreateOfferBasedOnProductActionQueryFromString(rawQuery string) CreateOffer
 	v.mapped = mapped
 	return v
 }
-func CreateOfferBasedOnProductActionQueryFromGin(c *gin.Context) CreateOfferBasedOnProductActionQuery {
-	return CreateOfferBasedOnProductActionQueryFromString(c.Request.URL.RawQuery)
-}
 func CreateOfferBasedOnProductActionQueryFromHttp(r *http.Request) CreateOfferBasedOnProductActionQuery {
 	return CreateOfferBasedOnProductActionQueryFromString(r.URL.RawQuery)
 }
@@ -1769,26 +1705,24 @@ type CreateOfferBasedOnProductActionRequest struct {
 	// Automatically casted headers, for purpose of typesafe headers in later versions
 	Headers http.Header
 	// Gin context for each request in case of a direct access requirement
-	GinCtx *gin.Context
-	// Urfave context, per each request
-	CliCtx *cli.Command
+	// Now it's interface, so the code gen doesn't depend on the instance
+	// or gin package. Make sure you cast is later into *gin.Context, or whatever
+	// your framework is passing when creating a request.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	GinCtx interface{}
+	// Cli library helper (urfave) by default. The instance is interface{}, and you
+	// need to manually cast it to the *cli.Command, so gives you freedom and independence
+	// of external library.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	CliCtx interface{}
 	// Reference to the application instance, in such scenarios that entire
 	// application is wrapped into a single struct that holds database connection,
 	// routes, etc.
 	Application interface{}
 }
 
-func (x CreateOfferBasedOnProductActionRequest) IsGin() bool {
-	return x.GinCtx != nil
-}
-func (x CreateOfferBasedOnProductActionRequest) IsCli() bool {
-	return x.CliCtx != nil
-}
-
-// type CreateOfferBasedOnProductActionResult struct {
-// /resp *http.Response
-// /	Payload interface{}
-// /}
 func CreateOfferBasedOnProductActionClientCreateUrl(
 	req CreateOfferBasedOnProductActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -1869,4 +1803,15 @@ func CreateOfferBasedOnProductActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return CreateOfferBasedOnProductActionClientExecuteTyped(r)
+}
+func (x CreateOfferBasedOnProductActionRequest) IsCli() bool {
+	if x.CliCtx == nil {
+		return false
+	}
+	v := reflect.ValueOf(x.CliCtx)
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
+		return !v.IsNil()
+	}
+	return true
 }

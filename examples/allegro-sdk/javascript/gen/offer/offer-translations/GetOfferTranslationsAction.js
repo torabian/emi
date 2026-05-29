@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -157,8 +165,7 @@ export class GetOfferTranslationsActionRes {
    * @type {GetOfferTranslationsActionRes.Translations}
    **/
   set translations(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -524,8 +531,7 @@ export class GetOfferTranslationsActionRes {
          * @type {GetOfferTranslationsActionRes.Translations.Description.Translation.Sections}
          **/
         set sections(value) {
-          // For arrays, you only can pass arrays to the object
-          if (!Array.isArray(value)) {
+          if (!Array.isArray(value) && !(value instanceof MCollection)) {
             return;
           }
           if (
@@ -569,8 +575,7 @@ export class GetOfferTranslationsActionRes {
            * @type {GetOfferTranslationsActionRes.Translations.Description.Translation.Sections.Items}
            **/
           set items(value) {
-            // For arrays, you only can pass arrays to the object
-            if (!Array.isArray(value)) {
+            if (!Array.isArray(value) && !(value instanceof MCollection)) {
               return;
             }
             if (
@@ -1041,8 +1046,7 @@ export class GetOfferTranslationsActionRes {
        * @type {GetOfferTranslationsActionRes.Translations.SafetyInformation.Products}
        **/
       set products(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (

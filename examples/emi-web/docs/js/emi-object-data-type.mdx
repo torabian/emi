@@ -25,6 +25,14 @@ fields:
 - `object?` allows `null`/ `undefined`.  
     
 ```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -349,6 +357,14 @@ fields:
 Defaults to `undefined`, but you can assign an object with required child fields or `null`.
     
 ```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**

@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -280,8 +288,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
       typeof GetSmartClassificationReportOfTheParticularOfferActionRes.SmartDeliveryMethods
     >[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -330,8 +337,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
       typeof GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions
     >[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -754,8 +760,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
         typeof GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.PassedDeliveryMethods
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -805,8 +810,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
         typeof GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.FailedDeliveryMethods
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (

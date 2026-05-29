@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -1024,8 +1032,7 @@ export class ModifyTheBuyNowPriceInAnOfferActionRes {
      * @type {ModifyTheBuyNowPriceInAnOfferActionRes.Output.Errors}
      **/
     set errors(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
