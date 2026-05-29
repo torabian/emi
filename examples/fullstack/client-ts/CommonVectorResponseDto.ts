@@ -1,4 +1,5 @@
 import { CommonVectorComputeDto } from "./CommonVectorComputeDto";
+import { One } from "./One";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -30,12 +31,12 @@ export class CommonVectorResponseDto {
   }
   /**
    *
-   * @type {CommonVectorComputeDto}
+   * @type {One<CommonVectorComputeDto>}
    **/
-  #request!: CommonVectorComputeDto;
+  #request!: One<CommonVectorComputeDto>;
   /**
    *
-   * @returns {CommonVectorComputeDto}
+   * @returns {One<CommonVectorComputeDto>}
    **/
   get request() {
     return this.#request;
@@ -44,18 +45,20 @@ export class CommonVectorResponseDto {
    *
    * @type {CommonVectorComputeDto}
    **/
-  set request(value: CommonVectorComputeDto) {
+  set request(value: One<CommonVectorComputeDto>) {
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof CommonVectorComputeDto) {
       this.#request = value;
     } else {
-      this.#request = new CommonVectorComputeDto(value);
+      this.#request = One.of(new CommonVectorComputeDto(value));
     }
   }
-  setRequest(value: CommonVectorComputeDto) {
+
+  setRequest(value: One<CommonVectorComputeDto>) {
     this.request = value;
     return this;
   }
+
   constructor(data: unknown = undefined) {
     if (data === null || data === undefined) {
       this.#lateInitFields();

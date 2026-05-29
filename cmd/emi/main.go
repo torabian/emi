@@ -18,6 +18,7 @@ import (
 	"github.com/torabian/emi/lib/md"
 	"github.com/torabian/emi/lib/openapi"
 	"github.com/torabian/emi/lib/postman"
+	preprocessor "github.com/torabian/emi/lib/preproceesor"
 	"github.com/torabian/emi/lib/querypredict"
 	emistrings "github.com/torabian/emi/lib/strings"
 	"github.com/torabian/emi/lib/swift"
@@ -45,6 +46,9 @@ func main() {
 
 	commands = append(commands,
 		cliCommandFromFileActions(md.GetMdPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromFileActions(preprocessor.GetPreprocessorPublicActions().FileActions)...)
 
 	commands = append(commands,
 		cliCommandFromFileActions(openapi.GetOpenAPIPublicActions().FileActions)...)

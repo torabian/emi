@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -289,8 +297,7 @@ export class GetPromoOptionsForSellerSOffersActionRes {
       typeof GetPromoOptionsForSellerSOffersActionRes.PromoOptions
     >[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -484,8 +491,7 @@ export class GetPromoOptionsForSellerSOffersActionRes {
         typeof GetPromoOptionsForSellerSOffersActionRes.PromoOptions.ExtraPackages
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -578,8 +584,7 @@ export class GetPromoOptionsForSellerSOffersActionRes {
         typeof GetPromoOptionsForSellerSOffersActionRes.PromoOptions.AdditionalMarketplaces
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -1502,8 +1507,7 @@ export class GetPromoOptionsForSellerSOffersActionRes {
           typeof GetPromoOptionsForSellerSOffersActionRes.PromoOptions.AdditionalMarketplaces.ExtraPackages
         >[],
       ) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (

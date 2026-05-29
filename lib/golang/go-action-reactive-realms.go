@@ -59,7 +59,7 @@ func GoActionReactiveRealms(
 		SafeUrl:     core.RemoveTypeAnnotations(action.GetUrl()),
 	}
 
-	pathParameter, err := GoActionPathParams(action)
+	pathParameter, err := GoActionPathParams(action, ctx)
 	if err != nil {
 		return realms, nil, err
 	}
@@ -68,7 +68,7 @@ func GoActionReactiveRealms(
 		realms.PathParameter = pathParameter
 	}
 
-	queryParams, err := GoActionQueryParams(action)
+	queryParams, err := GoActionQueryParams(action, ctx)
 	if err != nil {
 		return realms, nil, err
 	}

@@ -22,6 +22,18 @@ type goActionRealms struct {
 	RequestHeadersClass  *core.CodeChunkCompiled
 	ResponseHeadersClass *core.CodeChunkCompiled
 	RequestClassName     string
+
+	// Adds helper codes for gin, and adds it as dependency
+	EnabledGin bool
+
+	// Adds helper code for cli, might include urfave/v3
+	EnabledCli bool
+
+	// Adds std net/http helper code (no external dependency, also wasm-safe)
+	EnabledHttp bool
+
+	// Adds a build contraint, which would exlucde wasm
+	SkipGinWasm bool
 }
 
 var GEN_GO_SKIP_CLIENT = "no-client"
@@ -51,23 +63,43 @@ func GoActionRealms(
 		f.PackageName = val
 	}
 
+	realms := goActionRealms{
+		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
+		CliName:    ActionToCliName(action),
+		SafeUrl:    core.RemoveTypeAnnotations(action.GetUrl()),
+	}
+
+	// By default cli and gin is enabled. But we can disable them
+	realms.EnabledCli = !strings.Contains(ctx.Tags, "skip-cli")
+	realms.EnabledGin = !strings.Contains(ctx.Tags, "skip-gin")
+	realms.EnabledHttp = !strings.Contains(ctx.Tags, "skip-http")
+	realms.SkipGinWasm = strings.Contains(ctx.Tags, "skip-wasm-gin")
+
 	deps := []core.CodeChunkDependency{
 		{
 			Location: "net/http",
 		},
-		core.CodeChunkDependency{Location: "io"},
 		{
-			Location: "github.com/gin-gonic/gin",
+			Location: "io",
 		},
-
-		{
-			Location: "github.com/urfave/cli/v3",
-		},
-
 		{
 			Location: f.Emigo,
 		},
 	}
+
+	// Urfave is no longer needed directly.
+	// if realms.EnabledCli {
+	// 	deps = append(deps, core.CodeChunkDependency{
+	// 		Location: "github.com/urfave/cli/v3",
+	// 	})
+	// }
+
+	// Gin is being injected by go-action-gin
+	// if realms.EnabledGin {
+	// 	deps = append(deps, core.CodeChunkDependency{
+	// 		Location: "github.com/gin-gonic/gin",
+	// 	})
+	// }
 
 	if !skipGoClient {
 		deps = append(
@@ -79,17 +111,11 @@ func GoActionRealms(
 
 	}
 
-	realms := goActionRealms{
-		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
-		CliName:    ActionToCliName(action),
-		SafeUrl:    core.RemoveTypeAnnotations(action.GetUrl()),
-	}
-
 	if action.GetCliShort() != "" {
 		realms.CliShort = action.GetCliShort()
 	}
 
-	pathParameter, err := GoActionPathParams(action)
+	pathParameter, err := GoActionPathParams(action, ctx)
 	if err != nil {
 		return realms, nil, err
 	}
@@ -98,7 +124,7 @@ func GoActionRealms(
 		realms.PathParameter = pathParameter
 	}
 
-	queryParams, err := GoActionQueryParams(action)
+	queryParams, err := GoActionQueryParams(action, ctx)
 	if err != nil {
 		return realms, nil, err
 	}

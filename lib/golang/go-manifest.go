@@ -153,9 +153,12 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 	for _, action := range module.Actions {
 
 		act, _ := GoActionRender(action, ctx, []RecognizedComplex{})
+		if len(act) == 0 {
+			continue
+		}
 
 		actionName := core.FindTokenByName(
-			act.Tokens,
+			act[0].Tokens,
 			core.TOKEN_ORIGINAL_NAME,
 		).Value
 

@@ -69,10 +69,11 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		this.#{{.ctx.Name}} = correctType ? value : Boolean(value);
 	
 	{{ else if or (eq .ctx.Type "array") (eq .ctx.Type "array?") (eq .ctx.Type "collection?") (eq .ctx.Type "collection")}}
-	 	// For arrays, you only can pass arrays to the object
-	 	if (!Array.isArray(value)) {
+
+		if (!Array.isArray(value) && !(value instanceof MCollection)) {
 			return;
 		}
+
 		if (value.length > 0 && value[0] instanceof {{.ctx.ConstructorClass}}) {
 			this.#{{.ctx.Name}} = value
 		} else {

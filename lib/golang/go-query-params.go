@@ -3,6 +3,7 @@ package golang
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -15,7 +16,7 @@ type GoQueryParameterCtx struct {
 	ActionName      string
 }
 
-func GoActionQueryParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error) {
+func GoActionQueryParams(action core.EmiRpcAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
 	// If there is no query params set, we avoid it. If developer wants, manually adds it.
 
@@ -25,7 +26,7 @@ func GoActionQueryParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, err
 	// 	return nil, nil
 	// }
 
-	ctx := GoQueryParameterCtx{
+	goqctx := GoQueryParameterCtx{
 		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
 	}
 
@@ -73,7 +74,7 @@ func GoActionQueryParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, err
 {{ end }}
 
 // Query wrapper with private fields
-type {{ .ctx.ActionName }}Query struct {
+type {{ .goqctx.ActionName }}Query struct {
 	values url.Values
 	mapped map[string]interface{}
 
@@ -82,8 +83,8 @@ type {{ .ctx.ActionName }}Query struct {
 }
 
 
-func {{ .ctx.ActionName }}QueryFromString(rawQuery string) {{ .ctx.ActionName }}Query {
-	v := {{ .ctx.ActionName }}Query{}
+func {{ .goqctx.ActionName }}QueryFromString(rawQuery string) {{ .goqctx.ActionName }}Query {
+	v := {{ .goqctx.ActionName }}Query{}
 
 	values, _ := url.ParseQuery(rawQuery)
 
@@ -107,40 +108,43 @@ func {{ .ctx.ActionName }}QueryFromString(rawQuery string) {{ .ctx.ActionName }}
 }
 
 
-
-func {{ .ctx.ActionName }}QueryFromGin(c *gin.Context) {{ .ctx.ActionName }}Query {
-	return {{ .ctx.ActionName }}QueryFromString(c.Request.URL.RawQuery)
+{{ if .EnabledGin }}
+func {{ .goqctx.ActionName }}QueryFromHttp(r *http.Request) {{ .goqctx.ActionName }}Query {
+	return {{ .goqctx.ActionName }}QueryFromString(r.URL.RawQuery)
 }
+{{ end }}
 
-func {{ .ctx.ActionName }}QueryFromHttp(r *http.Request) {{ .ctx.ActionName }}Query {
-	return {{ .ctx.ActionName }}QueryFromString(r.URL.RawQuery)
-}
-
-func (q {{ .ctx.ActionName }}Query) Values() url.Values {
+func (q {{ .goqctx.ActionName }}Query) Values() url.Values {
 	return q.values
 }
 
-func (q {{ .ctx.ActionName }}Query) Mapped() map[string]interface{} {
+func (q {{ .goqctx.ActionName }}Query) Mapped() map[string]interface{} {
 	return q.mapped
 }
 
-func (q *{{ .ctx.ActionName }}Query) SetValues(v url.Values) {
+func (q *{{ .goqctx.ActionName }}Query) SetValues(v url.Values) {
 	q.values = v
 }
 
-func (q *{{ .ctx.ActionName }}Query) SetMapped(m map[string]interface{}) {
+func (q *{{ .goqctx.ActionName }}Query) SetMapped(m map[string]interface{}) {
 	q.mapped = m
 }
 
 `
 
+	// By default cli and gin is enabled. But we can disable them
+	EnabledCli := !strings.Contains(ctx.Tags, "skip-cli")
+	EnabledGin := !strings.Contains(ctx.Tags, "skip-gin")
+
 	t := template.Must(template.New("queryParams").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, map[string]any{
-		"ClassName": className,
-		"TypeName":  typeName,
-		"ctx":       ctx,
-		"qs":        action.GetQuery(),
+		"ClassName":  className,
+		"TypeName":   typeName,
+		"goqctx":     goqctx,
+		"qs":         action.GetQuery(),
+		"EnabledCli": EnabledCli,
+		"EnabledGin": EnabledGin,
 	}); err != nil {
 		return nil, err
 	}

@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -763,8 +771,7 @@ export class CreateOfferBasedOnProductActionReq {
   set productSet(
     value: InstanceType<typeof CreateOfferBasedOnProductActionReq.ProductSet>[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -1124,8 +1131,7 @@ export class CreateOfferBasedOnProductActionReq {
       typeof CreateOfferBasedOnProductActionReq.Attachments
     >[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -1892,8 +1898,7 @@ export class CreateOfferBasedOnProductActionReq {
         typeof CreateOfferBasedOnProductActionReq.ProductSet.Deposits
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -2057,8 +2062,7 @@ export class CreateOfferBasedOnProductActionReq {
           typeof CreateOfferBasedOnProductActionReq.ProductSet.Product.Parameters
         >[],
       ) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -5493,8 +5497,7 @@ export class CreateOfferBasedOnProductActionReq {
         typeof CreateOfferBasedOnProductActionReq.CompatibilityList.Items
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -5806,8 +5809,7 @@ export class CreateOfferBasedOnProductActionReq {
         typeof CreateOfferBasedOnProductActionReq.Description.Sections
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -5858,8 +5860,7 @@ export class CreateOfferBasedOnProductActionReq {
           typeof CreateOfferBasedOnProductActionReq.Description.Sections.Items
         >[],
       ) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -8526,8 +8527,7 @@ export class CreateOfferBasedOnProductActionReq {
         typeof CreateOfferBasedOnProductActionReq.TaxSettings.Rates
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (

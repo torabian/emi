@@ -288,15 +288,19 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 
 {{ define "printClass" }}
 
-func Get{{ .FullClassName }}CliFlags(prefix string) []emigo.CliFlag {
+{{ $item := index . 0 }}
+{{ $enabledCli := index . 1 }}
+
+{{ if $enabledCli }}
+func Get{{ $item.FullClassName }}CliFlags(prefix string) []emigo.CliFlag {
 
 	return []emigo.CliFlag{
-		{{ range .Fields }}
+		{{ range $item.Fields }}
 		{
 			Name: prefix + "{{ .CliName }}",
 			Type: "{{ .Type }}",
 			{{ if eq .Type "object" }}
-			Children: Get{{ $.FullClassName }}{{upper .Name}}CliFlags("{{ .CliName }}-"),
+			Children: Get{{ $item.FullClassName }}{{upper .Name}}CliFlags("{{ .CliName }}-"),
 			{{ end }}
 			{{ if .Description }}
 			Description: {{escapeBackTick .Description}},
@@ -306,10 +310,11 @@ func Get{{ .FullClassName }}CliFlags(prefix string) []emigo.CliFlag {
 	}
 }
 
-{{ .CliCastFunction }} {
-	data := {{ .FullClassName }}{}
 
-	{{ range .Fields }}
+{{ $item.CliCastFunction }} {
+	data := {{ $item.FullClassName }}{}
+
+	{{ range $item.Fields }}
 		{{ if .CliCaptureStatement }}
 			{{ .CliCaptureStatement}}
 		{{ end }}
@@ -317,24 +322,25 @@ func Get{{ .FullClassName }}CliFlags(prefix string) []emigo.CliFlag {
 
 	return data
 }
+{{ end }}
 
-{{ .GoDoc }}
-{{ .Signature  }} {
-	{{ range .Fields }}
+{{ $item.GoDoc }}
+{{ $item.Signature  }} {
+	{{ range $item.Fields }}
 		{{ .PrivateField }}
 	{{ end }}
 }
 
 
 
-	{{ range .SubClasses }}
-		{{ template "printClass" . }}
+	{{ range $item.SubClasses }}
+		{{ template "printClass" (arr . $enabledCli) }}
 	{{ end }}
 
 
 {{ end }}
 {{ range .renderedClasses }}
-	{{ template "printClass" . }}
+	{{ template "printClass" (arr . $.EnabledCli) }}
 {{ end }}
 func (x *{{ .rootClass }}) Json() string {
 	if x != nil {
@@ -349,11 +355,17 @@ func (x *{{ .rootClass }}) Json() string {
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
 
+	// By default cli and gin is enabled. But we can disable them
+	EnabledCli := !strings.Contains(ctx.Tags, "skip-cli")
+	EnabledGin := !strings.Contains(ctx.Tags, "skip-gin")
+
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"renderedClasses":    renderedClasses,
 		"emiRuntimeLocation": emiLocation,
 		"rootClass":          core.ToUpper(goctx.RootClassName),
+		"EnabledCli":         EnabledCli,
+		"EnabledGin":         EnabledGin,
 	}); err != nil {
 		return nil, err
 	}

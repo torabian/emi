@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -229,8 +237,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
    * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.SmartDeliveryMethods}
    **/
   set smartDeliveryMethods(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -269,8 +276,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
    * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions}
    **/
   set conditions(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -663,8 +669,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
      * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.PassedDeliveryMethods}
      **/
     set passedDeliveryMethods(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -704,8 +709,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
      * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.FailedDeliveryMethods}
      **/
     set failedDeliveryMethods(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (

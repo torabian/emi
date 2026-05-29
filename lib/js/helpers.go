@@ -217,7 +217,7 @@ func commonJsModuleFileCompiler(
 	return result, nil
 }
 
-func getSdkAwareLocation(ctx core.MicroGenContext, pathPlaceHolder string) string {
+func getSdkAwareLocation(ctx core.MicroGenContext, locationDir string, fileName string) string {
 
 	// By default, the location is ./sdk. Flag such as --js-sdk-location=../../../sdk can change that.
 	prefix := "./sdk"
@@ -226,5 +226,20 @@ func getSdkAwareLocation(ctx core.MicroGenContext, pathPlaceHolder string) strin
 		prefix = val
 	}
 
-	return strings.ReplaceAll(pathPlaceHolder, "{sdk}", prefix)
+	full := strings.ReplaceAll(locationDir, "{sdk}", prefix)
+
+	if fileName != "" {
+		full += "/" + fileName
+
+		// When importing a file in js, then, it would include the .ts or .js extension
+		if strings.Contains(ctx.Tags, "include-ext") {
+			ext := ".js"
+			if strings.Contains(ctx.Tags, "typescript") {
+				ext = ".ts"
+			}
+			full += ext
+		}
+	}
+
+	return full
 }

@@ -25,6 +25,14 @@ fields:
 - `array?` allows `null`/ `undefined`.  
     
 ```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -48,8 +56,7 @@ export class MyArrayClassDto {
    * @type {MyArrayClassDto.Contacts}
    **/
   set contacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
@@ -341,6 +348,14 @@ fields:
 Arrays can hold primitive types or nested objects.
     
 ```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -364,8 +379,7 @@ export class MyArrayClassDto {
    * @type {MyArrayClassDto.Contacts}
    **/
   set contacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
@@ -652,6 +666,14 @@ fields:
 Defaults to `undefined`, but you can assign an array or `null`.
     
 ```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -686,8 +708,7 @@ export class MyArrayClassDto {
       | null
       | undefined,
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (value.length > 0 && value[0] instanceof MyArrayClassDto.NullableTags) {

@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -1340,8 +1348,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
       typeof GetAllDataOfTheParticularProductOfferActionRes.ProductSet
     >[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -1388,8 +1395,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
       typeof GetAllDataOfTheParticularProductOfferActionRes.Attachments
     >[],
   ) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -2483,8 +2489,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
           typeof GetAllDataOfTheParticularProductOfferActionRes.Publication.Marketplaces.Additional
         >[],
       ) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -5372,8 +5377,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
         typeof GetAllDataOfTheParticularProductOfferActionRes.Description.Sections
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -5426,8 +5430,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
           typeof GetAllDataOfTheParticularProductOfferActionRes.Description.Sections.Items
         >[],
       ) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -6063,8 +6066,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
         typeof GetAllDataOfTheParticularProductOfferActionRes.ProductSet.Deposits
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -6337,8 +6339,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
           typeof GetAllDataOfTheParticularProductOfferActionRes.ProductSet.Product.Parameters
         >[],
       ) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -6608,8 +6609,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
             typeof GetAllDataOfTheParticularProductOfferActionRes.ProductSet.Product.Parameters.Values
           >[],
         ) {
-          // For arrays, you only can pass arrays to the object
-          if (!Array.isArray(value)) {
+          if (!Array.isArray(value) && !(value instanceof MCollection)) {
             return;
           }
           if (
@@ -6659,8 +6659,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
             typeof GetAllDataOfTheParticularProductOfferActionRes.ProductSet.Product.Parameters.ValuesIds
           >[],
         ) {
-          // For arrays, you only can pass arrays to the object
-          if (!Array.isArray(value)) {
+          if (!Array.isArray(value) && !(value instanceof MCollection)) {
             return;
           }
           if (
@@ -8811,8 +8810,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
         typeof GetAllDataOfTheParticularProductOfferActionRes.Validation.Errors
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -8861,8 +8859,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
         typeof GetAllDataOfTheParticularProductOfferActionRes.Validation.Warnings
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -10214,8 +10211,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
         typeof GetAllDataOfTheParticularProductOfferActionRes.TaxSettings.Rates
       >[],
     ) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (

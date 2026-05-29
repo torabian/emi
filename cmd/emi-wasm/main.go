@@ -11,6 +11,10 @@ import (
 	"github.com/torabian/emi/lib/golang"
 	emijs "github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
+	"github.com/torabian/emi/lib/md"
+	"github.com/torabian/emi/lib/openapi"
+	"github.com/torabian/emi/lib/postman"
+	preprocessor "github.com/torabian/emi/lib/preproceesor"
 	"github.com/torabian/emi/lib/querypredict"
 	"github.com/torabian/emi/lib/swift"
 )
@@ -40,6 +44,22 @@ func main() {
 	}
 
 	for _, fileAction := range querypredict.GetQPPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, fileAction := range preprocessor.GetPreprocessorPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, fileAction := range md.GetMdPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, fileAction := range openapi.GetOpenAPIPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, fileAction := range postman.GetPostmanPublicActions().FileActions {
 		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
 	}
 

@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -1201,8 +1209,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
    * @type {GetAllDataOfTheParticularProductOfferActionRes.ProductSet}
    **/
   set productSet(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -1239,8 +1246,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
    * @type {GetAllDataOfTheParticularProductOfferActionRes.Attachments}
    **/
   set attachments(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -2184,8 +2190,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
        * @type {GetAllDataOfTheParticularProductOfferActionRes.Publication.Marketplaces.Additional}
        **/
       set additional(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -4813,8 +4818,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
      * @type {GetAllDataOfTheParticularProductOfferActionRes.Description.Sections}
      **/
     set sections(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -4857,8 +4861,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
        * @type {GetAllDataOfTheParticularProductOfferActionRes.Description.Sections.Items}
        **/
       set items(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -5404,8 +5407,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
      * @type {GetAllDataOfTheParticularProductOfferActionRes.ProductSet.Deposits}
      **/
     set deposits(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -5648,8 +5650,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
        * @type {GetAllDataOfTheParticularProductOfferActionRes.ProductSet.Product.Parameters}
        **/
       set parameters(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -5889,8 +5890,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
          * @type {GetAllDataOfTheParticularProductOfferActionRes.ProductSet.Product.Parameters.Values}
          **/
         set values(value) {
-          // For arrays, you only can pass arrays to the object
-          if (!Array.isArray(value)) {
+          if (!Array.isArray(value) && !(value instanceof MCollection)) {
             return;
           }
           if (
@@ -5930,8 +5930,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
          * @type {GetAllDataOfTheParticularProductOfferActionRes.ProductSet.Product.Parameters.ValuesIds}
          **/
         set valuesIds(value) {
-          // For arrays, you only can pass arrays to the object
-          if (!Array.isArray(value)) {
+          if (!Array.isArray(value) && !(value instanceof MCollection)) {
             return;
           }
           if (
@@ -7924,8 +7923,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
      * @type {GetAllDataOfTheParticularProductOfferActionRes.Validation.Errors}
      **/
     set errors(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -7964,8 +7962,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
      * @type {GetAllDataOfTheParticularProductOfferActionRes.Validation.Warnings}
      **/
     set warnings(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -9217,8 +9214,7 @@ export class GetAllDataOfTheParticularProductOfferActionRes {
      * @type {GetAllDataOfTheParticularProductOfferActionRes.TaxSettings.Rates}
      **/
     set rates(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (

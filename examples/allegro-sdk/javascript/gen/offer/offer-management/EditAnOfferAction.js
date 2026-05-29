@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -1425,8 +1433,7 @@ export class EditAnOfferActionReq {
    * @type {EditAnOfferActionReq.ProductSet}
    **/
   set productSet(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -1733,8 +1740,7 @@ export class EditAnOfferActionReq {
    * @type {EditAnOfferActionReq.Attachments}
    **/
   set attachments(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -2338,8 +2344,7 @@ export class EditAnOfferActionReq {
      * @type {EditAnOfferActionReq.ProductSet.Deposits}
      **/
     set deposits(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -2477,8 +2482,7 @@ export class EditAnOfferActionReq {
        * @type {EditAnOfferActionReq.ProductSet.Product.Parameters}
        **/
       set parameters(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -5595,8 +5599,7 @@ export class EditAnOfferActionReq {
      * @type {EditAnOfferActionReq.CompatibilityList.Items}
      **/
     set items(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -5866,8 +5869,7 @@ export class EditAnOfferActionReq {
      * @type {EditAnOfferActionReq.Description.Sections}
      **/
     set sections(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -5906,8 +5908,7 @@ export class EditAnOfferActionReq {
        * @type {EditAnOfferActionReq.Description.Sections.Items}
        **/
       set items(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -8319,8 +8320,7 @@ export class EditAnOfferActionReq {
      * @type {EditAnOfferActionReq.TaxSettings.Rates}
      **/
     set rates(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -9232,8 +9232,7 @@ export class EditAnOfferActionRes {
    * @type {EditAnOfferActionRes.ProductSet}
    **/
   set productSet(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -9632,8 +9631,7 @@ export class EditAnOfferActionRes {
    * @type {EditAnOfferActionRes.Attachments}
    **/
   set attachments(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -10248,8 +10246,7 @@ export class EditAnOfferActionRes {
      * @type {EditAnOfferActionRes.ProductSet.Deposits}
      **/
     set deposits(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -10479,8 +10476,7 @@ export class EditAnOfferActionRes {
        * @type {EditAnOfferActionRes.ProductSet.Product.Parameters}
        **/
       set parameters(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -13374,8 +13370,7 @@ export class EditAnOfferActionRes {
        * @type {EditAnOfferActionRes.Publication.Marketplaces.Additional}
        **/
       set additional(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -14293,8 +14288,7 @@ export class EditAnOfferActionRes {
        * @type {EditAnOfferActionRes.AdditionalMarketplaces.Publication.RefusalReasons}
        **/
       set refusalReasons(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (
@@ -15140,8 +15134,7 @@ export class EditAnOfferActionRes {
      * @type {EditAnOfferActionRes.Validation.Errors}
      **/
     set errors(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -15176,8 +15169,7 @@ export class EditAnOfferActionRes {
      * @type {EditAnOfferActionRes.Validation.Warnings}
      **/
     set warnings(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -17864,8 +17856,7 @@ export class EditAnOfferActionRes {
      * @type {EditAnOfferActionRes.TaxSettings.Rates}
      **/
     set rates(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -18281,8 +18272,7 @@ export class EditAnOfferActionRes {
      * @type {EditAnOfferActionRes.Description.Sections}
      **/
     set sections(value) {
-      // For arrays, you only can pass arrays to the object
-      if (!Array.isArray(value)) {
+      if (!Array.isArray(value) && !(value instanceof MCollection)) {
         return;
       }
       if (
@@ -18321,8 +18311,7 @@ export class EditAnOfferActionRes {
        * @type {EditAnOfferActionRes.Description.Sections.Items}
        **/
       set items(value) {
-        // For arrays, you only can pass arrays to the object
-        if (!Array.isArray(value)) {
+        if (!Array.isArray(value) && !(value instanceof MCollection)) {
           return;
         }
         if (

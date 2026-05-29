@@ -15,8 +15,9 @@ import (
 
 	"github.com/torabian/emi/lib/core"
 
+	js_envelopes "github.com/torabian/emi/lib/js/js-envelopes"
+	jssdk "github.com/torabian/emi/lib/js/js-sdk"
 	ts_envelopes "github.com/torabian/emi/lib/js/ts-envelopes"
-	jssdk "github.com/torabian/emi/lib/js/ts-sdk"
 	tssdk "github.com/torabian/emi/lib/js/ts-sdk"
 )
 
@@ -204,7 +205,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	for _, action := range actionsRendered {
 
 		for _, loc := range action.CodeChunkDependensies {
-			if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION)) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION)) {
+			if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "")) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION, "")) {
 
 				internalUsage = append(internalUsage, loc.Location)
 				continue
@@ -221,7 +222,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 
 	for _, dtoItem := range dtos {
 		for _, loc := range dtoItem.CodeChunkDependensies {
-			if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION)) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION)) {
+			if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "")) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION, "")) {
 				internalUsage = append(internalUsage, loc.Location)
 				continue
 			}
@@ -251,7 +252,14 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	skipEnvelopes := strings.Contains(ctx.Tags, GEN_SKIP_ENVELOPES)
 
 	if !skipEnvelopes {
-		var source *embed.FS = &ts_envelopes.Content
+		var source *embed.FS
+
+		if isTypeScript {
+			source = &ts_envelopes.Content
+		} else {
+			source = &js_envelopes.Content
+		}
+
 		files = append(files, core.FsEmbedToVirtualFile(source, "sdk/envelopes")...)
 	}
 

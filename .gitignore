@@ -1,7 +1,7 @@
 node_modules
 /emi
 .DS_Store
-*.wasm
+
 __webdir
 
 envelopes/build
@@ -9,3 +9,6 @@ envelopes/build
 artifacts
 
 emi.exe
+examples/in-browser-server/browser/server
+examples/emi-wasm-helper/emi-compiler.wasm
+playground/public/emi-compiler.wasm

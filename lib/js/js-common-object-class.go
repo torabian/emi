@@ -186,7 +186,7 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	if hasChildrenWithStaticFields {
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
 			Objects:  []string{"withPrefix"},
-			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/withPrefix",
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "withPrefix"),
 		})
 	}
 
@@ -194,7 +194,7 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	if isTypeScript {
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
 			Objects:  []string{"type PartialDeep"},
-			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION) + "/fetchx",
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "fetchx"),
 		})
 	}
 

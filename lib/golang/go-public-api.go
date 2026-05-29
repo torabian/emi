@@ -203,17 +203,19 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 
 	for _, action := range module.Actions {
 
-		output, err := GoActionRender(action, ctx, complexes)
+		outputs, err := GoActionRender(action, ctx, complexes)
 
 		if err != nil {
 			return nil, err
 		}
 
-		files = append(files, core.VirtualFile{
-			Name:         output.SuggestedFileName,
-			Extension:    output.SuggestedExtension,
-			ActualScript: AsFullDocument(output, f.PackageName),
-		})
+		for _, output := range outputs {
+			files = append(files, core.VirtualFile{
+				Name:         output.SuggestedFileName,
+				Extension:    output.SuggestedExtension,
+				ActualScript: AsFullDocument(output, f.PackageName),
+			})
+		}
 	}
 
 	vsqlFiles, err := GoVsqlsGenerate(module, ctx, complexes, f.Emigo, f.PackageName)

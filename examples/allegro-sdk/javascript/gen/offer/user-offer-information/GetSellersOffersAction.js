@@ -1,3 +1,11 @@
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -511,8 +519,7 @@ export class GetSellersOffersActionRes {
    * @type {GetSellersOffersActionRes.Offers}
    **/
   set offers(value) {
-    // For arrays, you only can pass arrays to the object
-    if (!Array.isArray(value)) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
       return;
     }
     if (
@@ -3069,8 +3076,7 @@ export class GetSellersOffersActionRes {
          * @type {GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional}
          **/
         set additional(value) {
-          // For arrays, you only can pass arrays to the object
-          if (!Array.isArray(value)) {
+          if (!Array.isArray(value) && !(value instanceof MCollection)) {
             return;
           }
           if (

@@ -3,12 +3,11 @@ package external
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
-	"github.com/urfave/cli/v3"
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 )
 
 /**
@@ -295,68 +294,8 @@ func (x UpdateOfferTranslationActionResponse) GetPayload() interface{} {
 	return x.Payload
 }
 
-// UpdateOfferTranslationActionRaw registers a raw Gin route for the UpdateOfferTranslationAction action.
-// This gives the developer full control over middleware, handlers, and response handling.
-func UpdateOfferTranslationActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
-	meta := UpdateOfferTranslationActionMeta()
-	r.Handle(meta.Method, meta.URL, handlers...)
-}
-
+// Request signature, which is here for refernece. Now it's inlined, so auto completions suggest the function body.
 type UpdateOfferTranslationActionRequestSig = func(c UpdateOfferTranslationActionRequest) (*UpdateOfferTranslationActionResponse, error)
-
-// UpdateOfferTranslationActionHandler returns the HTTP method, route URL, and a typed Gin handler for the UpdateOfferTranslationAction action.
-// Developers implement their business logic as a function that receives a typed request object
-// and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
-func UpdateOfferTranslationActionHandler(
-	handler UpdateOfferTranslationActionRequestSig,
-) (method, url string, h gin.HandlerFunc) {
-	meta := UpdateOfferTranslationActionMeta()
-	return meta.Method, meta.URL, func(m *gin.Context) {
-		var body UpdateOfferTranslationActionReq
-		if err := m.ShouldBindJSON(&body); err != nil {
-			m.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
-			return
-		}
-		// Build typed request wrapper
-		req := UpdateOfferTranslationActionRequest{
-			Body:        body,
-			QueryParams: m.Request.URL.Query(),
-			Headers:     m.Request.Header,
-			GinCtx:      m,
-		}
-		resp, err := handler(req)
-		if err != nil {
-			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		// If the handler returned nil (and no error), it means the response was handled manually.
-		if resp == nil {
-			return
-		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			m.Header(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			m.JSON(status, resp.Payload)
-		} else {
-			m.Status(status)
-		}
-	}
-}
-
-// UpdateOfferTranslationAction is a high-level convenience wrapper around UpdateOfferTranslationActionHandler.
-// It automatically constructs and registers the typed route on the Gin engine.
-// Use this when you don't need custom middleware or route grouping.
-func UpdateOfferTranslationActionGin(r gin.IRoutes, handler UpdateOfferTranslationActionRequestSig) {
-	method, url, h := UpdateOfferTranslationActionHandler(handler)
-	r.Handle(method, url, h)
-}
 
 /**
  * Query parameters for Update offer translationAction
@@ -387,9 +326,6 @@ func UpdateOfferTranslationActionQueryFromString(rawQuery string) UpdateOfferTra
 	v.mapped = mapped
 	return v
 }
-func UpdateOfferTranslationActionQueryFromGin(c *gin.Context) UpdateOfferTranslationActionQuery {
-	return UpdateOfferTranslationActionQueryFromString(c.Request.URL.RawQuery)
-}
 func UpdateOfferTranslationActionQueryFromHttp(r *http.Request) UpdateOfferTranslationActionQuery {
 	return UpdateOfferTranslationActionQueryFromString(r.URL.RawQuery)
 }
@@ -412,26 +348,24 @@ type UpdateOfferTranslationActionRequest struct {
 	// Automatically casted headers, for purpose of typesafe headers in later versions
 	Headers http.Header
 	// Gin context for each request in case of a direct access requirement
-	GinCtx *gin.Context
-	// Urfave context, per each request
-	CliCtx *cli.Command
+	// Now it's interface, so the code gen doesn't depend on the instance
+	// or gin package. Make sure you cast is later into *gin.Context, or whatever
+	// your framework is passing when creating a request.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	GinCtx interface{}
+	// Cli library helper (urfave) by default. The instance is interface{}, and you
+	// need to manually cast it to the *cli.Command, so gives you freedom and independence
+	// of external library.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	CliCtx interface{}
 	// Reference to the application instance, in such scenarios that entire
 	// application is wrapped into a single struct that holds database connection,
 	// routes, etc.
 	Application interface{}
 }
 
-func (x UpdateOfferTranslationActionRequest) IsGin() bool {
-	return x.GinCtx != nil
-}
-func (x UpdateOfferTranslationActionRequest) IsCli() bool {
-	return x.CliCtx != nil
-}
-
-// type UpdateOfferTranslationActionResult struct {
-// /resp *http.Response
-// /	Payload interface{}
-// /}
 func UpdateOfferTranslationActionClientCreateUrl(
 	req UpdateOfferTranslationActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -512,4 +446,15 @@ func UpdateOfferTranslationActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return UpdateOfferTranslationActionClientExecuteTyped(r)
+}
+func (x UpdateOfferTranslationActionRequest) IsCli() bool {
+	if x.CliCtx == nil {
+		return false
+	}
+	v := reflect.ValueOf(x.CliCtx)
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
+		return !v.IsNil()
+	}
+	return true
 }

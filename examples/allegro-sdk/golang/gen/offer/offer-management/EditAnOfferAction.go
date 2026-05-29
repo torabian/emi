@@ -3,12 +3,11 @@ package external
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"github.com/torabian/emi/public/allegro-sdk/golang/emigo"
-	"github.com/urfave/cli/v3"
 	"io"
 	"net/http"
 	"net/url"
+	"reflect"
 )
 
 /**
@@ -3579,68 +3578,8 @@ func (x EditAnOfferActionResponse) GetPayload() interface{} {
 	return x.Payload
 }
 
-// EditAnOfferActionRaw registers a raw Gin route for the EditAnOfferAction action.
-// This gives the developer full control over middleware, handlers, and response handling.
-func EditAnOfferActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
-	meta := EditAnOfferActionMeta()
-	r.Handle(meta.Method, meta.URL, handlers...)
-}
-
+// Request signature, which is here for refernece. Now it's inlined, so auto completions suggest the function body.
 type EditAnOfferActionRequestSig = func(c EditAnOfferActionRequest) (*EditAnOfferActionResponse, error)
-
-// EditAnOfferActionHandler returns the HTTP method, route URL, and a typed Gin handler for the EditAnOfferAction action.
-// Developers implement their business logic as a function that receives a typed request object
-// and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
-func EditAnOfferActionHandler(
-	handler EditAnOfferActionRequestSig,
-) (method, url string, h gin.HandlerFunc) {
-	meta := EditAnOfferActionMeta()
-	return meta.Method, meta.URL, func(m *gin.Context) {
-		var body EditAnOfferActionReq
-		if err := m.ShouldBindJSON(&body); err != nil {
-			m.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
-			return
-		}
-		// Build typed request wrapper
-		req := EditAnOfferActionRequest{
-			Body:        body,
-			QueryParams: m.Request.URL.Query(),
-			Headers:     m.Request.Header,
-			GinCtx:      m,
-		}
-		resp, err := handler(req)
-		if err != nil {
-			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		// If the handler returned nil (and no error), it means the response was handled manually.
-		if resp == nil {
-			return
-		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			m.Header(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			m.JSON(status, resp.Payload)
-		} else {
-			m.Status(status)
-		}
-	}
-}
-
-// EditAnOfferAction is a high-level convenience wrapper around EditAnOfferActionHandler.
-// It automatically constructs and registers the typed route on the Gin engine.
-// Use this when you don't need custom middleware or route grouping.
-func EditAnOfferActionGin(r gin.IRoutes, handler EditAnOfferActionRequestSig) {
-	method, url, h := EditAnOfferActionHandler(handler)
-	r.Handle(method, url, h)
-}
 
 /**
  * Query parameters for Edit an offerAction
@@ -3671,9 +3610,6 @@ func EditAnOfferActionQueryFromString(rawQuery string) EditAnOfferActionQuery {
 	v.mapped = mapped
 	return v
 }
-func EditAnOfferActionQueryFromGin(c *gin.Context) EditAnOfferActionQuery {
-	return EditAnOfferActionQueryFromString(c.Request.URL.RawQuery)
-}
 func EditAnOfferActionQueryFromHttp(r *http.Request) EditAnOfferActionQuery {
 	return EditAnOfferActionQueryFromString(r.URL.RawQuery)
 }
@@ -3696,26 +3632,24 @@ type EditAnOfferActionRequest struct {
 	// Automatically casted headers, for purpose of typesafe headers in later versions
 	Headers http.Header
 	// Gin context for each request in case of a direct access requirement
-	GinCtx *gin.Context
-	// Urfave context, per each request
-	CliCtx *cli.Command
+	// Now it's interface, so the code gen doesn't depend on the instance
+	// or gin package. Make sure you cast is later into *gin.Context, or whatever
+	// your framework is passing when creating a request.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	GinCtx interface{}
+	// Cli library helper (urfave) by default. The instance is interface{}, and you
+	// need to manually cast it to the *cli.Command, so gives you freedom and independence
+	// of external library.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	CliCtx interface{}
 	// Reference to the application instance, in such scenarios that entire
 	// application is wrapped into a single struct that holds database connection,
 	// routes, etc.
 	Application interface{}
 }
 
-func (x EditAnOfferActionRequest) IsGin() bool {
-	return x.GinCtx != nil
-}
-func (x EditAnOfferActionRequest) IsCli() bool {
-	return x.CliCtx != nil
-}
-
-// type EditAnOfferActionResult struct {
-// /resp *http.Response
-// /	Payload interface{}
-// /}
 func EditAnOfferActionClientCreateUrl(
 	req EditAnOfferActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -3796,4 +3730,15 @@ func EditAnOfferActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return EditAnOfferActionClientExecuteTyped(r)
+}
+func (x EditAnOfferActionRequest) IsCli() bool {
+	if x.CliCtx == nil {
+		return false
+	}
+	v := reflect.ValueOf(x.CliCtx)
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
+		return !v.IsNil()
+	}
+	return true
 }

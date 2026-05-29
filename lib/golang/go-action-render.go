@@ -12,12 +12,19 @@ func GoActionRender(
 	action core.EmiRpcAction,
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
-) (*core.CodeChunkCompiled, error) {
+) ([]*core.CodeChunkCompiled, error) {
 
 	if action.GetMethod() == "reactive" {
-		return GoActionRenderReactive(action, ctx, complexes)
+		reactive, err := GoActionRenderReactive(action, ctx, complexes)
+		if err != nil {
+			return nil, err
+		}
+		return []*core.CodeChunkCompiled{reactive}, nil
 	}
 	skipGoClient := strings.Contains(ctx.Tags, GEN_GO_SKIP_CLIENT)
+	splitGin := strings.Contains(ctx.Tags, "split-gin")
+	splitCli := strings.Contains(ctx.Tags, "split-cli")
+	splitHttp := strings.Contains(ctx.Tags, "split-http")
 
 	realms, deps, err := GoActionRealms(action, ctx, complexes)
 	if err != nil {
@@ -162,89 +169,8 @@ func (x {{ .realms.ActionName }}Response) GetPayload() interface{} {
 	return x.Payload
 }
 
-
-// {{ .realms.ActionName }}Raw registers a raw Gin route for the {{ .realms.ActionName }} action.
-// This gives the developer full control over middleware, handlers, and response handling.
-func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
-	meta := {{ .realms.ActionName }}Meta()
-	r.Handle(meta.Method, meta.URL, handlers...)
-}
-
-
+// Request signature, which is here for refernece. Now it's inlined, so auto completions suggest the function body.
 type {{ .realms.ActionName }}RequestSig = func(c {{ .realms.ActionName }}Request) (*{{ .realms.ActionName }}Response, error)
-
-
-
-// {{ .realms.ActionName }}Handler returns the HTTP method, route URL, and a typed Gin handler for the {{ .realms.ActionName }} action.
-// Developers implement their business logic as a function that receives a typed request object
-// and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
-func {{ .realms.ActionName }}Handler(
-	handler {{ .realms.ActionName }}RequestSig,
-) (method, url string, h gin.HandlerFunc) {
-	meta := {{ .realms.ActionName }}Meta()
-	return meta.Method, meta.URL, func(m *gin.Context) {
-		{{ if .realms.RequestClassName }}
-		var body {{ .realms.RequestClassName }}
-		if err := m.ShouldBindJSON(&body); err != nil {
-			m.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
-			return
-		}
-		{{ end }}
-
-		// Build typed request wrapper
-		req := {{ .realms.ActionName }}Request{
-			{{ if .realms.RequestClassName }}
-				Body:        body,
-			{{ else }}
-				Body: nil,
-			{{ end }}
-			{{ if .realms.PathParameter }}
-			Params: {{ .realms.ActionName }}PathParameterFromGin(m),
-			{{ end }}
-			QueryParams: m.Request.URL.Query(),
-			Headers:     m.Request.Header,
-			GinCtx: m,
-		}
-
-
-		resp, err := handler(req)
-		if err != nil {
-			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		// If the handler returned nil (and no error), it means the response was handled manually.
-		if resp == nil {
-			return
-		}
-
-		// Apply headers
-		for k, v := range resp.Headers {
-			m.Header(k, v)
-		}
-
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-
-		if resp.Payload != nil {
-			m.JSON(status, resp.Payload)
-		} else {
-			m.Status(status)
-		}
-	}
-}
-
-// {{ .realms.ActionName }} is a high-level convenience wrapper around {{ .realms.ActionName }}Handler.
-// It automatically constructs and registers the typed route on the Gin engine.
-// Use this when you don't need custom middleware or route grouping.
-func {{ .realms.ActionName }}Gin(r gin.IRoutes, handler {{ .realms.ActionName }}RequestSig,) {
-	method, url, h := {{ .realms.ActionName }}Handler(handler)
-	r.Handle(method, url, h)
-}
-
 
 {{ if .realms.PathParameter }}
 	{{ b2s .realms.PathParameter.ActualScript }}
@@ -268,30 +194,30 @@ type {{ .realms.ActionName }}Request struct {
 	// Automatically casted headers, for purpose of typesafe headers in later versions
 	Headers http.Header
 
+	{{ if .realms.EnabledGin }}
 	// Gin context for each request in case of a direct access requirement
-	GinCtx      *gin.Context
+	// Now it's interface, so the code gen doesn't depend on the instance
+	// or gin package. Make sure you cast is later into *gin.Context, or whatever
+	// your framework is passing when creating a request.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	GinCtx      interface{}
+	{{ end }}
 
-	// Urfave context, per each request
-	CliCtx *cli.Command
+	{{ if .realms.EnabledCli }}
+	// Cli library helper (urfave) by default. The instance is interface{}, and you
+	// need to manually cast it to the *cli.Command, so gives you freedom and independence
+	// of external library.
+	// Ideally, you should not be needing this, and emi has to provide necessary helper
+	// functions to read and write a request.
+	CliCtx interface{}
+	{{ end }}
 
 	// Reference to the application instance, in such scenarios that entire
 	// application is wrapped into a single struct that holds database connection,
 	// routes, etc.
 	Application interface{}
 }
-
-func (x {{ .realms.ActionName }}Request) IsGin() bool {
-	return x.GinCtx != nil
-}
-
-func (x {{ .realms.ActionName }}Request) IsCli() bool {
-	return x.CliCtx != nil
-}
-
-//type {{ .realms.ActionName }}Result struct {
-///resp *http.Response
-///	Payload interface{}
-///}
 
 {{ if .EnableClientRequest }}
 
@@ -425,5 +351,46 @@ func {{ .realms.ActionName }}Call(
 	res.SuggestedExtension = ".go"
 	res.CodeChunkDependensies = deps
 
-	return res, nil
+	files := []*core.CodeChunkCompiled{res}
+
+	if realms.EnabledGin {
+		ginChunk, err := GoActionGinRender(action, ctx, realms)
+		if err != nil {
+			return nil, err
+		}
+		if splitGin {
+			files = append(files, ginChunk)
+		} else {
+			res.ActualScript = append(res.ActualScript, ginChunk.ActualScript...)
+			res.CodeChunkDependensies = append(res.CodeChunkDependensies, ginChunk.CodeChunkDependensies...)
+		}
+	}
+
+	if realms.EnabledCli {
+		cliChunk, err := GoActionCliRender(action, ctx, realms)
+		if err != nil {
+			return nil, err
+		}
+		if splitCli {
+			files = append(files, cliChunk)
+		} else {
+			res.ActualScript = append(res.ActualScript, cliChunk.ActualScript...)
+			res.CodeChunkDependensies = append(res.CodeChunkDependensies, cliChunk.CodeChunkDependensies...)
+		}
+	}
+
+	if realms.EnabledHttp {
+		httpChunk, err := GoActionHttpRender(action, ctx, realms)
+		if err != nil {
+			return nil, err
+		}
+		if splitHttp {
+			files = append(files, httpChunk)
+		} else {
+			res.ActualScript = append(res.ActualScript, httpChunk.ActualScript...)
+			res.CodeChunkDependensies = append(res.CodeChunkDependensies, httpChunk.CodeChunkDependensies...)
+		}
+	}
+
+	return files, nil
 }

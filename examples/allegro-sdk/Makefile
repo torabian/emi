@@ -21,9 +21,9 @@ gen-kotlin:
 
 gen-golang:
 	rm -rf golang/gen/ && \
-	emi go --path definitions/offer/user-offer-information.emi.yml --emigo github.com/torabian/emi/public/allegro-sdk/golang/emigo --output golang/gen/offer/user-offer-information && \
-	emi go --path definitions/offer/offer-translations.emi.yml --emigo github.com/torabian/emi/public/allegro-sdk/golang/emigo --output golang/gen/offer/offer-translations && \
-	emi go --path definitions/offer/offer-management.emi.yml --emigo github.com/torabian/emi/public/allegro-sdk/golang/emigo --output golang/gen/offer/offer-management
+	emi go --tags split-gin --path definitions/offer/user-offer-information.emi.yml --emigo github.com/torabian/emi/public/allegro-sdk/golang/emigo --output golang/gen/offer/user-offer-information && \
+	emi go --tags split-gin --path definitions/offer/offer-translations.emi.yml --emigo github.com/torabian/emi/public/allegro-sdk/golang/emigo --output golang/gen/offer/offer-translations && \
+	emi go --tags split-gin --path definitions/offer/offer-management.emi.yml --emigo github.com/torabian/emi/public/allegro-sdk/golang/emigo --output golang/gen/offer/offer-management
 
 gen-swift:
 	rm -rf swift/gen/ && \
