@@ -31,10 +31,10 @@ describe("Generate the Emi static fields generation", () => {
   it("should add the introduction", () => {
     content.push(`
 ---
-sidebar_position: 4
+title: "Static fields path generation"
+sidebar:
+  order: 4
 ---
-
-# Static fields path generation
 
 In Javascript world, often you need to set a variable using a json path, for example using 'lodash' or 'formik' libraries. This is very common way to set value of a variable, deep inside an object, array, or combination.
 
@@ -121,7 +121,7 @@ pass number as many as you want, and it would replace [:i] statements to have pr
   /// Last step is to write the document down
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-static-fields.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-static-fields.mdx",
       content.join("\r\n").trim(),
     );
   });

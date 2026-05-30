@@ -14,10 +14,11 @@ describe("Generate documents for object type", () => {
   it("generate object doc", async () => {
     content.push(`
 ---
-sidebar_position: 8
+title: "Emi object data type"
+sidebar: 
+  order: 8
 ---
 
-# Emi object data type
     `);
 
     const objectExample = {
@@ -85,7 +86,7 @@ Defaults to \`undefined\`, but you can assign an object with required child fiel
     content.push("```ts\r\n" + formattedNullable + "\r\n```");
 
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-object-data-type.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-object-data-type.mdx",
       content.join("\r\n").trim(),
     );
   });

@@ -1,0 +1,128 @@
+---
+title: "Emi definitions"
+sidebar:
+  order: 3
+---
+
+In this document, we discuss the emi definition, and features it has. Emi definition can be defiend via yaml, or json,
+and doesn't have a special language. It can have a different series of features in it, from actions, dtos, entities.
+In an absract level, these are just definitions, which different sub compilers, for example js, would create
+different target codes (React, Vanilajs, Nest.js) based on the tags provided.
+
+Emi definitions aim to prevent having specific target language code, so it could be compiled into as many as languages over time.
+You will find all structs in https://github.com/torabian/emi/tree/main/lib/core/Emi.go 
+        
+## Simple emi module
+Here, you can see a minimal module written in Emi, which defines get method to fetch a json placeholder.
+```yaml
+name: sampleModule
+actions:
+  - name: getSinglePost
+    url: https://jsonplaceholder.typicode.com/posts/:id
+    cliName: get-single-post
+    method: get
+    description: Get's an specific post from the endpoint
+    out:
+      fields:
+        - name: userId
+          type: int64
+        - name: id
+          type: int64
+        - name: title
+          type: string
+        - name: body
+          type: string
+```
+## Emi main features.
+On the yaml root, you can set different features of a module, such as entities, dtos, actions, and many more.
+
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+          <tr>
+            <td><code>namespace</code></td>
+            <td><code>string</code></td>
+            <td>Represents where is the location of the module in app tree. Similar to PHP namespacing sytem it be used to explicitly as export path of the actions for client frameworks</td>
+          </tr>
+        
+          <tr>
+            <td><code>description</code></td>
+            <td><code>string</code></td>
+            <td>Description of module and it's purpose. Used in code gen and creating documents.</td>
+          </tr>
+        
+          <tr>
+            <td><code>version</code></td>
+            <td><code>string</code></td>
+            <td>Version of the module. Helpful for different code generation phases but it's not necessary.</td>
+          </tr>
+        
+          <tr>
+            <td><code>name</code></td>
+            <td><code>string</code></td>
+            <td>Name of the module. Needs to be lower camel case and Module.go and Module.dyno.go will be generated based on this name.</td>
+          </tr>
+        
+          <tr>
+            <td><code>enums</code></td>
+            <td><code>array</code></td>
+            <td>Module level enums which can be used across the other parts of generated code.</td>
+          </tr>
+        
+          <tr>
+            <td><code>dtos</code></td>
+            <td><code>array</code></td>
+            <td>Dtos are basically golang structs with some additional functionality which can be used for request/response actions</td>
+          </tr>
+        
+          <tr>
+            <td><code>complexes</code></td>
+            <td><code>array</code></td>
+            <td>Complex custom data types definitions and location</td>
+          </tr>
+        
+          <tr>
+            <td><code>actions</code></td>
+            <td><code>array</code></td>
+            <td>Actions are similar to controllers in other frameworks. They are custom functionality available via CLI or Http requests and developer need to implement their logic</td>
+          </tr>
+        
+          <tr>
+            <td><code>remotes</code></td>
+            <td><code>array</code></td>
+            <td>Remotes are definition of external services which could be contacted via http and Emi developer can make them typesafe by defining them here.</td>
+          </tr>
+        
+          <tr>
+            <td><code>config</code></td>
+            <td><code>array</code></td>
+            <td>Server side configuration manager</td>
+          </tr>
+        
+          <tr>
+            <td><code>manifests</code></td>
+            <td><code>array</code></td>
+            <td>Manifests are a way to create actions bundle</td>
+          </tr>
+        
+          <tr>
+            <td><code>vsqls</code></td>
+            <td><code>array</code></td>
+            <td>Typed virtual SQL queries. Each entry pairs a raw SQL string with a typed parameter struct that Emi generates.</td>
+          </tr>
+        
+          <tr>
+            <td><code>templates</code></td>
+            <td><code>undefined</code></td>
+            <td>Reusable shape definitions (dtos</td>
+          </tr>
+        
+        </tbody>
+      </table>

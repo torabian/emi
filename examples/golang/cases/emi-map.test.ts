@@ -14,10 +14,10 @@ describe("Generates DTO for all possible data types in a single go.", () => {
   it("should add the introduction", () => {
     content.push(`
 ---
-sidebar_position: 4
+title: "Golang map field"
+sidebar:
+  order: 4
 ---
-
-# Golang map field
 
         `);
   });
@@ -67,7 +67,7 @@ Possible result:
 
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/golang/golang-map.mdx",
+      "../../examples/emi-web/src/content/docs/golang/golang-map.mdx",
       content.join("\r\n").trim(),
     );
   });

@@ -19,13 +19,14 @@ describe("Generate the emi object documentation", () => {
 
   it("should add the introduction", () => {
     content.push(`
+
 ---
-sidebar_position: 3
+title: "Javascript object generation"
+sidebar:
+  order: 3
 ---
 
-import BenchmarkTest from './ObjectBenchmark';
-
-# Javascript object generation
+import BenchmarkTest from '@/components/ObjectBenchmark';
 
 Every request body, request response, message on web socket, entity, dto in Emi are called 'object'. The object is generated based on
 fields array, which can be nested, of course. Emi uses the same function for generting different type of classes.
@@ -165,7 +166,7 @@ code, both approaches are effectively free.
 I prefer this response
 
 
-<BenchmarkTest />
+<BenchmarkTest client:load />
 
 As you might see, the numbers are very close, and in real life, you would not call millions of times
 one after each other a javascript setter. Hence, Emi compiler extra checks make sense to bring the safety
@@ -177,7 +178,7 @@ into the code base.
   /// Last step is to write the document down
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-object.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-object.mdx",
       content.join("\r\n").trim(),
     );
   });

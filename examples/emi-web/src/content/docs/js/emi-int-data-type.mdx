@@ -1,0 +1,397 @@
+---
+title: "Emi integer data type"
+sidebar: 
+  order: 6
+---
+
+    
+
+      Example schema:
+```yaml
+name: MyIntClass
+fields:
+  - name: intWithDefault
+    default: 42
+    type: int
+  - name: plainInt
+    type: int
+
+```
+      
+- `int` maps to JavaScript `number`, limited to safe 32-bit values.  
+- If no default provided, it defaults to `0`.  
+- `int?` allows `null` and `undefined`, with `undefined` as default.  
+    
+```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
+import { type PartialDeep } from "./sdk/common/fetchx";
+/**
+ * The base class definition for myIntClassDto
+ **/
+export class MyIntClassDto {
+  /**
+   *
+   * @type {number}
+   **/
+  #intWithDefault: number = 42;
+  /**
+   *
+   * @returns {number}
+   **/
+  get intWithDefault() {
+    return this.#intWithDefault;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set intWithDefault(value: number) {
+    const correctType = typeof value === "number";
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#intWithDefault = parsedValue;
+    }
+  }
+  setIntWithDefault(value: number) {
+    this.intWithDefault = value;
+    return this;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  #plainInt: number = 0;
+  /**
+   *
+   * @returns {number}
+   **/
+  get plainInt() {
+    return this.#plainInt;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set plainInt(value: number) {
+    const correctType = typeof value === "number";
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#plainInt = parsedValue;
+    }
+  }
+  setPlainInt(value: number) {
+    this.plainInt = value;
+    return this;
+  }
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyIntClassDto>;
+    if (d.intWithDefault !== undefined) {
+      this.intWithDefault = d.intWithDefault;
+    }
+    if (d.plainInt !== undefined) {
+      this.plainInt = d.plainInt;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      intWithDefault: this.#intWithDefault,
+      plainInt: this.#plainInt,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      intWithDefault: "intWithDefault",
+      plainInt: "plainInt",
+    };
+  }
+  /**
+   * Creates an instance of MyIntClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyIntClassDtoType) {
+    return new MyIntClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyIntClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<MyIntClassDtoType>) {
+    return new MyIntClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<MyIntClassDtoType>,
+  ): InstanceType<typeof MyIntClassDto> {
+    return new MyIntClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyIntClassDto> {
+    return new MyIntClassDto(this.toJSON());
+  }
+}
+export abstract class MyIntClassDtoFactory {
+  abstract create(data: unknown): MyIntClassDto;
+}
+/**
+ * The base type definition for myIntClassDto
+ **/
+export type MyIntClassDtoType = {
+  /**
+   *
+   * @type {number}
+   **/
+  intWithDefault: number;
+  /**
+   *
+   * @type {number}
+   **/
+  plainInt: number;
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyIntClassDtoType {}
+
+```
+
+      Nullable version:
+```yaml
+name: MyIntClass
+fields:
+  - name: nullableIntWithDefault
+    default: 7
+    type: int?
+  - name: nullableIntWithoutDefault
+    type: int?
+
+```
+
+Defaults to `undefined`, but you can assign `0`, any number, or `null`.
+    
+```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
+import { type PartialDeep } from "./sdk/common/fetchx";
+/**
+ * The base class definition for myIntClassDto
+ **/
+export class MyIntClassDto {
+  /**
+   *
+   * @type {number}
+   **/
+  #nullableIntWithDefault?: number | null = 7;
+  /**
+   *
+   * @returns {number}
+   **/
+  get nullableIntWithDefault() {
+    return this.#nullableIntWithDefault;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set nullableIntWithDefault(value: number | null | undefined) {
+    const correctType =
+      typeof value === "number" || value === undefined || value === null;
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#nullableIntWithDefault = parsedValue;
+    }
+  }
+  setNullableIntWithDefault(value: number | null | undefined) {
+    this.nullableIntWithDefault = value;
+    return this;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  #nullableIntWithoutDefault?: number | null = undefined;
+  /**
+   *
+   * @returns {number}
+   **/
+  get nullableIntWithoutDefault() {
+    return this.#nullableIntWithoutDefault;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set nullableIntWithoutDefault(value: number | null | undefined) {
+    const correctType =
+      typeof value === "number" || value === undefined || value === null;
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#nullableIntWithoutDefault = parsedValue;
+    }
+  }
+  setNullableIntWithoutDefault(value: number | null | undefined) {
+    this.nullableIntWithoutDefault = value;
+    return this;
+  }
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyIntClassDto>;
+    if (d.nullableIntWithDefault !== undefined) {
+      this.nullableIntWithDefault = d.nullableIntWithDefault;
+    }
+    if (d.nullableIntWithoutDefault !== undefined) {
+      this.nullableIntWithoutDefault = d.nullableIntWithoutDefault;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      nullableIntWithDefault: this.#nullableIntWithDefault,
+      nullableIntWithoutDefault: this.#nullableIntWithoutDefault,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      nullableIntWithDefault: "nullableIntWithDefault",
+      nullableIntWithoutDefault: "nullableIntWithoutDefault",
+    };
+  }
+  /**
+   * Creates an instance of MyIntClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyIntClassDtoType) {
+    return new MyIntClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyIntClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<MyIntClassDtoType>) {
+    return new MyIntClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<MyIntClassDtoType>,
+  ): InstanceType<typeof MyIntClassDto> {
+    return new MyIntClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyIntClassDto> {
+    return new MyIntClassDto(this.toJSON());
+  }
+}
+export abstract class MyIntClassDtoFactory {
+  abstract create(data: unknown): MyIntClassDto;
+}
+/**
+ * The base type definition for myIntClassDto
+ **/
+export type MyIntClassDtoType = {
+  /**
+   *
+   * @type {number}
+   **/
+  nullableIntWithDefault?: number;
+  /**
+   *
+   * @type {number}
+   **/
+  nullableIntWithoutDefault?: number;
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyIntClassDtoType {}
+
+```
+
+> Besides `int` and `int?`, Emi also supports `int32`, `int32?`, `int64`, and `int64?` types.

@@ -1,0 +1,925 @@
+---
+title: "Emi array data type"
+sidebar:
+  order: 9
+---
+    
+
+Example schema:
+```yaml
+name: MyArrayClass
+fields:
+  - name: contacts
+    type: array
+    fields:
+      - name: email
+        type: string
+      - name: phone
+        type: string?
+
+```
+
+- `array` represents a list of items.  
+- You must define an `items` field with the child type.  
+- Defaults to an empty array `[]` if not specified.  
+- `array?` allows `null`/ `undefined`.  
+    
+```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
+import { type PartialDeep } from "./sdk/common/fetchx";
+import { withPrefix } from "./sdk/common/withPrefix";
+/**
+ * The base class definition for myArrayClassDto
+ **/
+export class MyArrayClassDto {
+  /**
+   *
+   * @type {MyArrayClassDto.Contacts}
+   **/
+  #contacts: InstanceType<typeof MyArrayClassDto.Contacts>[] = [];
+  /**
+   *
+   * @returns {MyArrayClassDto.Contacts}
+   **/
+  get contacts() {
+    return this.#contacts;
+  }
+  /**
+   *
+   * @type {MyArrayClassDto.Contacts}
+   **/
+  set contacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      return;
+    }
+    if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
+      this.#contacts = value;
+    } else {
+      this.#contacts = value.map((item) => new MyArrayClassDto.Contacts(item));
+    }
+  }
+  setContacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
+    this.contacts = value;
+    return this;
+  }
+  /**
+   * The base class definition for contacts
+   **/
+  static Contacts = class Contacts {
+    /**
+     *
+     * @type {string}
+     **/
+    #email: string = "";
+    /**
+     *
+     * @returns {string}
+     **/
+    get email() {
+      return this.#email;
+    }
+    /**
+     *
+     * @type {string}
+     **/
+    set email(value: string) {
+      this.#email = String(value);
+    }
+    setEmail(value: string) {
+      this.email = value;
+      return this;
+    }
+    /**
+     *
+     * @type {string}
+     **/
+    #phone?: string | null = undefined;
+    /**
+     *
+     * @returns {string}
+     **/
+    get phone() {
+      return this.#phone;
+    }
+    /**
+     *
+     * @type {string}
+     **/
+    set phone(value: string | null | undefined) {
+      const correctType =
+        typeof value === "string" || value === undefined || value === null;
+      this.#phone = correctType ? value : String(value);
+    }
+    setPhone(value: string | null | undefined) {
+      this.phone = value;
+      return this;
+    }
+    constructor(data: unknown = undefined) {
+      if (data === null || data === undefined) {
+        return;
+      }
+      if (typeof data === "string") {
+        this.applyFromObject(JSON.parse(data));
+      } else if (this.#isJsonAppliable(data)) {
+        this.applyFromObject(data);
+      } else {
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
+      }
+    }
+    #isJsonAppliable(obj: unknown) {
+      const g = globalThis as unknown as { Buffer: any; Blob: any };
+      const isBuffer =
+        typeof g.Buffer !== "undefined" &&
+        typeof g.Buffer.isBuffer === "function" &&
+        g.Buffer.isBuffer(obj);
+      const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
+    }
+    /**
+     * casts the fields of a javascript object into the class properties one by one
+     **/
+    applyFromObject(data = {}) {
+      const d = data as Partial<Contacts>;
+      if (d.email !== undefined) {
+        this.email = d.email;
+      }
+      if (d.phone !== undefined) {
+        this.phone = d.phone;
+      }
+    }
+    /**
+     *	Special toJSON override, since the field are private,
+     *	Json stringify won't see them unless we mention it explicitly.
+     **/
+    toJSON() {
+      return {
+        email: this.#email,
+        phone: this.#phone,
+      };
+    }
+    toString() {
+      return JSON.stringify(this);
+    }
+    static get Fields() {
+      return {
+        email: "email",
+        phone: "phone",
+      };
+    }
+    /**
+     * Creates an instance of MyArrayClassDto.Contacts, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject: MyArrayClassDtoType.ContactsType) {
+      return new MyArrayClassDto.Contacts(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of MyArrayClassDto.Contacts, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(
+      partialDtoObject: PartialDeep<MyArrayClassDtoType.ContactsType>,
+    ) {
+      return new MyArrayClassDto.Contacts(partialDtoObject);
+    }
+    copyWith(
+      partial: PartialDeep<MyArrayClassDtoType.ContactsType>,
+    ): InstanceType<typeof MyArrayClassDto.Contacts> {
+      return new MyArrayClassDto.Contacts({ ...this.toJSON(), ...partial });
+    }
+    clone(): InstanceType<typeof MyArrayClassDto.Contacts> {
+      return new MyArrayClassDto.Contacts(this.toJSON());
+    }
+  };
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyArrayClassDto>;
+    if (d.contacts !== undefined) {
+      this.contacts = d.contacts;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      contacts: this.#contacts,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      contacts$: "contacts",
+      get contacts() {
+        return withPrefix("contacts[:i]", MyArrayClassDto.Contacts.Fields);
+      },
+    };
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyArrayClassDtoType) {
+    return new MyArrayClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<MyArrayClassDtoType>) {
+    return new MyArrayClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<MyArrayClassDtoType>,
+  ): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto(this.toJSON());
+  }
+}
+export abstract class MyArrayClassDtoFactory {
+  abstract create(data: unknown): MyArrayClassDto;
+}
+/**
+ * The base type definition for myArrayClassDto
+ **/
+export type MyArrayClassDtoType = {
+  /**
+   *
+   * @type {MyArrayClassDtoType.ContactsType[]}
+   **/
+  contacts: MyArrayClassDtoType.ContactsType[];
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyArrayClassDtoType {
+  /**
+   * The base type definition for contactsType
+   **/
+  export type ContactsType = {
+    /**
+     *
+     * @type {string}
+     **/
+    email: string;
+    /**
+     *
+     * @type {string}
+     **/
+    phone?: string;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  export namespace ContactsType {}
+}
+
+```
+
+Array of objects:
+```yaml
+name: MyArrayClass
+fields:
+  - name: contacts
+    type: array
+    fields:
+      - name: email
+        type: string
+      - name: phone
+        type: string?
+
+```
+
+Arrays can hold primitive types or nested objects.
+    
+```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
+import { type PartialDeep } from "./sdk/common/fetchx";
+import { withPrefix } from "./sdk/common/withPrefix";
+/**
+ * The base class definition for myArrayClassDto
+ **/
+export class MyArrayClassDto {
+  /**
+   *
+   * @type {MyArrayClassDto.Contacts}
+   **/
+  #contacts: InstanceType<typeof MyArrayClassDto.Contacts>[] = [];
+  /**
+   *
+   * @returns {MyArrayClassDto.Contacts}
+   **/
+  get contacts() {
+    return this.#contacts;
+  }
+  /**
+   *
+   * @type {MyArrayClassDto.Contacts}
+   **/
+  set contacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      return;
+    }
+    if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
+      this.#contacts = value;
+    } else {
+      this.#contacts = value.map((item) => new MyArrayClassDto.Contacts(item));
+    }
+  }
+  setContacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
+    this.contacts = value;
+    return this;
+  }
+  /**
+   * The base class definition for contacts
+   **/
+  static Contacts = class Contacts {
+    /**
+     *
+     * @type {string}
+     **/
+    #email: string = "";
+    /**
+     *
+     * @returns {string}
+     **/
+    get email() {
+      return this.#email;
+    }
+    /**
+     *
+     * @type {string}
+     **/
+    set email(value: string) {
+      this.#email = String(value);
+    }
+    setEmail(value: string) {
+      this.email = value;
+      return this;
+    }
+    /**
+     *
+     * @type {string}
+     **/
+    #phone?: string | null = undefined;
+    /**
+     *
+     * @returns {string}
+     **/
+    get phone() {
+      return this.#phone;
+    }
+    /**
+     *
+     * @type {string}
+     **/
+    set phone(value: string | null | undefined) {
+      const correctType =
+        typeof value === "string" || value === undefined || value === null;
+      this.#phone = correctType ? value : String(value);
+    }
+    setPhone(value: string | null | undefined) {
+      this.phone = value;
+      return this;
+    }
+    constructor(data: unknown = undefined) {
+      if (data === null || data === undefined) {
+        return;
+      }
+      if (typeof data === "string") {
+        this.applyFromObject(JSON.parse(data));
+      } else if (this.#isJsonAppliable(data)) {
+        this.applyFromObject(data);
+      } else {
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
+      }
+    }
+    #isJsonAppliable(obj: unknown) {
+      const g = globalThis as unknown as { Buffer: any; Blob: any };
+      const isBuffer =
+        typeof g.Buffer !== "undefined" &&
+        typeof g.Buffer.isBuffer === "function" &&
+        g.Buffer.isBuffer(obj);
+      const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
+    }
+    /**
+     * casts the fields of a javascript object into the class properties one by one
+     **/
+    applyFromObject(data = {}) {
+      const d = data as Partial<Contacts>;
+      if (d.email !== undefined) {
+        this.email = d.email;
+      }
+      if (d.phone !== undefined) {
+        this.phone = d.phone;
+      }
+    }
+    /**
+     *	Special toJSON override, since the field are private,
+     *	Json stringify won't see them unless we mention it explicitly.
+     **/
+    toJSON() {
+      return {
+        email: this.#email,
+        phone: this.#phone,
+      };
+    }
+    toString() {
+      return JSON.stringify(this);
+    }
+    static get Fields() {
+      return {
+        email: "email",
+        phone: "phone",
+      };
+    }
+    /**
+     * Creates an instance of MyArrayClassDto.Contacts, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject: MyArrayClassDtoType.ContactsType) {
+      return new MyArrayClassDto.Contacts(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of MyArrayClassDto.Contacts, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(
+      partialDtoObject: PartialDeep<MyArrayClassDtoType.ContactsType>,
+    ) {
+      return new MyArrayClassDto.Contacts(partialDtoObject);
+    }
+    copyWith(
+      partial: PartialDeep<MyArrayClassDtoType.ContactsType>,
+    ): InstanceType<typeof MyArrayClassDto.Contacts> {
+      return new MyArrayClassDto.Contacts({ ...this.toJSON(), ...partial });
+    }
+    clone(): InstanceType<typeof MyArrayClassDto.Contacts> {
+      return new MyArrayClassDto.Contacts(this.toJSON());
+    }
+  };
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyArrayClassDto>;
+    if (d.contacts !== undefined) {
+      this.contacts = d.contacts;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      contacts: this.#contacts,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      contacts$: "contacts",
+      get contacts() {
+        return withPrefix("contacts[:i]", MyArrayClassDto.Contacts.Fields);
+      },
+    };
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyArrayClassDtoType) {
+    return new MyArrayClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<MyArrayClassDtoType>) {
+    return new MyArrayClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<MyArrayClassDtoType>,
+  ): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto(this.toJSON());
+  }
+}
+export abstract class MyArrayClassDtoFactory {
+  abstract create(data: unknown): MyArrayClassDto;
+}
+/**
+ * The base type definition for myArrayClassDto
+ **/
+export type MyArrayClassDtoType = {
+  /**
+   *
+   * @type {MyArrayClassDtoType.ContactsType[]}
+   **/
+  contacts: MyArrayClassDtoType.ContactsType[];
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyArrayClassDtoType {
+  /**
+   * The base type definition for contactsType
+   **/
+  export type ContactsType = {
+    /**
+     *
+     * @type {string}
+     **/
+    email: string;
+    /**
+     *
+     * @type {string}
+     **/
+    phone?: string;
+  };
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  export namespace ContactsType {}
+}
+
+```
+
+Nullable version:
+```yaml
+name: MyArrayClass
+fields:
+  - name: nullableTags
+    type: array?
+
+```
+
+Defaults to `undefined`, but you can assign an array or `null`.
+    
+```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
+import { type PartialDeep } from "./sdk/common/fetchx";
+import { withPrefix } from "./sdk/common/withPrefix";
+/**
+ * The base class definition for myArrayClassDto
+ **/
+export class MyArrayClassDto {
+  /**
+   *
+   * @type {MyArrayClassDto.NullableTags}
+   **/
+  #nullableTags?:
+    | InstanceType<typeof MyArrayClassDto.NullableTags>[]
+    | null
+    | undefined
+    | null = undefined;
+  /**
+   *
+   * @returns {MyArrayClassDto.NullableTags}
+   **/
+  get nullableTags() {
+    return this.#nullableTags;
+  }
+  /**
+   *
+   * @type {MyArrayClassDto.NullableTags}
+   **/
+  set nullableTags(
+    value:
+      | InstanceType<typeof MyArrayClassDto.NullableTags>[]
+      | null
+      | undefined
+      | null
+      | undefined,
+  ) {
+    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      return;
+    }
+    if (value.length > 0 && value[0] instanceof MyArrayClassDto.NullableTags) {
+      this.#nullableTags = value;
+    } else {
+      this.#nullableTags = value.map(
+        (item) => new MyArrayClassDto.NullableTags(item),
+      );
+    }
+  }
+  setNullableTags(
+    value:
+      | InstanceType<typeof MyArrayClassDto.NullableTags>[]
+      | null
+      | undefined
+      | null
+      | undefined,
+  ) {
+    this.nullableTags = value;
+    return this;
+  }
+  /**
+   * The base class definition for nullableTags
+   **/
+  static NullableTags = class NullableTags {
+    constructor(data: unknown = undefined) {
+      if (data === null || data === undefined) {
+        return;
+      }
+      if (typeof data === "string") {
+        this.applyFromObject(JSON.parse(data));
+      } else if (this.#isJsonAppliable(data)) {
+        this.applyFromObject(data);
+      } else {
+        throw new Error(
+          "Instance cannot be created on an unknown value, check the content being passed. got: " +
+            typeof data,
+        );
+      }
+    }
+    #isJsonAppliable(obj: unknown) {
+      const g = globalThis as unknown as { Buffer: any; Blob: any };
+      const isBuffer =
+        typeof g.Buffer !== "undefined" &&
+        typeof g.Buffer.isBuffer === "function" &&
+        g.Buffer.isBuffer(obj);
+      const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+      return (
+        obj &&
+        typeof obj === "object" &&
+        !Array.isArray(obj) &&
+        !isBuffer &&
+        !(obj instanceof ArrayBuffer) &&
+        !isBlob
+      );
+    }
+    /**
+     * casts the fields of a javascript object into the class properties one by one
+     **/
+    applyFromObject(data = {}) {
+      const d = data as Partial<NullableTags>;
+    }
+    /**
+     *	Special toJSON override, since the field are private,
+     *	Json stringify won't see them unless we mention it explicitly.
+     **/
+    toJSON() {
+      return {};
+    }
+    toString() {
+      return JSON.stringify(this);
+    }
+    static get Fields() {
+      return {};
+    }
+    /**
+     * Creates an instance of MyArrayClassDto.NullableTags, and possibleDtoObject
+     * needs to satisfy the type requirement fully, otherwise typescript compile would
+     * be complaining.
+     **/
+    static from(possibleDtoObject: MyArrayClassDtoType.NullableTagsType) {
+      return new MyArrayClassDto.NullableTags(possibleDtoObject);
+    }
+    /**
+     * Creates an instance of MyArrayClassDto.NullableTags, and partialDtoObject
+     * needs to satisfy the type, but partially, and rest of the content would
+     * be constructed according to data types and nullability.
+     **/
+    static with(
+      partialDtoObject: PartialDeep<MyArrayClassDtoType.NullableTagsType>,
+    ) {
+      return new MyArrayClassDto.NullableTags(partialDtoObject);
+    }
+    copyWith(
+      partial: PartialDeep<MyArrayClassDtoType.NullableTagsType>,
+    ): InstanceType<typeof MyArrayClassDto.NullableTags> {
+      return new MyArrayClassDto.NullableTags({ ...this.toJSON(), ...partial });
+    }
+    clone(): InstanceType<typeof MyArrayClassDto.NullableTags> {
+      return new MyArrayClassDto.NullableTags(this.toJSON());
+    }
+  };
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyArrayClassDto>;
+    if (d.nullableTags !== undefined) {
+      this.nullableTags = d.nullableTags;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      nullableTags: this.#nullableTags,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      nullableTags$: "nullableTags",
+      get nullableTags() {
+        return withPrefix(
+          "nullableTags[:i]",
+          MyArrayClassDto.NullableTags.Fields,
+        );
+      },
+    };
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyArrayClassDtoType) {
+    return new MyArrayClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyArrayClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<MyArrayClassDtoType>) {
+    return new MyArrayClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<MyArrayClassDtoType>,
+  ): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyArrayClassDto> {
+    return new MyArrayClassDto(this.toJSON());
+  }
+}
+export abstract class MyArrayClassDtoFactory {
+  abstract create(data: unknown): MyArrayClassDto;
+}
+/**
+ * The base type definition for myArrayClassDto
+ **/
+export type MyArrayClassDtoType = {
+  /**
+   *
+   * @type {any[]}
+   **/
+  nullableTags?: any[];
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyArrayClassDtoType {
+  /**
+   * The base type definition for nullableTagsType
+   **/
+  export type NullableTagsType = {};
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  export namespace NullableTagsType {}
+}
+
+```

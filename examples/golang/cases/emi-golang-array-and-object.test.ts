@@ -14,10 +14,10 @@ describe("Generates DTO for all possible data types in a single go.", () => {
   it("should add the introduction", () => {
     content.push(`
 ---
-sidebar_position: 4
+title: "Golang object and array"
+sidebar:
+  order: 4
 ---
-
-# Golang object and array
 
         `);
   });
@@ -121,7 +121,7 @@ Possible result:
 
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/golang/emi-array-and-objects.mdx",
+      "../../examples/emi-web/src/content/docs/golang/emi-array-and-objects.mdx",
       content.join("\r\n").trim(),
     );
   });
