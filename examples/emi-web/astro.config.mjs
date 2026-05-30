@@ -7,7 +7,7 @@ import react from "@astrojs/react";
 export default defineConfig({
   // Production URL + base path for GitHub Pages (https://torabian.github.io/emi/)
   site: "https://torabian.github.io/emi",
-  base: "/",
+  base: "/emi",
 
   integrations: [
     starlight({
