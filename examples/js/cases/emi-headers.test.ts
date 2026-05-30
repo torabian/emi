@@ -19,10 +19,10 @@ describe("Action headers class needs to be generated correctly.", () => {
   it("generate int doc", async () => {
     content.push(`
 ---
-sidebar_position: 3
+title: "Emi Headers class generator"
+sidebar:
+  order: 3
 ---
-
-# Emi Headers class generator
 
 In the context of http requests, there is always request and response headers, which is a key pair
 definition. Modern javascript standard is using Headers class, and Emi generates the header classes,
@@ -106,7 +106,7 @@ ${resp}
 
   it("should write the documentation", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-headers-class.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-headers-class.mdx",
       content.join("\r\n").trim(),
     );
   });

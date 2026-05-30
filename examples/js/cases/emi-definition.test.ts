@@ -21,10 +21,10 @@ describe("Generate the emi introduction documentation", () => {
   it("should add the introduction", () => {
     content.push(`
 ---
-sidebar_position: 3
+title: "Emi definitions"
+sidebar:
+  order: 3
 ---
-
-# Emi definitions
 
 In this document, we discuss the emi definition, and features it has. Emi definition can be defiend via yaml, or json,
 and doesn't have a special language. It can have a different series of features in it, from actions, dtos, entities.
@@ -76,20 +76,40 @@ actions:
     {
       content.push("## Emi main features.");
       content.push(
-        "On the yaml root, you can set different features of a the module, such as entities, dtos, actions, and many more.",
+        "On the yaml root, you can set different features of a module, such as entities, dtos, actions, and many more.",
       );
     }
+
     {
-      // In this block we make a table in markdown explaining the features of the Emi module.
       const items = schema.definitions.Emi.properties;
-      const header = `| Property | Type | Description |\n|----------|------|-------------|`;
+
       const rows = Object.entries(items)
         .map(([name, def]: any) => {
-          return `| \`${name}\` | \`${def.type}\` | ${def.description} |`;
+          return `
+          <tr>
+            <td><code>${name}</code></td>
+            <td><code>${def.type}</code></td>
+            <td>${def.description ?? ""}</td>
+          </tr>
+        `;
         })
-        .join("\n");
+        .join("");
 
-      const doc = [header, rows].join("\n");
+      const doc = `
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `;
+
       content.push(doc);
     }
   });
@@ -97,7 +117,7 @@ actions:
   /// Last step is to write the document down
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/emi-module-spec.mdx",
+      "../../examples/emi-web/src/content/docs/emi-module-spec.mdx",
       content.join("\r\n").trim(),
     );
   });

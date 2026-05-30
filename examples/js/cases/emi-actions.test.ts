@@ -14,10 +14,10 @@ describe("Emi generate the web socket (reactive) hooks", () => {
   it("should add the introduction", () => {
     content.push(`
 ---
-sidebar_position: 4
+title: "Emi Actions"
+sidebar:
+  order: 4
 ---
-
-# Emi Actions
 
 Actions is a crucial part of almost every software. Actions in empty basically functions, which get an input, and return output. They can be correspond to 'controllers'
 in traditional API development, each action is basically an endpoint. Actions also can be called from other contexts than http, for example from cli.
@@ -143,7 +143,7 @@ actions:
   /// Last step is to write the document down
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/emi-actions.mdx",
+      "../../examples/emi-web/src/content/docs/emi-actions.mdx",
       content.join("\r\n").trim(),
     );
   });

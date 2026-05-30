@@ -1,0 +1,389 @@
+---
+title: "Emi float64 data type"
+sidebar: 
+  order: 7
+---
+
+    
+
+      Example schema:
+```yaml
+name: MyFloatClass
+fields:
+  - name: floatWithDefault
+    default: 3.14
+    type: float64
+  - name: plainFloat
+    type: float64
+
+```
+      
+- `float64` maps to JavaScript `number` with double precision.  
+- Default is `0.0` if not specified.  
+- `float64?` allows `null` and `undefined`, defaulting to `undefined`.  
+    
+```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
+import { type PartialDeep } from "./sdk/common/fetchx";
+/**
+ * The base class definition for myFloatClassDto
+ **/
+export class MyFloatClassDto {
+  /**
+   *
+   * @type {number}
+   **/
+  #floatWithDefault: number = 3.14;
+  /**
+   *
+   * @returns {number}
+   **/
+  get floatWithDefault() {
+    return this.#floatWithDefault;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set floatWithDefault(value: number) {
+    this.#floatWithDefault = value;
+  }
+  setFloatWithDefault(value: number) {
+    this.floatWithDefault = value;
+    return this;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  #plainFloat: number = 0.0;
+  /**
+   *
+   * @returns {number}
+   **/
+  get plainFloat() {
+    return this.#plainFloat;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set plainFloat(value: number) {
+    this.#plainFloat = value;
+  }
+  setPlainFloat(value: number) {
+    this.plainFloat = value;
+    return this;
+  }
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyFloatClassDto>;
+    if (d.floatWithDefault !== undefined) {
+      this.floatWithDefault = d.floatWithDefault;
+    }
+    if (d.plainFloat !== undefined) {
+      this.plainFloat = d.plainFloat;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      floatWithDefault: this.#floatWithDefault,
+      plainFloat: this.#plainFloat,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      floatWithDefault: "floatWithDefault",
+      plainFloat: "plainFloat",
+    };
+  }
+  /**
+   * Creates an instance of MyFloatClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyFloatClassDtoType) {
+    return new MyFloatClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyFloatClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<MyFloatClassDtoType>) {
+    return new MyFloatClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<MyFloatClassDtoType>,
+  ): InstanceType<typeof MyFloatClassDto> {
+    return new MyFloatClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyFloatClassDto> {
+    return new MyFloatClassDto(this.toJSON());
+  }
+}
+export abstract class MyFloatClassDtoFactory {
+  abstract create(data: unknown): MyFloatClassDto;
+}
+/**
+ * The base type definition for myFloatClassDto
+ **/
+export type MyFloatClassDtoType = {
+  /**
+   *
+   * @type {number}
+   **/
+  floatWithDefault: number;
+  /**
+   *
+   * @type {number}
+   **/
+  plainFloat: number;
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyFloatClassDtoType {}
+
+```
+
+      Nullable version:
+```yaml
+name: MyFloatClass
+fields:
+  - name: nullableFloatWithDefault
+    default: 1.23
+    type: float64?
+  - name: nullableFloatWithoutDefault
+    type: float64?
+
+```
+
+Defaults to `undefined`, but you can assign any float value or `null`.
+    
+```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
+import { type PartialDeep } from "./sdk/common/fetchx";
+/**
+ * The base class definition for myFloatClassDto
+ **/
+export class MyFloatClassDto {
+  /**
+   *
+   * @type {number}
+   **/
+  #nullableFloatWithDefault?: number | null = 1.23;
+  /**
+   *
+   * @returns {number}
+   **/
+  get nullableFloatWithDefault() {
+    return this.#nullableFloatWithDefault;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set nullableFloatWithDefault(value: number | null | undefined) {
+    const correctType =
+      typeof value === "number" || value === undefined || value === null;
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#nullableFloatWithDefault = parsedValue;
+    }
+  }
+  setNullableFloatWithDefault(value: number | null | undefined) {
+    this.nullableFloatWithDefault = value;
+    return this;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  #nullableFloatWithoutDefault?: number | null = undefined;
+  /**
+   *
+   * @returns {number}
+   **/
+  get nullableFloatWithoutDefault() {
+    return this.#nullableFloatWithoutDefault;
+  }
+  /**
+   *
+   * @type {number}
+   **/
+  set nullableFloatWithoutDefault(value: number | null | undefined) {
+    const correctType =
+      typeof value === "number" || value === undefined || value === null;
+    const parsedValue = correctType ? value : Number(value);
+    if (!Number.isNaN(parsedValue)) {
+      this.#nullableFloatWithoutDefault = parsedValue;
+    }
+  }
+  setNullableFloatWithoutDefault(value: number | null | undefined) {
+    this.nullableFloatWithoutDefault = value;
+    return this;
+  }
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyFloatClassDto>;
+    if (d.nullableFloatWithDefault !== undefined) {
+      this.nullableFloatWithDefault = d.nullableFloatWithDefault;
+    }
+    if (d.nullableFloatWithoutDefault !== undefined) {
+      this.nullableFloatWithoutDefault = d.nullableFloatWithoutDefault;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      nullableFloatWithDefault: this.#nullableFloatWithDefault,
+      nullableFloatWithoutDefault: this.#nullableFloatWithoutDefault,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      nullableFloatWithDefault: "nullableFloatWithDefault",
+      nullableFloatWithoutDefault: "nullableFloatWithoutDefault",
+    };
+  }
+  /**
+   * Creates an instance of MyFloatClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyFloatClassDtoType) {
+    return new MyFloatClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyFloatClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<MyFloatClassDtoType>) {
+    return new MyFloatClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<MyFloatClassDtoType>,
+  ): InstanceType<typeof MyFloatClassDto> {
+    return new MyFloatClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyFloatClassDto> {
+    return new MyFloatClassDto(this.toJSON());
+  }
+}
+export abstract class MyFloatClassDtoFactory {
+  abstract create(data: unknown): MyFloatClassDto;
+}
+/**
+ * The base type definition for myFloatClassDto
+ **/
+export type MyFloatClassDtoType = {
+  /**
+   *
+   * @type {number}
+   **/
+  nullableFloatWithDefault?: number;
+  /**
+   *
+   * @type {number}
+   **/
+  nullableFloatWithoutDefault?: number;
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyFloatClassDtoType {}
+
+```
+
+> Emi also supports `float32`, but `float64` is the default for decimals.

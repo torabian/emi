@@ -1,0 +1,389 @@
+---
+title: "Emi string data type"
+sidebar:
+  order: 4
+---
+ 
+        
+
+      Given the following example:
+```yaml
+name: MyStringClass
+fields:
+  - name: stringWithDefault
+    default: With default value
+    type: string
+  - name: emptyString
+    type: string
+
+```
+      
+      
+
+      `string` and `string?` types will be converted into the javascript counter part with a difference that ? allows the null value, and by default is `undefined`.
+      As a general pattern the field private value (#field) would be created, and based on that, there will be getters and setters.
+
+      First let's take a look on the `string`, and see how it would prevent the crashes by generating the typesafe code:
+
+      
+```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
+import { type PartialDeep } from "./sdk/common/fetchx";
+/**
+ * The base class definition for myStringClassDto
+ **/
+export class MyStringClassDto {
+  /**
+   *
+   * @type {string}
+   **/
+  #stringWithDefault: string = "With default value";
+  /**
+   *
+   * @returns {string}
+   **/
+  get stringWithDefault() {
+    return this.#stringWithDefault;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set stringWithDefault(value: string) {
+    this.#stringWithDefault = String(value);
+  }
+  setStringWithDefault(value: string) {
+    this.stringWithDefault = value;
+    return this;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  #emptyString: string = "";
+  /**
+   *
+   * @returns {string}
+   **/
+  get emptyString() {
+    return this.#emptyString;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set emptyString(value: string) {
+    this.#emptyString = String(value);
+  }
+  setEmptyString(value: string) {
+    this.emptyString = value;
+    return this;
+  }
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyStringClassDto>;
+    if (d.stringWithDefault !== undefined) {
+      this.stringWithDefault = d.stringWithDefault;
+    }
+    if (d.emptyString !== undefined) {
+      this.emptyString = d.emptyString;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      stringWithDefault: this.#stringWithDefault,
+      emptyString: this.#emptyString,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      stringWithDefault: "stringWithDefault",
+      emptyString: "emptyString",
+    };
+  }
+  /**
+   * Creates an instance of MyStringClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyStringClassDtoType) {
+    return new MyStringClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyStringClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<MyStringClassDtoType>) {
+    return new MyStringClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<MyStringClassDtoType>,
+  ): InstanceType<typeof MyStringClassDto> {
+    return new MyStringClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyStringClassDto> {
+    return new MyStringClassDto(this.toJSON());
+  }
+}
+export abstract class MyStringClassDtoFactory {
+  abstract create(data: unknown): MyStringClassDto;
+}
+/**
+ * The base type definition for myStringClassDto
+ **/
+export type MyStringClassDtoType = {
+  /**
+   *
+   * @type {string}
+   **/
+  stringWithDefault: string;
+  /**
+   *
+   * @type {string}
+   **/
+  emptyString: string;
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyStringClassDtoType {}
+
+```
+
+      Given the following example:
+```yaml
+name: MyStringClass
+fields:
+  - name: nullableStringWithDefault
+    default: With default value
+    type: string?
+  - name: nullableWithoutDefault
+    type: string?
+
+```
+      
+      
+
+      In nullable scenario, the field is initialised with 'undefined' and allows null value as well.
+      If default provided, the default value will be placed.
+
+      
+```ts
+import {
+  MArray,
+  MArrayNullable,
+  MCollection,
+  MCollectionNullable,
+  MOne,
+  MOneNullable,
+} from "./sdk/common/operators";
+import { type PartialDeep } from "./sdk/common/fetchx";
+/**
+ * The base class definition for myStringClassDto
+ **/
+export class MyStringClassDto {
+  /**
+   *
+   * @type {string}
+   **/
+  #nullableStringWithDefault?: string | null = "With default value";
+  /**
+   *
+   * @returns {string}
+   **/
+  get nullableStringWithDefault() {
+    return this.#nullableStringWithDefault;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set nullableStringWithDefault(value: string | null | undefined) {
+    const correctType =
+      typeof value === "string" || value === undefined || value === null;
+    this.#nullableStringWithDefault = correctType ? value : String(value);
+  }
+  setNullableStringWithDefault(value: string | null | undefined) {
+    this.nullableStringWithDefault = value;
+    return this;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  #nullableWithoutDefault?: string | null = undefined;
+  /**
+   *
+   * @returns {string}
+   **/
+  get nullableWithoutDefault() {
+    return this.#nullableWithoutDefault;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set nullableWithoutDefault(value: string | null | undefined) {
+    const correctType =
+      typeof value === "string" || value === undefined || value === null;
+    this.#nullableWithoutDefault = correctType ? value : String(value);
+  }
+  setNullableWithoutDefault(value: string | null | undefined) {
+    this.nullableWithoutDefault = value;
+    return this;
+  }
+  constructor(data: unknown = undefined) {
+    if (data === null || data === undefined) {
+      return;
+    }
+    if (typeof data === "string") {
+      this.applyFromObject(JSON.parse(data));
+    } else if (this.#isJsonAppliable(data)) {
+      this.applyFromObject(data);
+    } else {
+      throw new Error(
+        "Instance cannot be created on an unknown value, check the content being passed. got: " +
+          typeof data,
+      );
+    }
+  }
+  #isJsonAppliable(obj: unknown) {
+    const g = globalThis as unknown as { Buffer: any; Blob: any };
+    const isBuffer =
+      typeof g.Buffer !== "undefined" &&
+      typeof g.Buffer.isBuffer === "function" &&
+      g.Buffer.isBuffer(obj);
+    const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+    return (
+      obj &&
+      typeof obj === "object" &&
+      !Array.isArray(obj) &&
+      !isBuffer &&
+      !(obj instanceof ArrayBuffer) &&
+      !isBlob
+    );
+  }
+  /**
+   * casts the fields of a javascript object into the class properties one by one
+   **/
+  applyFromObject(data = {}) {
+    const d = data as Partial<MyStringClassDto>;
+    if (d.nullableStringWithDefault !== undefined) {
+      this.nullableStringWithDefault = d.nullableStringWithDefault;
+    }
+    if (d.nullableWithoutDefault !== undefined) {
+      this.nullableWithoutDefault = d.nullableWithoutDefault;
+    }
+  }
+  /**
+   *	Special toJSON override, since the field are private,
+   *	Json stringify won't see them unless we mention it explicitly.
+   **/
+  toJSON() {
+    return {
+      nullableStringWithDefault: this.#nullableStringWithDefault,
+      nullableWithoutDefault: this.#nullableWithoutDefault,
+    };
+  }
+  toString() {
+    return JSON.stringify(this);
+  }
+  static get Fields() {
+    return {
+      nullableStringWithDefault: "nullableStringWithDefault",
+      nullableWithoutDefault: "nullableWithoutDefault",
+    };
+  }
+  /**
+   * Creates an instance of MyStringClassDto, and possibleDtoObject
+   * needs to satisfy the type requirement fully, otherwise typescript compile would
+   * be complaining.
+   **/
+  static from(possibleDtoObject: MyStringClassDtoType) {
+    return new MyStringClassDto(possibleDtoObject);
+  }
+  /**
+   * Creates an instance of MyStringClassDto, and partialDtoObject
+   * needs to satisfy the type, but partially, and rest of the content would
+   * be constructed according to data types and nullability.
+   **/
+  static with(partialDtoObject: PartialDeep<MyStringClassDtoType>) {
+    return new MyStringClassDto(partialDtoObject);
+  }
+  copyWith(
+    partial: PartialDeep<MyStringClassDtoType>,
+  ): InstanceType<typeof MyStringClassDto> {
+    return new MyStringClassDto({ ...this.toJSON(), ...partial });
+  }
+  clone(): InstanceType<typeof MyStringClassDto> {
+    return new MyStringClassDto(this.toJSON());
+  }
+}
+export abstract class MyStringClassDtoFactory {
+  abstract create(data: unknown): MyStringClassDto;
+}
+/**
+ * The base type definition for myStringClassDto
+ **/
+export type MyStringClassDtoType = {
+  /**
+   *
+   * @type {string}
+   **/
+  nullableStringWithDefault?: string;
+  /**
+   *
+   * @type {string}
+   **/
+  nullableWithoutDefault?: string;
+};
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace MyStringClassDtoType {}
+
+```

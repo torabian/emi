@@ -68,7 +68,11 @@ describe("Generate the complex fields within an action, both for built in and us
     });
 
     // add markdown documentation
-    content.push(`# Complex Types in Emi`);
+    content.push(`---
+title: "Complex Types in Emi"
+---
+
+`);
     content.push(
       `In Emi modules, you can define **complexes** as reusable types. Each complex requires a class name and a location where it should be imported from.`,
     );
@@ -161,7 +165,7 @@ ${yaml.dump(sample1)}
 
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-complex-types.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-complex-types.mdx",
       content.join("\r\n").trim(),
     );
   });

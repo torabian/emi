@@ -75,11 +75,12 @@ describe("Generate the emi javascript web socket", () => {
 
   it("introduction", () => {
     content.push(`---
-sidebar_position: 4
+title: "WebSocket generation in Emi"
+sidebar:
+  order: 4
 ---
       
       `);
-    content.push("# WebSocket generation in Emi");
     content.push(`
       Websockets are one of the most important aspect of reactive web programming now adays, which allow sending full-duplex messages between server and front-end.
       You can define an action method: 'reactive', and it would consider the endpoint is a websocket.
@@ -207,7 +208,7 @@ ${yaml.dump(sample1)}
 
   it("should write final documentation", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-javascript-web-socket.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-javascript-web-socket.mdx",
       content.join("\r\n").trim(),
     );
   });

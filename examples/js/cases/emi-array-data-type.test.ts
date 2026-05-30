@@ -14,10 +14,10 @@ describe("Generate documents for array type", () => {
   it("generate array doc", async () => {
     content.push(`
 ---
-sidebar_position: 9
+title: "Emi array data type"
+sidebar:
+  order: 9
 ---
-
-# Emi array data type
     `);
 
     const arrayExample = {
@@ -111,7 +111,7 @@ Defaults to \`undefined\`, but you can assign an array or \`null\`.
     content.push("```ts\r\n" + formattedNullable + "\r\n```");
 
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-array-data-type.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-array-data-type.mdx",
       content.join("\r\n").trim(),
     );
   });

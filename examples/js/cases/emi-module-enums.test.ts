@@ -32,10 +32,12 @@ describe("Generting the enum values", () => {
 
   it("write the topic a little bit", () => {
     content.push(`---
-sidebar_position: 4
+title: "Enums in modules"
+sidebar:
+  order: 4
 ---
 
-# Enums in modules
+
 
 Besides defining inline enums, emi definition allows for standalone enums which is really useful,
 for sharing enums between multiple files.
@@ -65,7 +67,7 @@ ${yaml.dump(sample1)}
 
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-enum.md",
+      "../../examples/emi-web/src/content/docs/js/emi-enum.md",
       content.join("\r\n").trim(),
     );
   });

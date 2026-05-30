@@ -47,10 +47,11 @@ describe("Objects auto init should work perfectly fine.", () => {
   it("should add the introduction", () => {
     content.push(`
 ---
-sidebar_position: 3
+title: "Emi Objects Auto-Init Feature"
+sidebar:
+  order: 3
 ---
 
-# Emi Objects Auto-Init Feature
 
 In the DTO world, it often happens that an API promises to return a string, object, or array for a specific property. TypeScript can enforce this at the type level, but the main issue with most codegen tools is that they trust the definitions too much.
 
@@ -136,7 +137,7 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
   /// Last step is to write the document down
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-fields-auto-init.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-fields-auto-init.mdx",
       content.join("\r\n").trim(),
     );
   });

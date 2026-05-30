@@ -18,10 +18,11 @@ describe("Generate documents for int / float64 types", () => {
   it("generate int doc", async () => {
     contentInt.push(`
 ---
-sidebar_position: 6
+title: "Emi integer data type"
+sidebar: 
+  order: 6
 ---
 
-# Emi integer data type
     `);
 
     const pureIntExample = {
@@ -83,7 +84,7 @@ Defaults to \`undefined\`, but you can assign \`0\`, any number, or \`null\`.
     `);
 
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-int-data-type.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-int-data-type.mdx",
       contentInt.join("\r\n").trim(),
     );
   });
@@ -94,10 +95,11 @@ Defaults to \`undefined\`, but you can assign \`0\`, any number, or \`null\`.
   it("generate float64 doc", async () => {
     contentFloat.push(`
 ---
-sidebar_position: 7
+title: "Emi float64 data type"
+sidebar: 
+  order: 7
 ---
 
-# Emi float64 data type
     `);
 
     const pureFloatExample = {
@@ -159,7 +161,7 @@ Defaults to \`undefined\`, but you can assign any float value or \`null\`.
     `);
 
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-float64-data-type.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-float64-data-type.mdx",
       contentFloat.join("\r\n").trim(),
     );
   });

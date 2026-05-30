@@ -1,0 +1,22 @@
+/* Brand theming for Starlight.
+ * Carries over the original Docusaurus palette: green (#2e8555) in light mode,
+ * teal (#25c2a0) in dark mode, expressed via Starlight's accent variables. */
+
+/* Dark theme (Starlight default). */
+:root {
+  --sl-color-accent-low: #003428;
+  --sl-color-accent: #1a8870;
+  --sl-color-accent-high: #94e0c9;
+}
+
+/* Light theme. */
+:root[data-theme="light"] {
+  --sl-color-accent-low: #c6ecdc;
+  --sl-color-accent: #2e8555;
+  --sl-color-accent-high: #16432d;
+}
+
+/* Slightly larger inline code, matching the old Infima setting. */
+:root {
+  --sl-text-code: 0.95em;
+}

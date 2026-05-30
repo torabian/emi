@@ -127,7 +127,7 @@ Possible result:
 
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/golang/emi-primitive.mdx",
+      "../../examples/emi-web/src/content/docs/golang/emi-primitive.mdx",
       content.join("\r\n").trim(),
     );
   });

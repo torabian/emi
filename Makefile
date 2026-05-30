@@ -51,7 +51,7 @@ ci:
 
 compile-github:
 	rm -rf __webdir && \
-	cp -R ./examples/emi-web/build __webdir && touch __webdir/.nojekyll && \
+	cp -R ./examples/emi-web/dist __webdir && touch __webdir/.nojekyll && \
 	cp -R playground/dist __webdir/playground && \
 	cp -R examples/in-browser-server/browser __webdir/in-browser-server
 

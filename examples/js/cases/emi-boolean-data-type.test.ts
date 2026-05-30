@@ -14,10 +14,10 @@ describe("Generate documents for boolean and boolean?", () => {
   it("should add the introduction", () => {
     content.push(`
 ---
-sidebar_position: 5
+title: "Emi boolean data type"
+sidebar: 
+  order: 5
 ---
-
-# Emi boolean data type
 
         `);
   });
@@ -118,7 +118,7 @@ ${yaml.dump(nullableBoolExample)}
 
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-boolean-data-type.mdx",
+      "../../examples/emi-web/src/content/docs/js/emi-boolean-data-type.mdx",
       content.join("\r\n").trim(),
     );
   });

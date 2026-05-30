@@ -53,11 +53,12 @@ describe("Generting the nullable values", () => {
   });
 
   it("write the topic a little bit", () => {
-    content.push(`---
-sidebar_position: 4
+    content.push(`
 ---
-
-# Nullable object vs non-nullable
+title: "Nullable object vs non-nullable"
+sidebar:
+  order: 4
+---
 
 Emi definition allows for nullable object vs non-nullable objects. In case an object is not nullable, should always be present and initialised
 by the parent class upon instantiation. For types, simply it would indicate that it needs to be present.
@@ -85,7 +86,7 @@ ${yaml.dump(sample1)}
 
   it("should write the final doc", () => {
     writeFileSync(
-      "../../examples/emi-web/docs/js/emi-nullable-object.md",
+      "../../examples/emi-web/src/content/docs/js/emi-nullable-object.md",
       content.join("\r\n").trim(),
     );
   });
