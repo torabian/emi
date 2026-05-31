@@ -36,14 +36,7 @@ fields:
 
 
 ```ts
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MOne } from "./sdk/common/operators";
 import { UncleDto } from "./UncleDto";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -129,7 +122,7 @@ export class NullableResponseActionDto {
    * Uncle is a separate dto, therefor we use that entity
    * @type {UncleDto}
    **/
-  #firstUncle!: UncleDto;
+  #firstUncle!: MOne<UncleDto>;
   /**
    * Uncle is a separate dto, therefor we use that entity
    * @returns {UncleDto}
@@ -141,15 +134,17 @@ export class NullableResponseActionDto {
    * Uncle is a separate dto, therefor we use that entity
    * @type {UncleDto}
    **/
-  set firstUncle(value: UncleDto) {
+  set firstUncle(value: MOne<UncleDto> | InstanceType<typeof UncleDto>) {
     // For objects, the sub type needs to always be instance of the sub class.
-    if (value instanceof UncleDto) {
+    if (value instanceof MOne) {
       this.#firstUncle = value;
+    } else if (value instanceof UncleDto) {
+      this.#firstUncle = MOne.of(value);
     } else {
-      this.#firstUncle = new UncleDto(value);
+      this.#firstUncle = MOne.of(new UncleDto(value));
     }
   }
-  setFirstUncle(value: UncleDto) {
+  setFirstUncle(value: MOne<UncleDto> | InstanceType<typeof UncleDto>) {
     this.firstUncle = value;
     return this;
   }
@@ -157,7 +152,7 @@ export class NullableResponseActionDto {
    * Second uncle is optional
    * @type {UncleDto}
    **/
-  #secondUncle?: UncleDto | null = undefined;
+  #secondUncle?: MOne<UncleDto> | null = undefined;
   /**
    * Second uncle is optional
    * @returns {UncleDto}
@@ -169,15 +164,21 @@ export class NullableResponseActionDto {
    * Second uncle is optional
    * @type {UncleDto}
    **/
-  set secondUncle(value: UncleDto | null | undefined) {
+  set secondUncle(
+    value: MOne<UncleDto> | InstanceType<typeof UncleDto> | null | undefined,
+  ) {
     // For objects, the sub type needs to always be instance of the sub class.
-    if (value instanceof UncleDto) {
+    if (value instanceof MOne) {
       this.#secondUncle = value;
+    } else if (value instanceof UncleDto) {
+      this.#secondUncle = MOne.of(value);
     } else {
-      this.#secondUncle = new UncleDto(value);
+      this.#secondUncle = MOne.of(new UncleDto(value));
     }
   }
-  setSecondUncle(value: UncleDto | null | undefined) {
+  setSecondUncle(
+    value: MOne<UncleDto> | InstanceType<typeof UncleDto> | null | undefined,
+  ) {
     this.secondUncle = value;
     return this;
   }
@@ -469,7 +470,7 @@ export class NullableResponseActionDto {
       this.mother = new NullableResponseActionDto.Mother(d.mother || {});
     }
     if (!(d.firstUncle instanceof UncleDto)) {
-      this.firstUncle = new UncleDto(d.firstUncle || {});
+      this.firstUncle = MOne.of(new UncleDto(d.firstUncle || {}));
     }
   }
   /**

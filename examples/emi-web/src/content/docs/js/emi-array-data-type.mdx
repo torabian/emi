@@ -25,14 +25,7 @@ fields:
 - `array?` allows `null`/ `undefined`.  
     
 ```ts
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -43,7 +36,9 @@ export class MyArrayClassDto {
    *
    * @type {MyArrayClassDto.Contacts}
    **/
-  #contacts: InstanceType<typeof MyArrayClassDto.Contacts>[] = [];
+  #contacts: MArray<InstanceType<typeof MyArrayClassDto.Contacts>> = MArray.of(
+    [],
+  );
   /**
    *
    * @returns {MyArrayClassDto.Contacts}
@@ -55,17 +50,44 @@ export class MyArrayClassDto {
    *
    * @type {MyArrayClassDto.Contacts}
    **/
-  set contacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+  set contacts(
+    value:
+      | MArray<InstanceType<typeof MyArrayClassDto.Contacts>>
+      | InstanceType<typeof MyArrayClassDto.Contacts>[],
+  ) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
+        this.#contacts = MArray.of(value);
+      } else {
+        this.#contacts = MArray.of(
+          value.map((item) => new MyArrayClassDto.Contacts(item)),
+        );
+      }
       return;
     }
-    if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#contacts = value;
-    } else {
-      this.#contacts = value.map((item) => new MyArrayClassDto.Contacts(item));
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+    if (ok) {
+      this.#contacts = mcastValue as any;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to contacts, because it needs MArray instance or an Array.",
+    );
   }
-  setContacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
+  setContacts(
+    value:
+      | MArray<InstanceType<typeof MyArrayClassDto.Contacts>>
+      | InstanceType<typeof MyArrayClassDto.Contacts>[],
+  ) {
     this.contacts = value;
     return this;
   }
@@ -348,14 +370,7 @@ fields:
 Arrays can hold primitive types or nested objects.
     
 ```ts
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -366,7 +381,9 @@ export class MyArrayClassDto {
    *
    * @type {MyArrayClassDto.Contacts}
    **/
-  #contacts: InstanceType<typeof MyArrayClassDto.Contacts>[] = [];
+  #contacts: MArray<InstanceType<typeof MyArrayClassDto.Contacts>> = MArray.of(
+    [],
+  );
   /**
    *
    * @returns {MyArrayClassDto.Contacts}
@@ -378,17 +395,44 @@ export class MyArrayClassDto {
    *
    * @type {MyArrayClassDto.Contacts}
    **/
-  set contacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+  set contacts(
+    value:
+      | MArray<InstanceType<typeof MyArrayClassDto.Contacts>>
+      | InstanceType<typeof MyArrayClassDto.Contacts>[],
+  ) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
+        this.#contacts = MArray.of(value);
+      } else {
+        this.#contacts = MArray.of(
+          value.map((item) => new MyArrayClassDto.Contacts(item)),
+        );
+      }
       return;
     }
-    if (value.length > 0 && value[0] instanceof MyArrayClassDto.Contacts) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#contacts = value;
-    } else {
-      this.#contacts = value.map((item) => new MyArrayClassDto.Contacts(item));
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+    if (ok) {
+      this.#contacts = mcastValue as any;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to contacts, because it needs MArray instance or an Array.",
+    );
   }
-  setContacts(value: InstanceType<typeof MyArrayClassDto.Contacts>[]) {
+  setContacts(
+    value:
+      | MArray<InstanceType<typeof MyArrayClassDto.Contacts>>
+      | InstanceType<typeof MyArrayClassDto.Contacts>[],
+  ) {
     this.contacts = value;
     return this;
   }
@@ -666,14 +710,7 @@ fields:
 Defaults to `undefined`, but you can assign an array or `null`.
     
 ```ts
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -685,7 +722,7 @@ export class MyArrayClassDto {
    * @type {MyArrayClassDto.NullableTags}
    **/
   #nullableTags?:
-    | InstanceType<typeof MyArrayClassDto.NullableTags>[]
+    | MArray<InstanceType<typeof MyArrayClassDto.NullableTags>>
     | null
     | undefined
     | null = undefined;
@@ -702,28 +739,55 @@ export class MyArrayClassDto {
    **/
   set nullableTags(
     value:
-      | InstanceType<typeof MyArrayClassDto.NullableTags>[]
+      | MArray<InstanceType<typeof MyArrayClassDto.NullableTags>>
       | null
       | undefined
+      | InstanceType<typeof MyArrayClassDto.NullableTags>[]
       | null
       | undefined,
   ) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // For nullable array, we allow explicit undefined or null values
+    if (value === null || value === undefined) {
+      this.#nullableTags = value;
       return;
     }
-    if (value.length > 0 && value[0] instanceof MyArrayClassDto.NullableTags) {
-      this.#nullableTags = value;
-    } else {
-      this.#nullableTags = value.map(
-        (item) => new MyArrayClassDto.NullableTags(item),
-      );
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof MyArrayClassDto.NullableTags
+      ) {
+        this.#nullableTags = MArray.of(value);
+      } else {
+        this.#nullableTags = MArray.of(
+          value.map((item) => new MyArrayClassDto.NullableTags(item)),
+        );
+      }
+      return;
     }
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
+      this.#nullableTags = value;
+      return;
+    }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+    if (ok) {
+      this.#nullableTags = mcastValue as any;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to nullableTags, because it needs MArray instance or an Array.",
+    );
   }
   setNullableTags(
     value:
-      | InstanceType<typeof MyArrayClassDto.NullableTags>[]
+      | MArray<InstanceType<typeof MyArrayClassDto.NullableTags>>
       | null
       | undefined
+      | InstanceType<typeof MyArrayClassDto.NullableTags>[]
       | null
       | undefined,
   ) {

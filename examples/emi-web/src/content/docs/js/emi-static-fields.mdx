@@ -85,14 +85,7 @@ pass number as many as you want, and it would replace [:i] statements to have pr
 
           
 ```ts
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for anonymouse
@@ -125,7 +118,7 @@ export class Anonymouse {
    *
    * @type {Anonymouse.LoginHistory}
    **/
-  #loginHistory = [];
+  #loginHistory = MArray.of([]);
   /**
    *
    * @returns {Anonymouse.LoginHistory}
@@ -138,16 +131,33 @@ export class Anonymouse {
    * @type {Anonymouse.LoginHistory}
    **/
   set loginHistory(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (value.length > 0 && value[0] instanceof Anonymouse.LoginHistory) {
+        this.#loginHistory = MArray.of(value);
+      } else {
+        this.#loginHistory = MArray.of(
+          value.map((item) => new Anonymouse.LoginHistory(item)),
+        );
+      }
       return;
     }
-    if (value.length > 0 && value[0] instanceof Anonymouse.LoginHistory) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#loginHistory = value;
-    } else {
-      this.#loginHistory = value.map(
-        (item) => new Anonymouse.LoginHistory(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#loginHistory = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to loginHistory, because it needs MArray instance or an Array.",
+    );
   }
   setLoginHistory(value) {
     this.loginHistory = value;

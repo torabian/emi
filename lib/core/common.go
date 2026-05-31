@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -399,6 +400,34 @@ func CollectTargets(fields []*EmiField, currentName string) []string {
 				if field.Target != currentName {
 					result = append(result, field.Target)
 				}
+			}
+
+			if len(field.Fields) > 0 {
+				walk(field.Fields)
+			}
+		}
+	}
+
+	walk(fields)
+	return result
+}
+
+// Returns true, if any if types mentioned in the argument are ever used
+// in the fields tree
+func ContainsAnyOfTypes(fields []*EmiField, types []FieldType) bool {
+	var result bool
+
+	var walk func(f []*EmiField)
+	walk = func(f []*EmiField) {
+		for _, field := range f {
+			if field == nil {
+				continue
+			}
+
+			if slices.Contains(types, field.Type) {
+				result = true
+
+				break
 			}
 
 			if len(field.Fields) > 0 {
