@@ -49,6 +49,22 @@ export default defineConfig({
           label: "Javascript Compiler",
           items: [{ autogenerate: { directory: "js" } }],
         },
+        {
+          label: "Swift Compiler",
+          items: [{ autogenerate: { directory: "swift" } }],
+        },
+        {
+          label: "Kotlin Compiler",
+          items: [{ autogenerate: { directory: "kotlin" } }],
+        },
+        {
+          label: "Query Predict",
+          items: [{ autogenerate: { directory: "query-predict" } }],
+        },
+        {
+          label: "Documents & Export",
+          items: [{ autogenerate: { directory: "exports" } }],
+        },
       ],
     }),
     react(),

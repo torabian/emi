@@ -1,0 +1,87 @@
+---
+title: "Markdown docs"
+sidebar:
+  order: 3
+---
+
+The `emi md` command describes a module in Markdown. It is the fastest way to get human readable, always up to date
+documentation for a module: a title, the description, a table of contents, and a section per action listing the
+method, URL, CLI name and the request/response fields.
+
+Because the Markdown is produced from the same definition that generates your code, the documentation cannot drift
+out of sync with the actual API.
+
+## Generating the markdown
+
+```bash
+emi md --path module.yaml --output ./out
+# ./out/postsModule.md
+```
+
+Without `--output`, the generated file is printed to the terminal.
+
+## Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Flag</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>--path</code></td>
+      <td>Path of the Emi definition file (<code>.yaml</code> or <code>.json</code>) on disk.</td>
+    </tr>
+    <tr>
+      <td><code>--output</code></td>
+      <td>Directory the generated markdown is written to. Omit it to print to stdout.</td>
+    </tr>
+    <tr>
+      <td><code>--tags</code></td>
+      <td>Comma separated compile features to add or remove.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Example
+
+For the `postsModule` from the [OpenAPI](/emi/exports/openapi) page, `emi md` produces:
+
+```markdown
+# PostsModule
+
+> A small module to manage posts
+
+| | |
+|---|---|
+| **Name** | `postsModule` |
+
+## Contents
+
+- [Actions](#actions) — 1
+
+## Actions
+
+### `GetSinglePostAction`
+
+> Gets a specific post from the endpoint
+
+| | |
+|---|---|
+| **Method** | `GET` |
+| **URL** | `/posts/:id` |
+| **CLI** | `get-single-post` |
+
+#### Response
+
+| Field | Type | Description |
+|---|---|---|
+| `userId` | `int64` |  |
+| `id` | `int64` |  |
+| `title` | `string` |  |
+| `body` | `string` |  |
+```
+
+This output can be committed next to the module, served in a docs site, or rendered straight into a README.

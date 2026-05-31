@@ -1,0 +1,166 @@
+---
+title: "Query Predict"
+sidebar:
+  order: 1
+---
+
+Query Predict (`qp`) is Emi's approach to **hand-written SQL with generated, type-safe Go bindings**. You write plain
+`.sql` files; Emi parses them, predicts the shape of each result row and the parameters they need, and generates Go
+code with a typed row struct and a prepared-statement builder. There is no schema introspection, no auto-migration and
+no SQL synthesis — the SQL you write is the SQL that runs.
+
+This keeps the full power of SQL in your hands while still giving you compile-time safety over the columns and
+parameters a query touches.
+
+## Commands
+
+<table>
+  <thead>
+    <tr>
+      <th>Command</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>emi qp:dir</code></td>
+      <td>Scans a directory for <code>.sql</code> files and generates QueryPredict Go code for each.</td>
+    </tr>
+    <tr>
+      <td><code>emi qp:gen</code></td>
+      <td>Generates the QueryPredict Go files from a Query Predict YAML definition.</td>
+    </tr>
+    <tr>
+      <td><code>emi qp:sql</code></td>
+      <td>Compiles a single query into executable Go and transforms the metadata into pure SQL.</td>
+    </tr>
+  </tbody>
+</table>
+
+### Generating from a directory of `.sql` files
+
+Point `qp:dir` at a directory of `.sql` files and it generates one Go file per query into the output directory. The
+generated file name is derived from the SQL file name.
+
+```bash
+emi qp:dir --path ./queries-source --output ./output
+```
+
+### Generating from a YAML definition
+
+`qp:gen` reads a Query Predict document that bundles several queries together and lets you set the Go package name:
+
+```bash
+emi qp:gen --path ./queries.yaml --output ./output
+```
+
+```yaml
+package: queries
+queries:
+  - name: basicSelect
+    query: select name, id from users;
+  - name: countUsers
+    query: select count(*) as 'count' from users
+```
+
+### Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Flag</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>--path</code></td>
+      <td>Path of the directory (<code>qp:dir</code>) or the Query Predict YAML/SQL file.</td>
+    </tr>
+    <tr>
+      <td><code>--output</code></td>
+      <td>Directory the generated Go files are written to.</td>
+    </tr>
+    <tr>
+      <td><code>--tags</code></td>
+      <td>Comma separated compile features to add or remove.</td>
+    </tr>
+  </tbody>
+</table>
+
+## What gets generated
+
+For a query like `select name, id from users;` Emi emits a typed row struct, the original SQL as a constant, and a
+context/prepare helper:
+
+```go
+const BasicSelectSQL = `select name, id from users;`
+
+type BasicSelectRow struct {
+    Name string
+    Id   string
+}
+
+type BasicSelectContext struct {
+    Filter       string
+    Having       string
+    Restriction  string
+    Params       map[string]interface{}
+    Placeholders []any
+}
+
+func BasicSelectPrepreSql(ctx BasicSelectContext) (string, error) {
+    // ...substitutes useval(), filter(), restriction() and having into the SQL
+}
+```
+
+## SQL helpers
+
+Query Predict understands a small set of marker functions inside your SQL. They let you keep dynamic behaviour in the
+query while still generating predictable, typed code.
+
+<table>
+  <thead>
+    <tr>
+      <th>Helper</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>field(expr, 'type', 'goName'?)</code></td>
+      <td>Annotate a selected expression so Emi knows its Go type (and optionally the Go field name) when it cannot be inferred.</td>
+    </tr>
+    <tr>
+      <td><code>useval('name')</code></td>
+      <td>A named value substituted from <code>ctx.Params</code> at runtime, safely escaped.</td>
+    </tr>
+    <tr>
+      <td><code>filter()</code></td>
+      <td>Placeholder replaced by the <code>Filter</code> clause from the context (defaults to <code>1</code>).</td>
+    </tr>
+    <tr>
+      <td><code>restriction()</code></td>
+      <td>Placeholder replaced by the <code>Restriction</code> clause from the context (defaults to <code>1</code>).</td>
+    </tr>
+  </tbody>
+</table>
+
+An example combining them:
+
+```sql
+SELECT
+    u.user_id as user_id,
+    field(u.user_name, 'string') as UserName,
+    field(COUNT(o.order_id), 'int64') AS total_orders
+FROM users u
+LEFT JOIN orders o ON u.user_id = o.user_id
+WHERE filter()
+GROUP BY u.user_id, u.user_name
+HAVING MAX(o.total) > 100
+ORDER BY total_orders DESC
+LIMIT useval('limit')
+```
+
+Here `field(..., 'int64')` tells the generator the aggregate column is an `int64`, `filter()` is swapped for whatever
+filter the caller supplies, and `useval('limit')` is replaced by the `limit` entry of `ctx.Params`.
