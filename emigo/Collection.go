@@ -25,7 +25,7 @@ import (
 //     → Collection{Operation: "replace", Items: [...], isSet: true}
 //
 //  3. Tagged object — explicit operation:
-//     {"__operation": "append", "items": [{"key": "x", "value": "y"}]}
+//     {"__operation": "append", "__items": [{"key": "x", "value": "y"}]}
 //     → Collection{Operation: "append", Items: [...], isSet: true}
 //
 // The vsql renderer treats Collection as opted-out via [Collection.SQLValue]
@@ -35,7 +35,7 @@ import (
 // directly to drive DELETE/INSERT semantics on child tables.
 type Collection[T any] struct {
 	Operation string `json:"__operation"`
-	Items     []T    `json:"items"`
+	Items     []T    `json:"__items"`
 	isSet     bool
 }
 
@@ -105,7 +105,7 @@ func (c Collection[T]) MarshalJSON() ([]byte, error) {
 	}
 	type alias struct {
 		Operation string `json:"__operation"`
-		Items     []T    `json:"items"`
+		Items     []T    `json:"__items"`
 	}
 
 	// When operation is replace, we simply return the content
@@ -141,7 +141,7 @@ func (c *Collection[T]) UnmarshalJSON(data []byte) error {
 	}
 	type alias struct {
 		Operation string `json:"__operation"`
-		Items     []T    `json:"items"`
+		Items     []T    `json:"__items"`
 	}
 	var a alias
 	if err := json.Unmarshal(data, &a); err != nil {
