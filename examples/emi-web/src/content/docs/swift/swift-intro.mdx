@@ -1,0 +1,104 @@
+---
+title: "Swift Compiler"
+sidebar:
+  order: 1
+---
+
+Emi ships with a Swift compiler, so the same definitions that drive your Go backend and JavaScript front end can also
+power native iOS and macOS clients. The generated Swift is plain `Foundation` based code (it falls back to
+`FoundationNetworking` on Linux), so it does not pull in any third party dependency.
+
+The Swift compiler generates type-safe request/response objects and an action wrapper per action, mirroring the
+behaviour of the other Emi compilers.
+
+## Compiling a module
+
+```bash
+emi swift --path module.yaml --output ./Sources/Generated
+```
+
+Without `--output`, the generated virtual files are printed (as JSON) to the terminal so you can inspect them before
+writing anything to disk.
+
+## Sub commands
+
+The full Swift compiler (`emi swift`) generates everything for a module. If you only need a slice of the output, two
+focused sub commands are available:
+
+<table>
+  <thead>
+    <tr>
+      <th>Command</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>emi swift</code></td>
+      <td>Compiles the entire Swift module (actions, DTOs, headers).</td>
+    </tr>
+    <tr>
+      <td><code>emi swift:dto</code></td>
+      <td>Generates only the Swift DTO objects.</td>
+    </tr>
+    <tr>
+      <td><code>emi swift:headers</code></td>
+      <td>Generates the headers, usable in both client and server code.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Flag</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>--path</code></td>
+      <td>Path of the Emi definition file (<code>.yaml</code> or <code>.json</code>) on disk.</td>
+    </tr>
+    <tr>
+      <td><code>--output</code></td>
+      <td>Directory the generated Swift files are written to. Omit it to print to stdout.</td>
+    </tr>
+    <tr>
+      <td><code>--tags</code></td>
+      <td>Comma separated compile features to add or remove.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Example
+
+For the `postsModule` from the [OpenAPI](/emi/exports/openapi) page, `emi swift` generates an
+`GetSinglePostAction.swift` file that starts like this:
+
+```swift
+import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+/**
+ Action to communicate with the action GetSinglePostAction
+ */
+struct GetSinglePostActionMeta {
+    let name: String = "GetSinglePostAction"
+    let url: String = "/posts/:id"
+    let method: String = "Get"
+}
+
+struct GetSinglePostActionResponse {
+    let statusCode: Int
+    let headers: [String: String]
+    let payload: Data?
+    // ...
+}
+```
+
+Each action carries its metadata (name, URL, method) and a strongly typed response, so the calling code never has to
+hardcode routes or guess the response shape.

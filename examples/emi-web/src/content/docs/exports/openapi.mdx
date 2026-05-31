@@ -1,0 +1,134 @@
+---
+title: "OpenAPI"
+sidebar:
+  order: 1
+---
+
+Emi can describe any module as an [OpenAPI 3](https://spec.openapis.org/oas/v3.0.3) document. This is a *describer*,
+not a compiler: it does not emit source code, it reads your Emi definition and produces a standard OpenAPI document
+that you can feed into Swagger UI, Redoc, code generators, or API gateways.
+
+Because the OpenAPI document is generated from the very same definition that produces your Go, Swift, Kotlin and
+JavaScript clients, the spec never drifts away from the actual implementation.
+
+## Generating the document
+
+```bash
+emi openapi --path module.yaml
+```
+
+When you do not pass `--output`, Emi prints the generated virtual files (as JSON) to the terminal so you can pipe or
+inspect them. To write the document to disk, point `--output` at a directory:
+
+```bash
+emi openapi --path module.yaml --output ./out
+# ./out/postsModule.openapi.yaml
+```
+
+By default a YAML document (`.openapi.yaml`) is produced. Pass `--json` to additionally emit the JSON representation:
+
+```bash
+emi openapi --path module.yaml --output ./out --json
+```
+
+## Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Flag</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>--path</code></td>
+      <td>Path of the Emi definition file (<code>.yaml</code> or <code>.json</code>) on disk.</td>
+    </tr>
+    <tr>
+      <td><code>--output</code></td>
+      <td>Directory the generated files are written to. Omit it to print to stdout.</td>
+    </tr>
+    <tr>
+      <td><code>--json</code></td>
+      <td>Also emit the OpenAPI document as JSON in addition to YAML.</td>
+    </tr>
+    <tr>
+      <td><code>--tags</code></td>
+      <td>Comma separated compile features to add or remove.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Example
+
+Given this module:
+
+```yaml
+name: postsModule
+description: A small module to manage posts
+actions:
+  - name: getSinglePost
+    url: /posts/:id
+    cliName: get-single-post
+    method: get
+    description: Gets a specific post from the endpoint
+    out:
+      fields:
+        - name: userId
+          type: int64
+        - name: id
+          type: int64
+        - name: title
+          type: string
+        - name: body
+          type: string
+```
+
+`emi openapi --path module.yaml` produces:
+
+```yaml
+components: {}
+info:
+  description: A small module to manage posts
+  title: postsModule
+  version: 1.0.0
+openapi: 3.0.3
+paths:
+  /posts/{id}:
+    get:
+      description: Gets a specific post from the endpoint
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                properties:
+                  body:
+                    type: string
+                  id:
+                    format: int64
+                    type: integer
+                  title:
+                    type: string
+                  userId:
+                    format: int64
+                    type: integer
+                required:
+                  - userId
+                  - id
+                  - title
+                  - body
+                type: object
+          description: OK
+      summary: Gets a specific post from the endpoint
+```
+
+Notice how Emi rewrites the route parameter syntax (`/posts/:id` becomes `/posts/{id}`), promotes path parameters,
+and maps Emi field types (`int64`) onto the proper OpenAPI `type`/`format` pairs.

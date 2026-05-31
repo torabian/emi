@@ -1,0 +1,101 @@
+---
+title: "Postman collection"
+sidebar:
+  order: 2
+---
+
+Emi can generate a [Postman v2.1](https://schema.getpostman.com/json/collection/v2.1.0/collection.json) collection
+directly from a module. Every action becomes a Postman request, with the method, URL, and the standard Emi headers
+already filled in, so you can import the collection into Postman and start hitting your endpoints immediately.
+
+The host and port are emitted as Postman environment variables (`{{HOST}}` and `{{PORT}}`), which lets you switch
+between local, staging and production simply by changing the active environment.
+
+## Generating the collection
+
+```bash
+emi postman --path module.yaml --output ./out
+```
+
+Without `--output`, the collection JSON is printed to the terminal so you can pipe it elsewhere.
+
+You can set the default value for the `{{HOST}}` and `{{PORT}}` variables that Postman will use:
+
+```bash
+emi postman --path module.yaml --host localhost --port 8080 --output ./out
+```
+
+## Options
+
+<table>
+  <thead>
+    <tr>
+      <th>Flag</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>--path</code></td>
+      <td>Path of the Emi definition file (<code>.yaml</code> or <code>.json</code>) on disk.</td>
+    </tr>
+    <tr>
+      <td><code>--output</code></td>
+      <td>Directory the generated collection is written to. Omit it to print to stdout.</td>
+    </tr>
+    <tr>
+      <td><code>--host</code></td>
+      <td>Default value for the Postman <code>{`{{HOST}}`}</code> variable.</td>
+    </tr>
+    <tr>
+      <td><code>--port</code></td>
+      <td>Default value for the Postman <code>{`{{PORT}}`}</code> variable.</td>
+    </tr>
+    <tr>
+      <td><code>--tags</code></td>
+      <td>Comma separated compile features to add or remove.</td>
+    </tr>
+  </tbody>
+</table>
+
+## Example
+
+Using the `postsModule` from the [OpenAPI](/emi/exports/openapi) page:
+
+```bash
+emi postman --path module.yaml --host localhost --port 8080
+```
+
+produces a collection whose first request looks like:
+
+```json
+{
+  "info": {
+    "name": "postsModule",
+    "description": "A small module to manage posts",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "getSinglePost",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "authorization", "value": "{{AUTH}}" },
+          { "key": "role-id", "value": "{{RID}}" },
+          { "key": "workspace-id", "value": "{{WID}}" }
+        ],
+        "url": {
+          "raw": "http://{{HOST}}:{{PORT}}/posts/:id",
+          "port": "{{PORT}}",
+          "host": ["{{HOST}}"],
+          "path": ["posts", ":id"]
+        }
+      }
+    }
+  ]
+}
+```
+
+The common Emi headers (`authorization`, `role-id`, `workspace-id`) are wired up to Postman variables (`{{AUTH}}`,
+`{{RID}}`, `{{WID}}`), so you can fill them once in the environment and reuse them across every request.
