@@ -4,10 +4,283 @@ sidebar:
   order: 1
 ---
 
-Syncing backend and front-end projects is often a difficult and error-prone task. Developers spend a lot of time writing API calls manually for each client platform—JavaScript, C++, Swift, and virtually any other language—just to keep the interfaces consistent.
+## The problem nobody wants to admit they have
 
-Over the years, I’ve explored many tools—from OpenAPI generators to gRPC—but none truly solve the problem. They either require extensive boilerplate, lack flexibility, or fail to integrate seamlessly with the way developers actually write and maintain code.
+Every team that ships an API ends up writing the same thing twice. Once on the
+backend, where the route, the request body, and the response shape live. And
+again on the frontend — in JavaScript, in Swift, in Kotlin — where someone hand-copies
+those same field names into a `fetch` call, a model struct, and a few `interface`
+declarations that are correct on the day they're written and slowly drift out of
+truth from that day forward.
 
-That’s why we created the Emi compiler. Emi doesn’t just generate API clients; it generates the backend itself, while leveraging standard, idiomatic constructs in each target language. It allows developers to define their application logic once, and automatically produce synchronized backend and frontend layers, reducing errors and saving countless hours. With Emi, the focus shifts from repetitive manual work to building features, while documentation and type safety come naturally, embedded in the code rather than maintained separately.
+Nobody decides to do this. It just happens. A field gets renamed on the server.
+A response that was always a `string` quietly becomes `null` for some users. A new
+query parameter is added and three of the five clients never hear about it. None
+of these break at compile time, because the contract between backend and frontend
+isn't actually written down anywhere a compiler can see it — it lives in the
+heads of the people who wrote both sides, and in a Slack thread from four months
+ago.
 
-Emi is more than a code generator—it’s a bridge that unifies the backend and all client platforms, making development faster, safer, and more maintainable.
+**Emi exists to make that contract a real, single, compilable thing** — and then
+generate every side of it for you, in idiomatic code, for every language you ship.
+
+You write one YAML definition. Emi compiles the **backend** (Go), the **typed
+clients** (JavaScript / TypeScript, Swift, Kotlin), the **React hooks**, the
+**WebSocket and SSE plumbing**, and even an **OpenAPI spec** and a **Postman
+collection** — all from the same source of truth. When the definition changes,
+every target changes with it. The drift problem doesn't get managed. It stops
+existing.
+
+---
+
+## How Emi is different from what you've tried
+
+If you've reached for a code-generation tool before, you've probably tried one of
+these. Here's where Emi sits relative to each.
+
+### vs. OpenAPI generators
+
+OpenAPI generators start from a spec and produce _clients_. That's the ceiling:
+they describe an API that already exists somewhere else, and the generated code
+is usually a thin wrapper around `fetch` plus a pile of TypeScript `interface`s.
+Two problems follow from that:
+
+1. **The spec is downstream of the truth, not the truth itself.** Your real API
+   lives in your backend code. The OpenAPI document is a second artifact that has
+   to be kept in sync — by hand, by annotations, or by yet another generator. So
+   you're back to two sources that can disagree.
+2. **Interfaces are a compile-time fiction.** An OpenAPI-generated TypeScript
+   `interface` says "trust me, this `response.title` is a string." At runtime, if
+   the server sends `null`, your `.substring()` call throws and TypeScript never
+   warned you, because interfaces are erased before the code ever runs.
+
+Emi inverts both. The Emi definition _is_ the source — your Go backend is
+generated _from_ it, so the spec and the server can never disagree. And Emi
+doesn't stop at interfaces (see [Why classes, not interfaces](#why-classes-not-interfaces)
+below). As a bonus, Emi can still emit a standard OpenAPI 3 document and a Postman
+collection on demand (`emi openapi`, `emi postman`) — so you get the
+interoperability of OpenAPI _without_ making a hand-maintained spec your source of
+truth.
+
+### vs. gRPC / Protobuf
+
+gRPC is excellent at what it does, and it solves a real version of this problem —
+one schema, generated code on both sides. But it asks a lot in return:
+
+- A **binary wire protocol** that isn't human-readable and that browsers can't
+  speak natively (you need a proxy like grpc-web or Connect in front of it).
+- A **runtime dependency** in every client — the gRPC/protobuf libraries have to
+  ship with your app and execute at runtime.
+- An ecosystem that wants you **all-in**: your transport, your serialization, your
+  service definitions, all the gRPC way.
+
+Emi makes the opposite trade. It generates **plain HTTP and plain JSON**. The
+generated code has **no Emi runtime** — there's nothing to import at runtime, no
+library version to keep in lockstep. The Go server uses `Gin`; the JS client uses
+`fetch`. You can read every line of what Emi produces, hand-edit it, and **eject
+at any time** without removing a framework from your stack. Emi is a build-time
+tool that hands you ordinary code and then gets out of the way.
+
+### The one-sentence version
+
+> OpenAPI describes an API that already exists. gRPC replaces your transport with
+> its own. **Emi generates the API itself — backend and every client — as ordinary,
+> runtime-free, idiomatic code you fully own.**
+
+---
+
+## How Emi generates code
+
+The whole system is built around one idea: **the definition is target-agnostic.**
+
+An Emi definition (`.emi` YAML or JSON) describes _intent_ — actions, DTOs, enums,
+fields, nullability, collections — and says nothing about Go, or TypeScript, or
+Swift. From that single definition, a series of **sub-compilers** each produce code
+for one target:
+
+```
+                          ┌──────────────► Go        (Gin server + client + CLI)
+                          │
+                          ├──────────────► JavaScript (vanilla, classes)
+   ┌──────────────┐       │
+   │  module.emi  │──────►├──────────────► TypeScript (--tags typescript)
+   │   (YAML)     │       │
+   └──────────────┘       ├──────────────► React      (--tags react: TanStack Query hooks)
+                          │
+                          ├──────────────► Swift / Kotlin DTOs
+                          │
+                          └──────────────► OpenAPI 3 · Postman · Markdown docs
+```
+
+The same definition, many targets. The CLI mirrors this directly:
+
+```sh
+emi go      --path module.emi --output ./server      # Go backend + client
+emi js      --path module.emi --output ./web/sdk --tags react,typescript
+emi swift   --path module.emi --output ./ios
+emi kotlin  --path module.emi --output ./android
+emi openapi --path module.emi                        # standard OpenAPI 3 doc
+```
+
+Feature flags (`--tags`) let one compiler shape its output without changing the
+definition. `--tags react` adds TanStack React Query hooks, a `useSse` hook, and a
+`useWebSocketX` hook on top of the plain client. `--tags nestjs` emits decorators so
+the generated classes drop straight into Nest.js request handlers. `--tags
+typescript` switches the JS compiler from runtime-ready JavaScript to `.ts`. The
+definition never mentions any of them — they're presentation choices made at compile
+time.
+
+And because the compiler is written in Go and **also compiled to WebAssembly**, the
+_exact same compiler_ runs in your browser. That's what powers the
+[live playground](https://torabian.github.io/emi/playground) — no server, no
+install, just the real compiler running in a tab.
+
+---
+
+## Why classes, not interfaces
+
+This is the feature that makes the JavaScript/TypeScript output genuinely different
+from every other generator, so it's worth slowing down on.
+
+Most tools generate TypeScript **interfaces** for your DTOs. An interface is a
+promise checked only at compile time and then erased. It does nothing at runtime.
+So this familiar bug is completely invisible to it:
+
+```ts
+// The interface SWEARS response.title is a string.
+const data = body.response.title.substring(0, 10);
+// In production, the server sent null. This throws. TypeScript shrugged.
+```
+
+APIs drift. A field that was always present goes missing. A value that was always a
+string comes back as a number for one edge case. Strongly typed backend languages
+like Go don't have this problem — a struct field is _always_ initialized to a valid
+zero value, no matter what came over the wire. **Emi brings that same guarantee to
+JavaScript by generating real classes instead of interfaces.**
+
+When you define a DTO in Emi, the JS compiler emits a class with:
+
+- **Private fields and typed getters/setters.** You can't shove a wrong value into
+  the object directly — the setter coerces or rejects it. A `Date` field accepts a
+  `Date` or constructs one from what it's given; a `Money` field instantiates your
+  `Money` class automatically.
+
+  ```ts
+  set date(value: Date) {
+    if (value instanceof Date) {
+      this.#date = value;
+    } else {
+      this.#date = new Date(value);   // coerced, never trusted blindly
+    }
+  }
+  ```
+
+- **Auto-initialization of non-nullable fields.** When an action returns an
+  instance, every non-nullable field — including nested objects, arrays, and
+  child DTOs — is guaranteed to exist. You stop sprinkling `?.`, `??`, and `typeof
+x === 'string'` defensively through your code, because the class already did the
+  guarding for you.
+
+- **Real instances back from the network.** The generated fetch layer doesn't hand
+  you a raw JSON blob cast to a type — it hands you an actual instance of your DTO
+  class (built through a `creatorFn`), with all its getters, helpers, and
+  guarantees intact. Complex types prefixed with `+` (like `+Date`, `+Money`) are
+  _instantiated_, not just typed.
+
+- **Ergonomic constructors and copy helpers.** Every class ships with `from()` (full
+  object), `with()` (partial, deeply-typed via `PartialDeep`), `copyWith()`,
+  `clone()`, a correct `toJSON()` that sees the private fields, and a static `Fields`
+  map for safe path access.
+
+The result: TypeScript checks your types at compile time _and_ the class enforces
+them at runtime. You get the safety Go programmers take for granted, in the language
+that historically had none of it. (For the full mechanics, see
+[Class fields in depth](/emi/js/emi-fields-in-depth/) and
+[Auto-Init](/emi/js/emi-fields-auto-init/).)
+
+---
+
+## Top features on the Go side
+
+Go is Emi's home turf — the Emi type system was modeled on Go's in the first place,
+so the backend output feels hand-written.
+
+- **A full Gin server, not just a client.** Emi generates routes, typed handlers,
+  request/response binding, and the client to call them — both sides from one
+  definition, so signatures can never disagree.
+- **Idiomatic types, no pointer soup.** `string`, `int64`, `bool` map straight to
+  their Go counterparts. Nullable types like `string?` become a clean
+  `Nullable[string]` wrapper instead of `*string` — no nil-pointer minefield.
+- **`one`, `collection`, and objects as first-class references.** Reference another
+  DTO with `type: one, target: PersonDto`, or a list with `type: collection`. Emi
+  recently added the `MOne` / `MCollection` / `MArray` model wrappers to make these
+  relationships explicit and ergonomic.
+- **CLI for free.** Any action with a `cliName` becomes a `urfave/cli` command, with
+  typed flags generated from its query params — your API is a command-line tool with
+  zero extra work.
+- **QueryPredict: hand-written SQL, generated typed bindings.** Point `emi qp:dir`
+  at a folder of `.sql` files and Emi generates type-safe Go parameter and result
+  structs around them. You keep full control of your SQL — Emi never invents schema,
+  migrations, or queries — it just makes the boundary type-safe.
+
+---
+
+## Top features on the JavaScript / TypeScript side
+
+JavaScript gets special focus, because nearly everything eventually has to be
+consumed by a JS environment.
+
+- **Type-safe everything, not just bodies.** Headers, query params, and _nested_
+  query params are all generated as typed accessors. The headers class extends the
+  standard `Headers` and adds typed `getX()` / `setX()` methods that coerce values
+  — a feature unique to Emi.
+- **Reactive programming, generated.** Mark an action `method: reactive` and Emi
+  generates a `WebSocketX` class — the standard `WebSocket` with typed `send` and
+  typed messages. SSE actions get the same treatment. With `--tags react`, you get
+  `useWebSocketX` and `useSse` hooks on top.
+- **React, Nest.js, Next.js without lock-in.** Flags layer framework helpers
+  (TanStack Query hooks, Nest decorators, Next.js req/header adapters) on top of
+  framework-agnostic core code you can still use anywhere.
+- **JS and TS are separate compilers.** The JavaScript output is real, runnable
+  JavaScript — no transpile step required — while `--tags typescript` produces
+  high-coverage `.ts`. You're never forced through a build pipeline you didn't want.
+- **Envelopes.** Response wrappers (like the Google JSON Style Guide shape, or
+  `GResponse`) are modeled separately from your data, so the envelope and the
+  payload each stay cleanly typed.
+
+---
+
+## And one thing that shouldn't be possible
+
+Because the Go server compiles to WebAssembly and Postgres
+([pglite](https://pglite.dev)) does too, you can run your **entire backend inside a
+browser tab** — the _same_ Go handlers, the _same_ SQL, the _same_ generated DTO
+classes — talking to a real Postgres database, with no server process and no
+network. It's the clearest possible demonstration of what "one definition, real code
+everywhere" actually buys you.
+
+See it running: [in-browser server demo](https://torabian.github.io/emi/in-browser-server/).
+
+---
+
+## Where to go next
+
+- **[Try the playground](https://torabian.github.io/emi/playground)** — the real
+  compiler, in your browser, right now.
+- **[Emi definitions](/emi/emi-module-spec/)** — the YAML/JSON schema and every
+  feature you can declare.
+- **[Emi Actions](/emi/emi-actions/)** — how endpoints, methods, and reactive
+  channels are defined.
+- **[JavaScript compiler](/emi/js/js-intro/)** — the class-generation story in full.
+
+Install it and compile your first definition in under a minute:
+
+```sh
+go install github.com/torabian/emi/cmd/emi@latest
+```
+
+Or grab a prebuilt binary from
+[github.com/torabian/emi/releases](https://github.com/torabian/emi/releases).
+
+You can also follow the **[Emi Compiler Training playlist](https://www.youtube.com/playlist?list=PLT2M-bOOx8oyAsIg4jdM-ErmlZ2MqE_SJ)**
+on YouTube.
