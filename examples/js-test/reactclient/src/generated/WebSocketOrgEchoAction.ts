@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { WebSocketX } from "./sdk/common/WebSocketX";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { type PartialDeep } from "./sdk/common/fetchx";
@@ -205,9 +198,9 @@ export class WebSocketOrgEchoActionReq {
      *
      * @type {WebSocketOrgEchoActionReq.User.Item2array}
      **/
-    #item2array: InstanceType<
-      typeof WebSocketOrgEchoActionReq.User.Item2array
-    >[] = [];
+    #item2array: MArray<
+      InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array>
+    > = MArray.of([]);
     /**
      *
      * @returns {WebSocketOrgEchoActionReq.User.Item2array}
@@ -220,24 +213,47 @@ export class WebSocketOrgEchoActionReq {
      * @type {WebSocketOrgEchoActionReq.User.Item2array}
      **/
     set item2array(
-      value: InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array>[],
+      value:
+        | MArray<InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array>>
+        | InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array>[],
     ) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof WebSocketOrgEchoActionReq.User.Item2array
+        ) {
+          this.#item2array = MArray.of(value);
+        } else {
+          this.#item2array = MArray.of(
+            value.map(
+              (item) => new WebSocketOrgEchoActionReq.User.Item2array(item),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof WebSocketOrgEchoActionReq.User.Item2array
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#item2array = value;
-      } else {
-        this.#item2array = value.map(
-          (item) => new WebSocketOrgEchoActionReq.User.Item2array(item),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+      if (ok) {
+        this.#item2array = mcastValue as any;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to item2array, because it needs MArray instance or an Array.",
+      );
     }
     setItem2array(
-      value: InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array>[],
+      value:
+        | MArray<InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array>>
+        | InstanceType<typeof WebSocketOrgEchoActionReq.User.Item2array>[],
     ) {
       this.item2array = value;
       return this;

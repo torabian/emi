@@ -457,7 +457,7 @@ func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 			target = value
 		}
 
-		return target + "[]"
+		return "MCollection<" + target + ">"
 	case core.FieldTypeOne, core.FieldTypeOneNullable:
 
 		target := field.Target
@@ -467,16 +467,16 @@ func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 			target = value
 		}
 
-		return target
+		return "MOne<" + target + ">"
 
+	case core.FieldTypeArray:
+		return fmt.Sprintf("MArray<InstanceType<typeof %v>>", prefix)
+	case core.FieldTypeArrayNullable:
+		return fmt.Sprintf("MArray<InstanceType<typeof %v>> | null | undefined", prefix)
 	case core.FieldTypeObject:
 		return fmt.Sprintf("InstanceType<typeof %v>", prefix)
-	case core.FieldTypeArray:
-		return fmt.Sprintf("InstanceType<typeof %v>[]", prefix)
 	case core.FieldTypeObjectNullable:
 		return fmt.Sprintf("InstanceType<typeof %v> | null | undefined", prefix)
-	case core.FieldTypeArrayNullable:
-		return fmt.Sprintf("InstanceType<typeof %v>[] | null | undefined", prefix)
 	default:
 		return TsComputedField(field, false, parentChain)
 	}

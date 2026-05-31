@@ -54,7 +54,11 @@ func jsGetSafeFieldValue(field *core.EmiField) string {
 	}
 
 	switch field.Type {
-	case "array", "slice", "collection":
+	case core.FieldTypeArray:
+		return "MArray.of([])"
+	case core.FieldTypeCollection:
+		return "MCollection.of([])"
+	case core.FieldTypeSlice:
 		return "[]"
 	case "json", "object?", "embed", "computed", "any":
 		return "null"
@@ -213,9 +217,15 @@ func jsRenderField(
 	// for non-nullable fields which are late init, we need to make sure instance is being created.
 	isLateInit := !privateFieldToken.IsNullable && privateFieldToken.SafeDefaultValue == ""
 	lateInitStatement := ""
-	if isLateInit && field.Type == core.FieldTypeObject || field.Type == core.FieldTypeOne {
+
+	if isLateInit && field.Type == core.FieldTypeObject {
 		lateInitStatement = fmt.Sprintf(
 			"if (!(d.%v instanceof %v)) { this.%v = new %v(d.%v || {}) }",
+			field.Name, constructorClass, field.Name, constructorClass, field.Name,
+		)
+	} else if isLateInit && field.Type == core.FieldTypeOne {
+		lateInitStatement = fmt.Sprintf(
+			"if (!(d.%v instanceof %v)) { this.%v = MOne.of(new %v(d.%v || {})) }",
 			field.Name, constructorClass, field.Name, constructorClass, field.Name,
 		)
 	}

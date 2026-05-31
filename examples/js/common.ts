@@ -1,6 +1,6 @@
 import { createInstance } from "../emi-wasm-helper/getPublicActions";
 import yaml from "js-yaml";
-import fs from "node:fs";
+import fs, { writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -91,6 +91,19 @@ function checkTsCode(code: string) {
   return { valid: false, errors };
 }
 
+function runEmiActionTsNoCheck(
+  actionWasmFunctionName,
+  emiActionDefinition,
+  context = {},
+) {
+  let resp = globalThis[actionWasmFunctionName](
+    toYaml(emiActionDefinition),
+    context,
+  );
+
+  return { resp };
+}
+
 function runEmiActionTs(
   actionWasmFunctionName,
   emiActionDefinition,
@@ -101,8 +114,6 @@ function runEmiActionTs(
     context,
   );
 
-  // resp = resp.replace(/^import .*$/gm, "");
-
   resp += `
   
   function isPlausibleObject(v: any) { return false }
@@ -110,6 +121,7 @@ function runEmiActionTs(
 
   const validation = checkTsCode(resp);
   if (!validation.valid) {
+    writeFileSync("./last-failed-gen", resp);
     console.error(validation.errors);
     console.log(resp);
     throw validation.errors;
@@ -167,6 +179,7 @@ export {
   parseGenerated,
   randomBetween,
   runEmiActionTs,
+  runEmiActionTsNoCheck,
   getJsDoc,
   createSocketServer,
   runSocketClientTest,

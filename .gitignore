@@ -12,3 +12,4 @@ emi.exe
 examples/in-browser-server/browser/server
 examples/emi-wasm-helper/emi-compiler.wasm
 playground/public/emi-compiler.wasm
+examples/js/last-failed-gen

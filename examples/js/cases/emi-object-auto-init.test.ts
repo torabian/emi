@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { createInstance } from "../../emi-wasm-helper/getPublicActions";
 import yaml from "js-yaml";
 import { AutoInitClassDto } from "../test-artifacts/auto-init.dto";
+import { MArray, MCollection } from "../test-artifacts/sdk/common/operators";
 
 describe("Objects auto init should work perfectly fine.", () => {
   const content: string[] = [];
@@ -105,33 +106,36 @@ Emi compiler generates ts type and, class, with full getter, setters and validat
     let m = new AutoInitClassDto();
 
     // By default, the contents need to be an array, regardless.
-    expect(m.object1.object2.contacts).to.be.an("array");
+    expect(m.object1.object2.contacts).to.be.instanceOf(MArray);
 
     m = AutoInitClassDto.from({ object1: { object2: { contacts: [] } } });
-    expect(m.object1.object2.contacts).to.be.an("array");
+    expect(m.object1.object2.contacts).to.be.instanceOf(MArray);
 
     // Should not be able to set 22 as an array!
     m = AutoInitClassDto.from({
       object1: { object2: { contacts: 22 as any } },
     });
-    expect(m.object1.object2.contacts).to.be.an("array");
+
+    expect(m.object1.object2.contacts).to.be.instanceOf(MArray);
 
     m = AutoInitClassDto.from({
       object1: { object2: { contacts: [{ email: "hass" }] } },
     });
 
-    expect(m.object1.object2.contacts[0].email).toEqual("hass");
+    expect(m.object1.object2.contacts.get()[0].email).toEqual("hass");
 
     m = AutoInitClassDto.from({
       object1: { object2: { contacts: [{} as any] } },
     });
 
-    expect(m.object1.object2.contacts[0].email).toEqual(
+    expect(m.object1.object2.contacts.get()[0].email).toEqual(
       "emi-compiler@emi-compiler.com",
     );
 
     // Phone needs to be exactly as undefined.
-    expect(typeof m.object1.object2.contacts[0].phone).toEqual("undefined");
+    expect(typeof m.object1.object2.contacts.get()[0].phone).toEqual(
+      "undefined",
+    );
   });
 
   /// Last step is to write the document down

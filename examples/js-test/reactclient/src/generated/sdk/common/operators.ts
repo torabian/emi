@@ -8,6 +8,23 @@ export class MOne<T, S = unknown> {
     return this.content === null;
   }
 
+  static cast<T = any>(value: unknown): { ok: boolean; value: MOne<T> | null } {
+    if (typeof value === "object" && (value as any)?.__operation) {
+      const res = MOne.of<T>((value as any)?.content);
+      res.operation = (value as any)?.__operation;
+
+      return {
+        ok: true,
+        value: res,
+      };
+    }
+
+    return {
+      value: null,
+      ok: false,
+    };
+  }
+
   isSelector(): boolean {
     return this.selector !== undefined && this.operation !== null;
   }
@@ -45,10 +62,6 @@ export class MOne<T, S = unknown> {
   }
 }
 
-// In javascript, nullability and undefined is already working perfectly fine.
-// hence, maybe just giving back one is enough.
-export class MOneNullable<T, S = unknown> extends MOne<T, S> {}
-
 // Array describes how an incoming list should be applied to an existing one,
 // mirroring emigo.Array on the Go side. It lets a PATCH-style payload say
 // "replace the whole set" versus "append to the existing set".
@@ -59,6 +72,25 @@ export class MOneNullable<T, S = unknown> extends MOne<T, S> {}
 export class MArray<T> {
   private operation: "replace" | "append" = "replace";
   private items: T[] = [];
+
+  static cast<T = any>(
+    value: unknown,
+  ): { ok: boolean; value: MArray<T> | null } {
+    if (typeof value === "object" && (value as any)?.__operation) {
+      const res = MArray.of<T>((value as any)?.items);
+      res.operation = (value as any)?.__operation;
+
+      return {
+        ok: true,
+        value: res,
+      };
+    }
+
+    return {
+      value: null,
+      ok: false,
+    };
+  }
 
   isAppend(): boolean {
     return this.operation === "append";
@@ -108,10 +140,6 @@ export class MArray<T> {
   }
 }
 
-// In javascript, nullability and undefined is already working perfectly fine.
-// hence, just extending Array is enough.
-export class MArrayNullable<T> extends Array<T> {}
-
 // Collection mirrors emigo.Collection on the Go side. Structurally it is the
 // same as Array — a list carrying a "replace"/"append" operation — but it is a
 // distinct field type: a collection holds a list of a target entity, whereas an
@@ -122,6 +150,25 @@ export class MCollection<T> {
 
   isAppend(): boolean {
     return this.operation === "append";
+  }
+
+  static cast<T = any>(
+    value: unknown,
+  ): { ok: boolean; value: MCollection<T> | null } {
+    if (typeof value === "object" && (value as any)?.__operation) {
+      const res = MCollection.of<T>((value as any)?.items);
+      res.operation = (value as any)?.__operation;
+
+      return {
+        ok: true,
+        value: res,
+      };
+    }
+
+    return {
+      value: null,
+      ok: false,
+    };
   }
 
   isReplace(): boolean {
@@ -167,7 +214,3 @@ export class MCollection<T> {
     return this.items;
   }
 }
-
-// In javascript, nullability and undefined is already working perfectly fine.
-// hence, just extending Collection is enough.
-export class MCollectionNullable<T> extends MCollection<T> {}

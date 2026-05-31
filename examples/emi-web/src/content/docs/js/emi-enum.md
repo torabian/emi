@@ -4,12 +4,10 @@ sidebar:
   order: 4
 ---
 
-
-
 Besides defining inline enums, emi definition allows for standalone enums which is really useful,
 for sharing enums between multiple files.
 
- 
+
 ```yaml
 name: emiEnums
 enums:

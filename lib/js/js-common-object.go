@@ -56,17 +56,41 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 		return nil, tsClassError
 	}
 
-	res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
-		Objects: []string{
-			"MCollection",
-			"MCollectionNullable",
-			"MArray",
-			"MArrayNullable",
-			"MOne",
-			"MOneNullable",
-		},
-		Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "operators"),
-	})
+	if core.ContainsAnyOfTypes(fields, []core.FieldType{
+		core.FieldTypeCollection,
+		core.FieldTypeCollectionNullable,
+	}) {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Objects: []string{
+				"MCollection",
+			},
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "operators"),
+		})
+	}
+
+	if core.ContainsAnyOfTypes(fields, []core.FieldType{
+		core.FieldTypeArray,
+		core.FieldTypeArrayNullable,
+	}) {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Objects: []string{
+				"MArray",
+			},
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "operators"),
+		})
+	}
+
+	if core.ContainsAnyOfTypes(fields, []core.FieldType{
+		core.FieldTypeOne,
+		core.FieldTypeOneNullable,
+	}) {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Objects: []string{
+				"MOne",
+			},
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "operators"),
+		})
+	}
 
 	res.Tokens = append(res.Tokens, tsClass.Tokens...)
 	res.CodeChunkDependensies = append(res.CodeChunkDependensies, tsClass.CodeChunkDependensies...)
