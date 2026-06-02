@@ -144,6 +144,17 @@ func GetJsPublicActions() core.PublicAPIActions {
 		},
 		{
 			BaseAction: core.BaseAction{
+				Name:             "js:sdk",
+				Description:      "Get's the javascript or typescript (--tags typescript) sdk folder content and writes them in output",
+				WasmFunctionName: "jsGenSdk",
+				Flags:            []core.FlagDef{},
+			},
+			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+				return JsGetTargetSdkFiles(ctx)
+			},
+		},
+		{
+			BaseAction: core.BaseAction{
 				Name:             "js:module",
 				Description:      "Compiles the entire javascript modules and writes them to disk",
 				WasmFunctionName: "jsGenModule",

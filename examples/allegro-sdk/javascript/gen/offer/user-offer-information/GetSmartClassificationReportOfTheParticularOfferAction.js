@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -224,7 +217,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
    * List of smart delivery method identifiers
    * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.SmartDeliveryMethods}
    **/
-  #smartDeliveryMethods = [];
+  #smartDeliveryMethods = MArray.of([]);
   /**
    * List of smart delivery method identifiers
    * @returns {GetSmartClassificationReportOfTheParticularOfferActionRes.SmartDeliveryMethods}
@@ -237,23 +230,42 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
    * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.SmartDeliveryMethods}
    **/
   set smartDeliveryMethods(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof
+          GetSmartClassificationReportOfTheParticularOfferActionRes.SmartDeliveryMethods
+      ) {
+        this.#smartDeliveryMethods = MArray.of(value);
+      } else {
+        this.#smartDeliveryMethods = MArray.of(
+          value.map(
+            (item) =>
+              new GetSmartClassificationReportOfTheParticularOfferActionRes.SmartDeliveryMethods(
+                item,
+              ),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof
-        GetSmartClassificationReportOfTheParticularOfferActionRes.SmartDeliveryMethods
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#smartDeliveryMethods = value;
-    } else {
-      this.#smartDeliveryMethods = value.map(
-        (item) =>
-          new GetSmartClassificationReportOfTheParticularOfferActionRes.SmartDeliveryMethods(
-            item,
-          ),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#smartDeliveryMethods = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to smartDeliveryMethods, because it needs MArray instance or an Array.",
+    );
   }
   setSmartDeliveryMethods(value) {
     this.smartDeliveryMethods = value;
@@ -263,7 +275,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
    * List of classification conditions with delivery method checks
    * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions}
    **/
-  #conditions = [];
+  #conditions = MArray.of([]);
   /**
    * List of classification conditions with delivery method checks
    * @returns {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions}
@@ -276,23 +288,42 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
    * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions}
    **/
   set conditions(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof
+          GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions
+      ) {
+        this.#conditions = MArray.of(value);
+      } else {
+        this.#conditions = MArray.of(
+          value.map(
+            (item) =>
+              new GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions(
+                item,
+              ),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof
-        GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#conditions = value;
-    } else {
-      this.#conditions = value.map(
-        (item) =>
-          new GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions(
-            item,
-          ),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#conditions = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to conditions, because it needs MArray instance or an Array.",
+    );
   }
   setConditions(value) {
     this.conditions = value;
@@ -656,7 +687,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
      * Delivery methods that passed validation for this condition
      * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.PassedDeliveryMethods}
      **/
-    #passedDeliveryMethods = [];
+    #passedDeliveryMethods = MArray.of([]);
     /**
      * Delivery methods that passed validation for this condition
      * @returns {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.PassedDeliveryMethods}
@@ -669,24 +700,43 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
      * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.PassedDeliveryMethods}
      **/
     set passedDeliveryMethods(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions
+              .PassedDeliveryMethods
+        ) {
+          this.#passedDeliveryMethods = MArray.of(value);
+        } else {
+          this.#passedDeliveryMethods = MArray.of(
+            value.map(
+              (item) =>
+                new GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.PassedDeliveryMethods(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions
-            .PassedDeliveryMethods
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#passedDeliveryMethods = value;
-      } else {
-        this.#passedDeliveryMethods = value.map(
-          (item) =>
-            new GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.PassedDeliveryMethods(
-              item,
-            ),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#passedDeliveryMethods = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to passedDeliveryMethods, because it needs MArray instance or an Array.",
+      );
     }
     setPassedDeliveryMethods(value) {
       this.passedDeliveryMethods = value;
@@ -696,7 +746,7 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
      * Delivery methods that failed validation for this condition
      * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.FailedDeliveryMethods}
      **/
-    #failedDeliveryMethods = [];
+    #failedDeliveryMethods = MArray.of([]);
     /**
      * Delivery methods that failed validation for this condition
      * @returns {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.FailedDeliveryMethods}
@@ -709,24 +759,43 @@ export class GetSmartClassificationReportOfTheParticularOfferActionRes {
      * @type {GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.FailedDeliveryMethods}
      **/
     set failedDeliveryMethods(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions
+              .FailedDeliveryMethods
+        ) {
+          this.#failedDeliveryMethods = MArray.of(value);
+        } else {
+          this.#failedDeliveryMethods = MArray.of(
+            value.map(
+              (item) =>
+                new GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.FailedDeliveryMethods(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions
-            .FailedDeliveryMethods
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#failedDeliveryMethods = value;
-      } else {
-        this.#failedDeliveryMethods = value.map(
-          (item) =>
-            new GetSmartClassificationReportOfTheParticularOfferActionRes.Conditions.FailedDeliveryMethods(
-              item,
-            ),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#failedDeliveryMethods = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to failedDeliveryMethods, because it needs MArray instance or an Array.",
+      );
     }
     setFailedDeliveryMethods(value) {
       this.failedDeliveryMethods = value;

@@ -1,4 +1,9 @@
 actions:
+  - name: chat
+    url: /chat
+    description: A Reactive chating application, that returns length of strings you've typed.
+    method: reactive
+    
   - name: substring
     url: /
     method: post

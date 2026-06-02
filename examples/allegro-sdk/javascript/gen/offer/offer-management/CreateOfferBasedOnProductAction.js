@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -722,7 +715,7 @@ export class CreateOfferBasedOnProductActionReq {
    * Product details and associated quantities
    * @type {CreateOfferBasedOnProductActionReq.ProductSet}
    **/
-  #productSet = [];
+  #productSet = MArray.of([]);
   /**
    * Product details and associated quantities
    * @returns {CreateOfferBasedOnProductActionReq.ProductSet}
@@ -735,19 +728,38 @@ export class CreateOfferBasedOnProductActionReq {
    * @type {CreateOfferBasedOnProductActionReq.ProductSet}
    **/
   set productSet(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof CreateOfferBasedOnProductActionReq.ProductSet
+      ) {
+        this.#productSet = MArray.of(value);
+      } else {
+        this.#productSet = MArray.of(
+          value.map(
+            (item) => new CreateOfferBasedOnProductActionReq.ProductSet(item),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof CreateOfferBasedOnProductActionReq.ProductSet
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#productSet = value;
-    } else {
-      this.#productSet = value.map(
-        (item) => new CreateOfferBasedOnProductActionReq.ProductSet(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#productSet = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to productSet, because it needs MArray instance or an Array.",
+    );
   }
   setProductSet(value) {
     this.productSet = value;
@@ -1034,7 +1046,7 @@ export class CreateOfferBasedOnProductActionReq {
    *
    * @type {CreateOfferBasedOnProductActionReq.Attachments}
    **/
-  #attachments = [];
+  #attachments = MArray.of([]);
   /**
    *
    * @returns {CreateOfferBasedOnProductActionReq.Attachments}
@@ -1047,19 +1059,38 @@ export class CreateOfferBasedOnProductActionReq {
    * @type {CreateOfferBasedOnProductActionReq.Attachments}
    **/
   set attachments(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof CreateOfferBasedOnProductActionReq.Attachments
+      ) {
+        this.#attachments = MArray.of(value);
+      } else {
+        this.#attachments = MArray.of(
+          value.map(
+            (item) => new CreateOfferBasedOnProductActionReq.Attachments(item),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof CreateOfferBasedOnProductActionReq.Attachments
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#attachments = value;
-    } else {
-      this.#attachments = value.map(
-        (item) => new CreateOfferBasedOnProductActionReq.Attachments(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#attachments = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to attachments, because it needs MArray instance or an Array.",
+    );
   }
   setAttachments(value) {
     this.attachments = value;
@@ -1665,7 +1696,7 @@ export class CreateOfferBasedOnProductActionReq {
      *
      * @type {CreateOfferBasedOnProductActionReq.ProductSet.Deposits}
      **/
-    #deposits = [];
+    #deposits = MArray.of([]);
     /**
      *
      * @returns {CreateOfferBasedOnProductActionReq.ProductSet.Deposits}
@@ -1678,21 +1709,42 @@ export class CreateOfferBasedOnProductActionReq {
      * @type {CreateOfferBasedOnProductActionReq.ProductSet.Deposits}
      **/
     set deposits(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            CreateOfferBasedOnProductActionReq.ProductSet.Deposits
+        ) {
+          this.#deposits = MArray.of(value);
+        } else {
+          this.#deposits = MArray.of(
+            value.map(
+              (item) =>
+                new CreateOfferBasedOnProductActionReq.ProductSet.Deposits(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          CreateOfferBasedOnProductActionReq.ProductSet.Deposits
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#deposits = value;
-      } else {
-        this.#deposits = value.map(
-          (item) =>
-            new CreateOfferBasedOnProductActionReq.ProductSet.Deposits(item),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#deposits = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to deposits, because it needs MArray instance or an Array.",
+      );
     }
     setDeposits(value) {
       this.deposits = value;
@@ -1809,7 +1861,7 @@ export class CreateOfferBasedOnProductActionReq {
        *
        * @type {CreateOfferBasedOnProductActionReq.ProductSet.Product.Parameters}
        **/
-      #parameters = [];
+      #parameters = MArray.of([]);
       /**
        *
        * @returns {CreateOfferBasedOnProductActionReq.ProductSet.Product.Parameters}
@@ -1822,23 +1874,42 @@ export class CreateOfferBasedOnProductActionReq {
        * @type {CreateOfferBasedOnProductActionReq.ProductSet.Product.Parameters}
        **/
       set parameters(value) {
-        if (!Array.isArray(value) && !(value instanceof MCollection)) {
+        // When the passed value is already an array, we check if we need to
+        // cast the inner items into class instance.
+        if (Array.isArray(value)) {
+          if (
+            value.length > 0 &&
+            value[0] instanceof
+              CreateOfferBasedOnProductActionReq.ProductSet.Product.Parameters
+          ) {
+            this.#parameters = MArray.of(value);
+          } else {
+            this.#parameters = MArray.of(
+              value.map(
+                (item) =>
+                  new CreateOfferBasedOnProductActionReq.ProductSet.Product.Parameters(
+                    item,
+                  ),
+              ),
+            );
+          }
           return;
         }
-        if (
-          value.length > 0 &&
-          value[0] instanceof
-            CreateOfferBasedOnProductActionReq.ProductSet.Product.Parameters
-        ) {
+        // If the instance is already an MArray, we assume it's all good.
+        if (value instanceof MArray) {
           this.#parameters = value;
-        } else {
-          this.#parameters = value.map(
-            (item) =>
-              new CreateOfferBasedOnProductActionReq.ProductSet.Product.Parameters(
-                item,
-              ),
-          );
+          return;
         }
+        // If the value is not array, and is not a MArray, we need to be consider,
+        // it might be eligible to be casted into MArray.
+        const { ok, value: mcastValue } = MArray.cast(value);
+        if (ok) {
+          this.#parameters = mcastValue;
+          return;
+        }
+        console.warn(
+          "Cannot assing value to parameters, because it needs MArray instance or an Array.",
+        );
       }
       setParameters(value) {
         this.parameters = value;
@@ -5012,7 +5083,7 @@ export class CreateOfferBasedOnProductActionReq {
      *
      * @type {CreateOfferBasedOnProductActionReq.CompatibilityList.Items}
      **/
-    #items = [];
+    #items = MArray.of([]);
     /**
      *
      * @returns {CreateOfferBasedOnProductActionReq.CompatibilityList.Items}
@@ -5025,23 +5096,42 @@ export class CreateOfferBasedOnProductActionReq {
      * @type {CreateOfferBasedOnProductActionReq.CompatibilityList.Items}
      **/
     set items(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            CreateOfferBasedOnProductActionReq.CompatibilityList.Items
+        ) {
+          this.#items = MArray.of(value);
+        } else {
+          this.#items = MArray.of(
+            value.map(
+              (item) =>
+                new CreateOfferBasedOnProductActionReq.CompatibilityList.Items(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          CreateOfferBasedOnProductActionReq.CompatibilityList.Items
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#items = value;
-      } else {
-        this.#items = value.map(
-          (item) =>
-            new CreateOfferBasedOnProductActionReq.CompatibilityList.Items(
-              item,
-            ),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#items = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to items, because it needs MArray instance or an Array.",
+      );
     }
     setItems(value) {
       this.items = value;
@@ -5294,7 +5384,7 @@ export class CreateOfferBasedOnProductActionReq {
      *
      * @type {CreateOfferBasedOnProductActionReq.Description.Sections}
      **/
-    #sections = [];
+    #sections = MArray.of([]);
     /**
      *
      * @returns {CreateOfferBasedOnProductActionReq.Description.Sections}
@@ -5307,21 +5397,42 @@ export class CreateOfferBasedOnProductActionReq {
      * @type {CreateOfferBasedOnProductActionReq.Description.Sections}
      **/
     set sections(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            CreateOfferBasedOnProductActionReq.Description.Sections
+        ) {
+          this.#sections = MArray.of(value);
+        } else {
+          this.#sections = MArray.of(
+            value.map(
+              (item) =>
+                new CreateOfferBasedOnProductActionReq.Description.Sections(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          CreateOfferBasedOnProductActionReq.Description.Sections
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#sections = value;
-      } else {
-        this.#sections = value.map(
-          (item) =>
-            new CreateOfferBasedOnProductActionReq.Description.Sections(item),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#sections = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to sections, because it needs MArray instance or an Array.",
+      );
     }
     setSections(value) {
       this.sections = value;
@@ -5335,7 +5446,7 @@ export class CreateOfferBasedOnProductActionReq {
        *
        * @type {CreateOfferBasedOnProductActionReq.Description.Sections.Items}
        **/
-      #items = [];
+      #items = MArray.of([]);
       /**
        *
        * @returns {CreateOfferBasedOnProductActionReq.Description.Sections.Items}
@@ -5348,23 +5459,42 @@ export class CreateOfferBasedOnProductActionReq {
        * @type {CreateOfferBasedOnProductActionReq.Description.Sections.Items}
        **/
       set items(value) {
-        if (!Array.isArray(value) && !(value instanceof MCollection)) {
+        // When the passed value is already an array, we check if we need to
+        // cast the inner items into class instance.
+        if (Array.isArray(value)) {
+          if (
+            value.length > 0 &&
+            value[0] instanceof
+              CreateOfferBasedOnProductActionReq.Description.Sections.Items
+          ) {
+            this.#items = MArray.of(value);
+          } else {
+            this.#items = MArray.of(
+              value.map(
+                (item) =>
+                  new CreateOfferBasedOnProductActionReq.Description.Sections.Items(
+                    item,
+                  ),
+              ),
+            );
+          }
           return;
         }
-        if (
-          value.length > 0 &&
-          value[0] instanceof
-            CreateOfferBasedOnProductActionReq.Description.Sections.Items
-        ) {
+        // If the instance is already an MArray, we assume it's all good.
+        if (value instanceof MArray) {
           this.#items = value;
-        } else {
-          this.#items = value.map(
-            (item) =>
-              new CreateOfferBasedOnProductActionReq.Description.Sections.Items(
-                item,
-              ),
-          );
+          return;
         }
+        // If the value is not array, and is not a MArray, we need to be consider,
+        // it might be eligible to be casted into MArray.
+        const { ok, value: mcastValue } = MArray.cast(value);
+        if (ok) {
+          this.#items = mcastValue;
+          return;
+        }
+        console.warn(
+          "Cannot assing value to items, because it needs MArray instance or an Array.",
+        );
       }
       setItems(value) {
         this.items = value;
@@ -7810,7 +7940,7 @@ export class CreateOfferBasedOnProductActionReq {
      *
      * @type {CreateOfferBasedOnProductActionReq.TaxSettings.Rates}
      **/
-    #rates = [];
+    #rates = MArray.of([]);
     /**
      *
      * @returns {CreateOfferBasedOnProductActionReq.TaxSettings.Rates}
@@ -7823,20 +7953,40 @@ export class CreateOfferBasedOnProductActionReq {
      * @type {CreateOfferBasedOnProductActionReq.TaxSettings.Rates}
      **/
     set rates(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            CreateOfferBasedOnProductActionReq.TaxSettings.Rates
+        ) {
+          this.#rates = MArray.of(value);
+        } else {
+          this.#rates = MArray.of(
+            value.map(
+              (item) =>
+                new CreateOfferBasedOnProductActionReq.TaxSettings.Rates(item),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof CreateOfferBasedOnProductActionReq.TaxSettings.Rates
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#rates = value;
-      } else {
-        this.#rates = value.map(
-          (item) =>
-            new CreateOfferBasedOnProductActionReq.TaxSettings.Rates(item),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#rates = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to rates, because it needs MArray instance or an Array.",
+      );
     }
     setRates(value) {
       this.rates = value;

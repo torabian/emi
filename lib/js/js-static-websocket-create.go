@@ -74,6 +74,7 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 		{{ if .hasQueryParams }}
 			|@query.params|,
 		{{ end }}
+		options
 	) => {
 		const url = overrideUrl ?? {{  .fetchctx.UrlCreatorFunction -}}(
 			{{ if .hasQueryParams }}
@@ -81,15 +82,11 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 			{{ end }}
 			qs
 		)
-			
-		return new WebSocketX|@generic|(
-			url,
-			undefined,
-			{
-				MessageFactoryClass: |@MessageFactoryClass|,
-			}
-		);
 
+		const Cls = options?.SocketClass ? options.SocketClass : WebSocketX|@generic|;
+		return new Cls(url, undefined, {
+			MessageFactoryClass: |@MessageFactoryClass|,
+		});
 	}
 	`
 

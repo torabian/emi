@@ -39,6 +39,9 @@ jobs:
         
       - name: Make standard binary file
         run: make unix
+
+      - name: Make it globally available
+        run: sudo cp ./emi /usr/local/bin/emi && sudo chmod +x /usr/local/bin/emi
         
       - name: Build Playground
         run: cd playground && npm run build
@@ -48,7 +51,8 @@ jobs:
 
       - name: Javascript tests
         run: cd ./examples/js && npm i -f && npx vitest run
-      
+
+
       - name: The the virtual ecosystem
         run: cd ./examples/virtual-eco-system && make build
       
@@ -56,6 +60,9 @@ jobs:
       - name: Compile the web veresion (docs, and only after running tests because they create document)
         run: cd ./examples/emi-web && npm i -f && npm run build
 
+      - name: Regenerate allegro
+        run: cd ./examples/allegro-sdk && make
+      
 
       - name: Add web version and playground into same
         run: make compile-github

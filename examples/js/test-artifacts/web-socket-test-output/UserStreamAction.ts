@@ -17,15 +17,14 @@ export class UserStreamAction {
   static NewUrl = (qs?: URLSearchParams) =>
     buildUrl(UserStreamAction.URL, undefined, qs);
   static Method = "reactive";
-  static Create = (overrideUrl?: string, qs?: URLSearchParams) => {
+  static Create = (overrideUrl?: string, qs?: URLSearchParams, options) => {
     const url = overrideUrl ?? UserStreamAction.NewUrl(qs);
-    return new WebSocketX<UserStreamActionReq, UserStreamActionRes>(
-      url,
-      undefined,
-      {
-        MessageFactoryClass: UserStreamActionRes,
-      },
-    );
+    const Cls = options?.SocketClass
+      ? options.SocketClass
+      : WebSocketX<UserStreamActionReq, UserStreamActionRes>;
+    return new Cls(url, undefined, {
+      MessageFactoryClass: UserStreamActionRes,
+    });
   };
   static Definition = {
     name: "userStream",

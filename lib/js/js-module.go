@@ -8,7 +8,6 @@ import (
 	"embed"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -199,17 +198,15 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		dtos = append(dtos, actionRendered)
 	}
 
-	internalUsage := []string{}
 	// Those actions are valid ts or js files, including some helpers for react, fetch
 	// and couple of more, directly can be written on the disk
 	for _, action := range actionsRendered {
 
 		for _, loc := range action.CodeChunkDependensies {
 			if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "")) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION, "")) {
-
-				internalUsage = append(internalUsage, loc.Location)
 				continue
 			}
+
 			globalPacakges = append(globalPacakges, loc.Location)
 		}
 
@@ -223,7 +220,6 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	for _, dtoItem := range dtos {
 		for _, loc := range dtoItem.CodeChunkDependensies {
 			if strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "")) || strings.Contains(loc.Location, getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION, "")) {
-				internalUsage = append(internalUsage, loc.Location)
 				continue
 			}
 			globalPacakges = append(globalPacakges, loc.Location)
@@ -236,18 +232,40 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		})
 	}
 
-	// Let's add a package.json :)
-	pkg, err := GeneratePackageJSON("sdk", globalPacakges, ctx)
-	if err != nil {
-		return nil, err
+	skipPackage := strings.Contains(ctx.Tags, GEN_SKIP_PACKAGE_JSON)
+
+	if !skipPackage {
+		// Let's add a package.json :)
+		pkg, err := GeneratePackageJSON("sdk", globalPacakges, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, core.VirtualFile{
+			Name:         "package.json",
+			Extension:    "",
+			ActualScript: string(pkg),
+		})
 	}
 
-	files = append(files, core.VirtualFile{
-		Name:         "package.json",
-		Extension:    "",
-		ActualScript: string(pkg),
-	})
+	// If user passed no-sdk as a tag, we do not add it at all.
+	skipSDK := strings.Contains(ctx.Tags, GEN_SKIP_SDK)
+	if !skipSDK {
 
+		if sdkFiles, err := JsGetTargetSdkFiles(ctx); err != nil {
+			return files, nil
+		} else {
+			files = append(files, sdkFiles...)
+		}
+	}
+
+	return files, nil
+}
+
+// Prints whatever sdk files it has into a directory, regardless of the usage.
+// Useful when you want to build a single place for sdks, and change the import path
+func JsGetTargetSdkFiles(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+	sdkFiles := []core.VirtualFile{}
 	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
 	skipEnvelopes := strings.Contains(ctx.Tags, GEN_SKIP_ENVELOPES)
 
@@ -260,24 +278,18 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 			source = &js_envelopes.Content
 		}
 
-		files = append(files, core.FsEmbedToVirtualFile(source, "sdk/envelopes")...)
+		sdkFiles = append(sdkFiles, core.FsEmbedToVirtualFile(source, "sdk/envelopes")...)
 	}
 
-	sdkFiles := []core.VirtualFile{}
 	if isTypeScript {
 		sdkFiles = append(sdkFiles, core.FsEmbedToVirtualFile(&tssdk.Content, "sdk")...)
 	} else {
 		sdkFiles = append(sdkFiles, core.FsEmbedToVirtualFile(&jssdk.Content, "sdk")...)
 	}
 
+	files := []core.VirtualFile{}
 	for _, sdkFile := range sdkFiles {
-		actual := "./" + path.Join(sdkFile.Location, sdkFile.Name, sdkFile.Extension)
-		actual = strings.ReplaceAll(actual, ".ts", "")
-		actual = strings.ReplaceAll(actual, ".js", "")
-
-		if slices.Contains(internalUsage, actual) {
-			files = append(files, sdkFile)
-		}
+		files = append(files, sdkFile)
 	}
 
 	return files, nil

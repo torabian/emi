@@ -207,29 +207,28 @@ func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
 	finalContent = string(core.EscapeLines([]byte(finalContent)))
 	return finalContent
 }
+
 func CombineJavaImport(chunk core.CodeChunkCompiled) string {
 	statements := map[string]struct{}{}
 
-	// Collect unique import statements
 	for _, dep := range chunk.CodeChunkDependensies {
 		statement := ""
 		if len(dep.Objects) > 0 {
 			statement = fmt.Sprintf(`%v "%v" //x`, dep.Objects[0], dep.Location)
 		} else {
-			statement = fmt.Sprintf(`%v`, dep.Location)
+			statement = dep.Location
 		}
 		statements[statement] = struct{}{}
 	}
 
-	// Sort statements for deterministic output
 	var sorted []string
 	for stmt := range statements {
 		sorted = append(sorted, stmt)
 	}
 	sort.Strings(sorted)
 
-	statementsX := []string{}
-	for v := range statements {
+	statementsX := make([]string, 0, len(sorted))
+	for _, v := range sorted {
 		statementsX = append(statementsX, fmt.Sprintf("import %v", v))
 	}
 

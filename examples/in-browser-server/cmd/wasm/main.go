@@ -44,6 +44,14 @@ func main() {
 
 	emigo.LiftWasmServer(mux, nil)
 
+	// Reactive (websocket-style) endpoints go through a separate bridge: the
+	// gorilla/gin path can't run in wasm (no hijackable socket), so the reactor
+	// talks the session's channels straight to the WebSocketWasm JS class. The
+	// ChatHandler factory is shared verbatim with the real gin server.
+	reactor := emigo.NewWasmReactor()
+	defs.ChatActionReactiveHandlerWasm(reactor, internal.ChatHandler)
+	reactor.Lift()
+
 	// Keep the Go runtime alive so the exposed callback stays callable.
 	select {}
 }

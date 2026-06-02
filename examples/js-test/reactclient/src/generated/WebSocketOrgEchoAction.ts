@@ -28,15 +28,14 @@ export class WebSocketOrgEchoAction {
   static NewUrl = (qs?: URLSearchParams) =>
     buildUrl(WebSocketOrgEchoAction.URL, undefined, qs);
   static Method = "reactive";
-  static Create = (overrideUrl?: string, qs?: URLSearchParams) => {
+  static Create = (overrideUrl?: string, qs?: URLSearchParams, options) => {
     const url = overrideUrl ?? WebSocketOrgEchoAction.NewUrl(qs);
-    return new WebSocketX<WebSocketOrgEchoActionReq, WebSocketOrgEchoActionRes>(
-      url,
-      undefined,
-      {
-        MessageFactoryClass: WebSocketOrgEchoActionRes,
-      },
-    );
+    const Cls = options?.SocketClass
+      ? options.SocketClass
+      : WebSocketX<WebSocketOrgEchoActionReq, WebSocketOrgEchoActionRes>;
+    return new Cls(url, undefined, {
+      MessageFactoryClass: WebSocketOrgEchoActionRes,
+    });
   };
   static Definition = {
     name: "webSocketOrgEcho",
