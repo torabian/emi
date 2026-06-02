@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators.js";
+import { MArray } from "./sdk/common/operators.js";
 import { buildUrl } from "./sdk/common/buildUrl.js";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx.js";
 import { withPrefix } from "./sdk/common/withPrefix.js";
@@ -86,7 +79,7 @@ export class ListUsersActionRes {
    *
    * @type {ListUsersActionRes.Users}
    **/
-  #users = [];
+  #users = MArray.of([]);
   /**
    *
    * @returns {ListUsersActionRes.Users}
@@ -99,14 +92,33 @@ export class ListUsersActionRes {
    * @type {ListUsersActionRes.Users}
    **/
   set users(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (value.length > 0 && value[0] instanceof ListUsersActionRes.Users) {
+        this.#users = MArray.of(value);
+      } else {
+        this.#users = MArray.of(
+          value.map((item) => new ListUsersActionRes.Users(item)),
+        );
+      }
       return;
     }
-    if (value.length > 0 && value[0] instanceof ListUsersActionRes.Users) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#users = value;
-    } else {
-      this.#users = value.map((item) => new ListUsersActionRes.Users(item));
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#users = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to users, because it needs MArray instance or an Array.",
+    );
   }
   setUsers(value) {
     this.users = value;

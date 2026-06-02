@@ -47,6 +47,27 @@
     </div>
     <pre id="usersOut"></pre>
 
+    <hr />
+
+    <h2>Reactive chat — new WebSocketWasm("ws://chat/chat")</h2>
+    <p>
+      A real Go reactive handler running in wasm. The native-looking
+      <code>WebSocketWasm</code> echoes back the length of whatever you send.
+    </p>
+    <div>
+      <button id="chatConnect">Connect</button>
+      <button id="chatDisconnect" disabled>Disconnect</button>
+      <span id="chatState">closed</span>
+    </div>
+    <div style="margin-top: 0.5rem">
+      <label
+        >message
+        <input id="chatInput" value="hello reactive world" size="40"
+      /></label>
+      <button id="chatSend" disabled>Send</button>
+    </div>
+    <pre id="chatOut"></pre>
+
     <script src="wasm_exec.js"></script>
     <script type="module" src="./main.js"></script>
   </body>
