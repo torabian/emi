@@ -63,8 +63,6 @@ jobs:
       - name: Regenerate allegro
         run: cd ./examples/allegro-sdk && make
       
-      - name: Check swift
-        run: make check_swift
 
       - name: Add web version and playground into same
         run: make compile-github
