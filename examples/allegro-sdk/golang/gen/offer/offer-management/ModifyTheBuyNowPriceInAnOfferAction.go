@@ -559,3 +559,77 @@ func (x ModifyTheBuyNowPriceInAnOfferActionRequest) IsCli() bool {
 	}
 	return true
 }
+
+// ModifyTheBuyNowPriceInAnOfferActionHttpHandler returns the HTTP method, the ServeMux pattern, and a
+// typed net/http handler for the ModifyTheBuyNowPriceInAnOfferAction action. Developers implement
+// their business logic as a function that receives a typed request object and
+// returns either an *ModifyTheBuyNowPriceInAnOfferActionResponse or nil. JSON marshalling, headers,
+// status codes, and errors are handled automatically.
+func ModifyTheBuyNowPriceInAnOfferActionHttpHandler(
+	handler func(c ModifyTheBuyNowPriceInAnOfferActionRequest) (*ModifyTheBuyNowPriceInAnOfferActionResponse, error),
+) (method, pattern string, h http.HandlerFunc) {
+	meta := ModifyTheBuyNowPriceInAnOfferActionMeta()
+	return meta.Method, meta.URL, func(w http.ResponseWriter, r *http.Request) {
+		var body ModifyTheBuyNowPriceInAnOfferActionReq
+		if r.Body != nil {
+			defer r.Body.Close()
+			if data, _ := io.ReadAll(r.Body); len(data) > 0 {
+				if err := json.Unmarshal(data, &body); err != nil {
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(map[string]string{"error": "invalid JSON: " + err.Error()})
+					return
+				}
+			}
+		}
+		// Build typed request wrapper. GinCtx stays nil here (this is not gin),
+		// which is what the IsGin() helper keys off.
+		req := ModifyTheBuyNowPriceInAnOfferActionRequest{
+			Body:        body,
+			QueryParams: r.URL.Query(),
+			Headers:     r.Header,
+		}
+		resp, err := handler(req)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		// If the handler returned nil (and no error), the response was handled
+		// manually.
+		if resp == nil {
+			return
+		}
+		// Apply headers
+		for k, v := range resp.Headers {
+			w.Header().Set(k, v)
+		}
+		// Apply status and payload
+		status := resp.StatusCode
+		if status == 0 {
+			status = http.StatusOK
+		}
+		if resp.Payload != nil {
+			if w.Header().Get("Content-Type") == "" {
+				w.Header().Set("Content-Type", "application/json")
+			}
+			w.WriteHeader(status)
+			json.NewEncoder(w).Encode(resp.Payload)
+		} else {
+			w.WriteHeader(status)
+		}
+	}
+}
+
+// ModifyTheBuyNowPriceInAnOfferActionHttp is a high-level convenience wrapper around
+// ModifyTheBuyNowPriceInAnOfferActionHttpHandler. It registers the typed route on a standard
+// *http.ServeMux using Go 1.22+ method-aware pattern syntax (e.g. "POST /").
+// Use this when you don't need custom middleware.
+func ModifyTheBuyNowPriceInAnOfferActionHttp(
+	mux *http.ServeMux,
+	handler func(c ModifyTheBuyNowPriceInAnOfferActionRequest) (*ModifyTheBuyNowPriceInAnOfferActionResponse, error),
+) {
+	method, pattern, h := ModifyTheBuyNowPriceInAnOfferActionHttpHandler(handler)
+	mux.HandleFunc(method+" "+pattern, h)
+}

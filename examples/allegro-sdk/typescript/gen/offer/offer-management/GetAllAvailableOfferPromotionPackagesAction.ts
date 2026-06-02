@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -216,9 +209,11 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
    *
    * @type {GetAllAvailableOfferPromotionPackagesActionRes.BasePackages}
    **/
-  #basePackages: InstanceType<
-    typeof GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
-  >[] = [];
+  #basePackages: MArray<
+    InstanceType<
+      typeof GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
+    >
+  > = MArray.of([]);
   /**
    *
    * @returns {GetAllAvailableOfferPromotionPackagesActionRes.BasePackages}
@@ -231,30 +226,63 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
    * @type {GetAllAvailableOfferPromotionPackagesActionRes.BasePackages}
    **/
   set basePackages(
-    value: InstanceType<
-      typeof GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
-    >[],
+    value:
+      | MArray<
+          InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
+          >
+        >
+      | InstanceType<
+          typeof GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
+        >[],
   ) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof
+          GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
+      ) {
+        this.#basePackages = MArray.of(value);
+      } else {
+        this.#basePackages = MArray.of(
+          value.map(
+            (item) =>
+              new GetAllAvailableOfferPromotionPackagesActionRes.BasePackages(
+                item,
+              ),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof
-        GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#basePackages = value;
-    } else {
-      this.#basePackages = value.map(
-        (item) =>
-          new GetAllAvailableOfferPromotionPackagesActionRes.BasePackages(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+    if (ok) {
+      this.#basePackages = mcastValue as any;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to basePackages, because it needs MArray instance or an Array.",
+    );
   }
   setBasePackages(
-    value: InstanceType<
-      typeof GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
-    >[],
+    value:
+      | MArray<
+          InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
+          >
+        >
+      | InstanceType<
+          typeof GetAllAvailableOfferPromotionPackagesActionRes.BasePackages
+        >[],
   ) {
     this.basePackages = value;
     return this;
@@ -263,9 +291,11 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
    *
    * @type {GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages}
    **/
-  #extraPackages: InstanceType<
-    typeof GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
-  >[] = [];
+  #extraPackages: MArray<
+    InstanceType<
+      typeof GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
+    >
+  > = MArray.of([]);
   /**
    *
    * @returns {GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages}
@@ -278,32 +308,63 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
    * @type {GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages}
    **/
   set extraPackages(
-    value: InstanceType<
-      typeof GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
-    >[],
+    value:
+      | MArray<
+          InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
+          >
+        >
+      | InstanceType<
+          typeof GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
+        >[],
   ) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof
+          GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
+      ) {
+        this.#extraPackages = MArray.of(value);
+      } else {
+        this.#extraPackages = MArray.of(
+          value.map(
+            (item) =>
+              new GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages(
+                item,
+              ),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof
-        GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#extraPackages = value;
-    } else {
-      this.#extraPackages = value.map(
-        (item) =>
-          new GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages(
-            item,
-          ),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+    if (ok) {
+      this.#extraPackages = mcastValue as any;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to extraPackages, because it needs MArray instance or an Array.",
+    );
   }
   setExtraPackages(
-    value: InstanceType<
-      typeof GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
-    >[],
+    value:
+      | MArray<
+          InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
+          >
+        >
+      | InstanceType<
+          typeof GetAllAvailableOfferPromotionPackagesActionRes.ExtraPackages
+        >[],
   ) {
     this.extraPackages = value;
     return this;
@@ -312,9 +373,11 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
    *
    * @type {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces}
    **/
-  #additionalMarketplaces: InstanceType<
-    typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
-  >[] = [];
+  #additionalMarketplaces: MArray<
+    InstanceType<
+      typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
+    >
+  > = MArray.of([]);
   /**
    *
    * @returns {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces}
@@ -327,32 +390,63 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
    * @type {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces}
    **/
   set additionalMarketplaces(
-    value: InstanceType<
-      typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
-    >[],
+    value:
+      | MArray<
+          InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
+          >
+        >
+      | InstanceType<
+          typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
+        >[],
   ) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof
+          GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
+      ) {
+        this.#additionalMarketplaces = MArray.of(value);
+      } else {
+        this.#additionalMarketplaces = MArray.of(
+          value.map(
+            (item) =>
+              new GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces(
+                item,
+              ),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof
-        GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#additionalMarketplaces = value;
-    } else {
-      this.#additionalMarketplaces = value.map(
-        (item) =>
-          new GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces(
-            item,
-          ),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+    if (ok) {
+      this.#additionalMarketplaces = mcastValue as any;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to additionalMarketplaces, because it needs MArray instance or an Array.",
+    );
   }
   setAdditionalMarketplaces(
-    value: InstanceType<
-      typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
-    >[],
+    value:
+      | MArray<
+          InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
+          >
+        >
+      | InstanceType<
+          typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
+        >[],
   ) {
     this.additionalMarketplaces = value;
     return this;
@@ -752,9 +846,11 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
      *
      * @type {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages}
      **/
-    #basePackages: InstanceType<
-      typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages
-    >[] = [];
+    #basePackages: MArray<
+      InstanceType<
+        typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages
+      >
+    > = MArray.of([]);
     /**
      *
      * @returns {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages}
@@ -767,33 +863,64 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
      * @type {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages}
      **/
     set basePackages(
-      value: InstanceType<
-        typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages
-      >[],
+      value:
+        | MArray<
+            InstanceType<
+              typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages
+            >
+          >
+        | InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages
+          >[],
     ) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            GetAllAvailableOfferPromotionPackagesActionRes
+              .AdditionalMarketplaces.BasePackages
+        ) {
+          this.#basePackages = MArray.of(value);
+        } else {
+          this.#basePackages = MArray.of(
+            value.map(
+              (item) =>
+                new GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
-            .BasePackages
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#basePackages = value;
-      } else {
-        this.#basePackages = value.map(
-          (item) =>
-            new GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages(
-              item,
-            ),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+      if (ok) {
+        this.#basePackages = mcastValue as any;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to basePackages, because it needs MArray instance or an Array.",
+      );
     }
     setBasePackages(
-      value: InstanceType<
-        typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages
-      >[],
+      value:
+        | MArray<
+            InstanceType<
+              typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages
+            >
+          >
+        | InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.BasePackages
+          >[],
     ) {
       this.basePackages = value;
       return this;
@@ -802,9 +929,11 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
      *
      * @type {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages}
      **/
-    #extraPackages: InstanceType<
-      typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages
-    >[] = [];
+    #extraPackages: MArray<
+      InstanceType<
+        typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages
+      >
+    > = MArray.of([]);
     /**
      *
      * @returns {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages}
@@ -817,33 +946,64 @@ export class GetAllAvailableOfferPromotionPackagesActionRes {
      * @type {GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages}
      **/
     set extraPackages(
-      value: InstanceType<
-        typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages
-      >[],
+      value:
+        | MArray<
+            InstanceType<
+              typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages
+            >
+          >
+        | InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages
+          >[],
     ) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            GetAllAvailableOfferPromotionPackagesActionRes
+              .AdditionalMarketplaces.ExtraPackages
+        ) {
+          this.#extraPackages = MArray.of(value);
+        } else {
+          this.#extraPackages = MArray.of(
+            value.map(
+              (item) =>
+                new GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces
-            .ExtraPackages
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#extraPackages = value;
-      } else {
-        this.#extraPackages = value.map(
-          (item) =>
-            new GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages(
-              item,
-            ),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+      if (ok) {
+        this.#extraPackages = mcastValue as any;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to extraPackages, because it needs MArray instance or an Array.",
+      );
     }
     setExtraPackages(
-      value: InstanceType<
-        typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages
-      >[],
+      value:
+        | MArray<
+            InstanceType<
+              typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages
+            >
+          >
+        | InstanceType<
+            typeof GetAllAvailableOfferPromotionPackagesActionRes.AdditionalMarketplaces.ExtraPackages
+          >[],
     ) {
       this.extraPackages = value;
       return this;

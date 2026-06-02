@@ -1,4 +1,6 @@
 import "./database-bridge.js";
+import { WebSocketWasm } from "./WebSocketWasm.js";
+import { ChatAction } from "./gen/ChatAction.js";
 
 import { SubstringAction, SubstringActionRes } from "./gen/SubstringAction.js";
 console.log(1, SubstringAction);
@@ -126,3 +128,51 @@ $("deleteUser").addEventListener("click", async () => {
 });
 
 $("listUsers").addEventListener("click", refreshUsers);
+
+// --- Reactive chat over WebSocketWasm ------------------------------------
+// Note how this block uses the WebSocket API verbatim. Replace WebSocketWasm
+// with the native WebSocket (and point at a real ws:// server) and it behaves
+// identically.
+let chat = null;
+
+function setChatState(label, connected) {
+  $("chatState").textContent = label;
+  $("chatConnect").disabled = connected;
+  $("chatDisconnect").disabled = !connected;
+  $("chatSend").disabled = !connected;
+}
+
+function chatLog(line) {
+  $("chatOut").textContent += line + "\n";
+}
+
+$("chatConnect").addEventListener("click", () => {
+  chatLog("connecting…");
+  // Drive the GENERATED SDK client (ChatAction) — but tell it to use our
+  // WebSocketWasm transport instead of the browser's native WebSocket. Drop the
+  // SocketClass option and it would hit a real ws:// server unchanged.
+  chat = ChatAction.Create(undefined, undefined, {
+    SocketClass: WebSocketWasm,
+  });
+
+  chat.onopen = () => {
+    chatLog("● open");
+    setChatState("open", true);
+  };
+  chat.onmessage = (e) => chatLog("← " + e.data);
+  chat.onerror = (e) => chatLog("✕ error: " + (e.message || "unknown"));
+  chat.onclose = (e) => {
+    chatLog("○ close" + (e.reason ? " (" + e.reason + ")" : ""));
+    setChatState("closed", false);
+    chat = null;
+  };
+});
+
+$("chatSend").addEventListener("click", () => {
+  if (!chat) return;
+  const text = $("chatInput").value;
+  chat.send(text);
+  chatLog("→ " + text);
+});
+
+$("chatDisconnect").addEventListener("click", () => chat?.close());

@@ -56,11 +56,6 @@ func renderJsTsCommonHeadersInfo(headerColumns []core.EmiHeader) ([]renderedJsHe
 	return headers, nil
 }
 
-var GEN_NEST_JS_COMPATIBILITY string = "nestjs"
-var GEN_TYPESCRIPT_COMPATIBILITY string = "typescript"
-var GEN_SKIP_ENVELOPES string = "no-envelope"
-var GEN_REACT_COMPATIBILITY string = "react"
-
 func JsHeaderClass(
 	headerctx jsHeaderClassContext,
 	ctx core.MicroGenContext,

@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -1019,7 +1012,7 @@ export class ModifyTheBuyNowPriceInAnOfferActionRes {
      *
      * @type {ModifyTheBuyNowPriceInAnOfferActionRes.Output.Errors}
      **/
-    #errors = [];
+    #errors = MArray.of([]);
     /**
      *
      * @returns {ModifyTheBuyNowPriceInAnOfferActionRes.Output.Errors}
@@ -1032,20 +1025,40 @@ export class ModifyTheBuyNowPriceInAnOfferActionRes {
      * @type {ModifyTheBuyNowPriceInAnOfferActionRes.Output.Errors}
      **/
     set errors(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            ModifyTheBuyNowPriceInAnOfferActionRes.Output.Errors
+        ) {
+          this.#errors = MArray.of(value);
+        } else {
+          this.#errors = MArray.of(
+            value.map(
+              (item) =>
+                new ModifyTheBuyNowPriceInAnOfferActionRes.Output.Errors(item),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof ModifyTheBuyNowPriceInAnOfferActionRes.Output.Errors
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#errors = value;
-      } else {
-        this.#errors = value.map(
-          (item) =>
-            new ModifyTheBuyNowPriceInAnOfferActionRes.Output.Errors(item),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#errors = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to errors, because it needs MArray instance or an Array.",
+      );
     }
     setErrors(value) {
       this.errors = value;

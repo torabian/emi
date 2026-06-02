@@ -47,7 +47,10 @@ export class WebSocketX<
       data instanceof ArrayBuffer ||
       ArrayBuffer.isView(data)
     ) {
-      super.send(data);
+      // Cast to whatever the runtime's WebSocket.send accepts: newer lib.dom
+      // parameterizes BufferSource as ArrayBufferView<ArrayBuffer>, so the
+      // ArrayBufferLike-backed view from isView() needs widening on forward.
+      super.send(data as Parameters<WebSocket["send"]>[0]);
     } else if (data !== undefined && data !== null) {
       super.send(data.toString());
     }
@@ -66,10 +69,11 @@ export class WebSocketX<
     options?: boolean | AddEventListenerOptions
   ): void;
 
-  // implementation
+  // implementation (signature is not part of the public overload set, so it is
+  // widened to encompass the overloads above under strictFunctionTypes)
   addEventListener(
     type: string,
-    listener: EventListenerOrEventListenerObject,
+    listener: EventListenerOrEventListenerObject | ((this: WebSocket, ev: any) => unknown),
     options?: boolean | AddEventListenerOptions
   ): void {
     if (type === "message") {

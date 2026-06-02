@@ -3,15 +3,15 @@ gen:
 
 gen-js:
 	rm -rf javascript/gen/ && \
-	emi js --path definitions/offer/user-offer-information.emi.yml --output javascript/gen/offer/user-offer-information && \
-	emi js --path definitions/offer/offer-translations.emi.yml --output javascript/gen/offer/offer-translations && \
-	emi js --path definitions/offer/offer-management.emi.yml --output javascript/gen/offer/offer-management
+	emi js --tags no-sdk --path definitions/offer/user-offer-information.emi.yml --output javascript/gen/offer/user-offer-information && \
+	emi js --tags no-sdk --path definitions/offer/offer-translations.emi.yml --output javascript/gen/offer/offer-translations && \
+	emi js --tags no-sdk --path definitions/offer/offer-management.emi.yml --output javascript/gen/offer/offer-management
 
 gen-ts:
 	rm -rf typescript/gen/ && \
-	emi js --path definitions/offer/user-offer-information.emi.yml --output typescript/gen/offer/user-offer-information --tags typescript && \
-	emi js --path definitions/offer/offer-translations.emi.yml --output typescript/gen/offer/offer-translations --tags typescript && \
-	emi js --path definitions/offer/offer-management.emi.yml --output typescript/gen/offer/offer-management --tags typescript
+	emi js --path definitions/offer/user-offer-information.emi.yml --output typescript/gen/offer/user-offer-information --tags typescript,no-sdk && \
+	emi js --path definitions/offer/offer-translations.emi.yml --output typescript/gen/offer/offer-translations --tags typescript,no-sdk && \
+	emi js --path definitions/offer/offer-management.emi.yml --output typescript/gen/offer/offer-management --tags typescript,no-sdk
 
 gen-kotlin:
 	rm -rf kotlin/gen/ && \

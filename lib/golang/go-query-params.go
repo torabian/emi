@@ -107,12 +107,9 @@ func {{ .goqctx.ActionName }}QueryFromString(rawQuery string) {{ .goqctx.ActionN
 	return v
 }
 
-
-{{ if .EnabledGin }}
 func {{ .goqctx.ActionName }}QueryFromHttp(r *http.Request) {{ .goqctx.ActionName }}Query {
 	return {{ .goqctx.ActionName }}QueryFromString(r.URL.RawQuery)
 }
-{{ end }}
 
 func (q {{ .goqctx.ActionName }}Query) Values() url.Values {
 	return q.values

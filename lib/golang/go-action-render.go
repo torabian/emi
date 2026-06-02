@@ -19,8 +19,9 @@ func GoActionRender(
 		if err != nil {
 			return nil, err
 		}
-		return []*core.CodeChunkCompiled{reactive}, nil
+		return reactive, nil
 	}
+
 	skipGoClient := strings.Contains(ctx.Tags, GEN_GO_SKIP_CLIENT)
 	splitGin := strings.Contains(ctx.Tags, "split-gin")
 	splitCli := strings.Contains(ctx.Tags, "split-cli")

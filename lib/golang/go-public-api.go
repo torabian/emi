@@ -135,23 +135,7 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
 
-	type Flags struct {
-		Emigo       string  `json:"emigo,omitempty"`
-		PackageName string  `json:"pkg,omitempty"`
-		Dtos        *string `json:"dtos"`
-	}
-	var f Flags = Flags{
-		Emigo:       "github.com/torabian/emi/emigo",
-		PackageName: DEFAULT_GO_PACKAGE,
-	}
-
-	if val, ok := ctx.Flags["emigo"]; ok && val != "" {
-		f.Emigo = val
-	}
-
-	if val, ok := ctx.Flags["pkg"]; ok && val != "" {
-		f.PackageName = val
-	}
+	f := GetCommonFlags(ctx)
 
 	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}

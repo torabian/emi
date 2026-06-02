@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -210,7 +203,7 @@ export class ModificationCommandDetailedResultActionRes {
    *
    * @type {ModificationCommandDetailedResultActionRes.Tasks}
    **/
-  #tasks = [];
+  #tasks = MArray.of([]);
   /**
    *
    * @returns {ModificationCommandDetailedResultActionRes.Tasks}
@@ -223,19 +216,39 @@ export class ModificationCommandDetailedResultActionRes {
    * @type {ModificationCommandDetailedResultActionRes.Tasks}
    **/
   set tasks(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof ModificationCommandDetailedResultActionRes.Tasks
+      ) {
+        this.#tasks = MArray.of(value);
+      } else {
+        this.#tasks = MArray.of(
+          value.map(
+            (item) =>
+              new ModificationCommandDetailedResultActionRes.Tasks(item),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof ModificationCommandDetailedResultActionRes.Tasks
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#tasks = value;
-    } else {
-      this.#tasks = value.map(
-        (item) => new ModificationCommandDetailedResultActionRes.Tasks(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#tasks = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to tasks, because it needs MArray instance or an Array.",
+    );
   }
   setTasks(value) {
     this.tasks = value;
@@ -276,7 +289,7 @@ export class ModificationCommandDetailedResultActionRes {
    *
    * @type {ModificationCommandDetailedResultActionRes.AdditionalMarketplaces}
    **/
-  #additionalMarketplaces = [];
+  #additionalMarketplaces = MArray.of([]);
   /**
    *
    * @returns {ModificationCommandDetailedResultActionRes.AdditionalMarketplaces}
@@ -289,23 +302,42 @@ export class ModificationCommandDetailedResultActionRes {
    * @type {ModificationCommandDetailedResultActionRes.AdditionalMarketplaces}
    **/
   set additionalMarketplaces(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof
+          ModificationCommandDetailedResultActionRes.AdditionalMarketplaces
+      ) {
+        this.#additionalMarketplaces = MArray.of(value);
+      } else {
+        this.#additionalMarketplaces = MArray.of(
+          value.map(
+            (item) =>
+              new ModificationCommandDetailedResultActionRes.AdditionalMarketplaces(
+                item,
+              ),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof
-        ModificationCommandDetailedResultActionRes.AdditionalMarketplaces
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#additionalMarketplaces = value;
-    } else {
-      this.#additionalMarketplaces = value.map(
-        (item) =>
-          new ModificationCommandDetailedResultActionRes.AdditionalMarketplaces(
-            item,
-          ),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#additionalMarketplaces = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to additionalMarketplaces, because it needs MArray instance or an Array.",
+    );
   }
   setAdditionalMarketplaces(value) {
     this.additionalMarketplaces = value;
@@ -442,7 +474,7 @@ export class ModificationCommandDetailedResultActionRes {
      *
      * @type {ModificationCommandDetailedResultActionRes.Tasks.Errors}
      **/
-    #errors = [];
+    #errors = MArray.of([]);
     /**
      *
      * @returns {ModificationCommandDetailedResultActionRes.Tasks.Errors}
@@ -455,21 +487,42 @@ export class ModificationCommandDetailedResultActionRes {
      * @type {ModificationCommandDetailedResultActionRes.Tasks.Errors}
      **/
     set errors(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            ModificationCommandDetailedResultActionRes.Tasks.Errors
+        ) {
+          this.#errors = MArray.of(value);
+        } else {
+          this.#errors = MArray.of(
+            value.map(
+              (item) =>
+                new ModificationCommandDetailedResultActionRes.Tasks.Errors(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          ModificationCommandDetailedResultActionRes.Tasks.Errors
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#errors = value;
-      } else {
-        this.#errors = value.map(
-          (item) =>
-            new ModificationCommandDetailedResultActionRes.Tasks.Errors(item),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#errors = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to errors, because it needs MArray instance or an Array.",
+      );
     }
     setErrors(value) {
       this.errors = value;
@@ -1185,7 +1238,7 @@ export class ModificationCommandDetailedResultActionRes {
      *
      * @type {ModificationCommandDetailedResultActionRes.Modification.ExtraPackages}
      **/
-    #extraPackages = [];
+    #extraPackages = MArray.of([]);
     /**
      *
      * @returns {ModificationCommandDetailedResultActionRes.Modification.ExtraPackages}
@@ -1198,23 +1251,43 @@ export class ModificationCommandDetailedResultActionRes {
      * @type {ModificationCommandDetailedResultActionRes.Modification.ExtraPackages}
      **/
     set extraPackages(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            ModificationCommandDetailedResultActionRes.Modification
+              .ExtraPackages
+        ) {
+          this.#extraPackages = MArray.of(value);
+        } else {
+          this.#extraPackages = MArray.of(
+            value.map(
+              (item) =>
+                new ModificationCommandDetailedResultActionRes.Modification.ExtraPackages(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          ModificationCommandDetailedResultActionRes.Modification.ExtraPackages
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#extraPackages = value;
-      } else {
-        this.#extraPackages = value.map(
-          (item) =>
-            new ModificationCommandDetailedResultActionRes.Modification.ExtraPackages(
-              item,
-            ),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#extraPackages = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to extraPackages, because it needs MArray instance or an Array.",
+      );
     }
     setExtraPackages(value) {
       this.extraPackages = value;
@@ -1710,7 +1783,7 @@ export class ModificationCommandDetailedResultActionRes {
        *
        * @type {ModificationCommandDetailedResultActionRes.AdditionalMarketplaces.Modification.ExtraPackages}
        **/
-      #extraPackages = [];
+      #extraPackages = MArray.of([]);
       /**
        *
        * @returns {ModificationCommandDetailedResultActionRes.AdditionalMarketplaces.Modification.ExtraPackages}
@@ -1723,24 +1796,43 @@ export class ModificationCommandDetailedResultActionRes {
        * @type {ModificationCommandDetailedResultActionRes.AdditionalMarketplaces.Modification.ExtraPackages}
        **/
       set extraPackages(value) {
-        if (!Array.isArray(value) && !(value instanceof MCollection)) {
+        // When the passed value is already an array, we check if we need to
+        // cast the inner items into class instance.
+        if (Array.isArray(value)) {
+          if (
+            value.length > 0 &&
+            value[0] instanceof
+              ModificationCommandDetailedResultActionRes.AdditionalMarketplaces
+                .Modification.ExtraPackages
+          ) {
+            this.#extraPackages = MArray.of(value);
+          } else {
+            this.#extraPackages = MArray.of(
+              value.map(
+                (item) =>
+                  new ModificationCommandDetailedResultActionRes.AdditionalMarketplaces.Modification.ExtraPackages(
+                    item,
+                  ),
+              ),
+            );
+          }
           return;
         }
-        if (
-          value.length > 0 &&
-          value[0] instanceof
-            ModificationCommandDetailedResultActionRes.AdditionalMarketplaces
-              .Modification.ExtraPackages
-        ) {
+        // If the instance is already an MArray, we assume it's all good.
+        if (value instanceof MArray) {
           this.#extraPackages = value;
-        } else {
-          this.#extraPackages = value.map(
-            (item) =>
-              new ModificationCommandDetailedResultActionRes.AdditionalMarketplaces.Modification.ExtraPackages(
-                item,
-              ),
-          );
+          return;
         }
+        // If the value is not array, and is not a MArray, we need to be consider,
+        // it might be eligible to be casted into MArray.
+        const { ok, value: mcastValue } = MArray.cast(value);
+        if (ok) {
+          this.#extraPackages = mcastValue;
+          return;
+        }
+        console.warn(
+          "Cannot assing value to extraPackages, because it needs MArray instance or an Array.",
+        );
       }
       setExtraPackages(value) {
         this.extraPackages = value;

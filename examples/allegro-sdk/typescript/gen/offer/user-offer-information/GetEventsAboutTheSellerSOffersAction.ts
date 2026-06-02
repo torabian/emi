@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -146,9 +139,9 @@ export class GetEventsAboutTheSellerSOffersActionRes {
    * List of events related to offer state changes
    * @type {GetEventsAboutTheSellerSOffersActionRes.OfferEvents}
    **/
-  #offerEvents: InstanceType<
-    typeof GetEventsAboutTheSellerSOffersActionRes.OfferEvents
-  >[] = [];
+  #offerEvents: MArray<
+    InstanceType<typeof GetEventsAboutTheSellerSOffersActionRes.OfferEvents>
+  > = MArray.of([]);
   /**
    * List of events related to offer state changes
    * @returns {GetEventsAboutTheSellerSOffersActionRes.OfferEvents}
@@ -161,28 +154,60 @@ export class GetEventsAboutTheSellerSOffersActionRes {
    * @type {GetEventsAboutTheSellerSOffersActionRes.OfferEvents}
    **/
   set offerEvents(
-    value: InstanceType<
-      typeof GetEventsAboutTheSellerSOffersActionRes.OfferEvents
-    >[],
+    value:
+      | MArray<
+          InstanceType<
+            typeof GetEventsAboutTheSellerSOffersActionRes.OfferEvents
+          >
+        >
+      | InstanceType<
+          typeof GetEventsAboutTheSellerSOffersActionRes.OfferEvents
+        >[],
   ) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof GetEventsAboutTheSellerSOffersActionRes.OfferEvents
+      ) {
+        this.#offerEvents = MArray.of(value);
+      } else {
+        this.#offerEvents = MArray.of(
+          value.map(
+            (item) =>
+              new GetEventsAboutTheSellerSOffersActionRes.OfferEvents(item),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof GetEventsAboutTheSellerSOffersActionRes.OfferEvents
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#offerEvents = value;
-    } else {
-      this.#offerEvents = value.map(
-        (item) => new GetEventsAboutTheSellerSOffersActionRes.OfferEvents(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+    if (ok) {
+      this.#offerEvents = mcastValue as any;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to offerEvents, because it needs MArray instance or an Array.",
+    );
   }
   setOfferEvents(
-    value: InstanceType<
-      typeof GetEventsAboutTheSellerSOffersActionRes.OfferEvents
-    >[],
+    value:
+      | MArray<
+          InstanceType<
+            typeof GetEventsAboutTheSellerSOffersActionRes.OfferEvents
+          >
+        >
+      | InstanceType<
+          typeof GetEventsAboutTheSellerSOffersActionRes.OfferEvents
+        >[],
   ) {
     this.offerEvents = value;
     return this;

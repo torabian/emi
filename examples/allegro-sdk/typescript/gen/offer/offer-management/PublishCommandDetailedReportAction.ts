@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -166,8 +159,9 @@ export class PublishCommandDetailedReportActionRes {
    *
    * @type {PublishCommandDetailedReportActionRes.Tasks}
    **/
-  #tasks: InstanceType<typeof PublishCommandDetailedReportActionRes.Tasks>[] =
-    [];
+  #tasks: MArray<
+    InstanceType<typeof PublishCommandDetailedReportActionRes.Tasks>
+  > = MArray.of([]);
   /**
    *
    * @returns {PublishCommandDetailedReportActionRes.Tasks}
@@ -180,24 +174,47 @@ export class PublishCommandDetailedReportActionRes {
    * @type {PublishCommandDetailedReportActionRes.Tasks}
    **/
   set tasks(
-    value: InstanceType<typeof PublishCommandDetailedReportActionRes.Tasks>[],
+    value:
+      | MArray<InstanceType<typeof PublishCommandDetailedReportActionRes.Tasks>>
+      | InstanceType<typeof PublishCommandDetailedReportActionRes.Tasks>[],
   ) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof PublishCommandDetailedReportActionRes.Tasks
+      ) {
+        this.#tasks = MArray.of(value);
+      } else {
+        this.#tasks = MArray.of(
+          value.map(
+            (item) => new PublishCommandDetailedReportActionRes.Tasks(item),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof PublishCommandDetailedReportActionRes.Tasks
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#tasks = value;
-    } else {
-      this.#tasks = value.map(
-        (item) => new PublishCommandDetailedReportActionRes.Tasks(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+    if (ok) {
+      this.#tasks = mcastValue as any;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to tasks, because it needs MArray instance or an Array.",
+    );
   }
   setTasks(
-    value: InstanceType<typeof PublishCommandDetailedReportActionRes.Tasks>[],
+    value:
+      | MArray<InstanceType<typeof PublishCommandDetailedReportActionRes.Tasks>>
+      | InstanceType<typeof PublishCommandDetailedReportActionRes.Tasks>[],
   ) {
     this.tasks = value;
     return this;
@@ -319,9 +336,9 @@ export class PublishCommandDetailedReportActionRes {
      *
      * @type {PublishCommandDetailedReportActionRes.Tasks.Errors}
      **/
-    #errors: InstanceType<
-      typeof PublishCommandDetailedReportActionRes.Tasks.Errors
-    >[] = [];
+    #errors: MArray<
+      InstanceType<typeof PublishCommandDetailedReportActionRes.Tasks.Errors>
+    > = MArray.of([]);
     /**
      *
      * @returns {PublishCommandDetailedReportActionRes.Tasks.Errors}
@@ -334,29 +351,60 @@ export class PublishCommandDetailedReportActionRes {
      * @type {PublishCommandDetailedReportActionRes.Tasks.Errors}
      **/
     set errors(
-      value: InstanceType<
-        typeof PublishCommandDetailedReportActionRes.Tasks.Errors
-      >[],
+      value:
+        | MArray<
+            InstanceType<
+              typeof PublishCommandDetailedReportActionRes.Tasks.Errors
+            >
+          >
+        | InstanceType<
+            typeof PublishCommandDetailedReportActionRes.Tasks.Errors
+          >[],
     ) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof PublishCommandDetailedReportActionRes.Tasks.Errors
+        ) {
+          this.#errors = MArray.of(value);
+        } else {
+          this.#errors = MArray.of(
+            value.map(
+              (item) =>
+                new PublishCommandDetailedReportActionRes.Tasks.Errors(item),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof PublishCommandDetailedReportActionRes.Tasks.Errors
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#errors = value;
-      } else {
-        this.#errors = value.map(
-          (item) =>
-            new PublishCommandDetailedReportActionRes.Tasks.Errors(item),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+      if (ok) {
+        this.#errors = mcastValue as any;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to errors, because it needs MArray instance or an Array.",
+      );
     }
     setErrors(
-      value: InstanceType<
-        typeof PublishCommandDetailedReportActionRes.Tasks.Errors
-      >[],
+      value:
+        | MArray<
+            InstanceType<
+              typeof PublishCommandDetailedReportActionRes.Tasks.Errors
+            >
+          >
+        | InstanceType<
+            typeof PublishCommandDetailedReportActionRes.Tasks.Errors
+          >[],
     ) {
       this.errors = value;
       return this;

@@ -74,3 +74,6 @@ collectiontest:
 
 test_examples:
 	cd examples/fullstack && make
+
+check_swift:
+	cd examples/allegro-sdk/swift && find . -type f -name "*.swift" -print0 | xargs -0 swiftc -typecheck

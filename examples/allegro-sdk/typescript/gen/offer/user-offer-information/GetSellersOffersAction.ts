@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,
@@ -534,7 +527,8 @@ export class GetSellersOffersActionRes {
    *
    * @type {GetSellersOffersActionRes.Offers}
    **/
-  #offers: InstanceType<typeof GetSellersOffersActionRes.Offers>[] = [];
+  #offers: MArray<InstanceType<typeof GetSellersOffersActionRes.Offers>> =
+    MArray.of([]);
   /**
    *
    * @returns {GetSellersOffersActionRes.Offers}
@@ -546,22 +540,47 @@ export class GetSellersOffersActionRes {
    *
    * @type {GetSellersOffersActionRes.Offers}
    **/
-  set offers(value: InstanceType<typeof GetSellersOffersActionRes.Offers>[]) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+  set offers(
+    value:
+      | MArray<InstanceType<typeof GetSellersOffersActionRes.Offers>>
+      | InstanceType<typeof GetSellersOffersActionRes.Offers>[],
+  ) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof GetSellersOffersActionRes.Offers
+      ) {
+        this.#offers = MArray.of(value);
+      } else {
+        this.#offers = MArray.of(
+          value.map((item) => new GetSellersOffersActionRes.Offers(item)),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof GetSellersOffersActionRes.Offers
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#offers = value;
-    } else {
-      this.#offers = value.map(
-        (item) => new GetSellersOffersActionRes.Offers(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+    if (ok) {
+      this.#offers = mcastValue as any;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to offers, because it needs MArray instance or an Array.",
+    );
   }
-  setOffers(value: InstanceType<typeof GetSellersOffersActionRes.Offers>[]) {
+  setOffers(
+    value:
+      | MArray<InstanceType<typeof GetSellersOffersActionRes.Offers>>
+      | InstanceType<typeof GetSellersOffersActionRes.Offers>[],
+  ) {
     this.offers = value;
     return this;
   }
@@ -3347,9 +3366,11 @@ export class GetSellersOffersActionRes {
          *
          * @type {GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional}
          **/
-        #additional: InstanceType<
-          typeof GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional
-        >[] = [];
+        #additional: MArray<
+          InstanceType<
+            typeof GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional
+          >
+        > = MArray.of([]);
         /**
          *
          * @returns {GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional}
@@ -3362,33 +3383,64 @@ export class GetSellersOffersActionRes {
          * @type {GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional}
          **/
         set additional(
-          value: InstanceType<
-            typeof GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional
-          >[],
+          value:
+            | MArray<
+                InstanceType<
+                  typeof GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional
+                >
+              >
+            | InstanceType<
+                typeof GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional
+              >[],
         ) {
-          if (!Array.isArray(value) && !(value instanceof MCollection)) {
+          // When the passed value is already an array, we check if we need to
+          // cast the inner items into class instance.
+          if (Array.isArray(value)) {
+            if (
+              value.length > 0 &&
+              value[0] instanceof
+                GetSellersOffersActionRes.Offers.Publication.Marketplaces
+                  .Additional
+            ) {
+              this.#additional = MArray.of(value);
+            } else {
+              this.#additional = MArray.of(
+                value.map(
+                  (item) =>
+                    new GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional(
+                      item,
+                    ),
+                ),
+              );
+            }
             return;
           }
-          if (
-            value.length > 0 &&
-            value[0] instanceof
-              GetSellersOffersActionRes.Offers.Publication.Marketplaces
-                .Additional
-          ) {
+          // If the instance is already an MArray, we assume it's all good.
+          if (value instanceof MArray) {
             this.#additional = value;
-          } else {
-            this.#additional = value.map(
-              (item) =>
-                new GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional(
-                  item,
-                ),
-            );
+            return;
           }
+          // If the value is not array, and is not a MArray, we need to be consider,
+          // it might be eligible to be casted into MArray.
+          const { ok, value: mcastValue } = MArray.cast<unknown>(value);
+          if (ok) {
+            this.#additional = mcastValue as any;
+            return;
+          }
+          console.warn(
+            "Cannot assing value to additional, because it needs MArray instance or an Array.",
+          );
         }
         setAdditional(
-          value: InstanceType<
-            typeof GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional
-          >[],
+          value:
+            | MArray<
+                InstanceType<
+                  typeof GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional
+                >
+              >
+            | InstanceType<
+                typeof GetSellersOffersActionRes.Offers.Publication.Marketplaces.Additional
+              >[],
         ) {
           this.additional = value;
           return this;

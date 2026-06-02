@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -152,7 +145,7 @@ export class GetOfferTranslationsActionRes {
    *
    * @type {GetOfferTranslationsActionRes.Translations}
    **/
-  #translations = [];
+  #translations = MArray.of([]);
   /**
    *
    * @returns {GetOfferTranslationsActionRes.Translations}
@@ -165,19 +158,38 @@ export class GetOfferTranslationsActionRes {
    * @type {GetOfferTranslationsActionRes.Translations}
    **/
   set translations(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof GetOfferTranslationsActionRes.Translations
+      ) {
+        this.#translations = MArray.of(value);
+      } else {
+        this.#translations = MArray.of(
+          value.map(
+            (item) => new GetOfferTranslationsActionRes.Translations(item),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof GetOfferTranslationsActionRes.Translations
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#translations = value;
-    } else {
-      this.#translations = value.map(
-        (item) => new GetOfferTranslationsActionRes.Translations(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#translations = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to translations, because it needs MArray instance or an Array.",
+    );
   }
   setTranslations(value) {
     this.translations = value;
@@ -518,7 +530,7 @@ export class GetOfferTranslationsActionRes {
          *
          * @type {GetOfferTranslationsActionRes.Translations.Description.Translation.Sections}
          **/
-        #sections = [];
+        #sections = MArray.of([]);
         /**
          *
          * @returns {GetOfferTranslationsActionRes.Translations.Description.Translation.Sections}
@@ -531,24 +543,43 @@ export class GetOfferTranslationsActionRes {
          * @type {GetOfferTranslationsActionRes.Translations.Description.Translation.Sections}
          **/
         set sections(value) {
-          if (!Array.isArray(value) && !(value instanceof MCollection)) {
+          // When the passed value is already an array, we check if we need to
+          // cast the inner items into class instance.
+          if (Array.isArray(value)) {
+            if (
+              value.length > 0 &&
+              value[0] instanceof
+                GetOfferTranslationsActionRes.Translations.Description
+                  .Translation.Sections
+            ) {
+              this.#sections = MArray.of(value);
+            } else {
+              this.#sections = MArray.of(
+                value.map(
+                  (item) =>
+                    new GetOfferTranslationsActionRes.Translations.Description.Translation.Sections(
+                      item,
+                    ),
+                ),
+              );
+            }
             return;
           }
-          if (
-            value.length > 0 &&
-            value[0] instanceof
-              GetOfferTranslationsActionRes.Translations.Description.Translation
-                .Sections
-          ) {
+          // If the instance is already an MArray, we assume it's all good.
+          if (value instanceof MArray) {
             this.#sections = value;
-          } else {
-            this.#sections = value.map(
-              (item) =>
-                new GetOfferTranslationsActionRes.Translations.Description.Translation.Sections(
-                  item,
-                ),
-            );
+            return;
           }
+          // If the value is not array, and is not a MArray, we need to be consider,
+          // it might be eligible to be casted into MArray.
+          const { ok, value: mcastValue } = MArray.cast(value);
+          if (ok) {
+            this.#sections = mcastValue;
+            return;
+          }
+          console.warn(
+            "Cannot assing value to sections, because it needs MArray instance or an Array.",
+          );
         }
         setSections(value) {
           this.sections = value;
@@ -562,7 +593,7 @@ export class GetOfferTranslationsActionRes {
            *
            * @type {GetOfferTranslationsActionRes.Translations.Description.Translation.Sections.Items}
            **/
-          #items = [];
+          #items = MArray.of([]);
           /**
            *
            * @returns {GetOfferTranslationsActionRes.Translations.Description.Translation.Sections.Items}
@@ -575,24 +606,43 @@ export class GetOfferTranslationsActionRes {
            * @type {GetOfferTranslationsActionRes.Translations.Description.Translation.Sections.Items}
            **/
           set items(value) {
-            if (!Array.isArray(value) && !(value instanceof MCollection)) {
+            // When the passed value is already an array, we check if we need to
+            // cast the inner items into class instance.
+            if (Array.isArray(value)) {
+              if (
+                value.length > 0 &&
+                value[0] instanceof
+                  GetOfferTranslationsActionRes.Translations.Description
+                    .Translation.Sections.Items
+              ) {
+                this.#items = MArray.of(value);
+              } else {
+                this.#items = MArray.of(
+                  value.map(
+                    (item) =>
+                      new GetOfferTranslationsActionRes.Translations.Description.Translation.Sections.Items(
+                        item,
+                      ),
+                  ),
+                );
+              }
               return;
             }
-            if (
-              value.length > 0 &&
-              value[0] instanceof
-                GetOfferTranslationsActionRes.Translations.Description
-                  .Translation.Sections.Items
-            ) {
+            // If the instance is already an MArray, we assume it's all good.
+            if (value instanceof MArray) {
               this.#items = value;
-            } else {
-              this.#items = value.map(
-                (item) =>
-                  new GetOfferTranslationsActionRes.Translations.Description.Translation.Sections.Items(
-                    item,
-                  ),
-              );
+              return;
             }
+            // If the value is not array, and is not a MArray, we need to be consider,
+            // it might be eligible to be casted into MArray.
+            const { ok, value: mcastValue } = MArray.cast(value);
+            if (ok) {
+              this.#items = mcastValue;
+              return;
+            }
+            console.warn(
+              "Cannot assing value to items, because it needs MArray instance or an Array.",
+            );
           }
           setItems(value) {
             this.items = value;
@@ -1033,7 +1083,7 @@ export class GetOfferTranslationsActionRes {
        *
        * @type {GetOfferTranslationsActionRes.Translations.SafetyInformation.Products}
        **/
-      #products = [];
+      #products = MArray.of([]);
       /**
        *
        * @returns {GetOfferTranslationsActionRes.Translations.SafetyInformation.Products}
@@ -1046,24 +1096,43 @@ export class GetOfferTranslationsActionRes {
        * @type {GetOfferTranslationsActionRes.Translations.SafetyInformation.Products}
        **/
       set products(value) {
-        if (!Array.isArray(value) && !(value instanceof MCollection)) {
+        // When the passed value is already an array, we check if we need to
+        // cast the inner items into class instance.
+        if (Array.isArray(value)) {
+          if (
+            value.length > 0 &&
+            value[0] instanceof
+              GetOfferTranslationsActionRes.Translations.SafetyInformation
+                .Products
+          ) {
+            this.#products = MArray.of(value);
+          } else {
+            this.#products = MArray.of(
+              value.map(
+                (item) =>
+                  new GetOfferTranslationsActionRes.Translations.SafetyInformation.Products(
+                    item,
+                  ),
+              ),
+            );
+          }
           return;
         }
-        if (
-          value.length > 0 &&
-          value[0] instanceof
-            GetOfferTranslationsActionRes.Translations.SafetyInformation
-              .Products
-        ) {
+        // If the instance is already an MArray, we assume it's all good.
+        if (value instanceof MArray) {
           this.#products = value;
-        } else {
-          this.#products = value.map(
-            (item) =>
-              new GetOfferTranslationsActionRes.Translations.SafetyInformation.Products(
-                item,
-              ),
-          );
+          return;
         }
+        // If the value is not array, and is not a MArray, we need to be consider,
+        // it might be eligible to be casted into MArray.
+        const { ok, value: mcastValue } = MArray.cast(value);
+        if (ok) {
+          this.#products = mcastValue;
+          return;
+        }
+        console.warn(
+          "Cannot assing value to products, because it needs MArray instance or an Array.",
+        );
       }
       setProducts(value) {
         this.products = value;

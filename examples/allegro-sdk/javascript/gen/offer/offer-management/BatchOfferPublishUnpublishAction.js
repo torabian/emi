@@ -1,11 +1,4 @@
-import {
-  MArray,
-  MArrayNullable,
-  MCollection,
-  MCollectionNullable,
-  MOne,
-  MOneNullable,
-} from "./sdk/common/operators";
+import { MArray } from "./sdk/common/operators";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
@@ -141,7 +134,7 @@ export class BatchOfferPublishUnpublishActionReq {
    *
    * @type {BatchOfferPublishUnpublishActionReq.OfferCriteria}
    **/
-  #offerCriteria = [];
+  #offerCriteria = MArray.of([]);
   /**
    *
    * @returns {BatchOfferPublishUnpublishActionReq.OfferCriteria}
@@ -154,19 +147,39 @@ export class BatchOfferPublishUnpublishActionReq {
    * @type {BatchOfferPublishUnpublishActionReq.OfferCriteria}
    **/
   set offerCriteria(value) {
-    if (!Array.isArray(value) && !(value instanceof MCollection)) {
+    // When the passed value is already an array, we check if we need to
+    // cast the inner items into class instance.
+    if (Array.isArray(value)) {
+      if (
+        value.length > 0 &&
+        value[0] instanceof BatchOfferPublishUnpublishActionReq.OfferCriteria
+      ) {
+        this.#offerCriteria = MArray.of(value);
+      } else {
+        this.#offerCriteria = MArray.of(
+          value.map(
+            (item) =>
+              new BatchOfferPublishUnpublishActionReq.OfferCriteria(item),
+          ),
+        );
+      }
       return;
     }
-    if (
-      value.length > 0 &&
-      value[0] instanceof BatchOfferPublishUnpublishActionReq.OfferCriteria
-    ) {
+    // If the instance is already an MArray, we assume it's all good.
+    if (value instanceof MArray) {
       this.#offerCriteria = value;
-    } else {
-      this.#offerCriteria = value.map(
-        (item) => new BatchOfferPublishUnpublishActionReq.OfferCriteria(item),
-      );
+      return;
     }
+    // If the value is not array, and is not a MArray, we need to be consider,
+    // it might be eligible to be casted into MArray.
+    const { ok, value: mcastValue } = MArray.cast(value);
+    if (ok) {
+      this.#offerCriteria = mcastValue;
+      return;
+    }
+    console.warn(
+      "Cannot assing value to offerCriteria, because it needs MArray instance or an Array.",
+    );
   }
   setOfferCriteria(value) {
     this.offerCriteria = value;
@@ -210,7 +223,7 @@ export class BatchOfferPublishUnpublishActionReq {
      *
      * @type {BatchOfferPublishUnpublishActionReq.OfferCriteria.Offers}
      **/
-    #offers = [];
+    #offers = MArray.of([]);
     /**
      *
      * @returns {BatchOfferPublishUnpublishActionReq.OfferCriteria.Offers}
@@ -223,21 +236,42 @@ export class BatchOfferPublishUnpublishActionReq {
      * @type {BatchOfferPublishUnpublishActionReq.OfferCriteria.Offers}
      **/
     set offers(value) {
-      if (!Array.isArray(value) && !(value instanceof MCollection)) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (
+          value.length > 0 &&
+          value[0] instanceof
+            BatchOfferPublishUnpublishActionReq.OfferCriteria.Offers
+        ) {
+          this.#offers = MArray.of(value);
+        } else {
+          this.#offers = MArray.of(
+            value.map(
+              (item) =>
+                new BatchOfferPublishUnpublishActionReq.OfferCriteria.Offers(
+                  item,
+                ),
+            ),
+          );
+        }
         return;
       }
-      if (
-        value.length > 0 &&
-        value[0] instanceof
-          BatchOfferPublishUnpublishActionReq.OfferCriteria.Offers
-      ) {
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
         this.#offers = value;
-      } else {
-        this.#offers = value.map(
-          (item) =>
-            new BatchOfferPublishUnpublishActionReq.OfferCriteria.Offers(item),
-        );
+        return;
       }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#offers = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to offers, because it needs MArray instance or an Array.",
+      );
     }
     setOffers(value) {
       this.offers = value;

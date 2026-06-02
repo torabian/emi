@@ -46,22 +46,7 @@ func GoActionRealms(
 
 	skipGoClient := strings.Contains(ctx.Tags, GEN_GO_SKIP_CLIENT)
 
-	type Flags struct {
-		Emigo       string `json:"emigo,omitempty"`
-		PackageName string `json:"pkg,omitempty"`
-	}
-	var f Flags = Flags{
-		Emigo:       "github.com/torabian/emi/emigo",
-		PackageName: DEFAULT_GO_PACKAGE,
-	}
-
-	if val, ok := ctx.Flags["emigo"]; ok && val != "" {
-		f.Emigo = val
-	}
-
-	if val, ok := ctx.Flags["pkg"]; ok && val != "" {
-		f.PackageName = val
-	}
+	f := GetCommonFlags(ctx)
 
 	realms := goActionRealms{
 		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
