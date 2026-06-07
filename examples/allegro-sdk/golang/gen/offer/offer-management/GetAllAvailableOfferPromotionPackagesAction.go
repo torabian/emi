@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -42,42 +41,6 @@ func GetAllAvailableOfferPromotionPackagesActionMeta() struct {
 		Description: `Use this resource to retrieve all available offer promotion packages. Read more: PL / EN.`,
 	}
 }
-func GetGetAllAvailableOfferPromotionPackagesActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "marketplace-id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "base-packages",
-			Type: "array",
-		},
-		{
-			Name: prefix + "extra-packages",
-			Type: "array",
-		},
-		{
-			Name: prefix + "additional-marketplaces",
-			Type: "array",
-		},
-	}
-}
-func CastGetAllAvailableOfferPromotionPackagesActionResFromCli(c emigo.CliCastable) GetAllAvailableOfferPromotionPackagesActionRes {
-	data := GetAllAvailableOfferPromotionPackagesActionRes{}
-	if c.IsSet("marketplace-id") {
-		data.MarketplaceId = c.String("marketplace-id")
-	}
-	if c.IsSet("base-packages") {
-		data.BasePackages = emigo.CapturePossibleArray(CastGetAllAvailableOfferPromotionPackagesActionResBasePackagesFromCli, "base-packages", c)
-	}
-	if c.IsSet("extra-packages") {
-		data.ExtraPackages = emigo.CapturePossibleArray(CastGetAllAvailableOfferPromotionPackagesActionResExtraPackagesFromCli, "extra-packages", c)
-	}
-	if c.IsSet("additional-marketplaces") {
-		data.AdditionalMarketplaces = emigo.CapturePossibleArray(CastGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesFromCli, "additional-marketplaces", c)
-	}
-	return data
-}
 
 // The base class definition for getAllAvailableOfferPromotionPackagesActionRes
 type GetAllAvailableOfferPromotionPackagesActionRes struct {
@@ -87,71 +50,11 @@ type GetAllAvailableOfferPromotionPackagesActionRes struct {
 	AdditionalMarketplaces emigo.Array[GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
 }
 
-func GetGetAllAvailableOfferPromotionPackagesActionResBasePackagesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "name",
-			Type: "string",
-		},
-		{
-			Name: prefix + "cycle-duration",
-			Type: "string",
-		},
-	}
-}
-func CastGetAllAvailableOfferPromotionPackagesActionResBasePackagesFromCli(c emigo.CliCastable) GetAllAvailableOfferPromotionPackagesActionResBasePackages {
-	data := GetAllAvailableOfferPromotionPackagesActionResBasePackages{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("name") {
-		data.Name = c.String("name")
-	}
-	if c.IsSet("cycle-duration") {
-		data.CycleDuration = c.String("cycle-duration")
-	}
-	return data
-}
-
 // The base class definition for basePackages
 type GetAllAvailableOfferPromotionPackagesActionResBasePackages struct {
 	Id            string `json:"id" yaml:"id"`
 	Name          string `json:"name" yaml:"name"`
 	CycleDuration string `json:"cycleDuration" yaml:"cycleDuration"`
-}
-
-func GetGetAllAvailableOfferPromotionPackagesActionResExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "name",
-			Type: "string",
-		},
-		{
-			Name: prefix + "cycle-duration",
-			Type: "string",
-		},
-	}
-}
-func CastGetAllAvailableOfferPromotionPackagesActionResExtraPackagesFromCli(c emigo.CliCastable) GetAllAvailableOfferPromotionPackagesActionResExtraPackages {
-	data := GetAllAvailableOfferPromotionPackagesActionResExtraPackages{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("name") {
-		data.Name = c.String("name")
-	}
-	if c.IsSet("cycle-duration") {
-		data.CycleDuration = c.String("cycle-duration")
-	}
-	return data
 }
 
 // The base class definition for extraPackages
@@ -161,36 +64,6 @@ type GetAllAvailableOfferPromotionPackagesActionResExtraPackages struct {
 	CycleDuration string `json:"cycleDuration" yaml:"cycleDuration"`
 }
 
-func GetGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "marketplace-id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "base-packages",
-			Type: "array",
-		},
-		{
-			Name: prefix + "extra-packages",
-			Type: "array",
-		},
-	}
-}
-func CastGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesFromCli(c emigo.CliCastable) GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplaces {
-	data := GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplaces{}
-	if c.IsSet("marketplace-id") {
-		data.MarketplaceId = c.String("marketplace-id")
-	}
-	if c.IsSet("base-packages") {
-		data.BasePackages = emigo.CapturePossibleArray(CastGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesBasePackagesFromCli, "base-packages", c)
-	}
-	if c.IsSet("extra-packages") {
-		data.ExtraPackages = emigo.CapturePossibleArray(CastGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackagesFromCli, "extra-packages", c)
-	}
-	return data
-}
-
 // The base class definition for additionalMarketplaces
 type GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplaces struct {
 	MarketplaceId string                                                                                         `json:"marketplaceId" yaml:"marketplaceId"`
@@ -198,71 +71,11 @@ type GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplaces struct
 	ExtraPackages emigo.Array[GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages] `json:"extraPackages" yaml:"extraPackages"`
 }
 
-func GetGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesBasePackagesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "name",
-			Type: "string",
-		},
-		{
-			Name: prefix + "cycle-duration",
-			Type: "string",
-		},
-	}
-}
-func CastGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesBasePackagesFromCli(c emigo.CliCastable) GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesBasePackages {
-	data := GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesBasePackages{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("name") {
-		data.Name = c.String("name")
-	}
-	if c.IsSet("cycle-duration") {
-		data.CycleDuration = c.String("cycle-duration")
-	}
-	return data
-}
-
 // The base class definition for basePackages
 type GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesBasePackages struct {
 	Id            string `json:"id" yaml:"id"`
 	Name          string `json:"name" yaml:"name"`
 	CycleDuration string `json:"cycleDuration" yaml:"cycleDuration"`
-}
-
-func GetGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "name",
-			Type: "string",
-		},
-		{
-			Name: prefix + "cycle-duration",
-			Type: "string",
-		},
-	}
-}
-func CastGetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackagesFromCli(c emigo.CliCastable) GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages {
-	data := GetAllAvailableOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("name") {
-		data.Name = c.String("name")
-	}
-	if c.IsSet("cycle-duration") {
-		data.CycleDuration = c.String("cycle-duration")
-	}
-	return data
 }
 
 // The base class definition for extraPackages
@@ -482,17 +295,6 @@ func GetAllAvailableOfferPromotionPackagesActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return GetAllAvailableOfferPromotionPackagesActionClientExecuteTyped(r)
-}
-func (x GetAllAvailableOfferPromotionPackagesActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // GetAllAvailableOfferPromotionPackagesActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

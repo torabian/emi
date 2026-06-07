@@ -214,13 +214,13 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 
 func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 	queryParams := core.ExtractPlaceholdersInUrl(fetchctx.EndpointUrl)
 	claims := []core.JsFnArgument{}
 
 	claims = append(claims, getCommonFetchArguments(fetchctx)...)
 
-	claimsRendered := core.ClaimRender(claims, ctx)
+	claimsRendered := ClaimRender(claims, ctx)
 
 	const tmpl = `
   

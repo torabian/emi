@@ -79,69 +79,7 @@ func GetJsPublicActions() core.PublicAPIActions {
 	}
 
 	fileActions := []core.ActionFile{
-		{
-			BaseAction: core.BaseAction{
-				Name:             "js",
-				Description:      "Compiles a definition file catalog, and based on emi tag, it would use an appropriate sub compiler.",
-				WasmFunctionName: "jsGen",
-				Flags: []core.FlagDef{
-
-					{
-						Name:  "js-sdk-location",
-						Usage: "Changes the default ./sdk folder, when generating js/ts files referencing to it.",
-					},
-					{
-						Name:  "react-query",
-						Usage: "Assign a custom react query location, and version: --react-query react-query@v3",
-					},
-					{
-						Name:  "discard-type-prefix",
-						Usage: "Removes type keyword before imports in typescript, --discard-type-prefix true",
-					},
-				},
-			},
-			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
-				type_, err := core.DetectEmiStringContentType(ctx.Content)
-				if err != nil {
-					return nil, err
-				}
-
-				if type_ == "module" {
-					emiModule, err := core.StringToEmi(ctx.Content)
-					if err != nil {
-						return nil, err
-					}
-
-					return JsModuleFullVirtualFiles(&emiModule, ctx)
-				}
-
-				if type_ == "dto" {
-
-					emiDto, err := core.StringToEmiDto(ctx.Content)
-					if err != nil {
-						return nil, err
-					}
-
-					result, err := JsCommonObjectGenerator(emiDto.Fields, ctx, JsCommonObjectContext{
-						RootClassName:       emiDto.GetClassName(),
-						RecognizedComplexes: []RecognizedComplex{},
-					})
-
-					if err != nil {
-						return nil, err
-					}
-
-					files, err := detectUsedFilesAndImports(result, &tssdk.Content, ctx)
-					if err != nil {
-						return nil, err
-					}
-
-					return files, nil
-				}
-
-				return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
-			},
-		},
+		JsPrimaryAction,
 		{
 			BaseAction: core.BaseAction{
 				Name:             "js:sdk",
@@ -202,6 +140,70 @@ func GetJsPublicActions() core.PublicAPIActions {
 		TextActions: textActions,
 		FileActions: fileActions,
 	}
+}
+
+var JsPrimaryAction = core.ActionFile{
+	BaseAction: core.BaseAction{
+		Name:             "js",
+		Description:      "Compiles a definition file catalog, and based on emi tag, it would use an appropriate sub compiler.",
+		WasmFunctionName: "jsGen",
+		Flags: []core.FlagDef{
+
+			{
+				Name:  "js-sdk-location",
+				Usage: "Changes the default ./sdk folder, when generating js/ts files referencing to it.",
+			},
+			{
+				Name:  "react-query",
+				Usage: "Assign a custom react query location, and version: --react-query react-query@v3",
+			},
+			{
+				Name:  "discard-type-prefix",
+				Usage: "Removes type keyword before imports in typescript, --discard-type-prefix true",
+			},
+		},
+	},
+	Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+		type_, err := core.DetectEmiStringContentType(ctx.Content)
+		if err != nil {
+			return nil, err
+		}
+
+		if type_ == "module" {
+			emiModule, err := core.StringToEmi(ctx.Content)
+			if err != nil {
+				return nil, err
+			}
+
+			return JsModuleFullVirtualFiles(&emiModule, ctx)
+		}
+
+		if type_ == "dto" {
+
+			emiDto, err := core.StringToEmiDto(ctx.Content)
+			if err != nil {
+				return nil, err
+			}
+
+			result, err := JsCommonObjectGenerator(emiDto.Fields, ctx, JsCommonObjectContext{
+				RootClassName:       emiDto.GetClassName(),
+				RecognizedComplexes: []RecognizedComplex{},
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+			files, err := detectUsedFilesAndImports(result, &tssdk.Content, ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			return files, nil
+		}
+
+		return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
+	},
 }
 
 func detectUsedFilesAndImports(

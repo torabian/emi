@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -43,36 +42,6 @@ func BatchOfferPromotionPackageModificationActionMeta() struct {
 		Description: `Use this resource to modify promotion packages on multiple offers at once. Read more: PL / EN.`,
 	}
 }
-func GetBatchOfferPromotionPackageModificationActionReqCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "offer-criteria",
-			Type: "array",
-		},
-		{
-			Name:     prefix + "modification",
-			Type:     "object",
-			Children: GetBatchOfferPromotionPackageModificationActionReqModificationCliFlags("modification-"),
-		},
-		{
-			Name: prefix + "additional-marketplaces",
-			Type: "array",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReq {
-	data := BatchOfferPromotionPackageModificationActionReq{}
-	if c.IsSet("offer-criteria") {
-		data.OfferCriteria = emigo.CapturePossibleArray(CastBatchOfferPromotionPackageModificationActionReqOfferCriteriaFromCli, "offer-criteria", c)
-	}
-	if c.IsSet("modification") {
-		data.Modification = CastBatchOfferPromotionPackageModificationActionReqModificationFromCli(c)
-	}
-	if c.IsSet("additional-marketplaces") {
-		data.AdditionalMarketplaces = emigo.CapturePossibleArray(CastBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesFromCli, "additional-marketplaces", c)
-	}
-	return data
-}
 
 // The base class definition for batchOfferPromotionPackageModificationActionReq
 type BatchOfferPromotionPackageModificationActionReq struct {
@@ -81,85 +50,15 @@ type BatchOfferPromotionPackageModificationActionReq struct {
 	AdditionalMarketplaces emigo.Array[BatchOfferPromotionPackageModificationActionReqAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
 }
 
-func GetBatchOfferPromotionPackageModificationActionReqOfferCriteriaCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "offers",
-			Type: "array",
-		},
-		{
-			Name: prefix + "type",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqOfferCriteriaFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReqOfferCriteria {
-	data := BatchOfferPromotionPackageModificationActionReqOfferCriteria{}
-	if c.IsSet("offers") {
-		data.Offers = emigo.CapturePossibleArray(CastBatchOfferPromotionPackageModificationActionReqOfferCriteriaOffersFromCli, "offers", c)
-	}
-	if c.IsSet("type") {
-		data.Type = c.String("type")
-	}
-	return data
-}
-
 // The base class definition for offerCriteria
 type BatchOfferPromotionPackageModificationActionReqOfferCriteria struct {
 	Offers emigo.Array[BatchOfferPromotionPackageModificationActionReqOfferCriteriaOffers] `json:"offers" yaml:"offers"`
 	Type   string                                                                          `json:"type" yaml:"type"`
 }
 
-func GetBatchOfferPromotionPackageModificationActionReqOfferCriteriaOffersCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqOfferCriteriaOffersFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReqOfferCriteriaOffers {
-	data := BatchOfferPromotionPackageModificationActionReqOfferCriteriaOffers{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
-}
-
 // The base class definition for offers
 type BatchOfferPromotionPackageModificationActionReqOfferCriteriaOffers struct {
 	Id string `json:"id" yaml:"id"`
-}
-
-func GetBatchOfferPromotionPackageModificationActionReqModificationCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:     prefix + "base-package",
-			Type:     "object",
-			Children: GetBatchOfferPromotionPackageModificationActionReqModificationBasePackageCliFlags("base-package-"),
-		},
-		{
-			Name: prefix + "extra-packages",
-			Type: "array",
-		},
-		{
-			Name: prefix + "modification-time",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqModificationFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReqModification {
-	data := BatchOfferPromotionPackageModificationActionReqModification{}
-	if c.IsSet("base-package") {
-		data.BasePackage = CastBatchOfferPromotionPackageModificationActionReqModificationBasePackageFromCli(c)
-	}
-	if c.IsSet("extra-packages") {
-		data.ExtraPackages = emigo.CapturePossibleArray(CastBatchOfferPromotionPackageModificationActionReqModificationExtraPackagesFromCli, "extra-packages", c)
-	}
-	if c.IsSet("modification-time") {
-		data.ModificationTime = c.String("modification-time")
-	}
-	return data
 }
 
 // The base class definition for modification
@@ -169,41 +68,9 @@ type BatchOfferPromotionPackageModificationActionReqModification struct {
 	ModificationTime string                                                                                `json:"modificationTime" yaml:"modificationTime"`
 }
 
-func GetBatchOfferPromotionPackageModificationActionReqModificationBasePackageCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqModificationBasePackageFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReqModificationBasePackage {
-	data := BatchOfferPromotionPackageModificationActionReqModificationBasePackage{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
-}
-
 // The base class definition for basePackage
 type BatchOfferPromotionPackageModificationActionReqModificationBasePackage struct {
 	Id string `json:"id" yaml:"id"`
-}
-
-func GetBatchOfferPromotionPackageModificationActionReqModificationExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqModificationExtraPackagesFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReqModificationExtraPackages {
-	data := BatchOfferPromotionPackageModificationActionReqModificationExtraPackages{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
 }
 
 // The base class definition for extraPackages
@@ -211,65 +78,10 @@ type BatchOfferPromotionPackageModificationActionReqModificationExtraPackages st
 	Id string `json:"id" yaml:"id"`
 }
 
-func GetBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "marketplace-id",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "modification",
-			Type:     "object",
-			Children: GetBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationCliFlags("modification-"),
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReqAdditionalMarketplaces {
-	data := BatchOfferPromotionPackageModificationActionReqAdditionalMarketplaces{}
-	if c.IsSet("marketplace-id") {
-		data.MarketplaceId = c.String("marketplace-id")
-	}
-	if c.IsSet("modification") {
-		data.Modification = CastBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationFromCli(c)
-	}
-	return data
-}
-
 // The base class definition for additionalMarketplaces
 type BatchOfferPromotionPackageModificationActionReqAdditionalMarketplaces struct {
 	MarketplaceId string                                                                            `json:"marketplaceId" yaml:"marketplaceId"`
 	Modification  BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModification `json:"modification" yaml:"modification"`
-}
-
-func GetBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:     prefix + "base-package",
-			Type:     "object",
-			Children: GetBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackageCliFlags("base-package-"),
-		},
-		{
-			Name: prefix + "extra-packages",
-			Type: "array",
-		},
-		{
-			Name: prefix + "modification-time",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModification {
-	data := BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModification{}
-	if c.IsSet("base-package") {
-		data.BasePackage = CastBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackageFromCli(c)
-	}
-	if c.IsSet("extra-packages") {
-		data.ExtraPackages = emigo.CapturePossibleArray(CastBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationExtraPackagesFromCli, "extra-packages", c)
-	}
-	if c.IsSet("modification-time") {
-		data.ModificationTime = c.String("modification-time")
-	}
-	return data
 }
 
 // The base class definition for modification
@@ -279,41 +91,9 @@ type BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModifi
 	ModificationTime string                                                                                                      `json:"modificationTime" yaml:"modificationTime"`
 }
 
-func GetBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackageCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackageFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackage {
-	data := BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackage{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
-}
-
 // The base class definition for basePackage
 type BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationBasePackage struct {
 	Id string `json:"id" yaml:"id"`
-}
-
-func GetBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationExtraPackagesFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationExtraPackages {
-	data := BatchOfferPromotionPackageModificationActionReqAdditionalMarketplacesModificationExtraPackages{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
 }
 
 // The base class definition for extraPackages
@@ -328,64 +108,11 @@ func (x *BatchOfferPromotionPackageModificationActionReq) Json() string {
 	}
 	return ""
 }
-func GetBatchOfferPromotionPackageModificationActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "task-count",
-			Type:     "object",
-			Children: GetBatchOfferPromotionPackageModificationActionResTaskCountCliFlags("task-count-"),
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionResFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionRes {
-	data := BatchOfferPromotionPackageModificationActionRes{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("task-count") {
-		data.TaskCount = CastBatchOfferPromotionPackageModificationActionResTaskCountFromCli(c)
-	}
-	return data
-}
 
 // The base class definition for batchOfferPromotionPackageModificationActionRes
 type BatchOfferPromotionPackageModificationActionRes struct {
 	Id        string                                                   `json:"id" yaml:"id"`
 	TaskCount BatchOfferPromotionPackageModificationActionResTaskCount `json:"taskCount" yaml:"taskCount"`
-}
-
-func GetBatchOfferPromotionPackageModificationActionResTaskCountCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "failed",
-			Type: "int",
-		},
-		{
-			Name: prefix + "success",
-			Type: "int",
-		},
-		{
-			Name: prefix + "total",
-			Type: "int",
-		},
-	}
-}
-func CastBatchOfferPromotionPackageModificationActionResTaskCountFromCli(c emigo.CliCastable) BatchOfferPromotionPackageModificationActionResTaskCount {
-	data := BatchOfferPromotionPackageModificationActionResTaskCount{}
-	if c.IsSet("failed") {
-		data.Failed = int(c.Int64("failed"))
-	}
-	if c.IsSet("success") {
-		data.Success = int(c.Int64("success"))
-	}
-	if c.IsSet("total") {
-		data.Total = int(c.Int64("total"))
-	}
-	return data
 }
 
 // The base class definition for taskCount
@@ -609,17 +336,6 @@ func BatchOfferPromotionPackageModificationActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return BatchOfferPromotionPackageModificationActionClientExecuteTyped(r)
-}
-func (x BatchOfferPromotionPackageModificationActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // BatchOfferPromotionPackageModificationActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -42,64 +41,11 @@ func ModificationCommandSummaryActionMeta() struct {
 		Description: `Use this resource to find out how many offers were edited within one {commandId}. You will receive a summary with a number of successfully edited offers and errors. Read more: PL / EN.`,
 	}
 }
-func GetModificationCommandSummaryActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "task-count",
-			Type:     "object",
-			Children: GetModificationCommandSummaryActionResTaskCountCliFlags("task-count-"),
-		},
-	}
-}
-func CastModificationCommandSummaryActionResFromCli(c emigo.CliCastable) ModificationCommandSummaryActionRes {
-	data := ModificationCommandSummaryActionRes{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("task-count") {
-		data.TaskCount = CastModificationCommandSummaryActionResTaskCountFromCli(c)
-	}
-	return data
-}
 
 // The base class definition for modificationCommandSummaryActionRes
 type ModificationCommandSummaryActionRes struct {
 	Id        string                                       `json:"id" yaml:"id"`
 	TaskCount ModificationCommandSummaryActionResTaskCount `json:"taskCount" yaml:"taskCount"`
-}
-
-func GetModificationCommandSummaryActionResTaskCountCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "failed",
-			Type: "int",
-		},
-		{
-			Name: prefix + "success",
-			Type: "int",
-		},
-		{
-			Name: prefix + "total",
-			Type: "int",
-		},
-	}
-}
-func CastModificationCommandSummaryActionResTaskCountFromCli(c emigo.CliCastable) ModificationCommandSummaryActionResTaskCount {
-	data := ModificationCommandSummaryActionResTaskCount{}
-	if c.IsSet("failed") {
-		data.Failed = int(c.Int64("failed"))
-	}
-	if c.IsSet("success") {
-		data.Success = int(c.Int64("success"))
-	}
-	if c.IsSet("total") {
-		data.Total = int(c.Int64("total"))
-	}
-	return data
 }
 
 // The base class definition for taskCount
@@ -319,17 +265,6 @@ func ModificationCommandSummaryActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return ModificationCommandSummaryActionClientExecuteTyped(r)
-}
-func (x ModificationCommandSummaryActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // ModificationCommandSummaryActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -42,43 +41,6 @@ func PublishCommandSummaryActionMeta() struct {
 		Description: `Use this resource to retrieve information about the offer listing statuses.  You will receive a summary with a number of correctly listed offers and errors.  Read more: PL / EN. This resource is rate limited to retrieving information about 270 000 offer changes per minute.`,
 	}
 }
-func GetPublishCommandSummaryActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "created-at",
-			Type: "string",
-		},
-		{
-			Name: prefix + "completed-at",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "task-count",
-			Type:     "object",
-			Children: GetPublishCommandSummaryActionResTaskCountCliFlags("task-count-"),
-		},
-	}
-}
-func CastPublishCommandSummaryActionResFromCli(c emigo.CliCastable) PublishCommandSummaryActionRes {
-	data := PublishCommandSummaryActionRes{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("created-at") {
-		data.CreatedAt = c.String("created-at")
-	}
-	if c.IsSet("completed-at") {
-		data.CompletedAt = c.String("completed-at")
-	}
-	if c.IsSet("task-count") {
-		data.TaskCount = CastPublishCommandSummaryActionResTaskCountFromCli(c)
-	}
-	return data
-}
 
 // The base class definition for publishCommandSummaryActionRes
 type PublishCommandSummaryActionRes struct {
@@ -86,36 +48,6 @@ type PublishCommandSummaryActionRes struct {
 	CreatedAt   string                                  `json:"createdAt" yaml:"createdAt"`
 	CompletedAt string                                  `json:"completedAt" yaml:"completedAt"`
 	TaskCount   PublishCommandSummaryActionResTaskCount `json:"taskCount" yaml:"taskCount"`
-}
-
-func GetPublishCommandSummaryActionResTaskCountCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "failed",
-			Type: "int",
-		},
-		{
-			Name: prefix + "success",
-			Type: "int",
-		},
-		{
-			Name: prefix + "total",
-			Type: "int",
-		},
-	}
-}
-func CastPublishCommandSummaryActionResTaskCountFromCli(c emigo.CliCastable) PublishCommandSummaryActionResTaskCount {
-	data := PublishCommandSummaryActionResTaskCount{}
-	if c.IsSet("failed") {
-		data.Failed = int(c.Int64("failed"))
-	}
-	if c.IsSet("success") {
-		data.Success = int(c.Int64("success"))
-	}
-	if c.IsSet("total") {
-		data.Total = int(c.Int64("total"))
-	}
-	return data
 }
 
 // The base class definition for taskCount
@@ -335,17 +267,6 @@ func PublishCommandSummaryActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return PublishCommandSummaryActionClientExecuteTyped(r)
-}
-func (x PublishCommandSummaryActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // PublishCommandSummaryActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

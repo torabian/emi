@@ -38,7 +38,7 @@ func JsActionManifestRealms(
 		ActionName: core.ToUpper(core.NormaliseKey(action.GetName())),
 		HttpMethod: action.MethodUpper(),
 	}
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 
 	if action.HasRequestHeaders() {
 		reqheaderctx := jsHeaderClassContext{

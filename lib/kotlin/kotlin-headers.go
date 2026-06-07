@@ -89,7 +89,6 @@ func renderHeaders(headerColumns []core.EmiHeader) ([]renderedHeader, error) {
 var GEN_NEST_JS_COMPATIBILITY string = "nestjs"
 var GEN_TYPESCRIPT_COMPATIBILITY string = "typescript"
 var GEN_SKIP_ENVELOPES string = "no-envelope"
-var GEN_REACT_COMPATIBILITY string = "react"
 
 func KotlinHeaderStruct(
 	headerctx kotlinHeaderStructContext,

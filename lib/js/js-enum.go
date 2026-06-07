@@ -2,7 +2,6 @@ package js
 
 import (
 	"bytes"
-	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -12,7 +11,7 @@ func JsStandaloneEnum(
 	enum core.EmiEnum,
 	ctx core.MicroGenContext,
 ) (*core.CodeChunkCompiled, error) {
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 
 	res := &core.CodeChunkCompiled{
 		Tokens: []core.GeneratedScriptToken{

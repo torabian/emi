@@ -2,64 +2,33 @@ package golang
 
 import (
 	"bytes"
-	"fmt"
-	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
 )
 
-type GoPathParamer struct {
-	PlaceHolderValue string
-	GolangFieldName  string
-	GolangType       string
-	CliName          string
-}
-
 func GoActionPathParams(action core.EmiRpcAction, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
+	realms, err := GoActionPathParamsRealms(action, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if realms == nil {
+		return nil, nil
+	}
+
 	res := &core.CodeChunkCompiled{
-		CodeChunkDependensies: []core.CodeChunkDependency{
-			{
-				Location: "strings",
-			},
-		},
+		CodeChunkDependensies: realms.Dependencies,
 	}
 
-	placeholders0 := core.ExtractPlaceholdersInUrl(action.GetUrl())
-	if len(placeholders0) == 0 {
-		return nil, nil // nothing to generate
+	if len(realms.Params) > 0 {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, []core.CodeChunkDependency{
+			{Location: "fmt"},
+			{Location: "strings"},
+		}...)
 	}
 
-	placeholders := []GoPathParamer{}
-	for _, item := range placeholders0 {
-
-		golangType := goPrimitiveDetect(item.Type)
-
-		// If the type is not string, str conv is necessary to happen
-		if golangType != "string" {
-			res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
-				Location: "strconv",
-			})
-		}
-
-		placeholders = append(placeholders, GoPathParamer{
-			PlaceHolderValue: item.Original,
-			GolangFieldName:  core.ToUpper(item.Original),
-			GolangType:       golangType,
-			CliName:          FieldToCliName(item.Original),
-		})
-	}
-
-	if len(placeholders) > 0 {
-		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
-			Location: "github.com/urfave/cli/v3",
-		})
-	}
-
-	className := action.GetName()
-	typeName := fmt.Sprintf("%vPathParameter", className)
-
-	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: typeName})
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: realms.TypeName})
 	const tmpl = `/**
  * Path parameters for {{ .ClassName }}
  */
@@ -68,20 +37,6 @@ type {{ .TypeName }} struct {
 	{{ .GolangFieldName }} {{ .GolangType }}
 {{- end }}
 }
-
-func Get{{ .TypeName }}CliFlags(prefix string) []emigo.CliFlag {
-
-	return []emigo.CliFlag{
-		{{ range .Params }}
-		{
-			Name: prefix + "pp-{{ .CliName }}",
-			Type: "{{ .GolangType }}",
-			Required: true,
-		},
-		{{ end }}
-	}
-}
-
 
 // Converts a placeholder url, and applies the parameters to it.
 func {{ .TypeName }}Apply(params {{ .TypeName }}, templateUrl string) string {
@@ -92,26 +47,6 @@ func {{ .TypeName }}Apply(params {{ .TypeName }}, templateUrl string) string {
 	return templateUrl
 }
 
-{{ if .EnabledGin }}
-// Extracts the path parameter from a gin request context
-func {{ .TypeName }}FromGin(g *gin.Context) {{ .TypeName }} {
-	return {{ .TypeName }}FromFn(func (key string) string {
-		return g.Param(key) 
-	})
-}
-{{ end }}
-
-{{ if .EnabledCli }}
-// Extracts the path parameter from a urfave v3 cli.
-func {{ .TypeName }}FromCli(c *cli.Command) {{ .TypeName }} {
-	return {{ .TypeName }}FromFn(func (key string) string {
-
-		// In cli, they are prefixed with pp, to avoid conflict with other params coming from 'in'
-		// section of the definition.
-		return c.String("pp-" + key) 
-	})
-}
-{{ end }}
 
 // General purpose to extract the value and cast based on type.
 func {{ .TypeName }}FromFn(fn func(key string) string) {{ .TypeName }} {
@@ -159,24 +94,16 @@ func {{ .TypeName }}FromFn(fn func(key string) string) {{ .TypeName }} {
 
 `
 
-	// It uses fmt.Sprintf, to handle all type of data.
-	if len(placeholders) > 0 {
-		res.CodeChunkDependensies = append(res.CodeChunkDependensies, []core.CodeChunkDependency{
-			{Location: "fmt"},
-			{Location: "strings"},
-		}...)
-	}
-
 	// By default cli and gin is enabled. But we can disable them
-	EnabledCli := !strings.Contains(ctx.Tags, "skip-cli")
-	EnabledGin := !strings.Contains(ctx.Tags, "skip-gin")
+	EnabledCli := !ctx.HasTag(SkipCli)
+	EnabledGin := !ctx.HasTag(SkipGin)
 
 	t := template.Must(template.New("pathParams").Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, map[string]any{
-		"ClassName":  className,
-		"TypeName":   typeName,
-		"Params":     placeholders,
+		"ClassName":  realms.ClassName,
+		"TypeName":   realms.TypeName,
+		"Params":     realms.Params,
 		"EnabledCli": EnabledCli,
 		"EnabledGin": EnabledGin,
 	}); err != nil {

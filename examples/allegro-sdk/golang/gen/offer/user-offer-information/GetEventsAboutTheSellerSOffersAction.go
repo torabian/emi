@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -43,69 +42,11 @@ func GetEventsAboutTheSellerSOffersActionMeta() struct {
 OFFER_ACTIVATED - offer is visible on site and available for purchase, occurs when offer status changes from ACTIVATING to ACTIVE. OFFER_CHANGED - occurs when offer's fields has been changed e.g. description or photos. OFFER_ENDED - offer is no longer available for purchase, occurs when offer status changes from ACTIVE to ENDED. OFFER_STOCK_CHANGED - stock in an offer was changed either via purchase or by seller. OFFER_PRICE_CHANGED - occurs when price in an offer was changed. OFFER_ARCHIVED - offer is no longer available on listing and has been archived. OFFER_BID_PLACED - bid was placed on the offer. OFFER_BID_CANCELED - bid for offer was canceled. OFFER_TRANSLATION_UPDATED - translation of offer was updated. OFFER_VISIBILITY_CHANGED - visibility of offer was changed on marketplaces. OFFER_DELIVERY_COUNTRIES_BLOCKED - the offer has been blocked in selected countries. Returned events may occur by actions made via browser or API. The resource allows you to get events concerning active offers and offers scheduled for activation (status ACTIVE and ACTIVATING). Returned events do not concern offers in INACTIVE and ENDED status (the exception is OFFER_ARCHIVED event). External id is returned for all event types except OFFER_BID_PLACED and OFFER_BID_CANCELED. Please note that one change may result in more than one event. Read more: PL / EN.`,
 	}
 }
-func GetGetEventsAboutTheSellerSOffersActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:        prefix + "offer-events",
-			Type:        "array",
-			Description: "List of events related to offer state changes",
-		},
-	}
-}
-func CastGetEventsAboutTheSellerSOffersActionResFromCli(c emigo.CliCastable) GetEventsAboutTheSellerSOffersActionRes {
-	data := GetEventsAboutTheSellerSOffersActionRes{}
-	if c.IsSet("offer-events") {
-		data.OfferEvents = emigo.CapturePossibleArray(CastGetEventsAboutTheSellerSOffersActionResOfferEventsFromCli, "offer-events", c)
-	}
-	return data
-}
 
 // The base class definition for getEventsAboutTheSellerSOffersActionRes
 type GetEventsAboutTheSellerSOffersActionRes struct {
 	// List of events related to offer state changes
 	OfferEvents emigo.Array[GetEventsAboutTheSellerSOffersActionResOfferEvents] `json:"offerEvents" yaml:"offerEvents"`
-}
-
-func GetGetEventsAboutTheSellerSOffersActionResOfferEventsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:        prefix + "id",
-			Type:        "string",
-			Description: "Unique event identifier (base64 encoded)",
-		},
-		{
-			Name:        prefix + "occurred-at",
-			Type:        "string",
-			Description: "ISO8601 timestamp when the event occurred",
-		},
-		{
-			Name:        prefix + "type",
-			Type:        "string",
-			Description: "Event type (e.g., OFFER_ACTIVATED, OFFER_ENDED, etc.)",
-		},
-		{
-			Name:        prefix + "offer",
-			Type:        "object",
-			Children:    GetGetEventsAboutTheSellerSOffersActionResOfferEventsOfferCliFlags("offer-"),
-			Description: "Basic offer information for which event occurred",
-		},
-	}
-}
-func CastGetEventsAboutTheSellerSOffersActionResOfferEventsFromCli(c emigo.CliCastable) GetEventsAboutTheSellerSOffersActionResOfferEvents {
-	data := GetEventsAboutTheSellerSOffersActionResOfferEvents{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("occurred-at") {
-		data.OccurredAt = c.String("occurred-at")
-	}
-	if c.IsSet("type") {
-		data.Type = c.String("type")
-	}
-	if c.IsSet("offer") {
-		data.Offer = CastGetEventsAboutTheSellerSOffersActionResOfferEventsOfferFromCli(c)
-	}
-	return data
 }
 
 // The base class definition for offerEvents
@@ -120,50 +61,10 @@ type GetEventsAboutTheSellerSOffersActionResOfferEvents struct {
 	Offer GetEventsAboutTheSellerSOffersActionResOfferEventsOffer `json:"offer" yaml:"offer"`
 }
 
-func GetGetEventsAboutTheSellerSOffersActionResOfferEventsOfferCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "external",
-			Type:     "object",
-			Children: GetGetEventsAboutTheSellerSOffersActionResOfferEventsOfferExternalCliFlags("external-"),
-		},
-	}
-}
-func CastGetEventsAboutTheSellerSOffersActionResOfferEventsOfferFromCli(c emigo.CliCastable) GetEventsAboutTheSellerSOffersActionResOfferEventsOffer {
-	data := GetEventsAboutTheSellerSOffersActionResOfferEventsOffer{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("external") {
-		data.External = CastGetEventsAboutTheSellerSOffersActionResOfferEventsOfferExternalFromCli(c)
-	}
-	return data
-}
-
 // The base class definition for offer
 type GetEventsAboutTheSellerSOffersActionResOfferEventsOffer struct {
 	Id       string                                                          `json:"id" yaml:"id"`
 	External GetEventsAboutTheSellerSOffersActionResOfferEventsOfferExternal `json:"external" yaml:"external"`
-}
-
-func GetGetEventsAboutTheSellerSOffersActionResOfferEventsOfferExternalCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastGetEventsAboutTheSellerSOffersActionResOfferEventsOfferExternalFromCli(c emigo.CliCastable) GetEventsAboutTheSellerSOffersActionResOfferEventsOfferExternal {
-	data := GetEventsAboutTheSellerSOffersActionResOfferEventsOfferExternal{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
 }
 
 // The base class definition for external
@@ -381,17 +282,6 @@ func GetEventsAboutTheSellerSOffersActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return GetEventsAboutTheSellerSOffersActionClientExecuteTyped(r)
-}
-func (x GetEventsAboutTheSellerSOffersActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // GetEventsAboutTheSellerSOffersActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

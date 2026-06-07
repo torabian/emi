@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -43,38 +42,6 @@ func UpdateOfferTranslationActionMeta() struct {
 		Description: `Update manual translation for offer. Read more: PL / EN.`,
 	}
 }
-func GetUpdateOfferTranslationActionReqCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:     prefix + "description",
-			Type:     "object",
-			Children: GetUpdateOfferTranslationActionReqDescriptionCliFlags("description-"),
-		},
-		{
-			Name:     prefix + "title",
-			Type:     "object",
-			Children: GetUpdateOfferTranslationActionReqTitleCliFlags("title-"),
-		},
-		{
-			Name:     prefix + "safety-information",
-			Type:     "object",
-			Children: GetUpdateOfferTranslationActionReqSafetyInformationCliFlags("safety-information-"),
-		},
-	}
-}
-func CastUpdateOfferTranslationActionReqFromCli(c emigo.CliCastable) UpdateOfferTranslationActionReq {
-	data := UpdateOfferTranslationActionReq{}
-	if c.IsSet("description") {
-		data.Description = CastUpdateOfferTranslationActionReqDescriptionFromCli(c)
-	}
-	if c.IsSet("title") {
-		data.Title = CastUpdateOfferTranslationActionReqTitleFromCli(c)
-	}
-	if c.IsSet("safety-information") {
-		data.SafetyInformation = CastUpdateOfferTranslationActionReqSafetyInformationFromCli(c)
-	}
-	return data
-}
 
 // The base class definition for updateOfferTranslationActionReq
 type UpdateOfferTranslationActionReq struct {
@@ -83,42 +50,9 @@ type UpdateOfferTranslationActionReq struct {
 	SafetyInformation UpdateOfferTranslationActionReqSafetyInformation `json:"safetyInformation" yaml:"safetyInformation"`
 }
 
-func GetUpdateOfferTranslationActionReqDescriptionCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:     prefix + "translation",
-			Type:     "object",
-			Children: GetUpdateOfferTranslationActionReqDescriptionTranslationCliFlags("translation-"),
-		},
-	}
-}
-func CastUpdateOfferTranslationActionReqDescriptionFromCli(c emigo.CliCastable) UpdateOfferTranslationActionReqDescription {
-	data := UpdateOfferTranslationActionReqDescription{}
-	if c.IsSet("translation") {
-		data.Translation = CastUpdateOfferTranslationActionReqDescriptionTranslationFromCli(c)
-	}
-	return data
-}
-
 // The base class definition for description
 type UpdateOfferTranslationActionReqDescription struct {
 	Translation UpdateOfferTranslationActionReqDescriptionTranslation `json:"translation" yaml:"translation"`
-}
-
-func GetUpdateOfferTranslationActionReqDescriptionTranslationCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "sections",
-			Type: "array",
-		},
-	}
-}
-func CastUpdateOfferTranslationActionReqDescriptionTranslationFromCli(c emigo.CliCastable) UpdateOfferTranslationActionReqDescriptionTranslation {
-	data := UpdateOfferTranslationActionReqDescriptionTranslation{}
-	if c.IsSet("sections") {
-		data.Sections = emigo.CapturePossibleArray(CastUpdateOfferTranslationActionReqDescriptionTranslationSectionsFromCli, "sections", c)
-	}
-	return data
 }
 
 // The base class definition for translation
@@ -126,41 +60,9 @@ type UpdateOfferTranslationActionReqDescriptionTranslation struct {
 	Sections emigo.Array[UpdateOfferTranslationActionReqDescriptionTranslationSections] `json:"sections" yaml:"sections"`
 }
 
-func GetUpdateOfferTranslationActionReqDescriptionTranslationSectionsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "items",
-			Type: "array",
-		},
-	}
-}
-func CastUpdateOfferTranslationActionReqDescriptionTranslationSectionsFromCli(c emigo.CliCastable) UpdateOfferTranslationActionReqDescriptionTranslationSections {
-	data := UpdateOfferTranslationActionReqDescriptionTranslationSections{}
-	if c.IsSet("items") {
-		data.Items = emigo.CapturePossibleArray(CastUpdateOfferTranslationActionReqDescriptionTranslationSectionsItemsFromCli, "items", c)
-	}
-	return data
-}
-
 // The base class definition for sections
 type UpdateOfferTranslationActionReqDescriptionTranslationSections struct {
 	Items emigo.Array[UpdateOfferTranslationActionReqDescriptionTranslationSectionsItems] `json:"items" yaml:"items"`
-}
-
-func GetUpdateOfferTranslationActionReqDescriptionTranslationSectionsItemsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "type",
-			Type: "string",
-		},
-	}
-}
-func CastUpdateOfferTranslationActionReqDescriptionTranslationSectionsItemsFromCli(c emigo.CliCastable) UpdateOfferTranslationActionReqDescriptionTranslationSectionsItems {
-	data := UpdateOfferTranslationActionReqDescriptionTranslationSectionsItems{}
-	if c.IsSet("type") {
-		data.Type = c.String("type")
-	}
-	return data
 }
 
 // The base class definition for items
@@ -168,69 +70,14 @@ type UpdateOfferTranslationActionReqDescriptionTranslationSectionsItems struct {
 	Type string `json:"type" yaml:"type"`
 }
 
-func GetUpdateOfferTranslationActionReqTitleCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "translation",
-			Type: "string",
-		},
-	}
-}
-func CastUpdateOfferTranslationActionReqTitleFromCli(c emigo.CliCastable) UpdateOfferTranslationActionReqTitle {
-	data := UpdateOfferTranslationActionReqTitle{}
-	if c.IsSet("translation") {
-		data.Translation = c.String("translation")
-	}
-	return data
-}
-
 // The base class definition for title
 type UpdateOfferTranslationActionReqTitle struct {
 	Translation string `json:"translation" yaml:"translation"`
 }
 
-func GetUpdateOfferTranslationActionReqSafetyInformationCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "products",
-			Type: "array",
-		},
-	}
-}
-func CastUpdateOfferTranslationActionReqSafetyInformationFromCli(c emigo.CliCastable) UpdateOfferTranslationActionReqSafetyInformation {
-	data := UpdateOfferTranslationActionReqSafetyInformation{}
-	if c.IsSet("products") {
-		data.Products = emigo.CapturePossibleArray(CastUpdateOfferTranslationActionReqSafetyInformationProductsFromCli, "products", c)
-	}
-	return data
-}
-
 // The base class definition for safetyInformation
 type UpdateOfferTranslationActionReqSafetyInformation struct {
 	Products emigo.Array[UpdateOfferTranslationActionReqSafetyInformationProducts] `json:"products" yaml:"products"`
-}
-
-func GetUpdateOfferTranslationActionReqSafetyInformationProductsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "translation",
-			Type: "string",
-		},
-	}
-}
-func CastUpdateOfferTranslationActionReqSafetyInformationProductsFromCli(c emigo.CliCastable) UpdateOfferTranslationActionReqSafetyInformationProducts {
-	data := UpdateOfferTranslationActionReqSafetyInformationProducts{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("translation") {
-		data.Translation = c.String("translation")
-	}
-	return data
 }
 
 // The base class definition for products
@@ -446,17 +293,6 @@ func UpdateOfferTranslationActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return UpdateOfferTranslationActionClientExecuteTyped(r)
-}
-func (x UpdateOfferTranslationActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // UpdateOfferTranslationActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

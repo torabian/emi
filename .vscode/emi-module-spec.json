@@ -9,6 +9,13 @@
           "type": "string",
           "description": "Represents where is the location of the module in app tree. Similar to PHP namespacing sytem it be used to explicitly as export path of the actions for client frameworks"
         },
+        "targets": {
+          "items": {
+            "$ref": "#/definitions/EmiCompile"
+          },
+          "type": "array",
+          "description": "Compiler self containment"
+        },
         "description": {
           "type": "string",
           "description": "Description of module and it's purpose. Used in code gen and creating documents."
@@ -218,6 +225,38 @@
           },
           "type": "array",
           "description": "Field names to drop from the captured set (applied after Include)."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiCompile": {
+      "properties": {
+        "compiler": {
+          "type": "string",
+          "enum": [
+            "go",
+            "js"
+          ],
+          "description": "The compiler which will be picked."
+        },
+        "flags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "The flags to be passed to the compiler"
+        },
+        "output": {
+          "type": "string",
+          "description": "Output directory of the generated content"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Compiler tags"
         }
       },
       "additionalProperties": false,

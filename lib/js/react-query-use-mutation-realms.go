@@ -19,7 +19,7 @@ func ReactQueryUseMutationRealms(
 
 	realms := reactQueryUseMutationHookRealms{}
 	deps := []core.CodeChunkDependency{}
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 	creatorFn := findTokenByName(actionRealms.FetchMetaClass.Tokens, TOKEN_CREATOR_FN)
 
 	if isTypeScript {

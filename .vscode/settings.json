@@ -1,12 +1,14 @@
 {
-    "yaml.schemas": {
-        "./.vscode/emi-module-spec.json": [
-            "*.emi.yml",
-            "*.emi.yaml",
-        ],
-        "./.vscode/emi-dto-spec.json": [
-            "*.dto.yml",
-            "*.dto.yaml",
-        ]
-    },
+  "yaml.schemas": {
+    "./.vscode/emi-module-spec.json": ["*.emi.yml", "*.emi.yaml"],
+    "./.vscode/emi-dto-spec.json": ["*.dto.yml", "*.dto.yaml"]
+  },
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "cmd": "emi go --path ${relativeFile}",
+        "match": "\\.emi.yml$"
+      }
+    ]
+  }
 }

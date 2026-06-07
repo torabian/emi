@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -43,29 +42,6 @@ func ModifyTheBuyNowPriceInAnOfferActionMeta() struct {
 		Description: `Use this resource to change the Buy Now price in a single offer. Read more: PL / EN.`,
 	}
 }
-func GetModifyTheBuyNowPriceInAnOfferActionReqCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "input",
-			Type:     "object",
-			Children: GetModifyTheBuyNowPriceInAnOfferActionReqInputCliFlags("input-"),
-		},
-	}
-}
-func CastModifyTheBuyNowPriceInAnOfferActionReqFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionReq {
-	data := ModifyTheBuyNowPriceInAnOfferActionReq{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("input") {
-		data.Input = CastModifyTheBuyNowPriceInAnOfferActionReqInputFromCli(c)
-	}
-	return data
-}
 
 // The base class definition for modifyTheBuyNowPriceInAnOfferActionReq
 type ModifyTheBuyNowPriceInAnOfferActionReq struct {
@@ -73,49 +49,9 @@ type ModifyTheBuyNowPriceInAnOfferActionReq struct {
 	Input ModifyTheBuyNowPriceInAnOfferActionReqInput `json:"input" yaml:"input"`
 }
 
-func GetModifyTheBuyNowPriceInAnOfferActionReqInputCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:     prefix + "buy-now-price",
-			Type:     "object",
-			Children: GetModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPriceCliFlags("buy-now-price-"),
-		},
-	}
-}
-func CastModifyTheBuyNowPriceInAnOfferActionReqInputFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionReqInput {
-	data := ModifyTheBuyNowPriceInAnOfferActionReqInput{}
-	if c.IsSet("buy-now-price") {
-		data.BuyNowPrice = CastModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPriceFromCli(c)
-	}
-	return data
-}
-
 // The base class definition for input
 type ModifyTheBuyNowPriceInAnOfferActionReqInput struct {
 	BuyNowPrice ModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPrice `json:"buyNowPrice" yaml:"buyNowPrice"`
-}
-
-func GetModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPriceCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "amount",
-			Type: "string",
-		},
-		{
-			Name: prefix + "currency",
-			Type: "string",
-		},
-	}
-}
-func CastModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPriceFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPrice {
-	data := ModifyTheBuyNowPriceInAnOfferActionReqInputBuyNowPrice{}
-	if c.IsSet("amount") {
-		data.Amount = c.String("amount")
-	}
-	if c.IsSet("currency") {
-		data.Currency = c.String("currency")
-	}
-	return data
 }
 
 // The base class definition for buyNowPrice
@@ -131,37 +67,6 @@ func (x *ModifyTheBuyNowPriceInAnOfferActionReq) Json() string {
 	}
 	return ""
 }
-func GetModifyTheBuyNowPriceInAnOfferActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "input",
-			Type:     "object",
-			Children: GetModifyTheBuyNowPriceInAnOfferActionResInputCliFlags("input-"),
-		},
-		{
-			Name:     prefix + "output",
-			Type:     "object",
-			Children: GetModifyTheBuyNowPriceInAnOfferActionResOutputCliFlags("output-"),
-		},
-	}
-}
-func CastModifyTheBuyNowPriceInAnOfferActionResFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionRes {
-	data := ModifyTheBuyNowPriceInAnOfferActionRes{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("input") {
-		data.Input = CastModifyTheBuyNowPriceInAnOfferActionResInputFromCli(c)
-	}
-	if c.IsSet("output") {
-		data.Output = CastModifyTheBuyNowPriceInAnOfferActionResOutputFromCli(c)
-	}
-	return data
-}
 
 // The base class definition for modifyTheBuyNowPriceInAnOfferActionRes
 type ModifyTheBuyNowPriceInAnOfferActionRes struct {
@@ -170,49 +75,9 @@ type ModifyTheBuyNowPriceInAnOfferActionRes struct {
 	Output ModifyTheBuyNowPriceInAnOfferActionResOutput `json:"output" yaml:"output"`
 }
 
-func GetModifyTheBuyNowPriceInAnOfferActionResInputCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:     prefix + "buy-now-price",
-			Type:     "object",
-			Children: GetModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPriceCliFlags("buy-now-price-"),
-		},
-	}
-}
-func CastModifyTheBuyNowPriceInAnOfferActionResInputFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResInput {
-	data := ModifyTheBuyNowPriceInAnOfferActionResInput{}
-	if c.IsSet("buy-now-price") {
-		data.BuyNowPrice = CastModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPriceFromCli(c)
-	}
-	return data
-}
-
 // The base class definition for input
 type ModifyTheBuyNowPriceInAnOfferActionResInput struct {
 	BuyNowPrice ModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPrice `json:"buyNowPrice" yaml:"buyNowPrice"`
-}
-
-func GetModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPriceCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "amount",
-			Type: "string",
-		},
-		{
-			Name: prefix + "currency",
-			Type: "string",
-		},
-	}
-}
-func CastModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPriceFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPrice {
-	data := ModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPrice{}
-	if c.IsSet("amount") {
-		data.Amount = c.String("amount")
-	}
-	if c.IsSet("currency") {
-		data.Currency = c.String("currency")
-	}
-	return data
 }
 
 // The base class definition for buyNowPrice
@@ -221,85 +86,10 @@ type ModifyTheBuyNowPriceInAnOfferActionResInputBuyNowPrice struct {
 	Currency string `json:"currency" yaml:"currency"`
 }
 
-func GetModifyTheBuyNowPriceInAnOfferActionResOutputCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "status",
-			Type: "string",
-		},
-		{
-			Name: prefix + "errors",
-			Type: "array",
-		},
-	}
-}
-func CastModifyTheBuyNowPriceInAnOfferActionResOutputFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResOutput {
-	data := ModifyTheBuyNowPriceInAnOfferActionResOutput{}
-	if c.IsSet("status") {
-		data.Status = c.String("status")
-	}
-	if c.IsSet("errors") {
-		data.Errors = emigo.CapturePossibleArray(CastModifyTheBuyNowPriceInAnOfferActionResOutputErrorsFromCli, "errors", c)
-	}
-	return data
-}
-
 // The base class definition for output
 type ModifyTheBuyNowPriceInAnOfferActionResOutput struct {
 	Status string                                                          `json:"status" yaml:"status"`
 	Errors emigo.Array[ModifyTheBuyNowPriceInAnOfferActionResOutputErrors] `json:"errors" yaml:"errors"`
-}
-
-func GetModifyTheBuyNowPriceInAnOfferActionResOutputErrorsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "code",
-			Type: "string",
-		},
-		{
-			Name: prefix + "details",
-			Type: "string",
-		},
-		{
-			Name: prefix + "message",
-			Type: "string",
-		},
-		{
-			Name: prefix + "path",
-			Type: "string",
-		},
-		{
-			Name: prefix + "user-message",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "metadata",
-			Type:     "object",
-			Children: GetModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadataCliFlags("metadata-"),
-		},
-	}
-}
-func CastModifyTheBuyNowPriceInAnOfferActionResOutputErrorsFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResOutputErrors {
-	data := ModifyTheBuyNowPriceInAnOfferActionResOutputErrors{}
-	if c.IsSet("code") {
-		data.Code = c.String("code")
-	}
-	if c.IsSet("details") {
-		data.Details = c.String("details")
-	}
-	if c.IsSet("message") {
-		data.Message = c.String("message")
-	}
-	if c.IsSet("path") {
-		data.Path = c.String("path")
-	}
-	if c.IsSet("user-message") {
-		data.UserMessage = c.String("user-message")
-	}
-	if c.IsSet("metadata") {
-		data.Metadata = CastModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadataFromCli(c)
-	}
-	return data
 }
 
 // The base class definition for errors
@@ -310,22 +100,6 @@ type ModifyTheBuyNowPriceInAnOfferActionResOutputErrors struct {
 	Path        string                                                     `json:"path" yaml:"path"`
 	UserMessage string                                                     `json:"userMessage" yaml:"userMessage"`
 	Metadata    ModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadata `json:"metadata" yaml:"metadata"`
-}
-
-func GetModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadataCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "product-id",
-			Type: "string",
-		},
-	}
-}
-func CastModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadataFromCli(c emigo.CliCastable) ModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadata {
-	data := ModifyTheBuyNowPriceInAnOfferActionResOutputErrorsMetadata{}
-	if c.IsSet("product-id") {
-		data.ProductId = c.String("product-id")
-	}
-	return data
 }
 
 // The base class definition for metadata
@@ -547,17 +321,6 @@ func ModifyTheBuyNowPriceInAnOfferActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return ModifyTheBuyNowPriceInAnOfferActionClientExecuteTyped(r)
-}
-func (x ModifyTheBuyNowPriceInAnOfferActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // ModifyTheBuyNowPriceInAnOfferActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

@@ -46,39 +46,40 @@ var hub = Hub{subscribers: make(map[*websocket.Conn]bool)}
 func main() {
 	r := gin.Default()
 
-	// --- Stream source: sends data to all subscribers ---
-	unknownpackage.StreamYokeAction(r, func(req unknownpackage.StreamYokeActionRequest) {
-		ws := req.WS
-		defer ws.Close()
+	fmt.Println(2, unknownpackage.StreamYokeActionGin)
+	// // --- Stream source: sends data to all subscribers ---
+	// unknownpackage.StreamYokeAction(r, func(req unknownpackage.StreamYokeActionRequest) {
+	// 	ws := req.WS
+	// 	defer ws.Close()
 
-		for {
-			_, msg, err := ws.ReadMessage()
-			if err != nil {
-				fmt.Println("Streamer disconnected:", err)
-				break
-			}
-			fmt.Println("Received from stream:", string(msg))
-			hub.Broadcast(msg)
-		}
-	})
+	// 	for {
+	// 		_, msg, err := ws.ReadMessage()
+	// 		if err != nil {
+	// 			fmt.Println("Streamer disconnected:", err)
+	// 			break
+	// 		}
+	// 		fmt.Println("Received from stream:", string(msg))
+	// 		hub.Broadcast(msg)
+	// 	}
+	// })
 
-	// --- Subscribers: receive whatever stream sends ---
-	unknownpackage.SubscribeYokeAction(r, func(req unknownpackage.SubscribeYokeActionRequest) {
-		ws := req.WS
-		hub.Add(ws)
-		defer func() {
-			hub.Remove(ws)
-			ws.Close()
-		}()
+	// // --- Subscribers: receive whatever stream sends ---
+	// unknownpackage.SubscribeYokeAction(r, func(req unknownpackage.SubscribeYokeActionRequest) {
+	// 	ws := req.WS
+	// 	hub.Add(ws)
+	// 	defer func() {
+	// 		hub.Remove(ws)
+	// 		ws.Close()
+	// 	}()
 
-		// keep alive; no read necessary
-		for {
-			if _, _, err := ws.ReadMessage(); err != nil {
-				fmt.Println("Subscriber disconnected:", err)
-				break
-			}
-		}
-	})
+	// 	// keep alive; no read necessary
+	// 	for {
+	// 		if _, _, err := ws.ReadMessage(); err != nil {
+	// 			fmt.Println("Subscriber disconnected:", err)
+	// 			break
+	// 		}
+	// 	}
+	// })
 
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "WebSocket server running")

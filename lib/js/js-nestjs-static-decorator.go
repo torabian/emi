@@ -6,7 +6,6 @@ package js
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -40,7 +39,7 @@ type NestJsStaticDecoratorContext struct {
 // decorators, and req, res, headers, query strings will become typesafe automatically
 func JsNestJsStaticDecorator(ctxstatic NestJsStaticDecoratorContext, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 
 	// How to do it iterte and call Compile?
 

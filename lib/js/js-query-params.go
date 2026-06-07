@@ -9,7 +9,6 @@ package js
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -48,7 +47,7 @@ func renderTsJsQsClass(ctx core.MicroGenContext, action core.EmiRpcAction, field
 	res := &core.CodeChunkCompiled{}
 
 	t := template.Must(template.New("qsclass").Funcs(core.CommonMap).Parse(tmpl))
-	nestJsDecorator := strings.Contains(ctx.Tags, GEN_NEST_JS_COMPATIBILITY)
+	nestJsDecorator := ctx.HasTag(Nestjs)
 	className := fmt.Sprintf("%vQueryParams", core.ToUpper(action.GetName()))
 
 	var nestJsDecoratorRendered = ""

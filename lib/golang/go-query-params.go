@@ -3,7 +3,6 @@ package golang
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -130,8 +129,8 @@ func (q *{{ .goqctx.ActionName }}Query) SetMapped(m map[string]interface{}) {
 `
 
 	// By default cli and gin is enabled. But we can disable them
-	EnabledCli := !strings.Contains(ctx.Tags, "skip-cli")
-	EnabledGin := !strings.Contains(ctx.Tags, "skip-gin")
+	EnabledCli := !ctx.HasTag(SkipCli)
+	EnabledGin := !ctx.HasTag(SkipGin)
 
 	t := template.Must(template.New("queryParams").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer

@@ -232,9 +232,9 @@ func getSdkAwareLocation(ctx core.MicroGenContext, locationDir string, fileName 
 		full += "/" + fileName
 
 		// When importing a file in js, then, it would include the .ts or .js extension
-		if strings.Contains(ctx.Tags, "include-ext") {
+		if ctx.HasTag(IncludeExt) {
 			ext := ".js"
-			if strings.Contains(ctx.Tags, "typescript") {
+			if ctx.HasTag(Typescript) {
 				ext = ".ts"
 			}
 			full += ext

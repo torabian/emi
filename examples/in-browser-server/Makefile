@@ -1,5 +1,5 @@
 def:
-	../../emi go --path ./in-browser-server.emi.yml --output ./internal/defs --pkg defs --tags skip-cli,split-gin,no-client,skip-wasm-gin && \
+	../../emi go --path ./in-browser-server.emi.yml --output ./internal/defs --pkg defs --tags split-cli,split-gin,no-client,skip-wasm-gin && \
 	../../emi js --path ./in-browser-server.emi.yml --output ./browser/gen --tags include-ext
 
 wasm:

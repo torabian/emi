@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -43,57 +42,11 @@ func BatchOfferPublishUnpublishActionMeta() struct {
 		Description: `Use this resource to modify multiple offers publication at once. Read more: PL / EN. This resource is rate limited to 250 000 offer changes per hour or 9000 offer changes per minute.`,
 	}
 }
-func GetBatchOfferPublishUnpublishActionReqCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "offer-criteria",
-			Type: "array",
-		},
-		{
-			Name:     prefix + "publication",
-			Type:     "object",
-			Children: GetBatchOfferPublishUnpublishActionReqPublicationCliFlags("publication-"),
-		},
-	}
-}
-func CastBatchOfferPublishUnpublishActionReqFromCli(c emigo.CliCastable) BatchOfferPublishUnpublishActionReq {
-	data := BatchOfferPublishUnpublishActionReq{}
-	if c.IsSet("offer-criteria") {
-		data.OfferCriteria = emigo.CapturePossibleArray(CastBatchOfferPublishUnpublishActionReqOfferCriteriaFromCli, "offer-criteria", c)
-	}
-	if c.IsSet("publication") {
-		data.Publication = CastBatchOfferPublishUnpublishActionReqPublicationFromCli(c)
-	}
-	return data
-}
 
 // The base class definition for batchOfferPublishUnpublishActionReq
 type BatchOfferPublishUnpublishActionReq struct {
 	OfferCriteria emigo.Array[BatchOfferPublishUnpublishActionReqOfferCriteria] `json:"offerCriteria" yaml:"offerCriteria"`
 	Publication   BatchOfferPublishUnpublishActionReqPublication                `json:"publication" yaml:"publication"`
-}
-
-func GetBatchOfferPublishUnpublishActionReqOfferCriteriaCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "offers",
-			Type: "array",
-		},
-		{
-			Name: prefix + "type",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPublishUnpublishActionReqOfferCriteriaFromCli(c emigo.CliCastable) BatchOfferPublishUnpublishActionReqOfferCriteria {
-	data := BatchOfferPublishUnpublishActionReqOfferCriteria{}
-	if c.IsSet("offers") {
-		data.Offers = emigo.CapturePossibleArray(CastBatchOfferPublishUnpublishActionReqOfferCriteriaOffersFromCli, "offers", c)
-	}
-	if c.IsSet("type") {
-		data.Type = c.String("type")
-	}
-	return data
 }
 
 // The base class definition for offerCriteria
@@ -102,48 +55,9 @@ type BatchOfferPublishUnpublishActionReqOfferCriteria struct {
 	Type   string                                                              `json:"type" yaml:"type"`
 }
 
-func GetBatchOfferPublishUnpublishActionReqOfferCriteriaOffersCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPublishUnpublishActionReqOfferCriteriaOffersFromCli(c emigo.CliCastable) BatchOfferPublishUnpublishActionReqOfferCriteriaOffers {
-	data := BatchOfferPublishUnpublishActionReqOfferCriteriaOffers{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
-}
-
 // The base class definition for offers
 type BatchOfferPublishUnpublishActionReqOfferCriteriaOffers struct {
 	Id string `json:"id" yaml:"id"`
-}
-
-func GetBatchOfferPublishUnpublishActionReqPublicationCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "action",
-			Type: "string",
-		},
-		{
-			Name: prefix + "scheduled-for",
-			Type: "string",
-		},
-	}
-}
-func CastBatchOfferPublishUnpublishActionReqPublicationFromCli(c emigo.CliCastable) BatchOfferPublishUnpublishActionReqPublication {
-	data := BatchOfferPublishUnpublishActionReqPublication{}
-	if c.IsSet("action") {
-		data.Action = c.String("action")
-	}
-	if c.IsSet("scheduled-for") {
-		data.ScheduledFor = c.String("scheduled-for")
-	}
-	return data
 }
 
 // The base class definition for publication
@@ -159,43 +73,6 @@ func (x *BatchOfferPublishUnpublishActionReq) Json() string {
 	}
 	return ""
 }
-func GetBatchOfferPublishUnpublishActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "created-at",
-			Type: "string",
-		},
-		{
-			Name: prefix + "completed-at",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "task-count",
-			Type:     "object",
-			Children: GetBatchOfferPublishUnpublishActionResTaskCountCliFlags("task-count-"),
-		},
-	}
-}
-func CastBatchOfferPublishUnpublishActionResFromCli(c emigo.CliCastable) BatchOfferPublishUnpublishActionRes {
-	data := BatchOfferPublishUnpublishActionRes{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("created-at") {
-		data.CreatedAt = c.String("created-at")
-	}
-	if c.IsSet("completed-at") {
-		data.CompletedAt = c.String("completed-at")
-	}
-	if c.IsSet("task-count") {
-		data.TaskCount = CastBatchOfferPublishUnpublishActionResTaskCountFromCli(c)
-	}
-	return data
-}
 
 // The base class definition for batchOfferPublishUnpublishActionRes
 type BatchOfferPublishUnpublishActionRes struct {
@@ -203,36 +80,6 @@ type BatchOfferPublishUnpublishActionRes struct {
 	CreatedAt   string                                       `json:"createdAt" yaml:"createdAt"`
 	CompletedAt string                                       `json:"completedAt" yaml:"completedAt"`
 	TaskCount   BatchOfferPublishUnpublishActionResTaskCount `json:"taskCount" yaml:"taskCount"`
-}
-
-func GetBatchOfferPublishUnpublishActionResTaskCountCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "failed",
-			Type: "int",
-		},
-		{
-			Name: prefix + "success",
-			Type: "int",
-		},
-		{
-			Name: prefix + "total",
-			Type: "int",
-		},
-	}
-}
-func CastBatchOfferPublishUnpublishActionResTaskCountFromCli(c emigo.CliCastable) BatchOfferPublishUnpublishActionResTaskCount {
-	data := BatchOfferPublishUnpublishActionResTaskCount{}
-	if c.IsSet("failed") {
-		data.Failed = int(c.Int64("failed"))
-	}
-	if c.IsSet("success") {
-		data.Success = int(c.Int64("success"))
-	}
-	if c.IsSet("total") {
-		data.Total = int(c.Int64("total"))
-	}
-	return data
 }
 
 // The base class definition for taskCount
@@ -456,17 +303,6 @@ func BatchOfferPublishUnpublishActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return BatchOfferPublishUnpublishActionClientExecuteTyped(r)
-}
-func (x BatchOfferPublishUnpublishActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // BatchOfferPublishUnpublishActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

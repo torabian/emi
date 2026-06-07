@@ -49,58 +49,63 @@ func GetGolangPublicActions() core.PublicAPIActions {
 					return "", err
 				}
 
-				return AsFullDocument(res, ctx.Flags["pkg"]), nil
+				return AsFullDocument(res.MainClass, ctx.Flags["pkg"]), nil
 			},
 		},
 	}
 
 	fileActions := []core.ActionFile{
-		{
-			BaseAction: core.BaseAction{
-				Name:             "go",
-				Description:      "Compiles golang from .emi catalog spec file",
-				WasmFunctionName: "goGen",
-				Flags: []core.FlagDef{
-					{
-						Name:     "emigo",
-						Usage:    "Add location to emigo path folder, can be also github.com/torabian/emi/emigo if you wanted to",
-						Required: false,
-						Type:     core.FlagString,
-						Default:  "github.com/torabian/emi/emigo",
-					},
-					{
-						Name:  "pkg",
-						Type:  core.FlagString,
-						Usage: "Package name of the golang",
-					},
-				},
-			},
-			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
-				type_, err := core.DetectEmiStringContentType(ctx.Content)
-				if err != nil {
-					return nil, err
-				}
-
-				if type_ == "module" {
-					emiModule, err := core.StringToEmi(ctx.Content)
-					if err != nil {
-						return nil, err
-					}
-
-					files, err := GoModuleFull(&emiModule, ctx)
-
-					return files, err
-				}
-
-				return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
-			},
-		},
+		GoPrimaryAction,
 	}
 
 	return core.PublicAPIActions{
 		TextActions: textActions,
 		FileActions: fileActions,
 	}
+}
+
+var GoPrimaryAction = core.ActionFile{
+	BaseAction: core.BaseAction{
+		Name:             "go",
+		Description:      "Compiles golang from .emi catalog spec file",
+		WasmFunctionName: "goGen",
+		Flags: []core.FlagDef{
+			{
+				Name:     "emigo",
+				Usage:    "Add location to emigo path folder, can be also github.com/torabian/emi/emigo if you wanted to",
+				Required: false,
+				Type:     core.FlagString,
+				Default:  "github.com/torabian/emi/emigo",
+			},
+			{
+				Name:  "pkg",
+				Type:  core.FlagString,
+				Usage: "Package name of the golang",
+			},
+		},
+	},
+	Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+		type_, err := core.DetectEmiStringContentType(ctx.Content)
+		if err != nil {
+			return nil, err
+		}
+
+		if type_ == "module" {
+			emiModule, err := core.StringToEmi(ctx.Content)
+			if err != nil {
+				return nil, err
+			}
+
+			files, err := GoModuleFull(&emiModule, ctx)
+			if err != nil {
+				return nil, err
+			}
+
+			return files, err
+		}
+
+		return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
+	},
 }
 
 // Finds the ts/js compatible types.
@@ -133,7 +138,6 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 // Combines entire features for a module, and creates a virtual map of the files
 // which is necessary to run entire modules
 func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
-	globalPacakges := []string{"qs", "@types/qs"}
 
 	f := GetCommonFlags(ctx)
 
@@ -145,8 +149,6 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		str := ctx.Flags["dtos"]
 		config.Dtos = &str
 	}
-
-	var entitiesAndDtos []*core.CodeChunkCompiled
 
 	for _, dto := range module.Dto {
 		if dto.Name == "" {
@@ -162,27 +164,26 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 			RecognizedComplexes: complexes,
 			EmiLocation:         f.Emigo,
 		})
+
 		if err != nil {
 			return nil, err
 		}
-		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
-	}
 
-	for _, dtoItem := range entitiesAndDtos {
-		for _, loc := range dtoItem.CodeChunkDependensies {
-			// I don't remember this
-			// if strings.Contains(loc.Location, INTERNAL_SDK_JS_LOCATION) || strings.Contains(loc.Location, INTERNAL_SDK_REACT_LOCATION) {
-			// 	internalUsage = append(internalUsage, loc.Location)
-			// 	continue
-			// }
-			globalPacakges = append(globalPacakges, loc.Location)
-		}
+		dtoItem := actionRendered.MainClass
 
 		files = append(files, core.VirtualFile{
 			Name:         dtoItem.SuggestedFileName,
 			Extension:    dtoItem.SuggestedExtension,
 			ActualScript: AsFullDocument(dtoItem, f.PackageName),
 		})
+
+		if actionRendered.CliHelpers != nil {
+			files = append(files, core.VirtualFile{
+				Name:         actionRendered.CliHelpers.SuggestedFileName,
+				Extension:    actionRendered.CliHelpers.SuggestedExtension,
+				ActualScript: AsFullDocument(actionRendered.CliHelpers, f.PackageName),
+			})
+		}
 	}
 
 	for _, action := range module.Actions {

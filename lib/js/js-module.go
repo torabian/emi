@@ -232,7 +232,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		})
 	}
 
-	skipPackage := strings.Contains(ctx.Tags, GEN_SKIP_PACKAGE_JSON)
+	skipPackage := ctx.HasTag(NoPackage)
 
 	if !skipPackage {
 		// Let's add a package.json :)
@@ -249,7 +249,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 	}
 
 	// If user passed no-sdk as a tag, we do not add it at all.
-	skipSDK := strings.Contains(ctx.Tags, GEN_SKIP_SDK)
+	skipSDK := ctx.HasTag(NoSdk)
 	if !skipSDK {
 
 		if sdkFiles, err := JsGetTargetSdkFiles(ctx); err != nil {
@@ -266,8 +266,8 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 // Useful when you want to build a single place for sdks, and change the import path
 func JsGetTargetSdkFiles(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	sdkFiles := []core.VirtualFile{}
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	skipEnvelopes := strings.Contains(ctx.Tags, GEN_SKIP_ENVELOPES)
+	isTypeScript := ctx.HasTag(Typescript)
+	skipEnvelopes := ctx.HasTag(NoEnvelope)
 
 	if !skipEnvelopes {
 		var source *embed.FS

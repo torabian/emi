@@ -68,39 +68,41 @@ func GetKotlinPublicActions() core.PublicAPIActions {
 	}
 
 	fileActions := []core.ActionFile{
-		{
-			BaseAction: core.BaseAction{
-				Name:             "kotlin",
-				Description:      "Compiles kotlin module",
-				WasmFunctionName: "kotlinGen",
-				Flags:            []core.FlagDef{},
-			},
-			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
-				type_, err := core.DetectEmiStringContentType(ctx.Content)
-				if err != nil {
-					return nil, err
-				}
-
-				if type_ == "module" {
-					emiModule, err := core.StringToEmi(ctx.Content)
-					if err != nil {
-						return nil, err
-					}
-
-					files, err := KotlinModuleFull(&emiModule, ctx)
-
-					return files, err
-				}
-
-				return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
-			},
-		},
+		KotlinPrimaryAction,
 	}
 
 	return core.PublicAPIActions{
 		TextActions: textActions,
 		FileActions: fileActions,
 	}
+}
+
+var KotlinPrimaryAction = core.ActionFile{
+	BaseAction: core.BaseAction{
+		Name:             "kotlin",
+		Description:      "Compiles kotlin module",
+		WasmFunctionName: "kotlinGen",
+		Flags:            []core.FlagDef{},
+	},
+	Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
+		type_, err := core.DetectEmiStringContentType(ctx.Content)
+		if err != nil {
+			return nil, err
+		}
+
+		if type_ == "module" {
+			emiModule, err := core.StringToEmi(ctx.Content)
+			if err != nil {
+				return nil, err
+			}
+
+			files, err := KotlinModuleFull(&emiModule, ctx)
+
+			return files, err
+		}
+
+		return nil, errors.New("we did not find any matching type for this catalog. set emi: dto, emi: module, etc. type: " + type_)
+	},
 }
 
 // Finds the ts/js compatible types.

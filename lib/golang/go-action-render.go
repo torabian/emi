@@ -2,7 +2,6 @@ package golang
 
 import (
 	"bytes"
-	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -22,10 +21,10 @@ func GoActionRender(
 		return reactive, nil
 	}
 
-	skipGoClient := strings.Contains(ctx.Tags, GEN_GO_SKIP_CLIENT)
-	splitGin := strings.Contains(ctx.Tags, "split-gin")
-	splitCli := strings.Contains(ctx.Tags, "split-cli")
-	splitHttp := strings.Contains(ctx.Tags, "split-http")
+	skipGoClient := ctx.HasTag(NoClient)
+	splitGin := ctx.HasTag(SplitGin)
+	splitCli := ctx.HasTag(SplitCli)
+	splitHttp := ctx.HasTag(SplitHttp)
 
 	realms, deps, err := GoActionRealms(action, ctx, complexes)
 	if err != nil {
@@ -365,6 +364,10 @@ func {{ .realms.ActionName }}Call(
 			res.ActualScript = append(res.ActualScript, ginChunk.ActualScript...)
 			res.CodeChunkDependensies = append(res.CodeChunkDependensies, ginChunk.CodeChunkDependensies...)
 		}
+	}
+
+	if realms.RequestClassCli != nil {
+		files = append(files, realms.RequestClassCli)
 	}
 
 	if realms.EnabledCli {

@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -238,17 +237,6 @@ func DeleteADraftOfferActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return DeleteADraftOfferActionClientExecuteTyped(r)
-}
-func (x DeleteADraftOfferActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // DeleteADraftOfferActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

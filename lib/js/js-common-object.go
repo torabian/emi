@@ -2,7 +2,6 @@ package js
 
 import (
 	"bytes"
-	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -27,7 +26,7 @@ type JsCommonObjectContext struct {
 // This function can be used in different locations of the code generation,
 // creates dtos, entities for actions or other specs.
 func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, jsctx JsCommonObjectContext) (*core.CodeChunkCompiled, error) {
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 	res := &core.CodeChunkCompiled{}
 
 	var tsTypes *core.CodeChunkCompiled

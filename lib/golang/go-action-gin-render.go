@@ -23,6 +23,11 @@ func GoActionGinRender(
 {{ if .realms.SkipGinWasm }}
 //go:build !wasm
 {{ end }}
+
+{{ if .realms.PathParameterGin }}
+	{{ b2s .realms.PathParameterGin.ActualScript }}
+{{ end }}
+
 // {{ .realms.ActionName }}Raw registers a raw Gin route for the {{ .realms.ActionName }} action.
 // This gives the developer full control over middleware, handlers, and response handling.
 func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {

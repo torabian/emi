@@ -128,8 +128,8 @@ func JsHeaderClass(
 	res := &core.CodeChunkCompiled{}
 
 	t := template.Must(template.New("headerclass").Funcs(core.CommonMap).Parse(tmpl))
-	nestJsDecorator := strings.Contains(ctx.Tags, GEN_NEST_JS_COMPATIBILITY)
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	nestJsDecorator := ctx.HasTag(Nestjs)
+	isTypeScript := ctx.HasTag(Typescript)
 
 	getTypeArgument := "type"
 	if isTypeScript {

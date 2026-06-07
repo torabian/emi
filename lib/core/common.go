@@ -356,19 +356,6 @@ func ReadEmiActionFromString(content string) (*EmiAction, error) {
 // Claim Rendering
 // ====================
 
-// ClaimRender renders claims based on tags (TypeScript or JS)
-func ClaimRender(claims []JsFnArgument, ctx MicroGenContext) map[string]string {
-	rendered := make(map[string]string)
-	for _, c := range claims {
-		if strings.Contains(ctx.Tags, "typescript") {
-			rendered[c.Key] = c.CompileTs()
-		} else {
-			rendered[c.Key] = c.CompileJs()
-		}
-	}
-	return rendered
-}
-
 func IsNullable(value string) bool {
 	return strings.Contains(value, "?")
 }
