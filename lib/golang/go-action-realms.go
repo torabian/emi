@@ -12,8 +12,11 @@ type goActionRealms struct {
 	SafeUrl              string
 	HttpMethod           string
 	PathParameter        *core.CodeChunkCompiled
+	PathParameterCli     *core.CodeChunkCompiled
+	PathParameterGin     *core.CodeChunkCompiled
 	FetchMetaClass       *core.CodeChunkCompiled
 	RequestClass         *core.CodeChunkCompiled
+	RequestClassCli      *core.CodeChunkCompiled
 	ResponseClass        *core.CodeChunkCompiled
 	CliName              string
 	CliShort             string
@@ -29,6 +32,8 @@ type goActionRealms struct {
 	// Adds helper code for cli, might include urfave/v3
 	EnabledCli bool
 
+	SplitCli bool
+
 	// Adds std net/http helper code (no external dependency, also wasm-safe)
 	EnabledHttp bool
 
@@ -36,15 +41,13 @@ type goActionRealms struct {
 	SkipGinWasm bool
 }
 
-var GEN_GO_SKIP_CLIENT = "no-client"
-
 func GoActionRealms(
 	action core.EmiRpcAction,
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 ) (goActionRealms, []core.CodeChunkDependency, error) {
 
-	skipGoClient := strings.Contains(ctx.Tags, GEN_GO_SKIP_CLIENT)
+	skipGoClient := ctx.HasTag(NoClient)
 
 	f := GetCommonFlags(ctx)
 
@@ -55,10 +58,11 @@ func GoActionRealms(
 	}
 
 	// By default cli and gin is enabled. But we can disable them
-	realms.EnabledCli = !strings.Contains(ctx.Tags, "skip-cli")
-	realms.EnabledGin = !strings.Contains(ctx.Tags, "skip-gin")
-	realms.EnabledHttp = !strings.Contains(ctx.Tags, "skip-http")
-	realms.SkipGinWasm = strings.Contains(ctx.Tags, "skip-wasm-gin")
+	realms.EnabledCli = !ctx.HasTag(SkipCli)
+	realms.SplitCli = ctx.HasTag(SplitCli)
+	realms.EnabledGin = !ctx.HasTag(SkipGin)
+	realms.EnabledHttp = !ctx.HasTag(SkipHttp)
+	realms.SkipGinWasm = ctx.HasTag(SkipWasmGin)
 
 	deps := []core.CodeChunkDependency{
 		{
@@ -109,6 +113,28 @@ func GoActionRealms(
 		realms.PathParameter = pathParameter
 	}
 
+	if realms.EnabledCli {
+		pathParameterCli, err := GoActionPathParamsCli(action, ctx)
+		if err != nil {
+			return realms, nil, err
+		}
+		if pathParameterCli != nil {
+			if !realms.SplitCli {
+				deps = append(deps, pathParameterCli.CodeChunkDependensies...)
+			}
+			realms.PathParameterCli = pathParameterCli
+		}
+	}
+
+	pathParameterGin, err := GoActionPathParamsGin(action, ctx)
+	if err != nil {
+		return realms, nil, err
+	}
+	if pathParameterGin != nil {
+		deps = append(deps, pathParameterGin.CodeChunkDependensies...)
+		realms.PathParameterGin = pathParameterGin
+	}
+
 	queryParams, err := GoActionQueryParams(action, ctx)
 	if err != nil {
 		return realms, nil, err
@@ -128,8 +154,15 @@ func GoActionRealms(
 			return realms, nil, err
 		}
 
-		deps = append(deps, fields.CodeChunkDependensies...)
-		realms.RequestClass = fields
+		if fields.MainClass != nil {
+			deps = append(deps, fields.MainClass.CodeChunkDependensies...)
+			realms.RequestClass = fields.MainClass
+		}
+
+		if fields.CliHelpers != nil {
+			realms.RequestClassCli = fields.CliHelpers
+		}
+
 	} else if action.HasRequestDto() {
 		realms.RequestClass = castDtoNameToCodeChunk(action.GetRequestDto())
 		// Not sure if this is needed in golang
@@ -146,9 +179,11 @@ func GoActionRealms(
 		if err != nil {
 			return realms, nil, err
 		}
-		deps = append(deps, fields.CodeChunkDependensies...)
-		realms.ResponseClass = fields
-		realms.IdealResponseType = outClassName
+		if fields.MainClass != nil {
+			deps = append(deps, fields.MainClass.CodeChunkDependensies...)
+			realms.ResponseClass = fields.MainClass
+			realms.IdealResponseType = outClassName
+		}
 	} else if action.HasResponseDto() {
 		realms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
 		// Not sure if this is needed in golang

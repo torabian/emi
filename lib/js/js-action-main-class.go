@@ -83,7 +83,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 			Js: "qs",
 		},
 	}
-	claimsRendered := core.ClaimRender(claims, ctx)
+	claimsRendered := ClaimRender(claims, ctx)
 
 	res := &core.CodeChunkCompiled{
 		CodeChunkDependensies: []core.CodeChunkDependency{

@@ -65,7 +65,7 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 		},
 	}
 
-	claimsRendered := core.ClaimRender(claims, ctx)
+	claimsRendered := ClaimRender(claims, ctx)
 
 	const tmpl = `
 	static Create = (

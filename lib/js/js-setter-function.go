@@ -37,7 +37,7 @@ func (x jsFieldVariable) CreateSetterFunction(ctx core.MicroGenContext) string {
 			Js:  "value",
 		},
 	}
-	claimsRendered := core.ClaimRender(claims, ctx)
+	claimsRendered := ClaimRender(claims, ctx)
 
 	var setterTemplate = template.Must(template.New("setter").Parse(`
 
@@ -218,7 +218,7 @@ set{{ .ctx.Upper }} (|@arg.value|) {
 	setterjsdoc := NewJsDoc("  ")
 	setterjsdoc.Add(fmt.Sprintf("@param {%v}", x.ComputedType))
 
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 	data := map[string]any{
 		"ctx":          x,
 		"IsTypeScript": isTypeScript,

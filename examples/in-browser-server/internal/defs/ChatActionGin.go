@@ -28,6 +28,9 @@ func (x *ChatActionClientSession) Connection() *websocket.Conn {
 func (x *ChatActionSession) GinCtx() *gin.Context {
 	return x.Ctx.(*gin.Context)
 }
+func (x *ChatActionSession) GetSocket() *websocket.Conn {
+	return x.Socket.(*websocket.Conn)
+}
 
 // Generated handler
 func ChatActionGin(r *gin.Engine, factory func(

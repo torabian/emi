@@ -48,7 +48,7 @@ export const {{ .className }} = (options: {
 	}
 
 	templateResult := buf.String()
-	claimsRendered := core.ClaimRender(claims, ctx)
+	claimsRendered := ClaimRender(claims, ctx)
 	for key, value := range claimsRendered {
 		templateResult = strings.ReplaceAll(templateResult, fmt.Sprintf("|@%v|", key), value)
 	}

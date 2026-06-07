@@ -1,18 +1,17 @@
 package golang
 
 import (
-	"strings"
-
 	"github.com/torabian/emi/lib/core"
 )
 
 type goActionReactiveGinRealms struct {
-	ActionName    string
-	PackageName   string
-	PathParameter *core.CodeChunkCompiled
-	QueryParams   *core.CodeChunkCompiled
-	SafeUrl       string
-	SkipGinWasm   bool
+	ActionName       string
+	PackageName      string
+	PathParameter    *core.CodeChunkCompiled
+	PathParameterGin *core.CodeChunkCompiled
+	QueryParams      *core.CodeChunkCompiled
+	SafeUrl          string
+	SkipGinWasm      bool
 }
 
 var DEFAULT_GO_PACKAGE = "external"
@@ -44,7 +43,15 @@ func GoActionReactiveGinRealms(
 		SafeUrl:     core.RemoveTypeAnnotations(action.GetUrl()),
 	}
 
-	realms.SkipGinWasm = strings.Contains(ctx.Tags, "skip-wasm-gin")
+	pathParameterGin, err := GoActionPathParamsGin(action, ctx)
+	if err != nil {
+		return realms, nil, err
+	}
+	if pathParameterGin != nil {
+		realms.PathParameterGin = pathParameterGin
+	}
+
+	realms.SkipGinWasm = ctx.HasTag(SkipWasmGin)
 
 	return realms, deps, nil
 }

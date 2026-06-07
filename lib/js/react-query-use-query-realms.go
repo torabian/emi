@@ -23,7 +23,7 @@ func ReactQueryUseQueryRealms(
 
 	realms := reactQueryUseQueryHookRealms{}
 	deps := []core.CodeChunkDependency{}
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 
 	if isTypeScript {
 		// React Query options

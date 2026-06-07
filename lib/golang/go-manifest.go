@@ -234,7 +234,7 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 	return res, nil
 }
 
-func matchAction(name string, patterns []string) bool {
+func MatchNameWithPattern(name string, patterns []string) bool {
 	for _, p := range patterns {
 
 		// convenience wildcard
@@ -262,12 +262,12 @@ func matchAction(name string, patterns []string) bool {
 func shouldRenderAction(name string, includes, excludes []string) bool {
 
 	// include mode
-	if len(includes) > 0 && !matchAction(name, includes) {
+	if len(includes) > 0 && !MatchNameWithPattern(name, includes) {
 		return false
 	}
 
 	// exclude mode
-	if matchAction(name, excludes) {
+	if MatchNameWithPattern(name, excludes) {
 		return false
 	}
 

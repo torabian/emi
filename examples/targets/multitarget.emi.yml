@@ -1,0 +1,14 @@
+targets:
+- compiler: go
+  output: ./go-out
+- compiler: js
+  output: ./js-out
+  tags:
+  - no-sdk
+  - no-package
+dtos:
+  - name: sampleDto
+    description: This dto will become available per target
+    fields:
+      - name: user
+        type: string

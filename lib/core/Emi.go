@@ -7,6 +7,9 @@ type Emi struct {
 	// Represents where is the location of the module in app tree. Similar to PHP namespacing sytem it be used to explicitly as export path of the actions for client frameworks
 	Namespace string `yaml:"namespace,omitempty" json:"namespace,omitempty" jsonschema:"description=Represents where is the location of the module in app tree. Similar to PHP namespacing sytem it be used to explicitly as export path of the actions for client frameworks"`
 
+	// Compiler self containment
+	Targets []EmiCompile `yaml:"targets,omitempty" json:"targets,omitempty" jsonschema:"description=Compiler self containment"`
+
 	// Description of module and it's purpose. Used in code gen and creating documents.
 	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description of module and it's purpose. Used in code gen and creating documents."`
 

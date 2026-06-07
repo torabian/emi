@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -42,47 +41,6 @@ func GetSmartClassificationReportOfTheParticularOfferActionMeta() struct {
 		Description: `Use this resource to get a full Smart! offer classification report of one of your offers. Please keep in mind you have to meet Smart! seller conditions first - for more details, use GET /sale/smart. To learn more about Smart! offer requirements, see our knowledge base article: PL / EN. Read more: PL / EN.`,
 	}
 }
-func GetGetSmartClassificationReportOfTheParticularOfferActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:        prefix + "scheduled-for-reclassification",
-			Type:        "bool",
-			Description: "Indicates if offer is queued for reclassification",
-		},
-		{
-			Name:        prefix + "classification",
-			Type:        "object",
-			Children:    GetGetSmartClassificationReportOfTheParticularOfferActionResClassificationCliFlags("classification-"),
-			Description: "Offer classification status and last change date",
-		},
-		{
-			Name:        prefix + "smart-delivery-methods",
-			Type:        "array",
-			Description: "List of smart delivery method identifiers",
-		},
-		{
-			Name:        prefix + "conditions",
-			Type:        "array",
-			Description: "List of classification conditions with delivery method checks",
-		},
-	}
-}
-func CastGetSmartClassificationReportOfTheParticularOfferActionResFromCli(c emigo.CliCastable) GetSmartClassificationReportOfTheParticularOfferActionRes {
-	data := GetSmartClassificationReportOfTheParticularOfferActionRes{}
-	if c.IsSet("scheduled-for-reclassification") {
-		data.ScheduledForReclassification = bool(c.Bool("scheduled-for-reclassification"))
-	}
-	if c.IsSet("classification") {
-		data.Classification = CastGetSmartClassificationReportOfTheParticularOfferActionResClassificationFromCli(c)
-	}
-	if c.IsSet("smart-delivery-methods") {
-		data.SmartDeliveryMethods = emigo.CapturePossibleArray(CastGetSmartClassificationReportOfTheParticularOfferActionResSmartDeliveryMethodsFromCli, "smart-delivery-methods", c)
-	}
-	if c.IsSet("conditions") {
-		data.Conditions = emigo.CapturePossibleArray(CastGetSmartClassificationReportOfTheParticularOfferActionResConditionsFromCli, "conditions", c)
-	}
-	return data
-}
 
 // The base class definition for getSmartClassificationReportOfTheParticularOfferActionRes
 type GetSmartClassificationReportOfTheParticularOfferActionRes struct {
@@ -96,31 +54,6 @@ type GetSmartClassificationReportOfTheParticularOfferActionRes struct {
 	Conditions emigo.Array[GetSmartClassificationReportOfTheParticularOfferActionResConditions] `json:"conditions" yaml:"conditions"`
 }
 
-func GetGetSmartClassificationReportOfTheParticularOfferActionResClassificationCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:        prefix + "fulfilled",
-			Type:        "bool",
-			Description: "Whether the classification conditions are fulfilled",
-		},
-		{
-			Name:        prefix + "last-changed",
-			Type:        "string",
-			Description: "ISO8601 timestamp of last classification change",
-		},
-	}
-}
-func CastGetSmartClassificationReportOfTheParticularOfferActionResClassificationFromCli(c emigo.CliCastable) GetSmartClassificationReportOfTheParticularOfferActionResClassification {
-	data := GetSmartClassificationReportOfTheParticularOfferActionResClassification{}
-	if c.IsSet("fulfilled") {
-		data.Fulfilled = bool(c.Bool("fulfilled"))
-	}
-	if c.IsSet("last-changed") {
-		data.LastChanged = c.String("last-changed")
-	}
-	return data
-}
-
 // The base class definition for classification
 type GetSmartClassificationReportOfTheParticularOfferActionResClassification struct {
 	// Whether the classification conditions are fulfilled
@@ -129,82 +62,9 @@ type GetSmartClassificationReportOfTheParticularOfferActionResClassification str
 	LastChanged string `json:"lastChanged" yaml:"lastChanged"`
 }
 
-func GetGetSmartClassificationReportOfTheParticularOfferActionResSmartDeliveryMethodsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastGetSmartClassificationReportOfTheParticularOfferActionResSmartDeliveryMethodsFromCli(c emigo.CliCastable) GetSmartClassificationReportOfTheParticularOfferActionResSmartDeliveryMethods {
-	data := GetSmartClassificationReportOfTheParticularOfferActionResSmartDeliveryMethods{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
-}
-
 // The base class definition for smartDeliveryMethods
 type GetSmartClassificationReportOfTheParticularOfferActionResSmartDeliveryMethods struct {
 	Id string `json:"id" yaml:"id"`
-}
-
-func GetGetSmartClassificationReportOfTheParticularOfferActionResConditionsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:        prefix + "code",
-			Type:        "string",
-			Description: "Condition code identifier",
-		},
-		{
-			Name:        prefix + "name",
-			Type:        "string",
-			Description: "Human-readable condition name",
-		},
-		{
-			Name:        prefix + "description",
-			Type:        "string",
-			Description: "Detailed condition description",
-		},
-		{
-			Name:        prefix + "fulfilled",
-			Type:        "bool",
-			Description: "Indicates if this condition is fulfilled",
-		},
-		{
-			Name:        prefix + "passed-delivery-methods",
-			Type:        "array",
-			Description: "Delivery methods that passed validation for this condition",
-		},
-		{
-			Name:        prefix + "failed-delivery-methods",
-			Type:        "array",
-			Description: "Delivery methods that failed validation for this condition",
-		},
-	}
-}
-func CastGetSmartClassificationReportOfTheParticularOfferActionResConditionsFromCli(c emigo.CliCastable) GetSmartClassificationReportOfTheParticularOfferActionResConditions {
-	data := GetSmartClassificationReportOfTheParticularOfferActionResConditions{}
-	if c.IsSet("code") {
-		data.Code = c.String("code")
-	}
-	if c.IsSet("name") {
-		data.Name = c.String("name")
-	}
-	if c.IsSet("description") {
-		data.Description = c.String("description")
-	}
-	if c.IsSet("fulfilled") {
-		data.Fulfilled = bool(c.Bool("fulfilled"))
-	}
-	if c.IsSet("passed-delivery-methods") {
-		data.PassedDeliveryMethods = emigo.CapturePossibleArray(CastGetSmartClassificationReportOfTheParticularOfferActionResConditionsPassedDeliveryMethodsFromCli, "passed-delivery-methods", c)
-	}
-	if c.IsSet("failed-delivery-methods") {
-		data.FailedDeliveryMethods = emigo.CapturePossibleArray(CastGetSmartClassificationReportOfTheParticularOfferActionResConditionsFailedDeliveryMethodsFromCli, "failed-delivery-methods", c)
-	}
-	return data
 }
 
 // The base class definition for conditions
@@ -223,41 +83,9 @@ type GetSmartClassificationReportOfTheParticularOfferActionResConditions struct 
 	FailedDeliveryMethods emigo.Array[GetSmartClassificationReportOfTheParticularOfferActionResConditionsFailedDeliveryMethods] `json:"failedDeliveryMethods" yaml:"failedDeliveryMethods"`
 }
 
-func GetGetSmartClassificationReportOfTheParticularOfferActionResConditionsPassedDeliveryMethodsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastGetSmartClassificationReportOfTheParticularOfferActionResConditionsPassedDeliveryMethodsFromCli(c emigo.CliCastable) GetSmartClassificationReportOfTheParticularOfferActionResConditionsPassedDeliveryMethods {
-	data := GetSmartClassificationReportOfTheParticularOfferActionResConditionsPassedDeliveryMethods{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
-}
-
 // The base class definition for passedDeliveryMethods
 type GetSmartClassificationReportOfTheParticularOfferActionResConditionsPassedDeliveryMethods struct {
 	Id string `json:"id" yaml:"id"`
-}
-
-func GetGetSmartClassificationReportOfTheParticularOfferActionResConditionsFailedDeliveryMethodsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastGetSmartClassificationReportOfTheParticularOfferActionResConditionsFailedDeliveryMethodsFromCli(c emigo.CliCastable) GetSmartClassificationReportOfTheParticularOfferActionResConditionsFailedDeliveryMethods {
-	data := GetSmartClassificationReportOfTheParticularOfferActionResConditionsFailedDeliveryMethods{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
 }
 
 // The base class definition for failedDeliveryMethods
@@ -475,17 +303,6 @@ func GetSmartClassificationReportOfTheParticularOfferActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return GetSmartClassificationReportOfTheParticularOfferActionClientExecuteTyped(r)
-}
-func (x GetSmartClassificationReportOfTheParticularOfferActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // GetSmartClassificationReportOfTheParticularOfferActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

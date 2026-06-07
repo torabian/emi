@@ -2,7 +2,6 @@ package golang
 
 import (
 	"bytes"
-	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -126,7 +125,9 @@ type {{ .realms.ActionName }}ClientSession struct {
 	}
 
 	outputs := []*core.CodeChunkCompiled{}
-	enabledGin := !strings.Contains(ctx.Tags, "skip-gin")
+	splitCli := ctx.HasTag(SplitCli)
+	enabledGin := !ctx.HasTag(SkipGin)
+
 	if enabledGin {
 
 		reactiveGin, ginErr := GoActionRenderReactiveGin(action, ctx, complexes)
@@ -136,6 +137,20 @@ type {{ .realms.ActionName }}ClientSession struct {
 		if reactiveGin != nil {
 			outputs = append(outputs, reactiveGin)
 		}
+	}
+
+	reactiveCli, ginErr := GoActionReactiveCliRender(action, ctx, realms)
+	if ginErr != nil {
+		return nil, ginErr
+	}
+
+	if splitCli {
+		if reactiveCli != nil {
+			outputs = append(outputs, reactiveCli)
+		}
+	} else {
+		res.ActualScript = append(res.ActualScript, reactiveCli.ActualScript...)
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, reactiveCli.CodeChunkDependensies...)
 	}
 
 	reactiveWasm, ginErr := GoActionRenderReactiveWasm(action, ctx, complexes)

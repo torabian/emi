@@ -11,7 +11,7 @@ dtos:
 
 actions:
   - name: streamYoke
-    url: /stream-yoke
+    url: /stream-yoke/:path222
     description: 
       Used by the kotlin to golang, to send the yoke information
     method: reactive

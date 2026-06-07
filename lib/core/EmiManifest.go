@@ -21,10 +21,10 @@ type EmiManifest struct {
 	// Supports wildcard matching.
 	Includes []string `json:"includes,omitempty" yaml:"includes,omitempty" jsonschema:"title=Includes,description=Included actions or patterns (supports wildcards)"`
 
-	// The location that manifest will be written
-	Dist string `json:"dist,omitempty" yaml:"dist,omitempty" jsonschema:"title=Dist,description=The location that manifest will be written"`
-
 	// Excludes defines the list of conditions or patterns to exclude,
 	// overriding Includes when matched.
 	Excludes []string `json:"excludes,omitempty" yaml:"excludes,omitempty" jsonschema:"title=Excludes,description=Excluded conditions or patterns"`
+
+	// The location that manifest will be written
+	Dist string `json:"dist,omitempty" yaml:"dist,omitempty" jsonschema:"title=Dist,description=The location that manifest will be written"`
 }

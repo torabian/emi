@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -42,30 +41,6 @@ func CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionMeta() struct {
 		Description: `The URI for the resource given by Location header of POST /sale/product-offers and PATCH /sale/product-offers/{offerId}. Use this resource to check processing status of a POST or PATCH request. Read more: PL / EN.`,
 	}
 }
-func GetCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:     prefix + "offer",
-			Type:     "object",
-			Children: GetCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOfferCliFlags("offer-"),
-		},
-		{
-			Name:     prefix + "operation",
-			Type:     "object",
-			Children: GetCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOperationCliFlags("operation-"),
-		},
-	}
-}
-func CastCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResFromCli(c emigo.CliCastable) CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRes {
-	data := CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRes{}
-	if c.IsSet("offer") {
-		data.Offer = CastCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOfferFromCli(c)
-	}
-	if c.IsSet("operation") {
-		data.Operation = CastCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOperationFromCli(c)
-	}
-	return data
-}
 
 // The base class definition for checkTheProcessingStatusOfAPOSTOrPATCHRequestActionRes
 type CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRes struct {
@@ -73,55 +48,9 @@ type CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRes struct {
 	Operation CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOperation `json:"operation" yaml:"operation"`
 }
 
-func GetCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOfferCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOfferFromCli(c emigo.CliCastable) CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOffer {
-	data := CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOffer{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
-}
-
 // The base class definition for offer
 type CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOffer struct {
 	Id string `json:"id" yaml:"id"`
-}
-
-func GetCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOperationCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "status",
-			Type: "string",
-		},
-		{
-			Name: prefix + "started-at",
-			Type: "string",
-		},
-	}
-}
-func CastCheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOperationFromCli(c emigo.CliCastable) CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOperation {
-	data := CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResOperation{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("status") {
-		data.Status = c.String("status")
-	}
-	if c.IsSet("started-at") {
-		data.StartedAt = c.String("started-at")
-	}
-	return data
 }
 
 // The base class definition for operation
@@ -341,17 +270,6 @@ func CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionClientExecuteTyped(r)
-}
-func (x CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

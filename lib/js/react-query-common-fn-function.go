@@ -34,7 +34,7 @@ func reactQueryCommonFnFunction(options reactQueryCommonFnOptions, ctx core.Micr
 			Js:  "body",
 		},
 	}
-	claimsRendered := core.ClaimRender(claims, ctx)
+	claimsRendered := ClaimRender(claims, ctx)
 
 	const tmpl = `
 		
@@ -95,7 +95,7 @@ func reactQueryCommonFnFunction(options reactQueryCommonFnOptions, ctx core.Micr
 	}
 
 	deps := []core.CodeChunkDependency{}
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 	if isTypeScript {
 		deps = append(deps, core.CodeChunkDependency{
 			Objects:  []string{"type TypedResponse"},

@@ -6,7 +6,6 @@ package js
 import (
 	"bytes"
 	"fmt"
-	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
@@ -21,8 +20,8 @@ func JsActionManifest(
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 ) (*core.CodeChunkCompiled, error) {
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
-	isReact := strings.Contains(ctx.Tags, GEN_REACT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
+	isReact := ctx.HasTag(React)
 
 	actionRealms, jsDependencies, err := JsActionManifestRealms(action, ctx, complexes)
 	if err != nil {
@@ -131,7 +130,7 @@ func JsActionManifest(
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
-	nestJsDecorator := strings.Contains(ctx.Tags, GEN_NEST_JS_COMPATIBILITY)
+	nestJsDecorator := ctx.HasTag(Nestjs)
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{

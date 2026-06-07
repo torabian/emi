@@ -19,7 +19,14 @@ func GoActionCliRender(
 ) (*core.CodeChunkCompiled, error) {
 
 	const tmpl = `
- 
+{{ if .realms.SplitCli }}
+//go:build !wasm
+{{ end }}
+
+{{ if .realms.PathParameterCli }}
+	{{ b2s .realms.PathParameterCli.ActualScript }}
+{{ end }}
+
 
 func (x {{ .realms.ActionName }}Request) IsCli() bool {
 	if x.CliCtx == nil {
@@ -47,7 +54,7 @@ func (x {{ .realms.ActionName }}Request) IsCli() bool {
 		return nil, err
 	}
 
-	return &core.CodeChunkCompiled{
+	esx := core.CodeChunkCompiled{
 		ActualScript:       buf.Bytes(),
 		SuggestedFileName:  realms.ActionName + "Cli",
 		SuggestedExtension: ".go",
@@ -56,5 +63,11 @@ func (x {{ .realms.ActionName }}Request) IsCli() bool {
 				Location: "reflect",
 			},
 		},
-	}, nil
+	}
+
+	if realms.PathParameterCli != nil && realms.SplitCli {
+		esx.CodeChunkDependensies = append(esx.CodeChunkDependensies, realms.PathParameterCli.CodeChunkDependensies...)
+	}
+
+	return &esx, nil
 }

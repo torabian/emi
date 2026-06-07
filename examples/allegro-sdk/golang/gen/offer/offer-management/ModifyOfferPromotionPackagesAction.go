@@ -7,7 +7,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -43,63 +42,11 @@ func ModifyOfferPromotionPackagesActionMeta() struct {
 		Description: `Use this resource to modify offer promotion packages. Read more: PL / EN.`,
 	}
 }
-func GetModifyOfferPromotionPackagesActionReqCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "modifications",
-			Type: "array",
-		},
-		{
-			Name: prefix + "additional-marketplaces",
-			Type: "array",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionReqFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionReq {
-	data := ModifyOfferPromotionPackagesActionReq{}
-	if c.IsSet("modifications") {
-		data.Modifications = emigo.CapturePossibleArray(CastModifyOfferPromotionPackagesActionReqModificationsFromCli, "modifications", c)
-	}
-	if c.IsSet("additional-marketplaces") {
-		data.AdditionalMarketplaces = emigo.CapturePossibleArray(CastModifyOfferPromotionPackagesActionReqAdditionalMarketplacesFromCli, "additional-marketplaces", c)
-	}
-	return data
-}
 
 // The base class definition for modifyOfferPromotionPackagesActionReq
 type ModifyOfferPromotionPackagesActionReq struct {
 	Modifications          emigo.Array[ModifyOfferPromotionPackagesActionReqModifications]          `json:"modifications" yaml:"modifications"`
 	AdditionalMarketplaces emigo.Array[ModifyOfferPromotionPackagesActionReqAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
-}
-
-func GetModifyOfferPromotionPackagesActionReqModificationsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "modification-type",
-			Type: "string",
-		},
-		{
-			Name: prefix + "package-type",
-			Type: "string",
-		},
-		{
-			Name: prefix + "package-id",
-			Type: "string",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionReqModificationsFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionReqModifications {
-	data := ModifyOfferPromotionPackagesActionReqModifications{}
-	if c.IsSet("modification-type") {
-		data.ModificationType = c.String("modification-type")
-	}
-	if c.IsSet("package-type") {
-		data.PackageType = c.String("package-type")
-	}
-	if c.IsSet("package-id") {
-		data.PackageId = c.String("package-id")
-	}
-	return data
 }
 
 // The base class definition for modifications
@@ -109,63 +56,10 @@ type ModifyOfferPromotionPackagesActionReqModifications struct {
 	PackageId        string `json:"packageId" yaml:"packageId"`
 }
 
-func GetModifyOfferPromotionPackagesActionReqAdditionalMarketplacesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "marketplace-id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "modifications",
-			Type: "array",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionReqAdditionalMarketplacesFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionReqAdditionalMarketplaces {
-	data := ModifyOfferPromotionPackagesActionReqAdditionalMarketplaces{}
-	if c.IsSet("marketplace-id") {
-		data.MarketplaceId = c.String("marketplace-id")
-	}
-	if c.IsSet("modifications") {
-		data.Modifications = emigo.CapturePossibleArray(CastModifyOfferPromotionPackagesActionReqAdditionalMarketplacesModificationsFromCli, "modifications", c)
-	}
-	return data
-}
-
 // The base class definition for additionalMarketplaces
 type ModifyOfferPromotionPackagesActionReqAdditionalMarketplaces struct {
 	MarketplaceId string                                                                                `json:"marketplaceId" yaml:"marketplaceId"`
 	Modifications emigo.Array[ModifyOfferPromotionPackagesActionReqAdditionalMarketplacesModifications] `json:"modifications" yaml:"modifications"`
-}
-
-func GetModifyOfferPromotionPackagesActionReqAdditionalMarketplacesModificationsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "modification-type",
-			Type: "string",
-		},
-		{
-			Name: prefix + "package-type",
-			Type: "string",
-		},
-		{
-			Name: prefix + "package-id",
-			Type: "string",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionReqAdditionalMarketplacesModificationsFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionReqAdditionalMarketplacesModifications {
-	data := ModifyOfferPromotionPackagesActionReqAdditionalMarketplacesModifications{}
-	if c.IsSet("modification-type") {
-		data.ModificationType = c.String("modification-type")
-	}
-	if c.IsSet("package-type") {
-		data.PackageType = c.String("package-type")
-	}
-	if c.IsSet("package-id") {
-		data.PackageId = c.String("package-id")
-	}
-	return data
 }
 
 // The base class definition for modifications
@@ -182,58 +76,6 @@ func (x *ModifyOfferPromotionPackagesActionReq) Json() string {
 	}
 	return ""
 }
-func GetModifyOfferPromotionPackagesActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "offer-id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "marketplace-id",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "base-package",
-			Type:     "object",
-			Children: GetModifyOfferPromotionPackagesActionResBasePackageCliFlags("base-package-"),
-		},
-		{
-			Name: prefix + "extra-packages",
-			Type: "array",
-		},
-		{
-			Name:     prefix + "pending-changes",
-			Type:     "object",
-			Children: GetModifyOfferPromotionPackagesActionResPendingChangesCliFlags("pending-changes-"),
-		},
-		{
-			Name: prefix + "additional-marketplaces",
-			Type: "array",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionRes {
-	data := ModifyOfferPromotionPackagesActionRes{}
-	if c.IsSet("offer-id") {
-		data.OfferId = c.String("offer-id")
-	}
-	if c.IsSet("marketplace-id") {
-		data.MarketplaceId = c.String("marketplace-id")
-	}
-	if c.IsSet("base-package") {
-		data.BasePackage = CastModifyOfferPromotionPackagesActionResBasePackageFromCli(c)
-	}
-	if c.IsSet("extra-packages") {
-		data.ExtraPackages = emigo.CapturePossibleArray(CastModifyOfferPromotionPackagesActionResExtraPackagesFromCli, "extra-packages", c)
-	}
-	if c.IsSet("pending-changes") {
-		data.PendingChanges = CastModifyOfferPromotionPackagesActionResPendingChangesFromCli(c)
-	}
-	if c.IsSet("additional-marketplaces") {
-		data.AdditionalMarketplaces = emigo.CapturePossibleArray(CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesFromCli, "additional-marketplaces", c)
-	}
-	return data
-}
 
 // The base class definition for modifyOfferPromotionPackagesActionRes
 type ModifyOfferPromotionPackagesActionRes struct {
@@ -245,86 +87,12 @@ type ModifyOfferPromotionPackagesActionRes struct {
 	AdditionalMarketplaces emigo.Array[ModifyOfferPromotionPackagesActionResAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
 }
 
-func GetModifyOfferPromotionPackagesActionResBasePackageCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-from",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-to",
-			Type: "string",
-		},
-		{
-			Name: prefix + "next-cycle-date",
-			Type: "string",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResBasePackageFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionResBasePackage {
-	data := ModifyOfferPromotionPackagesActionResBasePackage{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("valid-from") {
-		data.ValidFrom = c.String("valid-from")
-	}
-	if c.IsSet("valid-to") {
-		data.ValidTo = c.String("valid-to")
-	}
-	if c.IsSet("next-cycle-date") {
-		data.NextCycleDate = c.String("next-cycle-date")
-	}
-	return data
-}
-
 // The base class definition for basePackage
 type ModifyOfferPromotionPackagesActionResBasePackage struct {
 	Id            string `json:"id" yaml:"id"`
 	ValidFrom     string `json:"validFrom" yaml:"validFrom"`
 	ValidTo       string `json:"validTo" yaml:"validTo"`
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
-}
-
-func GetModifyOfferPromotionPackagesActionResExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-from",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-to",
-			Type: "string",
-		},
-		{
-			Name: prefix + "next-cycle-date",
-			Type: "string",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResExtraPackagesFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionResExtraPackages {
-	data := ModifyOfferPromotionPackagesActionResExtraPackages{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("valid-from") {
-		data.ValidFrom = c.String("valid-from")
-	}
-	if c.IsSet("valid-to") {
-		data.ValidTo = c.String("valid-to")
-	}
-	if c.IsSet("next-cycle-date") {
-		data.NextCycleDate = c.String("next-cycle-date")
-	}
-	return data
 }
 
 // The base class definition for extraPackages
@@ -335,63 +103,9 @@ type ModifyOfferPromotionPackagesActionResExtraPackages struct {
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
 }
 
-func GetModifyOfferPromotionPackagesActionResPendingChangesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:     prefix + "base-package",
-			Type:     "object",
-			Children: GetModifyOfferPromotionPackagesActionResPendingChangesBasePackageCliFlags("base-package-"),
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResPendingChangesFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionResPendingChanges {
-	data := ModifyOfferPromotionPackagesActionResPendingChanges{}
-	if c.IsSet("base-package") {
-		data.BasePackage = CastModifyOfferPromotionPackagesActionResPendingChangesBasePackageFromCli(c)
-	}
-	return data
-}
-
 // The base class definition for pendingChanges
 type ModifyOfferPromotionPackagesActionResPendingChanges struct {
 	BasePackage ModifyOfferPromotionPackagesActionResPendingChangesBasePackage `json:"basePackage" yaml:"basePackage"`
-}
-
-func GetModifyOfferPromotionPackagesActionResPendingChangesBasePackageCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-from",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-to",
-			Type: "string",
-		},
-		{
-			Name: prefix + "next-cycle-date",
-			Type: "string",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResPendingChangesBasePackageFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionResPendingChangesBasePackage {
-	data := ModifyOfferPromotionPackagesActionResPendingChangesBasePackage{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("valid-from") {
-		data.ValidFrom = c.String("valid-from")
-	}
-	if c.IsSet("valid-to") {
-		data.ValidTo = c.String("valid-to")
-	}
-	if c.IsSet("next-cycle-date") {
-		data.NextCycleDate = c.String("next-cycle-date")
-	}
-	return data
 }
 
 // The base class definition for basePackage
@@ -402,88 +116,12 @@ type ModifyOfferPromotionPackagesActionResPendingChangesBasePackage struct {
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
 }
 
-func GetModifyOfferPromotionPackagesActionResAdditionalMarketplacesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "marketplace-id",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "base-package",
-			Type:     "object",
-			Children: GetModifyOfferPromotionPackagesActionResAdditionalMarketplacesBasePackageCliFlags("base-package-"),
-		},
-		{
-			Name: prefix + "extra-packages",
-			Type: "array",
-		},
-		{
-			Name:     prefix + "pending-changes",
-			Type:     "object",
-			Children: GetModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesCliFlags("pending-changes-"),
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionResAdditionalMarketplaces {
-	data := ModifyOfferPromotionPackagesActionResAdditionalMarketplaces{}
-	if c.IsSet("marketplace-id") {
-		data.MarketplaceId = c.String("marketplace-id")
-	}
-	if c.IsSet("base-package") {
-		data.BasePackage = CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesBasePackageFromCli(c)
-	}
-	if c.IsSet("extra-packages") {
-		data.ExtraPackages = emigo.CapturePossibleArray(CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackagesFromCli, "extra-packages", c)
-	}
-	if c.IsSet("pending-changes") {
-		data.PendingChanges = CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesFromCli(c)
-	}
-	return data
-}
-
 // The base class definition for additionalMarketplaces
 type ModifyOfferPromotionPackagesActionResAdditionalMarketplaces struct {
 	MarketplaceId  string                                                                                `json:"marketplaceId" yaml:"marketplaceId"`
 	BasePackage    ModifyOfferPromotionPackagesActionResAdditionalMarketplacesBasePackage                `json:"basePackage" yaml:"basePackage"`
 	ExtraPackages  emigo.Array[ModifyOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages] `json:"extraPackages" yaml:"extraPackages"`
 	PendingChanges ModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChanges             `json:"pendingChanges" yaml:"pendingChanges"`
-}
-
-func GetModifyOfferPromotionPackagesActionResAdditionalMarketplacesBasePackageCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-from",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-to",
-			Type: "string",
-		},
-		{
-			Name: prefix + "next-cycle-date",
-			Type: "string",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesBasePackageFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionResAdditionalMarketplacesBasePackage {
-	data := ModifyOfferPromotionPackagesActionResAdditionalMarketplacesBasePackage{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("valid-from") {
-		data.ValidFrom = c.String("valid-from")
-	}
-	if c.IsSet("valid-to") {
-		data.ValidTo = c.String("valid-to")
-	}
-	if c.IsSet("next-cycle-date") {
-		data.NextCycleDate = c.String("next-cycle-date")
-	}
-	return data
 }
 
 // The base class definition for basePackage
@@ -494,43 +132,6 @@ type ModifyOfferPromotionPackagesActionResAdditionalMarketplacesBasePackage stru
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
 }
 
-func GetModifyOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackagesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-from",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-to",
-			Type: "string",
-		},
-		{
-			Name: prefix + "next-cycle-date",
-			Type: "string",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackagesFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages {
-	data := ModifyOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("valid-from") {
-		data.ValidFrom = c.String("valid-from")
-	}
-	if c.IsSet("valid-to") {
-		data.ValidTo = c.String("valid-to")
-	}
-	if c.IsSet("next-cycle-date") {
-		data.NextCycleDate = c.String("next-cycle-date")
-	}
-	return data
-}
-
 // The base class definition for extraPackages
 type ModifyOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages struct {
 	Id            string `json:"id" yaml:"id"`
@@ -539,63 +140,9 @@ type ModifyOfferPromotionPackagesActionResAdditionalMarketplacesExtraPackages st
 	NextCycleDate string `json:"nextCycleDate" yaml:"nextCycleDate"`
 }
 
-func GetModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name:     prefix + "base-package",
-			Type:     "object",
-			Children: GetModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesBasePackageCliFlags("base-package-"),
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChanges {
-	data := ModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChanges{}
-	if c.IsSet("base-package") {
-		data.BasePackage = CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesBasePackageFromCli(c)
-	}
-	return data
-}
-
 // The base class definition for pendingChanges
 type ModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChanges struct {
 	BasePackage ModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesBasePackage `json:"basePackage" yaml:"basePackage"`
-}
-
-func GetModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesBasePackageCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-from",
-			Type: "string",
-		},
-		{
-			Name: prefix + "valid-to",
-			Type: "string",
-		},
-		{
-			Name: prefix + "next-cycle-date",
-			Type: "string",
-		},
-	}
-}
-func CastModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesBasePackageFromCli(c emigo.CliCastable) ModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesBasePackage {
-	data := ModifyOfferPromotionPackagesActionResAdditionalMarketplacesPendingChangesBasePackage{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("valid-from") {
-		data.ValidFrom = c.String("valid-from")
-	}
-	if c.IsSet("valid-to") {
-		data.ValidTo = c.String("valid-to")
-	}
-	if c.IsSet("next-cycle-date") {
-		data.NextCycleDate = c.String("next-cycle-date")
-	}
-	return data
 }
 
 // The base class definition for basePackage
@@ -820,17 +367,6 @@ func ModifyOfferPromotionPackagesActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return ModifyOfferPromotionPackagesActionClientExecuteTyped(r)
-}
-func (x ModifyOfferPromotionPackagesActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // ModifyOfferPromotionPackagesActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

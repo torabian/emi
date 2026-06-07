@@ -49,6 +49,10 @@ func GoActionRenderReactiveGin(
 * Action to communicate with the action {{ .realms.ActionName }}
 */
 
+{{ if .realms.PathParameterGin }}
+	{{ b2s .realms.PathParameterGin.ActualScript }}
+{{ end }}
+
 {{ define "upgradeSequence" }}
 
 	{{ if .realms.PathParameter }}

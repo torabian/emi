@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -42,70 +41,10 @@ func PublishCommandDetailedReportActionMeta() struct {
 		Description: `Use this resource to retrieve information about the offer statuses on the site (Defaults: limit = 100, offset = 0). Read more: PL / EN. This resource is rate limited to retrieving information about 270 000 offer changes per minute.`,
 	}
 }
-func GetPublishCommandDetailedReportActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "tasks",
-			Type: "array",
-		},
-	}
-}
-func CastPublishCommandDetailedReportActionResFromCli(c emigo.CliCastable) PublishCommandDetailedReportActionRes {
-	data := PublishCommandDetailedReportActionRes{}
-	if c.IsSet("tasks") {
-		data.Tasks = emigo.CapturePossibleArray(CastPublishCommandDetailedReportActionResTasksFromCli, "tasks", c)
-	}
-	return data
-}
 
 // The base class definition for publishCommandDetailedReportActionRes
 type PublishCommandDetailedReportActionRes struct {
 	Tasks emigo.Array[PublishCommandDetailedReportActionResTasks] `json:"tasks" yaml:"tasks"`
-}
-
-func GetPublishCommandDetailedReportActionResTasksCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "field",
-			Type: "string",
-		},
-		{
-			Name: prefix + "message",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "offer",
-			Type:     "object",
-			Children: GetPublishCommandDetailedReportActionResTasksOfferCliFlags("offer-"),
-		},
-		{
-			Name: prefix + "status",
-			Type: "string",
-		},
-		{
-			Name: prefix + "errors",
-			Type: "array",
-		},
-	}
-}
-func CastPublishCommandDetailedReportActionResTasksFromCli(c emigo.CliCastable) PublishCommandDetailedReportActionResTasks {
-	data := PublishCommandDetailedReportActionResTasks{}
-	if c.IsSet("field") {
-		data.Field = c.String("field")
-	}
-	if c.IsSet("message") {
-		data.Message = c.String("message")
-	}
-	if c.IsSet("offer") {
-		data.Offer = CastPublishCommandDetailedReportActionResTasksOfferFromCli(c)
-	}
-	if c.IsSet("status") {
-		data.Status = c.String("status")
-	}
-	if c.IsSet("errors") {
-		data.Errors = emigo.CapturePossibleArray(CastPublishCommandDetailedReportActionResTasksErrorsFromCli, "errors", c)
-	}
-	return data
 }
 
 // The base class definition for tasks
@@ -117,77 +56,9 @@ type PublishCommandDetailedReportActionResTasks struct {
 	Errors  emigo.Array[PublishCommandDetailedReportActionResTasksErrors] `json:"errors" yaml:"errors"`
 }
 
-func GetPublishCommandDetailedReportActionResTasksOfferCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastPublishCommandDetailedReportActionResTasksOfferFromCli(c emigo.CliCastable) PublishCommandDetailedReportActionResTasksOffer {
-	data := PublishCommandDetailedReportActionResTasksOffer{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
-}
-
 // The base class definition for offer
 type PublishCommandDetailedReportActionResTasksOffer struct {
 	Id string `json:"id" yaml:"id"`
-}
-
-func GetPublishCommandDetailedReportActionResTasksErrorsCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "code",
-			Type: "string",
-		},
-		{
-			Name: prefix + "details",
-			Type: "string",
-		},
-		{
-			Name: prefix + "message",
-			Type: "string",
-		},
-		{
-			Name: prefix + "path",
-			Type: "string",
-		},
-		{
-			Name: prefix + "user-message",
-			Type: "string",
-		},
-		{
-			Name:     prefix + "metadata",
-			Type:     "object",
-			Children: GetPublishCommandDetailedReportActionResTasksErrorsMetadataCliFlags("metadata-"),
-		},
-	}
-}
-func CastPublishCommandDetailedReportActionResTasksErrorsFromCli(c emigo.CliCastable) PublishCommandDetailedReportActionResTasksErrors {
-	data := PublishCommandDetailedReportActionResTasksErrors{}
-	if c.IsSet("code") {
-		data.Code = c.String("code")
-	}
-	if c.IsSet("details") {
-		data.Details = c.String("details")
-	}
-	if c.IsSet("message") {
-		data.Message = c.String("message")
-	}
-	if c.IsSet("path") {
-		data.Path = c.String("path")
-	}
-	if c.IsSet("user-message") {
-		data.UserMessage = c.String("user-message")
-	}
-	if c.IsSet("metadata") {
-		data.Metadata = CastPublishCommandDetailedReportActionResTasksErrorsMetadataFromCli(c)
-	}
-	return data
 }
 
 // The base class definition for errors
@@ -198,22 +69,6 @@ type PublishCommandDetailedReportActionResTasksErrors struct {
 	Path        string                                                   `json:"path" yaml:"path"`
 	UserMessage string                                                   `json:"userMessage" yaml:"userMessage"`
 	Metadata    PublishCommandDetailedReportActionResTasksErrorsMetadata `json:"metadata" yaml:"metadata"`
-}
-
-func GetPublishCommandDetailedReportActionResTasksErrorsMetadataCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "product-id",
-			Type: "string",
-		},
-	}
-}
-func CastPublishCommandDetailedReportActionResTasksErrorsMetadataFromCli(c emigo.CliCastable) PublishCommandDetailedReportActionResTasksErrorsMetadata {
-	data := PublishCommandDetailedReportActionResTasksErrorsMetadata{}
-	if c.IsSet("product-id") {
-		data.ProductId = c.String("product-id")
-	}
-	return data
 }
 
 // The base class definition for metadata
@@ -431,17 +286,6 @@ func PublishCommandDetailedReportActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return PublishCommandDetailedReportActionClientExecuteTyped(r)
-}
-func (x PublishCommandDetailedReportActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // PublishCommandDetailedReportActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

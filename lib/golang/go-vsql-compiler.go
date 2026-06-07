@@ -52,7 +52,7 @@ func Prepare{{ .className }}(params {{ .paramsClass }}) (query string, args inte
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"paramsBody":     string(paramsChunk.ActualScript),
+		"paramsBody":     string(paramsChunk.MainClass.ActualScript),
 		"className":      vsql.GetClassName(),
 		"paramsClass":    paramsClass,
 		"queryConstName": vsql.GetClassName() + "Name",
@@ -65,10 +65,10 @@ func Prepare{{ .className }}(params {{ .paramsClass }}) (query string, args inte
 
 	res := &core.CodeChunkCompiled{
 		ActualScript:          buf.Bytes(),
-		CodeChunkDependensies: paramsChunk.CodeChunkDependensies,
-		Tokens:                paramsChunk.Tokens,
+		CodeChunkDependensies: paramsChunk.MainClass.CodeChunkDependensies,
+		Tokens:                paramsChunk.MainClass.Tokens,
 		SuggestedFileName:     vsql.GetClassName() + ".go",
-		SuggestedExtension:    paramsChunk.SuggestedExtension,
+		SuggestedExtension:    paramsChunk.MainClass.SuggestedExtension,
 	}
 
 	return res, nil

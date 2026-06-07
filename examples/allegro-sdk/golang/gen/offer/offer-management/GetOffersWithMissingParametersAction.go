@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"reflect"
 )
 
 /**
@@ -42,72 +41,12 @@ func GetOffersWithMissingParametersActionMeta() struct {
 		Description: `Use this resource to get information about required parameters or parameters scheduled to become required that are not filled in offers. Read more: PL / EN.`,
 	}
 }
-func GetGetOffersWithMissingParametersActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "offers",
-			Type: "array",
-		},
-		{
-			Name: prefix + "count",
-			Type: "int",
-		},
-		{
-			Name: prefix + "total-count",
-			Type: "int",
-		},
-	}
-}
-func CastGetOffersWithMissingParametersActionResFromCli(c emigo.CliCastable) GetOffersWithMissingParametersActionRes {
-	data := GetOffersWithMissingParametersActionRes{}
-	if c.IsSet("offers") {
-		data.Offers = emigo.CapturePossibleArray(CastGetOffersWithMissingParametersActionResOffersFromCli, "offers", c)
-	}
-	if c.IsSet("count") {
-		data.Count = int(c.Int64("count"))
-	}
-	if c.IsSet("total-count") {
-		data.TotalCount = int(c.Int64("total-count"))
-	}
-	return data
-}
 
 // The base class definition for getOffersWithMissingParametersActionRes
 type GetOffersWithMissingParametersActionRes struct {
 	Offers     emigo.Array[GetOffersWithMissingParametersActionResOffers] `json:"offers" yaml:"offers"`
 	Count      int                                                        `json:"count" yaml:"count"`
 	TotalCount int                                                        `json:"totalCount" yaml:"totalCount"`
-}
-
-func GetGetOffersWithMissingParametersActionResOffersCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "parameters",
-			Type: "array",
-		},
-		{
-			Name:     prefix + "category",
-			Type:     "object",
-			Children: GetGetOffersWithMissingParametersActionResOffersCategoryCliFlags("category-"),
-		},
-	}
-}
-func CastGetOffersWithMissingParametersActionResOffersFromCli(c emigo.CliCastable) GetOffersWithMissingParametersActionResOffers {
-	data := GetOffersWithMissingParametersActionResOffers{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	if c.IsSet("parameters") {
-		data.Parameters = emigo.CapturePossibleArray(CastGetOffersWithMissingParametersActionResOffersParametersFromCli, "parameters", c)
-	}
-	if c.IsSet("category") {
-		data.Category = CastGetOffersWithMissingParametersActionResOffersCategoryFromCli(c)
-	}
-	return data
 }
 
 // The base class definition for offers
@@ -117,41 +56,9 @@ type GetOffersWithMissingParametersActionResOffers struct {
 	Category   GetOffersWithMissingParametersActionResOffersCategory                `json:"category" yaml:"category"`
 }
 
-func GetGetOffersWithMissingParametersActionResOffersParametersCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastGetOffersWithMissingParametersActionResOffersParametersFromCli(c emigo.CliCastable) GetOffersWithMissingParametersActionResOffersParameters {
-	data := GetOffersWithMissingParametersActionResOffersParameters{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
-}
-
 // The base class definition for parameters
 type GetOffersWithMissingParametersActionResOffersParameters struct {
 	Id string `json:"id" yaml:"id"`
-}
-
-func GetGetOffersWithMissingParametersActionResOffersCategoryCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "id",
-			Type: "string",
-		},
-	}
-}
-func CastGetOffersWithMissingParametersActionResOffersCategoryFromCli(c emigo.CliCastable) GetOffersWithMissingParametersActionResOffersCategory {
-	data := GetOffersWithMissingParametersActionResOffersCategory{}
-	if c.IsSet("id") {
-		data.Id = c.String("id")
-	}
-	return data
 }
 
 // The base class definition for category
@@ -369,17 +276,6 @@ func GetOffersWithMissingParametersActionCall(
 	}
 	// This one would execute the request and cast the result.
 	return GetOffersWithMissingParametersActionClientExecuteTyped(r)
-}
-func (x GetOffersWithMissingParametersActionRequest) IsCli() bool {
-	if x.CliCtx == nil {
-		return false
-	}
-	v := reflect.ValueOf(x.CliCtx)
-	switch v.Kind() {
-	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface, reflect.Func, reflect.Chan:
-		return !v.IsNil()
-	}
-	return true
 }
 
 // GetOffersWithMissingParametersActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

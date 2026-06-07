@@ -161,7 +161,7 @@ func jsRenderField(
 	jsFieldType := jsFieldTypeOnNestedClasses(field, parentChain)
 	tsFieldType := tsFieldTypeOnNestedClasses(field, parentChain)
 	isFieldNullable := IsNullable(string(field.Type))
-	isTypeScript := strings.Contains(ctx.Tags, GEN_TYPESCRIPT_COMPATIBILITY)
+	isTypeScript := ctx.HasTag(Typescript)
 
 	jsdoc := NewJsDoc("  ")
 	jsdoc.Add(field.Description)
