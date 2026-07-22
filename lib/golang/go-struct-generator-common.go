@@ -72,7 +72,15 @@ func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fi
 	}
 
 	for _, f := range fields {
-		if f != nil && (f.Type == core.FieldTypeObject || f.Type == core.FieldTypeObjectNullable || f.Type == core.FieldTypeArray || f.Type == core.FieldTypeArrayNullable) {
+		// some fields, will need to generate inner structs
+		hasInnerStruct := f.Type == core.FieldTypeObject || f.Type == core.FieldTypeObjectNullable || f.Type == core.FieldTypeArray || f.Type == core.FieldTypeArrayNullable
+
+		// also, map, can have a struct, if the fields are available, and valueOf is not defined.
+		if (f.Type == core.FieldTypeMap || f.Type == core.FieldTypeMapNullable) && (f.MapPairOf == "" || f.MapPairOf == "slice" || f.MapPairOf == "object") && len(f.Fields) > 0 {
+			hasInnerStruct = true
+		}
+
+		if f != nil && (hasInnerStruct) {
 			childName := core.ToUpper(f.Name)
 			newDepth := fieldDepth + f.Name
 			if fieldDepth == "" {
@@ -284,12 +292,13 @@ func getSelfReferencingField(fieldTaret string, parentChain string) (bool, strin
 	return true, strings.ReplaceAll(fieldTaret, SELF_FIELD, strings.Split(parentChain, ".")[0])
 }
 
-func goListAndObjectTypes(field fieldLike, parentChain string) string {
+func goListAndObjectTypes(field fieldLike, parentChain string, prefix string) string {
 
 	// prefix := "emigo."
 	switch field.GetType() {
 
 	case core.FieldTypeMap, core.FieldTypeMapNullable:
+
 		keyType := "any"
 		pairType := "any"
 
@@ -297,8 +306,18 @@ func goListAndObjectTypes(field fieldLike, parentChain string) string {
 			keyType = field.GetMapKeyType()
 		}
 
-		if field.GetMapValueType() != "" {
+		// When a map has struct or array, this handles it.
+		if (field.GetMapValueType() == "" || field.GetMapValueType() == "object" || field.GetMapValueType() == "slice") && field.HasChildren() {
+
+			pairType = prefix
+
+			if field.GetMapValueType() == "slice" {
+				pairType = "[]" + pairType
+			}
+
+		} else {
 			pairType = field.GetMapValueType()
+
 		}
 
 		return fmt.Sprintf("map[%v]%v", keyType, pairType)
@@ -376,13 +395,13 @@ func IsComputedNullable(fieldType core.FieldType) bool {
 	return false
 }
 
-func goComputedField(field fieldLike, parentChain string) string {
+func goComputedField(field fieldLike, parentChain string, prefix string) string {
 
 	if goprimitive := goPrimitiveDetect(string(field.GetType())); goprimitive != "" {
 		return goprimitive
 	}
 
-	if computedType := goListAndObjectTypes(field, parentChain); computedType != "" {
+	if computedType := goListAndObjectTypes(field, parentChain, prefix); computedType != "" {
 		if core.IsNullable(string(field.GetType())) && !IsComputedNullable(field.GetType()) {
 			return fmt.Sprintf("emigo.Nullable[%v]", computedType)
 		} else {
@@ -420,7 +439,7 @@ func goFieldTypeOnNestedClasses(
 	case core.FieldTypeObjectNullable:
 		return fmt.Sprintf("emigo.Nullable[%v]", prefix)
 	default:
-		return goComputedField(field, goctx.RootClassName)
+		return goComputedField(field, goctx.RootClassName, prefix)
 	}
 }
 
