@@ -236,7 +236,9 @@
           "type": "string",
           "enum": [
             "go",
-            "js"
+            "js",
+            "kotlin",
+            "swift"
           ],
           "description": "The compiler which will be picked."
         },
@@ -598,11 +600,6 @@
           "title": "Includes",
           "description": "Included actions or patterns (supports wildcards)"
         },
-        "dist": {
-          "type": "string",
-          "title": "Dist",
-          "description": "The location that manifest will be written"
-        },
         "excludes": {
           "items": {
             "type": "string"
@@ -610,6 +607,11 @@
           "type": "array",
           "title": "Excludes",
           "description": "Excluded conditions or patterns"
+        },
+        "dist": {
+          "type": "string",
+          "title": "Dist",
+          "description": "The location that manifest will be written"
         }
       },
       "additionalProperties": false,

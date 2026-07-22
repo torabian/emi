@@ -9,8 +9,11 @@
           "type": "string",
           "description": "Represents where is the location of the module in app tree. Similar to PHP namespacing sytem it be used to explicitly as export path of the actions for client frameworks"
         },
-        "compiler": {
-          "$ref": "#/definitions/EmiCompilerItems",
+        "targets": {
+          "items": {
+            "$ref": "#/definitions/EmiCompile"
+          },
+          "type": "array",
           "description": "Compiler self containment"
         },
         "description": {
@@ -229,22 +232,22 @@
     },
     "EmiCompile": {
       "properties": {
+        "compiler": {
+          "type": "string",
+          "enum": [
+            "go",
+            "js",
+            "kotlin",
+            "swift"
+          ],
+          "description": "The compiler which will be picked."
+        },
         "flags": {
-          "items": {
+          "additionalProperties": {
             "type": "string"
           },
-          "type": "array",
+          "type": "object",
           "description": "The flags to be passed to the compiler"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object"
-    },
-    "EmiCompilerItems": {
-      "properties": {
-        "go": {
-          "$ref": "#/definitions/EmiCompile",
-          "description": "Golang compiler options"
         },
         "output": {
           "type": "string",
@@ -597,11 +600,6 @@
           "title": "Includes",
           "description": "Included actions or patterns (supports wildcards)"
         },
-        "dist": {
-          "type": "string",
-          "title": "Dist",
-          "description": "The location that manifest will be written"
-        },
         "excludes": {
           "items": {
             "type": "string"
@@ -609,6 +607,11 @@
           "type": "array",
           "title": "Excludes",
           "description": "Excluded conditions or patterns"
+        },
+        "dist": {
+          "type": "string",
+          "title": "Dist",
+          "description": "The location that manifest will be written"
         }
       },
       "additionalProperties": false,

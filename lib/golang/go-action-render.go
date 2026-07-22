@@ -143,6 +143,21 @@ func (x *{{ .realms.ActionName }}Response) WithIdeal(payload {{ .realms.IdealRes
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *{{ .realms.ActionName }}Response) AsIdeal() (*{{ .realms.IdealResponseType }}, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+
+	var res {{ .realms.IdealResponseType }}
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
 {{ end }}
 
 func (x *{{ .realms.ActionName }}Response) AsHTML(payload string) *{{ .realms.ActionName }}Response {
@@ -261,14 +276,14 @@ func {{ .realms.ActionName }}ClientExecuteTyped(httpReq *http.Request) (*{{ .rea
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &{{ .realms.ActionName }}Response{Payload: result}, err
+		return &result, err
 	}
 
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &{{ .realms.ActionName }}Response{Payload: result}, err
+		return &result, err
 	}
 
-	return &{{ .realms.ActionName }}Response{Payload: result}, nil
+	return &result, nil
 }
 
 func {{ .realms.ActionName }}ClientBuildRequest(req {{ .realms.ActionName }}Request, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
