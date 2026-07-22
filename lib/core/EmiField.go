@@ -90,6 +90,14 @@ func (x *EmiField) GetComplex() string {
 	return x.Complex
 }
 
+func (x *EmiField) HasChildren() bool {
+	return len(x.Fields) > 0
+}
+
+func (x *EmiField) GetFields() []*EmiField {
+	return x.Fields
+}
+
 func (x *EmiField) GetCliShort() string {
 	return ""
 }

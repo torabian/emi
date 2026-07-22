@@ -221,6 +221,7 @@ type fieldLike interface {
 	GetCliShort() string
 	GetComplex() string
 	GetDescription() string
+	HasChildren() bool
 	GetPrimitive() string
 	GetMapKeyType() string
 	GetMapValueType() string
