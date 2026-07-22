@@ -76,7 +76,7 @@ func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fi
 		hasInnerStruct := f.Type == core.FieldTypeObject || f.Type == core.FieldTypeObjectNullable || f.Type == core.FieldTypeArray || f.Type == core.FieldTypeArrayNullable
 
 		// also, map, can have a struct, if the fields are available, and valueOf is not defined.
-		if (f.Type == core.FieldTypeMap || f.Type == core.FieldTypeMapNullable) && f.MapPairOf == "" && len(f.Fields) > 0 {
+		if (f.Type == core.FieldTypeMap || f.Type == core.FieldTypeMapNullable) && (f.MapPairOf == "" || f.MapPairOf == "slice" || f.MapPairOf == "object") && len(f.Fields) > 0 {
 			hasInnerStruct = true
 		}
 
@@ -307,14 +307,14 @@ func goListAndObjectTypes(field fieldLike, parentChain string, prefix string) st
 		}
 
 		// When a map has struct or array, this handles it.
-		if field.GetMapValueType() == "" || field.GetMapValueType() == "object" || field.GetMapValueType() == "slice" {
-			if (field.GetType() == core.FieldTypeMap || field.GetType() == core.FieldTypeMapNullable) && field.GetMapValueType() == "" && field.HasChildren() {
-				pairType = prefix
+		if (field.GetMapValueType() == "" || field.GetMapValueType() == "object" || field.GetMapValueType() == "slice") && field.HasChildren() {
 
-				if field.GetMapValueType() == "slice" {
-					pairType = "[]" + pairType
-				}
+			pairType = prefix
+
+			if field.GetMapValueType() == "slice" {
+				pairType = "[]" + pairType
 			}
+
 		} else {
 			pairType = field.GetMapValueType()
 

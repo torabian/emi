@@ -23,7 +23,7 @@ type EmiField struct {
 	MapKeyOf string `yaml:"mapKeyOf,omitempty" json:"mapKeyOf,omitempty" jsonschema:"enum=string,enum=int,enum=any,description=In case of type map this is the map key type, can be a primitive."`
 
 	// In case of type map this is the map pair type, can be a primitive.
-	MapPairOf string `yaml:"mapPairOf,omitempty" json:"mapPairOf,omitempty" jsonschema:"enum=string,enum=int,enum=any,description=In case of type map this is the map key type, can be a primitive."`
+	MapPairOf string `yaml:"mapPairOf,omitempty" json:"mapPairOf,omitempty" jsonschema:"enum=string,enum=int,enum=any,enum=object,enum=slice,description=In case of type map this is the map key type, can be a primitive."`
 
 	// Primitive type in golang when type: slice is set
 	Primitive string `yaml:"primitive,omitempty" json:"primitive,omitempty" jsonschema:"enum=string,enum=bool,enum=int,enum=int32,enum=int64,enum=float32,enum=float64,enum=bytes,description=The primitve that is allowed for the slice is limited to following values"`
