@@ -164,6 +164,19 @@ func (x *BatchOfferPromotionPackageModificationActionResponse) WithIdeal(payload
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *BatchOfferPromotionPackageModificationActionResponse) AsIdeal() (*BatchOfferPromotionPackageModificationActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res BatchOfferPromotionPackageModificationActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *BatchOfferPromotionPackageModificationActionResponse) AsHTML(payload string) *BatchOfferPromotionPackageModificationActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -256,6 +269,15 @@ type BatchOfferPromotionPackageModificationActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x BatchOfferPromotionPackageModificationActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x BatchOfferPromotionPackageModificationActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func BatchOfferPromotionPackageModificationActionClientCreateUrl(
 	req BatchOfferPromotionPackageModificationActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -285,12 +307,12 @@ func BatchOfferPromotionPackageModificationActionClientExecuteTyped(httpReq *htt
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &BatchOfferPromotionPackageModificationActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &BatchOfferPromotionPackageModificationActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &BatchOfferPromotionPackageModificationActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func BatchOfferPromotionPackageModificationActionClientBuildRequest(req BatchOfferPromotionPackageModificationActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := BatchOfferPromotionPackageModificationActionMeta()

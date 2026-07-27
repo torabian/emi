@@ -99,6 +99,19 @@ func (x *PublishCommandSummaryActionResponse) WithIdeal(payload PublishCommandSu
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *PublishCommandSummaryActionResponse) AsIdeal() (*PublishCommandSummaryActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res PublishCommandSummaryActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *PublishCommandSummaryActionResponse) AsHTML(payload string) *PublishCommandSummaryActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -191,6 +204,15 @@ type PublishCommandSummaryActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x PublishCommandSummaryActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x PublishCommandSummaryActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func PublishCommandSummaryActionClientCreateUrl(
 	req PublishCommandSummaryActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -220,12 +242,12 @@ func PublishCommandSummaryActionClientExecuteTyped(httpReq *http.Request) (*Publ
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &PublishCommandSummaryActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &PublishCommandSummaryActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &PublishCommandSummaryActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func PublishCommandSummaryActionClientBuildRequest(req PublishCommandSummaryActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := PublishCommandSummaryActionMeta()

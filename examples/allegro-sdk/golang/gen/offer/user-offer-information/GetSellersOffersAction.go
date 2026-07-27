@@ -71,7 +71,7 @@ type GetSellersOffersActionResOffers struct {
 	B2b                 GetSellersOffersActionResOffersB2b                 `json:"b2b" yaml:"b2b"`
 	FundraisingCampaign GetSellersOffersActionResOffersFundraisingCampaign `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
 	// Marketplace-specific extensions for offer
-	AdditionalMarketplaces emigo.Nullable[map[any]any] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	AdditionalMarketplaces emigo.Nullable[map[any]GetSellersOffersActionResOffersAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
 }
 
 // The base class definition for category
@@ -223,6 +223,52 @@ type GetSellersOffersActionResOffersFundraisingCampaign struct {
 	Id string `json:"id" yaml:"id"`
 }
 
+// The base class definition for additionalMarketplaces
+type GetSellersOffersActionResOffersAdditionalMarketplaces struct {
+	Publication GetSellersOffersActionResOffersAdditionalMarketplacesPublication `json:"publication" yaml:"publication"`
+	SellingMode GetSellersOffersActionResOffersAdditionalMarketplacesSellingMode `json:"sellingMode" yaml:"sellingMode"`
+	Stats       GetSellersOffersActionResOffersAdditionalMarketplacesStats       `json:"stats" yaml:"stats"`
+	Stock       GetSellersOffersActionResOffersAdditionalMarketplacesStock       `json:"stock" yaml:"stock"`
+}
+
+// The base class definition for publication
+type GetSellersOffersActionResOffersAdditionalMarketplacesPublication struct {
+	State string `json:"state" yaml:"state"`
+}
+
+// The base class definition for sellingMode
+type GetSellersOffersActionResOffersAdditionalMarketplacesSellingMode struct {
+	Price           GetSellersOffersActionResOffersAdditionalMarketplacesSellingModePrice           `json:"price" yaml:"price"`
+	PriceAutomation GetSellersOffersActionResOffersAdditionalMarketplacesSellingModePriceAutomation `json:"priceAutomation" yaml:"priceAutomation"`
+}
+
+// The base class definition for price
+type GetSellersOffersActionResOffersAdditionalMarketplacesSellingModePrice struct {
+	Amount   string `json:"amount" yaml:"amount"`
+	Currency string `json:"currency" yaml:"currency"`
+}
+
+// The base class definition for priceAutomation
+type GetSellersOffersActionResOffersAdditionalMarketplacesSellingModePriceAutomation struct {
+	Rule GetSellersOffersActionResOffersAdditionalMarketplacesSellingModePriceAutomationRule `json:"rule" yaml:"rule"`
+}
+
+// The base class definition for rule
+type GetSellersOffersActionResOffersAdditionalMarketplacesSellingModePriceAutomationRule struct {
+	Id string `json:"id" yaml:"id"`
+}
+
+// The base class definition for stats
+type GetSellersOffersActionResOffersAdditionalMarketplacesStats struct {
+	WatchersCount int `json:"watchersCount" yaml:"watchersCount"`
+	VisitsCount   int `json:"visitsCount" yaml:"visitsCount"`
+}
+
+// The base class definition for stock
+type GetSellersOffersActionResOffersAdditionalMarketplacesStock struct {
+	Sold int `json:"sold" yaml:"sold"`
+}
+
 func (x *GetSellersOffersActionRes) Json() string {
 	if x != nil {
 		str, _ := json.MarshalIndent(x, "", "  ")
@@ -264,6 +310,19 @@ func (x *GetSellersOffersActionResponse) AsJSON(payload any) *GetSellersOffersAc
 func (x *GetSellersOffersActionResponse) WithIdeal(payload GetSellersOffersActionRes) *GetSellersOffersActionResponse {
 	x.Payload = payload
 	return x
+}
+
+// Use this for client calls, so the payload is being casted
+func (x *GetSellersOffersActionResponse) AsIdeal() (*GetSellersOffersActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res GetSellersOffersActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
 }
 func (x *GetSellersOffersActionResponse) AsHTML(payload string) *GetSellersOffersActionResponse {
 	x.Payload = payload
@@ -357,6 +416,15 @@ type GetSellersOffersActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x GetSellersOffersActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x GetSellersOffersActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func GetSellersOffersActionClientCreateUrl(
 	req GetSellersOffersActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -386,12 +454,12 @@ func GetSellersOffersActionClientExecuteTyped(httpReq *http.Request) (*GetSeller
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &GetSellersOffersActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &GetSellersOffersActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &GetSellersOffersActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func GetSellersOffersActionClientBuildRequest(req GetSellersOffersActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := GetSellersOffersActionMeta()

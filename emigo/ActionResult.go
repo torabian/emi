@@ -10,3 +10,11 @@ type EmiActionResult interface {
 	GetRespHeaders() map[string]string
 	GetPayload() interface{}
 }
+
+// Each emi request will implement this
+// so user of the generated code can kinda predict
+// what are the context features
+type EmiRequestContexts interface {
+	GetGinCtx() interface{}
+	GetCliCtx() interface{}
+}

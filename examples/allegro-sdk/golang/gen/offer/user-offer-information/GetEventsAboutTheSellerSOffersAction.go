@@ -114,6 +114,19 @@ func (x *GetEventsAboutTheSellerSOffersActionResponse) WithIdeal(payload GetEven
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *GetEventsAboutTheSellerSOffersActionResponse) AsIdeal() (*GetEventsAboutTheSellerSOffersActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res GetEventsAboutTheSellerSOffersActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *GetEventsAboutTheSellerSOffersActionResponse) AsHTML(payload string) *GetEventsAboutTheSellerSOffersActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -206,6 +219,15 @@ type GetEventsAboutTheSellerSOffersActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x GetEventsAboutTheSellerSOffersActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x GetEventsAboutTheSellerSOffersActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func GetEventsAboutTheSellerSOffersActionClientCreateUrl(
 	req GetEventsAboutTheSellerSOffersActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -235,12 +257,12 @@ func GetEventsAboutTheSellerSOffersActionClientExecuteTyped(httpReq *http.Reques
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &GetEventsAboutTheSellerSOffersActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &GetEventsAboutTheSellerSOffersActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &GetEventsAboutTheSellerSOffersActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func GetEventsAboutTheSellerSOffersActionClientBuildRequest(req GetEventsAboutTheSellerSOffersActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := GetEventsAboutTheSellerSOffersActionMeta()

@@ -149,6 +149,19 @@ func (x *GetSelectedDataOfTheParticularProductOfferActionResponse) WithIdeal(pay
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *GetSelectedDataOfTheParticularProductOfferActionResponse) AsIdeal() (*GetSelectedDataOfTheParticularProductOfferActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res GetSelectedDataOfTheParticularProductOfferActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *GetSelectedDataOfTheParticularProductOfferActionResponse) AsHTML(payload string) *GetSelectedDataOfTheParticularProductOfferActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -241,6 +254,15 @@ type GetSelectedDataOfTheParticularProductOfferActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x GetSelectedDataOfTheParticularProductOfferActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x GetSelectedDataOfTheParticularProductOfferActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func GetSelectedDataOfTheParticularProductOfferActionClientCreateUrl(
 	req GetSelectedDataOfTheParticularProductOfferActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -270,12 +292,12 @@ func GetSelectedDataOfTheParticularProductOfferActionClientExecuteTyped(httpReq 
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &GetSelectedDataOfTheParticularProductOfferActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &GetSelectedDataOfTheParticularProductOfferActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &GetSelectedDataOfTheParticularProductOfferActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func GetSelectedDataOfTheParticularProductOfferActionClientBuildRequest(req GetSelectedDataOfTheParticularProductOfferActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := GetSelectedDataOfTheParticularProductOfferActionMeta()

@@ -118,6 +118,19 @@ func (x *PublishCommandDetailedReportActionResponse) WithIdeal(payload PublishCo
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *PublishCommandDetailedReportActionResponse) AsIdeal() (*PublishCommandDetailedReportActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res PublishCommandDetailedReportActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *PublishCommandDetailedReportActionResponse) AsHTML(payload string) *PublishCommandDetailedReportActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -210,6 +223,15 @@ type PublishCommandDetailedReportActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x PublishCommandDetailedReportActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x PublishCommandDetailedReportActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func PublishCommandDetailedReportActionClientCreateUrl(
 	req PublishCommandDetailedReportActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -239,12 +261,12 @@ func PublishCommandDetailedReportActionClientExecuteTyped(httpReq *http.Request)
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &PublishCommandDetailedReportActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &PublishCommandDetailedReportActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &PublishCommandDetailedReportActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func PublishCommandDetailedReportActionClientBuildRequest(req PublishCommandDetailedReportActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := PublishCommandDetailedReportActionMeta()

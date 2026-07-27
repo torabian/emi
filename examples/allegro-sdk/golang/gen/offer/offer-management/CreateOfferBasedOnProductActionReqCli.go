@@ -759,6 +759,60 @@ func CastCreateOfferBasedOnProductActionReqPublicationFromCli(c emigo.CliCastabl
 	}
 	return data
 }
+func GetCreateOfferBasedOnProductActionReqAdditionalMarketplacesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "selling-mode",
+			Type:     "object",
+			Children: GetCreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModeCliFlags("selling-mode-"),
+		},
+	}
+}
+func CastCreateOfferBasedOnProductActionReqAdditionalMarketplacesFromCli(c emigo.CliCastable) CreateOfferBasedOnProductActionReqAdditionalMarketplaces {
+	data := CreateOfferBasedOnProductActionReqAdditionalMarketplaces{}
+	if c.IsSet("selling-mode") {
+		data.SellingMode = CastCreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModeFromCli(c)
+	}
+	return data
+}
+func GetCreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModeCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "price",
+			Type:     "object",
+			Children: GetCreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModePriceCliFlags("price-"),
+		},
+	}
+}
+func CastCreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModeFromCli(c emigo.CliCastable) CreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingMode {
+	data := CreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingMode{}
+	if c.IsSet("price") {
+		data.Price = CastCreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModePriceFromCli(c)
+	}
+	return data
+}
+func GetCreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModePriceCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "amount",
+			Type: "string",
+		},
+		{
+			Name: prefix + "currency",
+			Type: "string",
+		},
+	}
+}
+func CastCreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModePriceFromCli(c emigo.CliCastable) CreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModePrice {
+	data := CreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModePrice{}
+	if c.IsSet("amount") {
+		data.Amount = c.String("amount")
+	}
+	if c.IsSet("currency") {
+		data.Currency = c.String("currency")
+	}
+	return data
+}
 func GetCreateOfferBasedOnProductActionReqCompatibilityListCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{

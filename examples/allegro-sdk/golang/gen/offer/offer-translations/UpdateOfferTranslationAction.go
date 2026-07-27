@@ -213,6 +213,15 @@ type UpdateOfferTranslationActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x UpdateOfferTranslationActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x UpdateOfferTranslationActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func UpdateOfferTranslationActionClientCreateUrl(
 	req UpdateOfferTranslationActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -242,12 +251,12 @@ func UpdateOfferTranslationActionClientExecuteTyped(httpReq *http.Request) (*Upd
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &UpdateOfferTranslationActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &UpdateOfferTranslationActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &UpdateOfferTranslationActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func UpdateOfferTranslationActionClientBuildRequest(req UpdateOfferTranslationActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := UpdateOfferTranslationActionMeta()
