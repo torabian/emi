@@ -102,6 +102,19 @@ func (x *CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResponse) WithIdeal(
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResponse) AsIdeal() (*CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResponse) AsHTML(payload string) *CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -194,6 +207,15 @@ type CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionClientCreateUrl(
 	req CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -223,12 +245,12 @@ func CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionClientExecuteTyped(httpR
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionClientBuildRequest(req CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := CheckTheProcessingStatusOfAPOSTOrPATCHRequestActionMeta()

@@ -51,28 +51,28 @@ type CreateOfferBasedOnProductActionReq struct {
 	Language string                                     `json:"language" yaml:"language"`
 	Category CreateOfferBasedOnProductActionReqCategory `json:"category" yaml:"category"`
 	// Product details and associated quantities
-	ProductSet              emigo.Array[CreateOfferBasedOnProductActionReqProductSet]  `json:"productSet" yaml:"productSet"`
-	Stock                   CreateOfferBasedOnProductActionReqStock                    `json:"stock" yaml:"stock"`
-	SellingMode             CreateOfferBasedOnProductActionReqSellingMode              `json:"sellingMode" yaml:"sellingMode"`
-	Payments                CreateOfferBasedOnProductActionReqPayments                 `json:"payments" yaml:"payments"`
-	Delivery                CreateOfferBasedOnProductActionReqDelivery                 `json:"delivery" yaml:"delivery"`
-	Publication             CreateOfferBasedOnProductActionReqPublication              `json:"publication" yaml:"publication"`
-	AdditionalMarketplaces  emigo.Nullable[map[any]any]                                `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
-	CompatibilityList       CreateOfferBasedOnProductActionReqCompatibilityList        `json:"compatibilityList" yaml:"compatibilityList"`
-	Images                  []string                                                   `json:"images" yaml:"images"`
-	Description             CreateOfferBasedOnProductActionReqDescription              `json:"description" yaml:"description"`
-	B2b                     CreateOfferBasedOnProductActionReqB2b                      `json:"b2b" yaml:"b2b"`
-	Attachments             emigo.Array[CreateOfferBasedOnProductActionReqAttachments] `json:"attachments" yaml:"attachments"`
-	FundraisingCampaign     CreateOfferBasedOnProductActionReqFundraisingCampaign      `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
-	AdditionalServices      CreateOfferBasedOnProductActionReqAdditionalServices       `json:"additionalServices" yaml:"additionalServices"`
-	AfterSalesServices      CreateOfferBasedOnProductActionReqAfterSalesServices       `json:"afterSalesServices" yaml:"afterSalesServices"`
-	SizeTable               CreateOfferBasedOnProductActionReqSizeTable                `json:"sizeTable" yaml:"sizeTable"`
-	Contact                 CreateOfferBasedOnProductActionReqContact                  `json:"contact" yaml:"contact"`
-	Discounts               CreateOfferBasedOnProductActionReqDiscounts                `json:"discounts" yaml:"discounts"`
-	Location                CreateOfferBasedOnProductActionReqLocation                 `json:"location" yaml:"location"`
-	External                CreateOfferBasedOnProductActionReqExternal                 `json:"external" yaml:"external"`
-	TaxSettings             CreateOfferBasedOnProductActionReqTaxSettings              `json:"taxSettings" yaml:"taxSettings"`
-	MessageToSellerSettings CreateOfferBasedOnProductActionReqMessageToSellerSettings  `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
+	ProductSet              emigo.Array[CreateOfferBasedOnProductActionReqProductSet]                        `json:"productSet" yaml:"productSet"`
+	Stock                   CreateOfferBasedOnProductActionReqStock                                          `json:"stock" yaml:"stock"`
+	SellingMode             CreateOfferBasedOnProductActionReqSellingMode                                    `json:"sellingMode" yaml:"sellingMode"`
+	Payments                CreateOfferBasedOnProductActionReqPayments                                       `json:"payments" yaml:"payments"`
+	Delivery                CreateOfferBasedOnProductActionReqDelivery                                       `json:"delivery" yaml:"delivery"`
+	Publication             CreateOfferBasedOnProductActionReqPublication                                    `json:"publication" yaml:"publication"`
+	AdditionalMarketplaces  emigo.Nullable[map[any]CreateOfferBasedOnProductActionReqAdditionalMarketplaces] `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	CompatibilityList       CreateOfferBasedOnProductActionReqCompatibilityList                              `json:"compatibilityList" yaml:"compatibilityList"`
+	Images                  []string                                                                         `json:"images" yaml:"images"`
+	Description             CreateOfferBasedOnProductActionReqDescription                                    `json:"description" yaml:"description"`
+	B2b                     CreateOfferBasedOnProductActionReqB2b                                            `json:"b2b" yaml:"b2b"`
+	Attachments             emigo.Array[CreateOfferBasedOnProductActionReqAttachments]                       `json:"attachments" yaml:"attachments"`
+	FundraisingCampaign     CreateOfferBasedOnProductActionReqFundraisingCampaign                            `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
+	AdditionalServices      CreateOfferBasedOnProductActionReqAdditionalServices                             `json:"additionalServices" yaml:"additionalServices"`
+	AfterSalesServices      CreateOfferBasedOnProductActionReqAfterSalesServices                             `json:"afterSalesServices" yaml:"afterSalesServices"`
+	SizeTable               CreateOfferBasedOnProductActionReqSizeTable                                      `json:"sizeTable" yaml:"sizeTable"`
+	Contact                 CreateOfferBasedOnProductActionReqContact                                        `json:"contact" yaml:"contact"`
+	Discounts               CreateOfferBasedOnProductActionReqDiscounts                                      `json:"discounts" yaml:"discounts"`
+	Location                CreateOfferBasedOnProductActionReqLocation                                       `json:"location" yaml:"location"`
+	External                CreateOfferBasedOnProductActionReqExternal                                       `json:"external" yaml:"external"`
+	TaxSettings             CreateOfferBasedOnProductActionReqTaxSettings                                    `json:"taxSettings" yaml:"taxSettings"`
+	MessageToSellerSettings CreateOfferBasedOnProductActionReqMessageToSellerSettings                        `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
 }
 
 // The base class definition for category
@@ -208,6 +208,22 @@ type CreateOfferBasedOnProductActionReqPublication struct {
 	EndingAt   string `json:"endingAt" yaml:"endingAt"`
 	Status     string `json:"status" yaml:"status"`
 	Republish  bool   `json:"republish" yaml:"republish"`
+}
+
+// The base class definition for additionalMarketplaces
+type CreateOfferBasedOnProductActionReqAdditionalMarketplaces struct {
+	SellingMode CreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingMode `json:"sellingMode" yaml:"sellingMode"`
+}
+
+// The base class definition for sellingMode
+type CreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingMode struct {
+	Price CreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModePrice `json:"price" yaml:"price"`
+}
+
+// The base class definition for price
+type CreateOfferBasedOnProductActionReqAdditionalMarketplacesSellingModePrice struct {
+	Amount   string `json:"amount" yaml:"amount"`
+	Currency string `json:"currency" yaml:"currency"`
 }
 
 // The base class definition for compatibilityList
@@ -465,6 +481,15 @@ type CreateOfferBasedOnProductActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x CreateOfferBasedOnProductActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x CreateOfferBasedOnProductActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func CreateOfferBasedOnProductActionClientCreateUrl(
 	req CreateOfferBasedOnProductActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -494,12 +519,12 @@ func CreateOfferBasedOnProductActionClientExecuteTyped(httpReq *http.Request) (*
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &CreateOfferBasedOnProductActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &CreateOfferBasedOnProductActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &CreateOfferBasedOnProductActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func CreateOfferBasedOnProductActionClientBuildRequest(req CreateOfferBasedOnProductActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := CreateOfferBasedOnProductActionMeta()

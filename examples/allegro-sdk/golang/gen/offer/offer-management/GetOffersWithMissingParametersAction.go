@@ -108,6 +108,19 @@ func (x *GetOffersWithMissingParametersActionResponse) WithIdeal(payload GetOffe
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *GetOffersWithMissingParametersActionResponse) AsIdeal() (*GetOffersWithMissingParametersActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res GetOffersWithMissingParametersActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *GetOffersWithMissingParametersActionResponse) AsHTML(payload string) *GetOffersWithMissingParametersActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -200,6 +213,15 @@ type GetOffersWithMissingParametersActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x GetOffersWithMissingParametersActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x GetOffersWithMissingParametersActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func GetOffersWithMissingParametersActionClientCreateUrl(
 	req GetOffersWithMissingParametersActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -229,12 +251,12 @@ func GetOffersWithMissingParametersActionClientExecuteTyped(httpReq *http.Reques
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &GetOffersWithMissingParametersActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &GetOffersWithMissingParametersActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &GetOffersWithMissingParametersActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func GetOffersWithMissingParametersActionClientBuildRequest(req GetOffersWithMissingParametersActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := GetOffersWithMissingParametersActionMeta()

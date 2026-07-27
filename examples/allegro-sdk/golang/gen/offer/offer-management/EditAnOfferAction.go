@@ -45,31 +45,31 @@ func EditAnOfferActionMeta() struct {
 
 // The base class definition for editAnOfferActionReq
 type EditAnOfferActionReq struct {
-	Name                    string                                       `json:"name" yaml:"name"`
-	Language                string                                       `json:"language" yaml:"language"`
-	Category                EditAnOfferActionReqCategory                 `json:"category" yaml:"category"`
-	ProductSet              emigo.Array[EditAnOfferActionReqProductSet]  `json:"productSet" yaml:"productSet"`
-	Stock                   EditAnOfferActionReqStock                    `json:"stock" yaml:"stock"`
-	SellingMode             EditAnOfferActionReqSellingMode              `json:"sellingMode" yaml:"sellingMode"`
-	Payments                EditAnOfferActionReqPayments                 `json:"payments" yaml:"payments"`
-	Delivery                EditAnOfferActionReqDelivery                 `json:"delivery" yaml:"delivery"`
-	Publication             EditAnOfferActionReqPublication              `json:"publication" yaml:"publication"`
-	AdditionalMarketplaces  map[any]any                                  `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
-	CompatibilityList       EditAnOfferActionReqCompatibilityList        `json:"compatibilityList" yaml:"compatibilityList"`
-	Images                  []string                                     `json:"images" yaml:"images"`
-	Description             EditAnOfferActionReqDescription              `json:"description" yaml:"description"`
-	B2b                     EditAnOfferActionReqB2b                      `json:"b2b" yaml:"b2b"`
-	Attachments             emigo.Array[EditAnOfferActionReqAttachments] `json:"attachments" yaml:"attachments"`
-	FundraisingCampaign     EditAnOfferActionReqFundraisingCampaign      `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
-	AdditionalServices      EditAnOfferActionReqAdditionalServices       `json:"additionalServices" yaml:"additionalServices"`
-	AfterSalesServices      EditAnOfferActionReqAfterSalesServices       `json:"afterSalesServices" yaml:"afterSalesServices"`
-	SizeTable               EditAnOfferActionReqSizeTable                `json:"sizeTable" yaml:"sizeTable"`
-	Contact                 EditAnOfferActionReqContact                  `json:"contact" yaml:"contact"`
-	Discounts               EditAnOfferActionReqDiscounts                `json:"discounts" yaml:"discounts"`
-	Location                EditAnOfferActionReqLocation                 `json:"location" yaml:"location"`
-	External                EditAnOfferActionReqExternal                 `json:"external" yaml:"external"`
-	TaxSettings             EditAnOfferActionReqTaxSettings              `json:"taxSettings" yaml:"taxSettings"`
-	MessageToSellerSettings EditAnOfferActionReqMessageToSellerSettings  `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
+	Name                    string                                             `json:"name" yaml:"name"`
+	Language                string                                             `json:"language" yaml:"language"`
+	Category                EditAnOfferActionReqCategory                       `json:"category" yaml:"category"`
+	ProductSet              emigo.Array[EditAnOfferActionReqProductSet]        `json:"productSet" yaml:"productSet"`
+	Stock                   EditAnOfferActionReqStock                          `json:"stock" yaml:"stock"`
+	SellingMode             EditAnOfferActionReqSellingMode                    `json:"sellingMode" yaml:"sellingMode"`
+	Payments                EditAnOfferActionReqPayments                       `json:"payments" yaml:"payments"`
+	Delivery                EditAnOfferActionReqDelivery                       `json:"delivery" yaml:"delivery"`
+	Publication             EditAnOfferActionReqPublication                    `json:"publication" yaml:"publication"`
+	AdditionalMarketplaces  map[any]EditAnOfferActionReqAdditionalMarketplaces `json:"additionalMarketplaces" yaml:"additionalMarketplaces"`
+	CompatibilityList       EditAnOfferActionReqCompatibilityList              `json:"compatibilityList" yaml:"compatibilityList"`
+	Images                  []string                                           `json:"images" yaml:"images"`
+	Description             EditAnOfferActionReqDescription                    `json:"description" yaml:"description"`
+	B2b                     EditAnOfferActionReqB2b                            `json:"b2b" yaml:"b2b"`
+	Attachments             emigo.Array[EditAnOfferActionReqAttachments]       `json:"attachments" yaml:"attachments"`
+	FundraisingCampaign     EditAnOfferActionReqFundraisingCampaign            `json:"fundraisingCampaign" yaml:"fundraisingCampaign"`
+	AdditionalServices      EditAnOfferActionReqAdditionalServices             `json:"additionalServices" yaml:"additionalServices"`
+	AfterSalesServices      EditAnOfferActionReqAfterSalesServices             `json:"afterSalesServices" yaml:"afterSalesServices"`
+	SizeTable               EditAnOfferActionReqSizeTable                      `json:"sizeTable" yaml:"sizeTable"`
+	Contact                 EditAnOfferActionReqContact                        `json:"contact" yaml:"contact"`
+	Discounts               EditAnOfferActionReqDiscounts                      `json:"discounts" yaml:"discounts"`
+	Location                EditAnOfferActionReqLocation                       `json:"location" yaml:"location"`
+	External                EditAnOfferActionReqExternal                       `json:"external" yaml:"external"`
+	TaxSettings             EditAnOfferActionReqTaxSettings                    `json:"taxSettings" yaml:"taxSettings"`
+	MessageToSellerSettings EditAnOfferActionReqMessageToSellerSettings        `json:"messageToSellerSettings" yaml:"messageToSellerSettings"`
 }
 
 // The base class definition for category
@@ -204,6 +204,22 @@ type EditAnOfferActionReqPublication struct {
 	EndingAt   string `json:"endingAt" yaml:"endingAt"`
 	Status     string `json:"status" yaml:"status"`
 	Republish  bool   `json:"republish" yaml:"republish"`
+}
+
+// The base class definition for additionalMarketplaces
+type EditAnOfferActionReqAdditionalMarketplaces struct {
+	SellingMode EditAnOfferActionReqAdditionalMarketplacesSellingMode `json:"sellingMode" yaml:"sellingMode"`
+}
+
+// The base class definition for sellingMode
+type EditAnOfferActionReqAdditionalMarketplacesSellingMode struct {
+	Price EditAnOfferActionReqAdditionalMarketplacesSellingModePrice `json:"price" yaml:"price"`
+}
+
+// The base class definition for price
+type EditAnOfferActionReqAdditionalMarketplacesSellingModePrice struct {
+	Amount   string `json:"amount" yaml:"amount"`
+	Currency string `json:"currency" yaml:"currency"`
 }
 
 // The base class definition for compatibilityList
@@ -752,6 +768,19 @@ func (x *EditAnOfferActionResponse) WithIdeal(payload EditAnOfferActionRes) *Edi
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *EditAnOfferActionResponse) AsIdeal() (*EditAnOfferActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res EditAnOfferActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *EditAnOfferActionResponse) AsHTML(payload string) *EditAnOfferActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -844,6 +873,15 @@ type EditAnOfferActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x EditAnOfferActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x EditAnOfferActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func EditAnOfferActionClientCreateUrl(
 	req EditAnOfferActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -873,12 +911,12 @@ func EditAnOfferActionClientExecuteTyped(httpReq *http.Request) (*EditAnOfferAct
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &EditAnOfferActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &EditAnOfferActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &EditAnOfferActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func EditAnOfferActionClientBuildRequest(req EditAnOfferActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := EditAnOfferActionMeta()

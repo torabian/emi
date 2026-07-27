@@ -135,6 +135,19 @@ func (x *GetSmartClassificationReportOfTheParticularOfferActionResponse) WithIde
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *GetSmartClassificationReportOfTheParticularOfferActionResponse) AsIdeal() (*GetSmartClassificationReportOfTheParticularOfferActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res GetSmartClassificationReportOfTheParticularOfferActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *GetSmartClassificationReportOfTheParticularOfferActionResponse) AsHTML(payload string) *GetSmartClassificationReportOfTheParticularOfferActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -227,6 +240,15 @@ type GetSmartClassificationReportOfTheParticularOfferActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x GetSmartClassificationReportOfTheParticularOfferActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x GetSmartClassificationReportOfTheParticularOfferActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func GetSmartClassificationReportOfTheParticularOfferActionClientCreateUrl(
 	req GetSmartClassificationReportOfTheParticularOfferActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -256,12 +278,12 @@ func GetSmartClassificationReportOfTheParticularOfferActionClientExecuteTyped(ht
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &GetSmartClassificationReportOfTheParticularOfferActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &GetSmartClassificationReportOfTheParticularOfferActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &GetSmartClassificationReportOfTheParticularOfferActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func GetSmartClassificationReportOfTheParticularOfferActionClientBuildRequest(req GetSmartClassificationReportOfTheParticularOfferActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := GetSmartClassificationReportOfTheParticularOfferActionMeta()

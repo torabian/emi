@@ -752,6 +752,60 @@ func CastEditAnOfferActionReqPublicationFromCli(c emigo.CliCastable) EditAnOffer
 	}
 	return data
 }
+func GetEditAnOfferActionReqAdditionalMarketplacesCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "selling-mode",
+			Type:     "object",
+			Children: GetEditAnOfferActionReqAdditionalMarketplacesSellingModeCliFlags("selling-mode-"),
+		},
+	}
+}
+func CastEditAnOfferActionReqAdditionalMarketplacesFromCli(c emigo.CliCastable) EditAnOfferActionReqAdditionalMarketplaces {
+	data := EditAnOfferActionReqAdditionalMarketplaces{}
+	if c.IsSet("selling-mode") {
+		data.SellingMode = CastEditAnOfferActionReqAdditionalMarketplacesSellingModeFromCli(c)
+	}
+	return data
+}
+func GetEditAnOfferActionReqAdditionalMarketplacesSellingModeCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name:     prefix + "price",
+			Type:     "object",
+			Children: GetEditAnOfferActionReqAdditionalMarketplacesSellingModePriceCliFlags("price-"),
+		},
+	}
+}
+func CastEditAnOfferActionReqAdditionalMarketplacesSellingModeFromCli(c emigo.CliCastable) EditAnOfferActionReqAdditionalMarketplacesSellingMode {
+	data := EditAnOfferActionReqAdditionalMarketplacesSellingMode{}
+	if c.IsSet("price") {
+		data.Price = CastEditAnOfferActionReqAdditionalMarketplacesSellingModePriceFromCli(c)
+	}
+	return data
+}
+func GetEditAnOfferActionReqAdditionalMarketplacesSellingModePriceCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "amount",
+			Type: "string",
+		},
+		{
+			Name: prefix + "currency",
+			Type: "string",
+		},
+	}
+}
+func CastEditAnOfferActionReqAdditionalMarketplacesSellingModePriceFromCli(c emigo.CliCastable) EditAnOfferActionReqAdditionalMarketplacesSellingModePrice {
+	data := EditAnOfferActionReqAdditionalMarketplacesSellingModePrice{}
+	if c.IsSet("amount") {
+		data.Amount = c.String("amount")
+	}
+	if c.IsSet("currency") {
+		data.Currency = c.String("currency")
+	}
+	return data
+}
 func GetEditAnOfferActionReqCompatibilityListCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{

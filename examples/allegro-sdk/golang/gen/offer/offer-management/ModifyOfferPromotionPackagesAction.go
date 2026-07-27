@@ -195,6 +195,19 @@ func (x *ModifyOfferPromotionPackagesActionResponse) WithIdeal(payload ModifyOff
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *ModifyOfferPromotionPackagesActionResponse) AsIdeal() (*ModifyOfferPromotionPackagesActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res ModifyOfferPromotionPackagesActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *ModifyOfferPromotionPackagesActionResponse) AsHTML(payload string) *ModifyOfferPromotionPackagesActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -287,6 +300,15 @@ type ModifyOfferPromotionPackagesActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x ModifyOfferPromotionPackagesActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x ModifyOfferPromotionPackagesActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func ModifyOfferPromotionPackagesActionClientCreateUrl(
 	req ModifyOfferPromotionPackagesActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -316,12 +338,12 @@ func ModifyOfferPromotionPackagesActionClientExecuteTyped(httpReq *http.Request)
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &ModifyOfferPromotionPackagesActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &ModifyOfferPromotionPackagesActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &ModifyOfferPromotionPackagesActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func ModifyOfferPromotionPackagesActionClientBuildRequest(req ModifyOfferPromotionPackagesActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := ModifyOfferPromotionPackagesActionMeta()

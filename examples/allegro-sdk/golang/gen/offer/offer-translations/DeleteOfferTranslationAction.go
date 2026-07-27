@@ -161,6 +161,15 @@ type DeleteOfferTranslationActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x DeleteOfferTranslationActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x DeleteOfferTranslationActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func DeleteOfferTranslationActionClientCreateUrl(
 	req DeleteOfferTranslationActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -190,12 +199,12 @@ func DeleteOfferTranslationActionClientExecuteTyped(httpReq *http.Request) (*Del
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &DeleteOfferTranslationActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &DeleteOfferTranslationActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &DeleteOfferTranslationActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func DeleteOfferTranslationActionClientBuildRequest(req DeleteOfferTranslationActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := DeleteOfferTranslationActionMeta()

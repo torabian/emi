@@ -167,6 +167,19 @@ func (x *GetPromoOptionsForSellerSOffersActionResponse) WithIdeal(payload GetPro
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *GetPromoOptionsForSellerSOffersActionResponse) AsIdeal() (*GetPromoOptionsForSellerSOffersActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res GetPromoOptionsForSellerSOffersActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *GetPromoOptionsForSellerSOffersActionResponse) AsHTML(payload string) *GetPromoOptionsForSellerSOffersActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -259,6 +272,15 @@ type GetPromoOptionsForSellerSOffersActionRequest struct {
 	Application interface{}
 }
 
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x GetPromoOptionsForSellerSOffersActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x GetPromoOptionsForSellerSOffersActionRequest) GetCliCtx() interface{} {
+	return x.GinCtx
+}
 func GetPromoOptionsForSellerSOffersActionClientCreateUrl(
 	req GetPromoOptionsForSellerSOffersActionRequest,
 	config *emigo.APIClient, // optional pre-built request
@@ -288,12 +310,12 @@ func GetPromoOptionsForSellerSOffersActionClientExecuteTyped(httpReq *http.Reque
 	defer resp.Body.Close()
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return &GetPromoOptionsForSellerSOffersActionResponse{Payload: result}, err
+		return &result, err
 	}
 	if err := json.Unmarshal(respBody, &result.Payload); err != nil {
-		return &GetPromoOptionsForSellerSOffersActionResponse{Payload: result}, err
+		return &result, err
 	}
-	return &GetPromoOptionsForSellerSOffersActionResponse{Payload: result}, nil
+	return &result, nil
 }
 func GetPromoOptionsForSellerSOffersActionClientBuildRequest(req GetPromoOptionsForSellerSOffersActionRequest, reqUrl *url.URL, config *emigo.APIClient) (*http.Request, error) {
 	meta := GetPromoOptionsForSellerSOffersActionMeta()
