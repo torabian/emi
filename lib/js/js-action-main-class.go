@@ -181,7 +181,7 @@ export class {{ .className }} { //
 	);
  
 
-  static Method = '{{ .fetchctx.ActionMethod }}';
+  static Method = '{{ UPPER .fetchctx.ActionMethod }}';
   
 
   {{ if .fetchStaticFunction }}
