@@ -133,7 +133,7 @@ export class SampleSseAction {
   static URL = "http://localhost:3000/stream";
   static NewUrl = (qs?: URLSearchParams) =>
     buildUrl(SampleSseAction.URL, undefined, qs);
-  static Method = "get";
+  static Method = "GET";
   static Fetch$ = async (
     qs?: URLSearchParams,
     ctx?: FetchxContext | null,

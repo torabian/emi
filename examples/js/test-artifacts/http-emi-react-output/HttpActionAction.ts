@@ -134,7 +134,7 @@ export class HttpActionAction {
   static URL = "http://localhost:8081 (for test we use override)";
   static NewUrl = (qs?: URLSearchParams) =>
     buildUrl(HttpActionAction.URL, undefined, qs);
-  static Method = "get";
+  static Method = "GET";
   static Fetch$ = async (
     qs?: URLSearchParams,
     ctx?: FetchxContext | null,

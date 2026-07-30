@@ -27,7 +27,7 @@ export class WebSocketOrgEchoAction {
   static URL = "wss://echo.websocket.org/.ws";
   static NewUrl = (qs?: URLSearchParams) =>
     buildUrl(WebSocketOrgEchoAction.URL, undefined, qs);
-  static Method = "reactive";
+  static Method = "REACTIVE";
   static Create = (overrideUrl?: string, qs?: URLSearchParams, options) => {
     const url = overrideUrl ?? WebSocketOrgEchoAction.NewUrl(qs);
     const Cls = options?.SocketClass

@@ -23,6 +23,11 @@ func NullableOf[T any](v T) Nullable[T] {
 	return Nullable[T]{value: &v, isSet: true}
 }
 
+// Creates a new explicit null, for given datatype.
+func NewNull[T any]() Nullable[T] {
+	return Nullable[T]{value: nil, isSet: true}
+}
+
 // NullableOfPtr creates a Nullable[T] from a pointer of type *T.
 // The Nullable will store the pointer directly, so modifying the
 // Nullable value will affect the original object.

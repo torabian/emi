@@ -145,7 +145,7 @@ export class GetSinglePostAction {
     params: GetSinglePostActionPathParameter,
     qs?: URLSearchParams,
   ) => buildUrl(GetSinglePostAction.URL, params, qs);
-  static Method = "get";
+  static Method = "GET";
   static Fetch$ = async (
     params: GetSinglePostActionPathParameter,
     qs?: URLSearchParams,

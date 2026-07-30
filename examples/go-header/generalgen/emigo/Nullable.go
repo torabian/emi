@@ -59,6 +59,11 @@ func (n Nullable[T]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(n.value)
 }
 
+// Creates a new explicit null, for given datatype.
+func NewNull[T any]() Nullable[T] {
+	return Nullable[T]{value: nil, isSet: true}
+}
+
 // UnmarshalJSON implements JSON unmarshalling for Nullable.
 // Detects whether the field was present in JSON.
 //

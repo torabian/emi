@@ -80,7 +80,7 @@ export class UserStreamAction {
   static URL = "ws://localhost:8081";
   static NewUrl = (qs?: URLSearchParams) =>
     buildUrl(UserStreamAction.URL, undefined, qs);
-  static Method = "reactive";
+  static Method = "REACTIVE";
   static Create = (overrideUrl?: string, qs?: URLSearchParams, options) => {
     const url = overrideUrl ?? UserStreamAction.NewUrl(qs);
     const Cls = options?.SocketClass
