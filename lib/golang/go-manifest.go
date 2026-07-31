@@ -13,9 +13,8 @@ import (
 )
 
 type manifestRender struct {
-	ActionName      string
-	HasAlias        bool
-	HasRequestFlags bool
+	ActionName string
+	IsReactive bool
 }
 
 func GoManifest(manifest core.EmiManifest, module *core.Emi, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
@@ -26,7 +25,7 @@ func GoManifest(manifest core.EmiManifest, module *core.Emi, ctx core.MicroGenCo
 */
 
 
-{{ if .actions }}
+{{ if and .actions (not .sameLocation) }}
 import (
 	{{$.f.PackageName}} "{{ .mm }}"
 )
@@ -41,92 +40,39 @@ func {{ upper .manifest.Name }}GinServerSetup(x *gin.Engine) {
 {{ end }}
 
 {{ if .goClient }}
+// {{ upper .manifest.Name }}ClientCliBundle wraps each non-reactive action's
+// {Action}CliHandler around a call to {Action}Call against the given API client, the
+// same flags a server-side command would bind.
 func {{ upper .manifest.Name }}ClientCliBundle(client emigo.APIClient) []*cli.Command {
 	return []*cli.Command{
 		{{ range .actions }}
-		Get{{ .ActionName }}ClientCmd(client),
+		{{ if not .IsReactive }}
+		{{$.location}} {{ .ActionName }}CliHandler(func(c {{$.location}} {{ .ActionName }}Request) (*{{$.location}} {{ .ActionName }}Response, error) {
+			return {{$.location}} {{ .ActionName }}Call(c, &client)
+		}),
+		{{ end }}
 		{{ end }}
 	}
 }
 {{ end }}
 
 {{ if .goCli }}
+// {{ upper .manifest.Name }}CliManifest bundles every action's *cli.Command: reactive
+// actions go through {Action}CliReactiveHandler (stdin/stdout piping), everything else
+// through {Action}CliHandler (body/path/query/header binding). Each developer implements
+// {Action}(req) or {Action}(session) themselves (see the action file for the expected
+// signature).
 func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
-
 	return []*cli.Command{
 		{{ range .actions }}
-			Get{{ .ActionName }}Cmd(),
+		{{ if .IsReactive }}
+		{{$.location}} {{ .ActionName }}CliReactiveHandler({{$.location}} {{ .ActionName }}),
+		{{ else }}
+		{{$.location}} {{ .ActionName }}CliHandler({{$.location}} {{ .ActionName }}),
+		{{ end }}
 		{{ end }}
 	}
 }
-{{ end }}
-
-
-{{ if .goCli }}
-	{{ range .actions }}
-
-	func Get{{ .ActionName }}Cmd() *cli.Command {
-		return &cli.Command{
-			Name:    {{$.location}} {{ .ActionName }}Meta().CliName,
-			Usage:   {{$.location}} {{ .ActionName }}Meta().Description,
-
-			{{ if .HasAlias }}
-			Aliases: []string{
-				{{$.location}} {{ .ActionName }}Meta().CliShort,
-			},
-			{{ end }}
-
-			{{ if .HasRequestFlags }}
-			Flags:   emigo.CastEmiFlagToUrfave({{$.location}} Get{{ .ActionName }}ReqCliFlags("")),
-			{{ end }}
-			Action: func(ctx context.Context, c *cli.Command) error {
-				return emigo.HandleActionInCli({{ .ActionName }}(
-					{{$.location}} {{ .ActionName }}Request{
-						CliCtx: c,
-
-						{{ if .HasRequestFlags }}
-						Body:   {{$.location}} Cast{{ .ActionName }}ReqFromCli(c),
-						{{ end }}
-					},
-				))
-			},
-		}
-	}
-
-	{{ end }}
-{{ end }}
-
-{{ if .goClient }}
-	{{ range .actions }}
-	func Get{{ .ActionName }}ClientCmd(client emigo.APIClient) *cli.Command {
-		return &cli.Command{
-			Name:    {{$.location}}{{ .ActionName }}Meta().CliName,
-			Usage:   {{$.location}}{{ .ActionName }}Meta().Description,
-
-			{{ if .HasAlias }}
-			Aliases: []string{
-				{{$.location}}{{ .ActionName }}Meta().CliShort,
-			},
-			{{ end }}
-
-			{{ if .HasRequestFlags }}
-			Flags:   emigo.CastEmiFlagToUrfave({{$.location}}Get{{ .ActionName }}ReqCliFlags("")),
-			{{ end }}
-			Action: func(ctx context.Context, c *cli.Command) error {
-				return emigo.HandleActionInCli({{$.location}}{{ .ActionName }}Call(
-					{{$.location}}{{ .ActionName }}Request{
-						CliCtx: c,
-
-						{{ if .HasRequestFlags }}
-						Body:   {{$.location}}Cast{{ .ActionName }}ReqFromCli(c),
-						{{ end }}
-					},
-					&client,
-				))
-			},
-		}
-	}
-	{{ end }}
 {{ end }}
 
 `
@@ -156,9 +102,8 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 		}
 
 		rendered = append(rendered, manifestRender{
-			ActionName:      actionName,
-			HasAlias:        action.GetCliShort() != "",
-			HasRequestFlags: action.HasRequestFields(),
+			ActionName: actionName,
+			IsReactive: action.GetMethod() == "reactive",
 		})
 	}
 
@@ -175,6 +120,17 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 
 	mm := path.Join(manifest.ModPackageName, ctx.Output)
 
+	// When no dist is set, the manifest file lands directly alongside the actions it
+	// wraps (same directory, same package) - importing that package from itself would
+	// be a compile error, and the qualifier would be redundant, so both are dropped and
+	// every reference below stays unqualified.
+	sameLocation := manifest.Dist == ""
+
+	location := fmt.Sprintf("%v.", f.PackageName)
+	if sameLocation {
+		location = ""
+	}
+
 	goClient := slices.Contains(manifest.Types, "go-client")
 	goCli := slices.Contains(manifest.Types, "go-cli")
 	goGin := slices.Contains(manifest.Types, "go-gin")
@@ -186,18 +142,16 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 				Location: "github.com/urfave/cli/v3",
 			},
 		)
+	}
 
-		if len(rendered) > 0 {
-			res.CodeChunkDependensies = append(
-				res.CodeChunkDependensies,
-				core.CodeChunkDependency{
-					Location: "context",
-				},
-				core.CodeChunkDependency{
-					Location: f.Emigo,
-				},
-			)
-		}
+	// emigo.APIClient is only referenced by the go-client bundle/command functions.
+	if goClient && len(rendered) > 0 {
+		res.CodeChunkDependensies = append(
+			res.CodeChunkDependensies,
+			core.CodeChunkDependency{
+				Location: f.Emigo,
+			},
+		)
 	}
 
 	if goGin {
@@ -211,15 +165,16 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"actions":  rendered,
-		"location": fmt.Sprintf("%v.", f.PackageName),
-		"manifest": manifest,
-		"goClient": goClient,
-		"goCli":    goCli,
-		"goGin":    goGin,
-		"mm":       mm,
-		"f":        f,
-		"ctx":      ctx,
+		"actions":      rendered,
+		"location":     location,
+		"sameLocation": sameLocation,
+		"manifest":     manifest,
+		"goClient":     goClient,
+		"goCli":        goCli,
+		"goGin":        goGin,
+		"mm":           mm,
+		"f":            f,
+		"ctx":          ctx,
 	}); err != nil {
 		return nil, err
 	}

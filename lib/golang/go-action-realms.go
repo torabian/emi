@@ -22,6 +22,8 @@ type goActionRealms struct {
 	CliShort             string
 	QueryStringClass     *core.CodeChunkCompiled
 	QueryParams          *core.CodeChunkCompiled
+	QueryParamsCli       *core.CodeChunkCompiled
+	HeadersCli           *core.CodeChunkCompiled
 	RequestHeadersClass  *core.CodeChunkCompiled
 	ResponseHeadersClass *core.CodeChunkCompiled
 	RequestClassName     string
@@ -142,6 +144,30 @@ func GoActionRealms(
 	if queryParams != nil {
 		deps = append(deps, queryParams.CodeChunkDependensies...)
 		realms.QueryParams = queryParams
+	}
+
+	if realms.EnabledCli {
+		queryParamsCli, err := GoActionQueryParamsCli(action, ctx)
+		if err != nil {
+			return realms, nil, err
+		}
+		if queryParamsCli != nil {
+			if !realms.SplitCli {
+				deps = append(deps, queryParamsCli.CodeChunkDependensies...)
+			}
+			realms.QueryParamsCli = queryParamsCli
+		}
+
+		headersCli, err := GoActionHeadersCli(action, ctx)
+		if err != nil {
+			return realms, nil, err
+		}
+		if headersCli != nil {
+			if !realms.SplitCli {
+				deps = append(deps, headersCli.CodeChunkDependensies...)
+			}
+			realms.HeadersCli = headersCli
+		}
 	}
 
 	if action.HasRequestFields() {
