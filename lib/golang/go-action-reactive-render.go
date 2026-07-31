@@ -49,7 +49,7 @@ func {{ .realms.ActionName }}Meta() struct {
         Name:   "{{ .realms.ActionName }}",
         URL:    "{{ .realms.SafeUrl }}",
         Method: "{{ UPPER .action.Method }}",
-		CliName: "{{ .action.CliName }}",
+		CliName: "{{ .realms.CliName }}",
 		Description: "{{ .action.Description }}",
     }
 }

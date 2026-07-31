@@ -11,7 +11,9 @@ type goActionReactiveRealms struct {
 	PathParameterCli *core.CodeChunkCompiled
 	PathParameterGin *core.CodeChunkCompiled
 	QueryParams      *core.CodeChunkCompiled
+	QueryParamsCli   *core.CodeChunkCompiled
 	SafeUrl          string
+	CliName          string
 	EnabledCli       bool
 	SplitCli         bool
 }
@@ -41,6 +43,7 @@ func GoActionReactiveRealms(
 		ActionName:  core.ToUpper(core.NormaliseKey(action.GetName())),
 		PackageName: f.PackageName,
 		SafeUrl:     core.RemoveTypeAnnotations(action.GetUrl()),
+		CliName:     ActionToCliName(action),
 	}
 	realms.EnabledCli = !ctx.HasTag(SkipCli)
 	realms.SplitCli = ctx.HasTag(SplitCli)
@@ -61,6 +64,14 @@ func GoActionReactiveRealms(
 		}
 		if pathParameterCli != nil {
 			realms.PathParameterCli = pathParameterCli
+		}
+
+		queryParamsCli, err := GoActionQueryParamsCli(action, ctx)
+		if err != nil {
+			return realms, nil, err
+		}
+		if queryParamsCli != nil {
+			realms.QueryParamsCli = queryParamsCli
 		}
 	}
 
