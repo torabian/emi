@@ -10,7 +10,7 @@ export class DeleteUserAction {
   //
   static URL = "/users";
   static NewUrl = (qs) => buildUrl(DeleteUserAction.URL, undefined, qs);
-  static Method = "delete";
+  static Method = "DELETE";
   static Fetch$ = async (qs, ctx, init, overrideUrl) => {
     return fetchx(
       overrideUrl ?? DeleteUserAction.NewUrl(qs),

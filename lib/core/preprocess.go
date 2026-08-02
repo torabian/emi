@@ -13,9 +13,14 @@ const SelfFieldsToken = "self.fields"
 // downstream generators receive a fully-expanded structure. Currently this:
 //
 //   - Flattens EmiVsql.Captures into EmiVsql.Params and clears Captures.
+//   - Runs every hook registered via RegisterPreprocessHook (see
+//     preprocess-hooks.go) - e.g. entities' update-dto synthesis in
+//     preprocess-entities.go plugs in this way, rather than being called here
+//     directly, so this file doesn't need to know entities exist.
 //
 // It is safe to call more than once: a second pass is a no-op once captures
-// have been consumed.
+// have been consumed (and hooks are expected to be similarly idempotent -
+// preprocessEntityUpdateDtos, for instance, skips dtos it already synthesized).
 func (m *Emi) Preprocess() error {
 	if m == nil {
 		return nil
@@ -59,7 +64,19 @@ func (m *Emi) Preprocess() error {
 		v.Params = merged
 		v.Captures = nil
 	}
-	return nil
+
+	return runPreprocessHooks(m, globalPreprocessHooks)
+}
+
+// PreprocessForAction runs Preprocess, then any hooks registered specifically for
+// action (e.g. "go", "kotlin") via RegisterPreprocessHookForAction. Compiler backends
+// that want expansions scoped to just their own output should call this - with their
+// own core.BaseAction.Name - instead of Preprocess directly.
+func (m *Emi) PreprocessForAction(action string) error {
+	if err := m.Preprocess(); err != nil {
+		return err
+	}
+	return runPreprocessHooks(m, actionPreprocessHooks[action])
 }
 
 // resolveCaptures applies a list of EmiCapture entries against the owner's

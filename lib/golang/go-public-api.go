@@ -7,11 +7,30 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/torabian/emi/lib/core"
 )
 
+var registerEntityPreprocessHookOnce sync.Once
+
 func GetGolangPublicActions() core.PublicAPIActions {
+	// Entities' optional-dto/plain-dto/EmiAction synthesis (core.PreprocessEntity*)
+	// lives in lib/core, but core never registers any of it itself - only the golang
+	// backend actually consumes entities today, so it's the one that opts in here.
+	// Because RegisterPreprocessHook is global, this makes all of it available to every
+	// other backend too (openapi, postman, ...) as soon as the golang module is enabled
+	// in a given binary, with zero code changes required in any of them.
+	// PreprocessEntityActions runs last (registration order is execution order - see
+	// runPreprocessHooks) since its Create/Update/Browse actions reference the
+	// plain/optional dtos' class names. Guarded since GetGolangPublicActions is called
+	// more than once per process (see gorunner.go, cmd/emi-wasm/main.go).
+	registerEntityPreprocessHookOnce.Do(func() {
+		core.RegisterPreprocessHook(core.PreprocessEntityOptionalDtos)
+		core.RegisterPreprocessHook(core.PreprocessEntityDtos)
+		core.RegisterPreprocessHook(core.PreprocessEntityActions)
+	})
+
 	textActions := []core.ActionText{
 		{
 			BaseAction: core.BaseAction{
@@ -150,6 +169,11 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		config.Dtos = &str
 	}
 
+	// core.Emi.Preprocess synthesizes each entity's update dto directly into
+	// module.Dto (see lib/core/preprocess-entities.go) - by the time Go codegen runs,
+	// it's an ordinary dto like any other, so it's rendered here through the same
+	// generic pipeline as every hand-declared dto, landing in its own
+	// {Entity}EntityUpdateDto.go file.
 	for _, dto := range module.Dto {
 		if dto.Name == "" {
 			continue
@@ -184,6 +208,61 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 				ActualScript: AsFullDocument(actionRendered.CliHelpers, f.PackageName),
 			})
 		}
+	}
+
+	for _, entity := range module.Entities {
+		if entity == nil || entity.Name == "" {
+			continue
+		}
+
+		// id/uniqueId go on first, exactly once, so every renderer below sees them as
+		// ordinary declared fields with one consistent shape.
+		PrependEntityDefaultFields(entity)
+
+		// IMPORTANT: the actions codegen has to run BEFORE GoEntityRender does.
+		// GoEntityRender calls ApplyEntityGormTags, which mutates entity.Fields (and
+		// the individual *EmiField values) in place - appending Row-sibling fields,
+		// injecting LinkerId/id/uniqueId into array children. None of that belongs in
+		// the actions codegen, which needs the fields as originally declared. The
+		// update dto itself doesn't have this hazard - core.Emi.Preprocess already
+		// built it, long before Go-specific mutation ever happens, and it's rendered
+		// separately by the generic per-dto loop above.
+		actionsRendered, err := GoEntityActionsRender(entity, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		entityRendered, err := GoEntityRender(entity, ctx, complexes)
+		if err != nil {
+			return nil, err
+		}
+
+		// One file per entity - the struct and its Create/Update actions are facets of
+		// the same thing, splitting them across separate files just makes them harder
+		// to find. The update dto is a plain, portable dto by this point though (see
+		// the generic per-dto loop above), so it gets its own {Entity}EntityUpdateDto.go
+		// like any other dto instead of being folded in here.
+		combined := &core.CodeChunkCompiled{
+			SuggestedFileName:  entityRendered.MainClass.SuggestedFileName,
+			SuggestedExtension: entityRendered.MainClass.SuggestedExtension,
+		}
+		appendChunk := func(c *core.CodeChunkCompiled) {
+			if c == nil {
+				return
+			}
+			combined.ActualScript = append(combined.ActualScript, c.ActualScript...)
+			combined.CodeChunkDependensies = append(combined.CodeChunkDependensies, c.CodeChunkDependensies...)
+		}
+
+		appendChunk(entityRendered.MainClass)
+		appendChunk(entityRendered.CliHelpers)
+		appendChunk(actionsRendered)
+
+		files = append(files, core.VirtualFile{
+			Name:         combined.SuggestedFileName,
+			Extension:    combined.SuggestedExtension,
+			ActualScript: AsFullDocument(combined, f.PackageName),
+		})
 	}
 
 	for _, action := range module.Actions {

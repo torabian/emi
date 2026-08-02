@@ -6,7 +6,7 @@
   "emeraldwalk.runonsave": {
     "commands": [
       {
-        "cmd": "emi go --path ${relativeFile}",
+        "cmd": "emi compile --path ${relativeFile}",
         "match": "\\.emi.yml$"
       }
     ]

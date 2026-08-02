@@ -26,7 +26,7 @@ func ChatActionMeta() struct {
 		Name:        "ChatAction",
 		URL:         "/chat",
 		Method:      "REACTIVE",
-		CliName:     "",
+		CliName:     "chat-action",
 		Description: "A Reactive chating application, that returns length of strings you've typed.",
 	}
 }

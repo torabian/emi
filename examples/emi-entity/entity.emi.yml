@@ -1,0 +1,208 @@
+targets:
+  - compiler: go
+    output: ./sdk
+    # This example's generated sdk lives in the root module (no separate go.mod, unlike
+    # examples/flightstick/flightstick-server), which has no gin-gonic/gin dependency by
+    # design - skip-gin keeps the entity-synthesized EmiActions' generated code (see
+    # lib/core/preprocess-entity-actions.go) from requiring one.
+    tags:
+      - skip-gin
+  - compiler: js
+    output: ./sdk-js
+  - compiler: preprocessor
+    output: ./preprocessor
+
+complexes:
+  - compiler: go
+    name: Money
+
+
+entities:
+
+  # entity1's items3/items4/owner/manager/nestedOwner relations all target
+  # Entity2Entity - it has to exist for those to generate/compile.
+  - name: entity2
+    fields:
+      - name: label2
+        type: string
+
+  - name: entity1
+    table: entity1_table
+    fields:
+      - name: title
+        type: string
+
+      # array / array? -> has-many, nested child struct linked via LinkerId
+      - name: items
+        type: array
+        fields:
+          - name: item2
+            type: string
+      - name: items2
+        type: array?
+        fields:
+          - name: item2
+            type: string
+
+      # collection / collection? -> many-to-many against Entity2Entity
+      - name: items3
+        type: collection
+        target: Entity2Entity
+      - name: items4
+        type: collection?
+        target: Entity2Entity
+
+      # one / one? -> one-to-one against Entity2Entity
+      - name: owner
+        type: one
+        target: Entity2Entity
+      - name: manager
+        type: one?
+        target: Entity2Entity
+
+      # object / object? -> embedded inline into this entity's own row. field names
+      # must be unique across the whole entity, even nested ones (gorm's embedding
+      # flattens them into one column namespace) - content1/content2 deliberately use
+      # different sub-field names (item1/item2) to avoid colliding.
+      - name: content1
+        type: object
+        fields:
+          - name: item1
+            type: int64?
+      - name: content2
+        type: object?
+        fields:
+          - name: item2
+            type: int64?
+
+      # complex -> a hand-written type living in the same generated package
+      - name: complex1
+        type: complex
+        complex: Money
+
+      # plain scalars
+      - name: subtitle
+        type: string?
+      - name: isActive
+        type: bool
+      - name: isFeatured
+        type: bool?
+      - name: viewCount
+        type: int
+      - name: viewCountOpt
+        type: int?
+      - name: smallCount
+        type: int32
+      - name: smallCountOpt
+        type: int32?
+      - name: bigCount
+        type: int64
+      - name: bigCountOpt
+        type: int64?
+      - name: ratio32
+        type: float32
+      - name: ratio32Opt
+        type: float32?
+      - name: ratio64
+        type: float64
+      - name: ratio64Opt
+        type: float64?
+
+      # enum / enum? -> already reduce to a plain string / Nullable[string] column
+      - name: status
+        type: enum
+        of:
+          - k: active
+          - k: inactive
+      - name: statusOpt
+        type: enum?
+        of:
+          - k: active
+          - k: inactive
+
+      # map / map? -> map is a raw Go map (needs serializer:json), map? is wrapped in
+      # emigo.Nullable which already round-trips via JSON on its own
+      - name: metadata
+        type: map
+        mapKeyOf: string
+        mapPairOf: string
+      - name: metadataOpt
+        type: map?
+        mapKeyOf: string
+        mapPairOf: string
+
+      # explicit tags.gorm on the field always wins over the computed default
+      - name: rawSettings
+        type: map
+        mapKeyOf: string
+        mapPairOf: string
+        tags:
+          gorm: serializer:json;type:jsonb
+
+      # slice / slice? -> slice is a raw Go slice (needs serializer:json), slice? is
+      # wrapped in emigo.Nullable which already round-trips via JSON on its own
+      - name: labels
+        type: slice
+        primitive: string
+      - name: labelsOpt
+        type: slice?
+        primitive: string
+
+      # any -> raw interface{}, needs serializer:json
+      - name: misc
+        type: any
+
+      # nested relations: array/one buried 2 objects deep. gorm's own embedding still
+      # recognizes these as real associations (verified via schema.Parse and a real
+      # sqlite run), and Create/Update now walk into object/object? containers to find
+      # them, at any depth - see lib/golang/go-entity-actions.go.
+      - name: nestedContainer
+        type: object
+        fields:
+          - name: nestedInner
+            type: object
+            fields:
+              - name: nestedItems
+                type: array
+                fields:
+                  - name: label
+                    type: string
+              - name: nestedOwner
+                type: one
+                target: Entity2Entity
+
+      # same, but through an object? container - the update input wraps *every*
+      # object/object? field in Nullable[T], so this exercises the Get()-unwrap path.
+      # nestedItemsOpt (not nestedItems) to keep it from colliding with
+      # nestedContainer's own field of the same shape - see the content1/content2 note
+      # above, the same unique-name-per-entity constraint applies here.
+      - name: nestedContainerOpt
+        type: object?
+        fields:
+          - name: nestedInner
+            type: object
+            fields:
+              - name: nestedItemsOpt
+                type: array
+                fields:
+                  - name: label
+                    type: string
+
+  # features.update: false -> no Entity3EntityUpdateFn/UpdateDto, no Update field on
+  # Entity3EntityActionsSig - append-only log style entity.
+  - name: entity3
+    features:
+      update: false
+    fields:
+      - name: message
+        type: string
+
+  # features.create: false -> no Entity4EntityCreateFn, no Create field on
+  # Entity4EntityActionsSig - rows only ever come from elsewhere (e.g. a migration or
+  # another system), only Update is generated.
+  - name: entity4
+    features:
+      create: false
+    fields:
+      - name: note
+        type: string

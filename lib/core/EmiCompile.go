@@ -3,7 +3,7 @@ package core
 // The emi module, can contain compiling options and flags into itself,
 // so there is no need to pass options via flags.
 type EmiCompile struct {
-	Compiler string `yaml:"compiler,omitempty" json:"compiler,omitempty" jsonschema:"enum=go,enum=js,enum=kotlin,enum=swift,description=The compiler which will be picked."`
+	Compiler string `yaml:"compiler,omitempty" json:"compiler,omitempty" jsonschema:"enum=go,enum=preprocessor,enum=js,enum=kotlin,enum=swift,description=The compiler which will be picked."`
 
 	// The flags to be passed to the compiler
 	Flags map[string]string `yaml:"flags,omitempty" json:"flags,omitempty" jsonschema:"description=The flags to be passed to the compiler"`

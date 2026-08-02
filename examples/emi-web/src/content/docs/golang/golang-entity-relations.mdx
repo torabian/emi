@@ -1,0 +1,204 @@
+---
+title: "Entity relations (array, collection, one)"
+sidebar:
+  order: 11
+---
+
+`array`, `collection`, and `one` fields work differently on an **entity** than they do
+on a plain dto. A dto's `one`/`collection` field (see
+[Referencing other dto, collection and one](/emi/golang/emi-golang-referencing-other-dtos))
+just needs *a Go type* to hold the data. An entity's relation field needs that *and* a
+real, migratable gorm association - and those two shapes turn out to be incompatible in
+a way that isn't obvious up front.
+
+## Why a plain relation field isn't enough
+
+`array`/`collection`/`one` fields render as `emigo.Array[T]` / `emigo.Collection[T]` /
+`emigo.One[T]` (or their `*Nullable` variants) - PATCH-payload wrapper types built for
+request bodies, carrying an `Operation` (`"replace"`, `"append"`, `"select"`) alongside
+the data. That's the right shape for an API - but gorm can't migrate it:
+
+```
+invalid field found for struct emigo.Array[Entity1EntityItems]'s field Items:
+define a valid foreign key for relations or implement the Valuer/Scanner interface
+```
+
+`Array[T]` doesn't implement `driver.Valuer`/`sql.Scanner`, and it isn't the
+`[]*T`/`*T` shape gorm recognizes as an association either (verified directly against
+`gorm.io/gorm/schema.Parse`). So entities keep the DTO field exactly as-is - it's still
+the only public JSON/CLI surface for the relation - but tag it `gorm:"-"` and generate a
+second, hidden sibling field alongside it that *is* a real gorm association:
+
+```go
+type Entity1Entity struct {
+  // ... id, uniqueId, other fields ...
+
+  Items    emigo.Array[Entity1EntityItems]         `gorm:"-" json:"items" yaml:"items"`
+  Items3   emigo.Collection[Entity2Entity]         `gorm:"-" json:"items3" yaml:"items3"`
+  Owner    emigo.One[Entity2Entity]                `gorm:"-" json:"owner" yaml:"owner"`
+
+  ItemsRow  []*Entity1EntityItems `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"-" yaml:"-"`
+  Items3Row []*Entity2Entity      `gorm:"many2many:entity1_items3;foreignKey:Id;references:Id"          json:"-" yaml:"-"`
+  OwnerId   int64                 `gorm:"index"                                                          json:"-" yaml:"-"`
+  OwnerRow  *Entity2Entity        `gorm:"foreignKey:OwnerId;references:Id"                               json:"-" yaml:"-"`
+}
+```
+
+The `{field}Row`/`{field}Id` siblings are marked `json:"-" yaml:"-"` - they're purely a
+persistence-layer concern. Whatever writes to the database (see
+[Entity actions: Create and Update](/emi/golang/golang-entity-actions)) is responsible
+for keeping the DTO field and its Row/Id sibling in sync.
+
+## array / array?
+
+```yaml
+- name: items
+  type: array
+  fields:
+    - name: item2
+      type: string
+```
+
+This is a **has-many, owned composition**: the nested `fields:` become a separate child
+struct (`Entity1EntityItems`), which itself gets the same `Id`/`UniqueId` pair every
+entity gets, plus a `LinkerId` column - the foreign key back to the parent's `Id`:
+
+```go
+type Entity1EntityItems struct {
+  Item2    string `json:"item2" yaml:"item2"`
+  Id       int64  `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
+  UniqueId string `gorm:"type:uuid;default:gen_random_uuid();unique" json:"uniqueId" yaml:"uniqueId"`
+  LinkerId int64  `gorm:"index" json:"linkerId" yaml:"linkerId"`
+}
+```
+
+The parent's `ItemsRow []*Entity1EntityItems` sibling is tagged
+`foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE` - a real gorm "has many".
+
+## collection / collection?
+
+```yaml
+- name: items3
+  type: collection
+  target: Entity2Entity
+```
+
+This is a **many-to-many** relation to another entity, backed by a join table named
+`{entity}_{field}` (here, `entity1_items3`):
+
+```go
+Items3Row []*Entity2Entity `gorm:"many2many:entity1_items3;foreignKey:Id;references:Id" json:"-" yaml:"-"`
+```
+
+## one / one?
+
+```yaml
+- name: owner
+  type: one
+  target: Entity2Entity
+```
+
+This is a **belongs-to** relation: a foreign key column on *this* entity, named after
+the field (`OwnerId`), referencing the target's `Id`:
+
+```go
+OwnerId  int64          `gorm:"index"                            json:"-" yaml:"-"`
+OwnerRow *Entity2Entity  `gorm:"foreignKey:OwnerId;references:Id" json:"-" yaml:"-"`
+```
+
+## Why Id and not UniqueId
+
+Every `foreignKey`/`references` tag above joins on **`Id`** (a small integer), not
+`UniqueId` (the public UUID) - keeping indexes smaller and joins faster. This was
+checked directly against `gorm.io/gorm/schema.Parse` (no live database needed) to
+confirm every relationship resolves the way it's meant to:
+
+```
+REL ItemsRow    Type=has_many     FieldSchema=Entity1EntityItems
+    ref: PrimaryKey=Entity1Entity.Id ForeignKey=Entity1EntityItems.LinkerId
+REL Items3Row   Type=many_to_many FieldSchema=Entity2Entity
+    ref: PrimaryKey=Entity1Entity.Id ForeignKey=entity1_items3.Entity1EntityId
+    ref: PrimaryKey=Entity2Entity.Id ForeignKey=entity1_items3.Entity2EntityId
+REL OwnerRow    Type=belongs_to   FieldSchema=Entity2Entity
+    ref: PrimaryKey=Entity2Entity.Id ForeignKey=Entity1Entity.OwnerId
+```
+
+Using `Id` for joins while `UniqueId` stays the only identity an API caller ever
+actually has creates one real wrinkle, handled in
+[Entity actions](/emi/golang/golang-entity-actions): gorm's `Save()` decides
+insert-vs-update purely from whether the primary key (`Id`) is already populated, but a
+caller never knows or sends back the internal `Id` - only `UniqueId`. The reconcile
+helpers resolve that gap.
+
+## Relations nested inside object / object? containers
+
+A relation doesn't have to sit directly on the entity - it can live inside an `object`
+(or `object?`) field, any number of levels deep:
+
+```yaml
+- name: nestedContainer
+  type: object
+  fields:
+    - name: nestedInner
+      type: object
+      fields:
+        - name: nestedItems
+          type: array
+          fields:
+            - name: label
+              type: string
+        - name: nestedOwner
+          type: one
+          target: Entity2Entity
+```
+
+gorm's own embedding correctly walks a relation field through an arbitrarily deep
+`embedded` chain and still recognizes it as a real association, keyed by its bare field
+name (`NestedItemsRow`, not `NestedContainer.NestedInner.NestedItemsRow`) - verified
+directly against `gorm.io/gorm/schema.Parse` and a real database run. Two things have to
+line up for this to actually work, though:
+
+- **Naming**: an array field's own child struct has to be named with the *same*
+  accumulating prefix `GoCommonStructGenerator` uses for the nested struct itself
+  (`Entity1EntityNestedContainerNestedInnerNestedItems`), not a flat
+  `{Entity}{Field}` guess - otherwise the `{field}Row` sibling ends up referencing a type
+  that either doesn't exist (a compile error) or, worse, some unrelated top-level type
+  that happens to share the same field name (silently wrong, and it still compiles).
+- **Create/Update have to actually look inside object containers.** `Entity1EntityCreateFn`/
+  `Entity1EntityUpdateFn` recurse into `object`/`object?` fields to find relations at any
+  depth, using the correct nested Go value path (`dto.NestedContainer.NestedInner.NestedOwner`,
+  `changes["NestedOwnerId"]`, ...) - a relation nested this way is reconciled exactly like
+  a top-level one, just reached through a longer path.
+
+Field names still have to be unique across the *whole* entity, no matter how deeply
+nested - gorm's embedding flattens everything into one column/association namespace, so
+two different branches both declaring (for example) an `items` array would collide.
+
+### object? needs its own fix too
+
+Unlike plain `object`, `object?` can't just get `gorm:"embedded"` directly: the field
+renders as `emigo.Nullable[T]` on the entity, and gorm's embedding only ever sees the
+*wrapper's own* fields (`value`, `isSet` - both unexported), never `T`'s. That makes
+*anything* declared inside an `object?` container invisible to gorm - not just a nested
+relation, a plain scalar field works no differently. It gets the same fix as an
+unsupported relation shape: the DTO field stays `emigo.Nullable[T]` (tagged `gorm:"-"`),
+and a hidden `{field}Row *T` sibling (a plain, nilable pointer - a shape gorm natively
+understands for `embedded`) carries the real, persisted data:
+
+```go
+Content2    emigo.Nullable[Entity1EntityContent2] `gorm:"-"       json:"content2" yaml:"content2"`
+Content2Row *Entity1EntityContent2                `gorm:"embedded" json:"-" yaml:"-"`
+```
+
+`Entity1EntityCreateFn` syncs `Content2Row` from `Content2.Get()` before `Create` runs -
+`Nullable[T].Get()` returns the same pointer the wrapper stores internally, so any
+further nested writes (a relation resolved inside the container) land in the exact same
+memory gorm reads from.
+
+## Known limitations
+
+- A relation declared on an **array item itself** (as opposed to on the entity or one of
+  its object containers) isn't picked up - each array item is still persisted as a
+  single flat unit via `Save()`.
+- Cross-module targets (`module:` on a relation field) aren't accounted for in the
+  FK/table naming here yet.

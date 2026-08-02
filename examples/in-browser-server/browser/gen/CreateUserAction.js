@@ -10,7 +10,7 @@ export class CreateUserAction {
   //
   static URL = "/users";
   static NewUrl = (qs) => buildUrl(CreateUserAction.URL, undefined, qs);
-  static Method = "post";
+  static Method = "POST";
   static Fetch$ = async (qs, ctx, init, overrideUrl) => {
     return fetchx(
       overrideUrl ?? CreateUserAction.NewUrl(qs),

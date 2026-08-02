@@ -308,6 +308,21 @@ func StringToEmi(content string) (Emi, error) {
 	return module, nil
 }
 
+// StringToEmiForAction is StringToEmi, but also runs hooks registered for the named
+// compiler action (see RegisterPreprocessHookForAction) - use this instead of
+// StringToEmi from inside a compiler backend's own primary action, passing its own
+// core.BaseAction.Name, so any action-scoped expansions apply.
+func StringToEmiForAction(content string, action string) (Emi, error) {
+	var module Emi
+	if err := yaml.Unmarshal([]byte(content), &module); err != nil {
+		return module, err
+	}
+	if err := module.PreprocessForAction(action); err != nil {
+		return module, err
+	}
+	return module, nil
+}
+
 // Based on the emi tag on the root, we detect what is the type of compile.
 func DetectEmiStringContentType(content string) (string, error) {
 	var module EmiCatalog

@@ -32,8 +32,8 @@ build-envelopes:
 	cp ./lib/js/index.go.txt ./lib/js/ts-envelopes/index.go && \
 	cp ./lib/js/index.go.txt ./lib/js/js-envelopes/index.go
 
-all: 
-	make build && make build-envelopes && make jstests && make sample && make nullabletest
+all:
+	make build && make build-envelopes && make jstests && make sample && make nullabletest && make entitytest
 sample:
 	cd examples/js-test/reactclient && make && cd -
 
@@ -67,6 +67,25 @@ go:
 
 nullabletest:
 	go test ./examples/nullable-test/...
+
+entitytest:
+	go test -v ./examples/emi-entity/...
+
+entity-db-up:
+	cd examples/emi-entity && docker-compose up -d --wait
+
+entity-db-down:
+	cd examples/emi-entity && docker-compose down -v
+
+entity-migration-test-postgres:
+	go test -tags integration -v ./examples/emi-entity/sdk/... -run 'TestAutoMigrate_Postgres|TestEntity1Entity'
+
+entity-migration-test-mysql:
+	go test -tags integration -v ./examples/emi-entity/sdk/... -run TestAutoMigrate_MySQL
+
+entity-migration-test:
+	make entity-db-up
+	make entity-migration-test-postgres
 
 collectiontest:
 	go test -v ./tests/collection/... && go test -v ./tests/array/...

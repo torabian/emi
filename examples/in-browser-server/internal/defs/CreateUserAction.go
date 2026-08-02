@@ -110,6 +110,19 @@ func (x *CreateUserActionResponse) WithIdeal(payload CreateUserActionRes) *Creat
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *CreateUserActionResponse) AsIdeal() (*CreateUserActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res CreateUserActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *CreateUserActionResponse) AsHTML(payload string) *CreateUserActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -200,6 +213,16 @@ type CreateUserActionRequest struct {
 	// application is wrapped into a single struct that holds database connection,
 	// routes, etc.
 	Application interface{}
+}
+
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x CreateUserActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x CreateUserActionRequest) GetCliCtx() interface{} {
+	return x.CliCtx
 }
 
 // CreateUserActionHttpHandler returns the HTTP method, the ServeMux pattern, and a
