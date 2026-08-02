@@ -1,0 +1,132 @@
+---
+title: "Golang entities"
+sidebar:
+  order: 10
+---
+
+An entity is a database-backed structure: its fields become both a Go struct and
+database columns, migrated with [gorm](https://gorm.io). It's a different top-level
+concept from a `dto` - a dto is a plain data shape with no persistence of its own -
+though under the hood entities reuse the exact same field-rendering machinery dtos use
+(nested objects, CLI flags, JSON/YAML tags all work identically).
+
+## Defining an entity
+
+Entities are declared in a module's `entities:` list, right next to `dtos:`/`actions:`:
+
+```yaml
+entities:
+  - name: entity2
+    fields:
+      - name: label
+        type: string
+
+  - name: entity1
+    table: entity1_table
+    description: An example entity exercising every supported field type.
+    fields:
+      - name: title
+        type: string
+```
+
+`name` becomes the Go struct name (`Entity1Entity` - always the entity name, upper-cased,
+with `Entity` appended). `table` overrides gorm's default pluralized/snake_cased table
+name, generated as a `TableName()` method on the struct. Fields work exactly like a
+dto's `fields:` - the same primitive, object, array, map, slice, enum, complex, and
+relation types documented elsewhere in these Golang Compiler docs all apply here too.
+
+## Default fields: id and uniqueId
+
+Every entity gets two fields prepended automatically - you never declare these
+yourself:
+
+```go
+type Entity1Entity struct {
+  Id       int64  `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
+  UniqueId string `gorm:"type:uuid;default:gen_random_uuid();unique" json:"uniqueId" yaml:"uniqueId"`
+  Title    string `json:"title" yaml:"title"`
+  // ...
+}
+```
+
+- **`Id`** is the real gorm primary key: a plain auto-incrementing integer. It's never
+  exposed over JSON/CLI (`json:"-"`) - it exists purely so joins and foreign keys (see
+  [Entity relations](/emi/golang/golang-entity-relations)) can use a small integer
+  instead of a UUID, which keeps indexes smaller and joins faster.
+- **`UniqueId`** is the public identifier every API/CLI surface actually works with.
+  It's a UUID, generated *natively by Postgres itself* (`gen_random_uuid()`, built into
+  Postgres 13+, no extension needed) via a column default, rather than in application
+  code - one less thing to get wrong, and one less round trip.
+
+This project targets Postgres primarily. On another database the `default:` clause is
+either ignored or causes a migration error if there's no equivalent function - the
+column itself (a plain unique string) still works everywhere, and nothing stops an
+application from setting `UniqueId` explicitly itself instead of relying on the
+database default.
+
+These two fields are defined once, in a single place
+(`EntityDefaultFields` in `lib/golang/go-entity-default-fields.go`), and prepended to
+every entity's field list before anything else runs - the struct generator, the
+[update input](/emi/golang/golang-entity-actions), and the gorm-tag pass all see them as
+ordinary declared fields, not something injected differently by each one.
+
+## How field types map onto gorm
+
+Most field types render exactly like they do for a dto - see the other Golang Compiler
+pages for the general primitive/object/map/slice rules. What's specific to entities is
+the **gorm tag** each field gets, so the struct can actually be handed to
+`gorm.AutoMigrate` / used to build queries:
+
+| Field type | Gorm tag | Why |
+|---|---|---|
+| `string`, `int`, `float64`, `bool`, ... | *(none)* | Native Go scalar, gorm maps it directly. |
+| `enum` / `enum?` | *(none)* | Already resolves to a plain `string` / `Nullable[string]` - a normal text column. |
+| `object` / `object?` | `embedded` | Inlined as columns on this entity's own row. |
+| `map`, `slice` (non-nullable only) | `serializer:json` | A raw Go map/slice has no `Scan`/`Value` of its own - gorm can't persist it without a hint. |
+| `map?`, `slice?` | *(none)* | Renders wrapped in `emigo.Nullable[T]`, which already implements `Value()`/`Scan()` with its own JSON fallback - adding `serializer:json` on top would make gorm bypass that and serialize the wrapper's internal fields instead. |
+| `complex` | *(none - up to the type)* | A hand-written type is expected to implement whatever gorm needs itself (see below). |
+| `array`, `collection`, `one` | see [Entity relations](/emi/golang/golang-entity-relations) | Relations need special handling - a plain association tag isn't enough. |
+
+A `tags: { gorm: ... }` you set explicitly on a field always wins over any of the
+defaults above:
+
+```yaml
+- name: rawSettings
+  type: map
+  mapKeyOf: string
+  mapPairOf: string
+  tags:
+    gorm: serializer:json;type:jsonb
+```
+
+### complex fields need to pull their own weight
+
+A `complex` field is a hand-written Go type living outside the generated file. For
+entities specifically, it has to implement `database/sql/driver.Valuer` and
+`sql.Scanner` itself if it needs to be stored as anything other than gorm's default
+guess - the generator can't know how to persist an arbitrary type:
+
+```go
+type Money struct {
+  Cents int64
+}
+
+func (m Money) Value() (driver.Value, error) {
+  return m.Cents, nil
+}
+
+func (m *Money) Scan(value interface{}) error {
+  // ...
+}
+```
+
+(It can also implement `encoding.TextMarshaler`/`TextUnmarshaler` for CLI parsing - the
+two concerns are independent.)
+
+## A custom code hook
+
+Every entity file ends with a small, separate template
+(`lib/golang/go-entity.tpl`/`go-entity-shared.tpl`) whose output is appended *after* the
+struct the common generator produced - currently just a `TableName()` override wired to
+`table:`. It's meant to grow: add a comment or another shared `{{ define }}` block there
+for anything you want appended to every generated entity file.

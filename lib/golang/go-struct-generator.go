@@ -95,6 +95,7 @@ func (x *{{ .rootClass }}) Json() string {
 		k.CliHelpers = cliContent
 	} else {
 		v.Res.ActualScript = append(v.Res.ActualScript, cliContent.ActualScript...)
+		v.Res.CodeChunkDependensies = append(v.Res.CodeChunkDependensies, cliContent.CodeChunkDependensies...)
 	}
 
 	return k, nil

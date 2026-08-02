@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -155,6 +156,38 @@ func (n *Nullable[T]) Scan(value interface{}) error {
 		n.value = &typed
 		n.isSet = true
 		return nil
+	}
+}
+
+// GormDataType lets gorm infer a scalar column type for Nullable[T] regardless of what
+// T is. Without this, gorm's own DataType inference has no case for map/slice/array/
+// struct-shaped T (only bool/int/uint/float/string/time.Time/[]byte are covered) - it
+// leaves DataType empty and then mistakes the field for a broken relation ("define a
+// valid foreign key for relations or implement the Valuer/Scanner interface") instead of
+// a plain scalar column, even though Value()/Scan() above already round-trip any T
+// (including maps and slices) through JSON. This mirrors gorm's own Kind-to-DataType
+// mapping for the primitives, and falls back to "bytes" for everything else, matching
+// what Value()'s json.Marshal fallback actually produces.
+func (n Nullable[T]) GormDataType() string {
+	t := reflect.TypeFor[T]()
+
+	if t.ConvertibleTo(reflect.TypeFor[time.Time]()) {
+		return "time"
+	}
+
+	switch t.Kind() {
+	case reflect.Bool:
+		return "bool"
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return "int"
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return "uint"
+	case reflect.Float32, reflect.Float64:
+		return "float"
+	case reflect.String:
+		return "string"
+	default:
+		return "bytes"
 	}
 }
 

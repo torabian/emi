@@ -1,0 +1,224 @@
+---
+title: "Entity actions: Create and Update"
+sidebar:
+  order: 12
+---
+
+Every entity gets two generated functions - `{Entity}CreateFn` and `{Entity}UpdateFn` -
+plus a small bundle (`{Entity}ActionsSig`/`{Entity}Actions`) wiring them up as the
+defaults, mirroring the same `{Entity}ActionsSig` pattern
+[fireback](https://github.com/torabian/fireback) uses. This page covers how they're
+built, and the reconcile logic behind `array`/`collection`/`one` relations - see
+[Entity relations](/emi/golang/golang-entity-relations) first if you haven't yet.
+
+## The update input
+
+Partial updates need to tell "the caller didn't mention this field" apart from "the
+caller explicitly set it to the zero value" - a struct-based `gorm.Updates()` call
+silently drops zero-valued fields, which makes it unreliable for this. So every entity
+gets a second generated type, `{Entity}UpdateInput`, where **every** field is optional -
+even the ones that are plain, always-present scalars on the entity itself:
+
+```go
+type Entity1EntityUpdateInput struct {
+  Title    emigo.Nullable[string]                   `json:"title" yaml:"title"`
+  IsActive emigo.Nullable[bool]                     `json:"isActive" yaml:"isActive"`
+  Items    emigo.ArrayNullable[Entity1EntityItems]  `json:"items" yaml:"items"`
+  Items3   emigo.CollectionNullable[Entity2Entity]  `json:"items3" yaml:"items3"`
+  Owner    emigo.OneNullable[Entity2Entity]         `json:"owner" yaml:"owner"`
+  Complex1 *Money                                   `json:"complex1" yaml:"complex1"`
+  // ...
+}
+```
+
+A few things worth calling out:
+
+- It's built by cloning the entity's *original* field list (before relation/gorm tags
+  get injected) and swapping each type for its `?` counterpart - `string` becomes
+  `string?`, `array` becomes `array?`, and so on. Already-optional fields stay as they
+  are (no double-wrapping).
+- `id`/`uniqueId` are left out entirely - they're the row's immutable identity, not
+  something an Update call patches.
+- `complex` fields (no `?` counterpart exists) become a plain pointer instead - `nil`
+  means untouched, matching how the sibling `Row`/`Id` fields already use pointers for
+  the same purpose.
+- **`array`/`collection`/`one` fields reuse the real row/target type directly** - e.g.
+  `Items` is `emigo.ArrayNullable[Entity1EntityItems]`, the *same* `Entity1EntityItems`
+  the entity itself uses - not a second, separately-optional clone of it. This matters:
+  the reconcile helpers below persist each item with a plain `Save()`, which writes
+  *every* field of that item. If an array item's own sub-fields were individually
+  optional too, an item where the caller only meant to touch one field would silently
+  null out the rest on save. Only whether the *field itself* was touched (`IsSet()`) is
+  optional - an item you include in a replace/append batch still has to be given in
+  full, exactly like Create.
+- It's rendered through the same plain struct generator dtos use - it isn't itself a
+  gorm model, carries no table/migration of its own, and gets full JSON/CLI helpers for
+  free.
+
+## Create
+
+```go
+func Entity1EntityCreateFn(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, error) {
+  err := tx.Transaction(func(tx *gorm.DB) error {
+    // 1. one/one? resolved first - a belongs-to FK doesn't need the parent's own id
+    if dto.Owner.IsSet() {
+      resolvedId, err := emigorm.ReconcileOne(tx, dto.Owner.Operation, selectorId, item)
+      // ...
+      dto.OwnerId = resolvedId
+    }
+
+    // 2. the row itself - dto.Id/dto.UniqueId are left at their zero value, so gorm
+    //    omits them from the INSERT and the database assigns both (autoIncrement,
+    //    gen_random_uuid()); gorm reads dto.Id back afterwards
+    if err := tx.Create(dto).Error; err != nil {
+      return err
+    }
+
+    // 3. array/array? and collection/collection?, now that dto.Id is known
+    if dto.Items.IsSet() {
+      items := make([]*Entity1EntityItems, len(dto.Items.Items))
+      for i := range dto.Items.Items {
+        items[i] = &dto.Items.Items[i]
+      }
+      if err := emigorm.ReconcileHasMany(tx, "linker_id", dto.Id, dto.Items.Operation, items); err != nil {
+        return err
+      }
+    }
+    return nil
+  })
+  return dto, err
+}
+```
+
+## Update
+
+```go
+func Entity1EntityUpdateFn(tx *gorm.DB, id string, input Entity1EntityUpdateInput) (*Entity1Entity, error) {
+  var entity Entity1Entity
+  err := tx.Transaction(func(tx *gorm.DB) error {
+    // id is the public UniqueId (e.g. an API path parameter) - load the row first to
+    // resolve its real Id, since that's what the reconcile helpers and gorm's
+    // Association API actually join on
+    if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+      return err
+    }
+
+    changes := map[string]interface{}{}
+    if input.Title.IsSet() {
+      changes["Title"] = input.Title
+    }
+    // ... one field per scalar, only if IsSet() ...
+    if len(changes) > 0 {
+      if err := tx.Model(&entity).Updates(changes).Error; err != nil {
+        return err
+      }
+    }
+
+    if input.Items.IsSet() {
+      // same emigorm.ReconcileHasMany as Create, against entity.Id
+    }
+    return nil
+  })
+  // ... re-fetch and return the updated row ...
+}
+```
+
+Only fields the caller actually set (`input.{Field}.IsSet()`) end up in `changes` - a
+field never mentioned is left completely untouched. `object` fields are flattened one
+level into the same map (each of their own sub-fields checked with `IsSet()`
+individually); `complex`/`any` fields use a plain `!= nil` check instead, since they
+don't have `IsSet()`.
+
+## The actions bundle
+
+```go
+type Entity1EntityActionsSig struct {
+  Create func(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, error)
+  Update func(tx *gorm.DB, id string, input Entity1EntityUpdateInput) (*Entity1Entity, error)
+}
+
+var Entity1EntityActions Entity1EntityActionsSig = Entity1EntityActionsSig{
+  Create: Entity1EntityCreateFn,
+  Update: Entity1EntityUpdateFn,
+}
+```
+
+`Entity1EntityActions.Create`/`.Update` are what application code actually calls. The
+struct exists so a caller can swap either function out - in tests, or to layer extra
+validation/side effects around them - without touching generated code. It's meant to
+grow further as more actions (delete, query, ...) get generated.
+
+## The reconcile helpers (`emigorm`)
+
+The tricky part isn't calling gorm - it's that gorm's own `Association().Replace()` was
+verified **unreliable** for a has-many `array` relation, in two ways:
+
+1. If an incoming item's primary key already exists, gorm silently keeps the row's
+   *old* content instead of applying the new field values.
+2. Items dropped from the list are never deleted - their FK just gets cleared, leaving
+   orphaned rows behind permanently.
+
+`github.com/torabian/emi/emigorm` (a separate package from `emigo` - it depends on
+`gorm.io/gorm`, so it stays out of the wasm-safe core runtime) provides three reconcile
+functions instead, one per relation kind:
+
+- **`ReconcileHasMany`** (`array`/`array?`) - diffs existing children against the
+  incoming list by `UniqueId`, hard-deletes any row that's missing from a `"replace"`
+  batch, and `Save()`s every incoming item (with `LinkerId` set to the parent's `Id`).
+  `"append"` skips the diff/delete step and just saves.
+- **`ReconcileManyToMany`** (`collection`/`collection?`) - gorm's Association API *is*
+  reliable here (verified: replacing/appending only ever touches the join table, never
+  the shared target rows), so this just upserts any inline target values first, then
+  delegates to `Association().Replace()`/`.Append()`.
+- **`ReconcileOne`** (`one`/`one?`) - `"select"` resolves an existing target row's `Id`
+  from its `UniqueId` (via `dto.Owner.Selector`) and leaves it untouched; anything else
+  upserts the given inline value and returns its `Id`.
+
+All three share one important detail: since gorm's `Save()` decides insert-vs-update
+purely from whether the primary key (`Id`) is already populated, and a caller only ever
+knows an item's `UniqueId` (never the internal `Id`), each one resolves an incoming
+item's real `Id` by matching `UniqueId` against an existing row *before* calling
+`Save()` - otherwise every "update" would silently insert a duplicate instead.
+
+### Operations: replace, append, select
+
+`emigo.Array`/`Collection`/`One` (and their `*Nullable` variants) carry an `Operation`
+alongside the data:
+
+```go
+input.Items.Set("replace", []Entity1EntityItems{
+  {UniqueId: "c2", Item2: "child-2-updated"}, // existing - content overwritten in place
+  {UniqueId: "c3", Item2: "child-3"},         // new - created
+})
+// anything not in this list (e.g. a previous "c1") is deleted
+
+input.Items3.Set("append", []Entity2Entity{tagB}) // keeps existing tags, adds tagB
+
+input.Owner.SetSelector("owner-2") // switch the relation to an existing row, by its UniqueId
+```
+
+## Testing
+
+Everything here is verified two ways:
+
+- **Structurally, with no database at all**, via `gorm.io/gorm/schema.Parse` - confirms
+  gorm resolves every relationship (`has_many`/`many_to_many`/`belongs_to`) the way
+  it's supposed to, in milliseconds, without needing Postgres running.
+- **End to end, against a real Postgres**, in `examples/emi-entity/sdk/*_test.go` -
+  cascading create, partial update, array replace-with-orphan-deletion, collection
+  append, and one re-select are all covered.
+
+Since `UniqueId`'s column default (`gen_random_uuid()`) is Postgres-specific, the live
+tests need a real Postgres instance - there's no SQLite/in-memory fast path for this
+particular piece. `examples/emi-entity/docker-compose.yml` spins one up:
+
+```bash
+make entity-db-up                       # docker compose up, Postgres + MySQL
+make entity-migration-test-postgres     # go test -tags integration ...
+make entity-db-down
+```
+
+MySQL is left wired up too (`make entity-migration-test-mysql`) but is expected to fail
+on the same `gen_random_uuid()` column default - this project targets Postgres
+primarily, and that's an accepted tradeoff rather than something actively being kept
+green.

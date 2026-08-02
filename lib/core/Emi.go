@@ -25,6 +25,9 @@ type Emi struct {
 	// Dtos are basically golang structs with some additional functionality which can be used for request/response actions
 	Dto []EmiDto `yaml:"dtos,omitempty" json:"dtos,omitempty" jsonschema:"description=Dtos are basically golang structs with some additional functionality which can be used for request/response actions"`
 
+	// Entities are database-backed structures, with fields becoming both golang struct fields and database columns.
+	Entities []*Module3Entity `yaml:"entities,omitempty" json:"entities,omitempty" jsonschema:"description=Entities are database-backed structures with fields becoming both golang struct fields and database columns."`
+
 	// Complex custom data types definitions and location
 	Complexes []EmiComplex `yaml:"complexes,omitempty" json:"complexes,omitempty" jsonschema:"description=Complex custom data types definitions and location"`
 
