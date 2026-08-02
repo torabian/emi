@@ -107,6 +107,19 @@ func (x *SubstringActionResponse) WithIdeal(payload SubstringActionRes) *Substri
 	x.Payload = payload
 	return x
 }
+
+// Use this for client calls, so the payload is being casted
+func (x *SubstringActionResponse) AsIdeal() (*SubstringActionRes, error) {
+	b, err := json.Marshal(x.GetPayload())
+	if err != nil {
+		return nil, err
+	}
+	var res SubstringActionRes
+	if err := json.Unmarshal(b, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
 func (x *SubstringActionResponse) AsHTML(payload string) *SubstringActionResponse {
 	x.Payload = payload
 	x.SetContentType("text/html; charset=utf-8")
@@ -197,6 +210,16 @@ type SubstringActionRequest struct {
 	// application is wrapped into a single struct that holds database connection,
 	// routes, etc.
 	Application interface{}
+}
+
+// Returns the gin ctx. You need to manually cast this to .(*gin.Context)
+func (x SubstringActionRequest) GetGinCtx() interface{} {
+	return x.GinCtx
+}
+
+// Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
+func (x SubstringActionRequest) GetCliCtx() interface{} {
+	return x.CliCtx
 }
 
 // SubstringActionHttpHandler returns the HTTP method, the ServeMux pattern, and a

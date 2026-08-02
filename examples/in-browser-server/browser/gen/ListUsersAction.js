@@ -12,7 +12,7 @@ export class ListUsersAction {
   //
   static URL = "/users";
   static NewUrl = (qs) => buildUrl(ListUsersAction.URL, undefined, qs);
-  static Method = "get";
+  static Method = "GET";
   static Fetch$ = async (qs, ctx, init, overrideUrl) => {
     return fetchx(
       overrideUrl ?? ListUsersAction.NewUrl(qs),
