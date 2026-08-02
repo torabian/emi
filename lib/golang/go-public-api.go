@@ -7,11 +7,26 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/torabian/emi/lib/core"
 )
 
+var registerEntityPreprocessHookOnce sync.Once
+
 func GetGolangPublicActions() core.PublicAPIActions {
+	// Entities' update-dto synthesis (core.PreprocessEntityUpdateDtos) lives in
+	// lib/core, but core never registers it itself - only the golang backend actually
+	// consumes entities today, so it's the one that opts in here. Because
+	// RegisterPreprocessHook is global, this makes the dto available to every other
+	// backend too (openapi, postman, ...) as soon as the golang module is enabled in a
+	// given binary, with zero code changes required in any of them. Guarded since
+	// GetGolangPublicActions is called more than once per process (see gorunner.go,
+	// cmd/emi-wasm/main.go).
+	registerEntityPreprocessHookOnce.Do(func() {
+		core.RegisterPreprocessHook(core.PreprocessEntityUpdateDtos)
+	})
+
 	textActions := []core.ActionText{
 		{
 			BaseAction: core.BaseAction{

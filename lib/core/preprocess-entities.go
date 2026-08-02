@@ -171,3 +171,15 @@ func (m *Emi) preprocessEntityUpdateDtos() {
 		existing[name] = true
 	}
 }
+
+// PreprocessEntityUpdateDtos is preprocessEntityUpdateDtos exposed as a
+// core.PreprocessHook. core itself never registers it - a compiler backend that
+// actually needs entities' update dtos synthesized (currently just lib/golang, from
+// GetGolangPublicActions) registers it explicitly via RegisterPreprocessHook. Since
+// registration is global, once one backend does that, every other Preprocess() caller
+// (openapi, postman, md, ...) picks the dto up too, without needing any entity-specific
+// code of their own.
+func PreprocessEntityUpdateDtos(m *Emi) error {
+	m.preprocessEntityUpdateDtos()
+	return nil
+}
