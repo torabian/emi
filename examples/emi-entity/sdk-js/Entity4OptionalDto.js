@@ -6,6 +6,31 @@ export class Entity4OptionalDto {
    *
    * @type {string}
    **/
+  #uniqueId = undefined;
+  /**
+   *
+   * @returns {string}
+   **/
+  get uniqueId() {
+    return this.#uniqueId;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set uniqueId(value) {
+    const correctType =
+      typeof value === "string" || value === undefined || value === null;
+    this.#uniqueId = correctType ? value : String(value);
+  }
+  setUniqueId(value) {
+    this.uniqueId = value;
+    return this;
+  }
+  /**
+   *
+   * @type {string}
+   **/
   #note = undefined;
   /**
    *
@@ -63,6 +88,9 @@ export class Entity4OptionalDto {
    **/
   applyFromObject(data = {}) {
     const d = data;
+    if (d.uniqueId !== undefined) {
+      this.uniqueId = d.uniqueId;
+    }
     if (d.note !== undefined) {
       this.note = d.note;
     }
@@ -73,6 +101,7 @@ export class Entity4OptionalDto {
    **/
   toJSON() {
     return {
+      uniqueId: this.#uniqueId,
       note: this.#note,
     };
   }
@@ -81,6 +110,7 @@ export class Entity4OptionalDto {
   }
   static get Fields() {
     return {
+      uniqueId: "uniqueId",
       note: "note",
     };
   }

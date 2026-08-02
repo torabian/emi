@@ -42,7 +42,7 @@ import FoundationNetworking
  */
 struct {{ .realms.ActionName }}Meta {
     let name: String = "{{ .realms.ActionName }}"
-    let url: String = "{{ .action.Url }}"
+    let url: String = "{{ .safeUrl }}"
     let method: String = "{{ .action.Method | upper }}"
 }
 
@@ -158,8 +158,9 @@ final class {{ .realms.ActionName }}Client {
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"action": action,
-		"realms": realms,
+		"action":  action,
+		"safeUrl": core.RemoveTypeAnnotations(action.GetUrl()),
+		"realms":  realms,
 	}); err != nil {
 		return nil, err
 	}

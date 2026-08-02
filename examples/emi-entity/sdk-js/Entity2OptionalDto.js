@@ -6,6 +6,31 @@ export class Entity2OptionalDto {
    *
    * @type {string}
    **/
+  #uniqueId = undefined;
+  /**
+   *
+   * @returns {string}
+   **/
+  get uniqueId() {
+    return this.#uniqueId;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set uniqueId(value) {
+    const correctType =
+      typeof value === "string" || value === undefined || value === null;
+    this.#uniqueId = correctType ? value : String(value);
+  }
+  setUniqueId(value) {
+    this.uniqueId = value;
+    return this;
+  }
+  /**
+   *
+   * @type {string}
+   **/
   #label2 = undefined;
   /**
    *
@@ -63,6 +88,9 @@ export class Entity2OptionalDto {
    **/
   applyFromObject(data = {}) {
     const d = data;
+    if (d.uniqueId !== undefined) {
+      this.uniqueId = d.uniqueId;
+    }
     if (d.label2 !== undefined) {
       this.label2 = d.label2;
     }
@@ -73,6 +101,7 @@ export class Entity2OptionalDto {
    **/
   toJSON() {
     return {
+      uniqueId: this.#uniqueId,
       label2: this.#label2,
     };
   }
@@ -81,6 +110,7 @@ export class Entity2OptionalDto {
   }
   static get Fields() {
     return {
+      uniqueId: "uniqueId",
       label2: "label2",
     };
   }

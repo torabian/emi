@@ -27,6 +27,7 @@ func Entity2CreateAction(c Entity2CreateActionRequest) (*Entity2CreateActionResp
 func Entity2CreateActionMeta() struct {
 	Name        string
 	CliName     string
+	CliShort    string
 	URL         string
 	Method      string
 	Description string
@@ -34,12 +35,14 @@ func Entity2CreateActionMeta() struct {
 	return struct {
 		Name        string
 		CliName     string
+		CliShort    string
 		URL         string
 		Method      string
 		Description string
 	}{
 		Name:        "Entity2CreateAction",
 		CliName:     "entity2-create-action",
+		CliShort:    "entity2-c",
 		URL:         "/entity2",
 		Method:      "POST",
 		Description: `Creates a new "entity2" row.`,
@@ -305,6 +308,7 @@ func Entity2CreateActionCliHandler(
 		Usage: meta.Description,
 		Flags: Entity2CreateActionCliFlags(),
 	}
+	cmd.Aliases = []string{meta.CliShort}
 	cmd.Action = func(ctx context.Context, c *cli.Command) error {
 		req := Entity2CreateActionRequest{
 			CliCtx:      c,

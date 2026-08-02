@@ -8,34 +8,32 @@ import (
 // Covers the "one" / "one?" scenario: a one-to-one relation to another entity
 // (Entity2Entity), backed by a foreign key column on this entity named after the field.
 //
-// The DTO field itself (Owner, emigo.One[T]) is tagged gorm:"-" for the same reason
-// array/collection's DTO fields are. Two real gorm-shaped siblings carry the actual
-// "belongs to" relation: {field}Id (the FK column) and {field}Row (*Entity2Entity).
+// ApplyEntityGormTags converts an entity's own one/one? fields into class/class? (see
+// go-entity-gorm.go): the primary field itself becomes a real, gorm-native belongs-to
+// (*Entity2Entity/Entity2Entity), tagged directly with the foreignKey relation - no
+// gorm:"-", no hidden {field}Row shadow sibling needed, since a plain struct/pointer is
+// exactly the shape gorm's own reflection-based schema builder recognizes. DTOs
+// (Entity1Dto/Entity1OptionalDto) never see this conversion - they're built from
+// entity.Fields before ApplyEntityGormTags ever mutates it, so they keep the portable,
+// Operation-wrapped one/one? shape Create/Update's own request bodies still need.
 
-func TestOneField_DtoFieldSkipsGorm(t *testing.T) {
-	field, ok := reflect.TypeOf(Entity1Entity{}).FieldByName("Owner")
+func TestOneField_IsARealGormBelongsTo(t *testing.T) {
+	typ := reflect.TypeOf(Entity1Entity{})
+
+	field, ok := typ.FieldByName("Owner")
 	if !ok {
 		t.Fatal("expected Entity1Entity to have an Owner field")
 	}
-
-	if got := field.Tag.Get("gorm"); got != "-" {
-		t.Fatalf("Owner gorm tag = %q, want %q", got, "-")
+	want := "foreignKey:OwnerId;references:Id"
+	if got := field.Tag.Get("gorm"); got != want {
+		t.Fatalf("Owner gorm tag = %q, want %q", got, want)
 	}
-}
-
-func TestOneNullableField_DtoFieldSkipsGorm(t *testing.T) {
-	field, ok := reflect.TypeOf(Entity1Entity{}).FieldByName("Manager")
-	if !ok {
-		t.Fatal("expected Entity1Entity to have a Manager field")
+	if field.Type != reflect.TypeOf(&Entity2Entity{}) {
+		t.Fatalf("Owner field type = %v, want *Entity2Entity (one -> class, a pointer)", field.Type)
 	}
-
-	if got := field.Tag.Get("gorm"); got != "-" {
-		t.Fatalf("Manager gorm tag = %q, want %q", got, "-")
+	if got := field.Tag.Get("json"); got != "owner" {
+		t.Fatalf("Owner json tag = %q, want %q (still the public DTO shape, just gorm-native now)", got, "owner")
 	}
-}
-
-func TestOneField_IdAndRowSiblingsCarryBelongsToTag(t *testing.T) {
-	typ := reflect.TypeOf(Entity1Entity{})
 
 	idField, ok := typ.FieldByName("OwnerId")
 	if !ok {
@@ -47,30 +45,21 @@ func TestOneField_IdAndRowSiblingsCarryBelongsToTag(t *testing.T) {
 	if got := idField.Tag.Get("json"); got != "-" {
 		t.Fatalf("OwnerId json tag = %q, want %q", got, "-")
 	}
-
-	rowField, ok := typ.FieldByName("OwnerRow")
-	if !ok {
-		t.Fatal("expected Entity1Entity to have an OwnerRow field")
-	}
-	want := "foreignKey:OwnerId;references:Id"
-	if got := rowField.Tag.Get("gorm"); got != want {
-		t.Fatalf("OwnerRow gorm tag = %q, want %q", got, want)
-	}
-	if rowField.Type != reflect.TypeOf(&Entity2Entity{}) {
-		t.Fatalf("OwnerRow field type = %v, want *Entity2Entity", rowField.Type)
-	}
 }
 
-func TestOneNullableField_IdAndRowSiblingsCarryBelongsToTag(t *testing.T) {
+func TestOneNullableField_IsARealGormBelongsTo(t *testing.T) {
 	typ := reflect.TypeOf(Entity1Entity{})
 
-	rowField, ok := typ.FieldByName("ManagerRow")
+	field, ok := typ.FieldByName("Manager")
 	if !ok {
-		t.Fatal("expected Entity1Entity to have a ManagerRow field")
+		t.Fatal("expected Entity1Entity to have a Manager field")
 	}
 	want := "foreignKey:ManagerId;references:Id"
-	if got := rowField.Tag.Get("gorm"); got != want {
-		t.Fatalf("ManagerRow gorm tag = %q, want %q", got, want)
+	if got := field.Tag.Get("gorm"); got != want {
+		t.Fatalf("Manager gorm tag = %q, want %q", got, want)
+	}
+	if field.Type != reflect.TypeOf(Entity2Entity{}) {
+		t.Fatalf("Manager field type = %v, want Entity2Entity (one? -> class?, a value)", field.Type)
 	}
 }
 
@@ -88,10 +77,10 @@ func TestOneField_CliHelpers(t *testing.T) {
 		}
 	}
 
-	if ownerFlag == nil || *ownerFlag != "one" {
-		t.Fatalf("expected owner cli flag with type 'one', got %v", ownerFlag)
+	if ownerFlag == nil || *ownerFlag != "class" {
+		t.Fatalf("expected owner cli flag with type 'class' (one -> class on an entity), got %v", ownerFlag)
 	}
-	if managerFlag == nil || *managerFlag != "one?" {
-		t.Fatalf("expected manager cli flag with type 'one?', got %v", managerFlag)
+	if managerFlag == nil || *managerFlag != "class?" {
+		t.Fatalf("expected manager cli flag with type 'class?' (one? -> class? on an entity), got %v", managerFlag)
 	}
 }

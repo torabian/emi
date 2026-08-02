@@ -48,6 +48,7 @@ export class Entity4BrowseAction {
   };
   static Definition = {
     name: "entity4Browse",
+    cliShort: "entity4-b",
     url: "/entity4/browse",
     method: "get",
     qs: [

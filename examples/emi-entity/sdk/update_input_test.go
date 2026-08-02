@@ -64,12 +64,17 @@ func TestUpdateInput_AlreadyOptionalFieldsStayOptional(t *testing.T) {
 func TestUpdateInput_RelationFieldsBecomeNullableVariant(t *testing.T) {
 	typ := reflect.TypeOf(Entity1OptionalDto{})
 
+	// Items3/Owner target Entity2Dto, not Entity2Entity - a portable dto can only ever
+	// embed another entity's own portable dto (see
+	// preprocess-entities.go's entityDtoRelationTarget), never its raw persisted
+	// struct, which doesn't exist for any non-Go backend and isn't the shape
+	// Entity1EntityUpdateFn's reconcile code can safely Save() anyway.
 	cases := []struct {
 		field    string
 		wantType reflect.Type
 	}{
-		{"Items3", reflect.TypeOf(emigo.CollectionNullable[Entity2Entity]{})}, // collection -> collection?
-		{"Owner", reflect.TypeOf(emigo.OneNullable[Entity2Entity]{})},         // one -> one?
+		{"Items3", reflect.TypeOf(emigo.CollectionNullable[Entity2Dto]{})}, // collection -> collection?, target -> Dto
+		{"Owner", reflect.TypeOf(emigo.OneNullable[Entity2Dto]{})},         // one -> one?, target -> Dto
 	}
 
 	for _, c := range cases {

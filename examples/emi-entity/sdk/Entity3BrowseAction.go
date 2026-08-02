@@ -27,6 +27,7 @@ func Entity3BrowseAction(c Entity3BrowseActionRequest) (*Entity3BrowseActionResp
 func Entity3BrowseActionMeta() struct {
 	Name        string
 	CliName     string
+	CliShort    string
 	URL         string
 	Method      string
 	Description string
@@ -34,12 +35,14 @@ func Entity3BrowseActionMeta() struct {
 	return struct {
 		Name        string
 		CliName     string
+		CliShort    string
 		URL         string
 		Method      string
 		Description string
 	}{
 		Name:        "Entity3BrowseAction",
 		CliName:     "entity3-browse-action",
+		CliShort:    "entity3-b",
 		URL:         "/entity3/browse",
 		Method:      "GET",
 		Description: `Returns "entity3" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).`,
@@ -363,6 +366,7 @@ func Entity3BrowseActionCliHandler(
 		Usage: meta.Description,
 		Flags: Entity3BrowseActionCliFlags(),
 	}
+	cmd.Aliases = []string{meta.CliShort}
 	cmd.Action = func(ctx context.Context, c *cli.Command) error {
 		req := Entity3BrowseActionRequest{
 			CliCtx:      c,

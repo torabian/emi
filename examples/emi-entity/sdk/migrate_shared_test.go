@@ -14,8 +14,8 @@ import (
 func runAutoMigrateAssertions(t *testing.T, db *gorm.DB) {
 	t.Helper()
 
-	// Entity2Entity has to exist before Entity1Entity, since Entity1Entity's OwnerRow/
-	// ManagerRow/Items3Row/Items4Row all foreign-key or many2many against it.
+	// Entity2Entity has to exist before Entity1Entity, since Entity1Entity's Owner/
+	// Manager/Items3Row/Items4Row all foreign-key or many2many against it.
 	// Entity1EntityItems/Items2 (the has-many array child rows) also need to be listed
 	// explicitly - gorm's AutoMigrate does not auto-discover child row types just
 	// because a parent has an association field pointing at them (verified against a

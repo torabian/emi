@@ -30,6 +30,7 @@ func entityIdFieldName(field *core.EmiField) string {
 func isScalarLikeFieldType(t core.FieldType) bool {
 	switch t {
 	case core.FieldTypeArray, core.FieldTypeArrayNullable,
+		core.FieldTypeList, core.FieldTypeListNullable,
 		core.FieldTypeCollection, core.FieldTypeCollectionNullable,
 		core.FieldTypeOne, core.FieldTypeOneNullable,
 		core.FieldTypeObject, core.FieldTypeObjectNullable:
@@ -69,40 +70,40 @@ func walkCreateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 
 		switch field.Type {
 		case core.FieldTypeOne, core.FieldTypeOneNullable:
-			idPath := accessPrefix + entityIdFieldName(field)
-			fmt.Fprintf(oneResolve, `
-	if %[1]s.IsSet() {
-		var selectorId string
-		if %[1]s.Operation == "select" {
-			if s, ok := %[1]s.Selector.(string); ok {
-				selectorId = s
-			}
-		}
-		var item *%[3]s
-		if %[1]s.Operation != "select" {
-			item = &%[1]s.Item
-		}
-		resolvedId, err := emigorm.ReconcileOne(tx, %[1]s.Operation, selectorId, item)
-		if err != nil {
-			return err
-		}
-		%[2]s = resolvedId
-	}
-`, accessPath, idPath, field.Target)
+			// walkCreateFields only ever runs against an *entity's* fields (called
+			// from buildCreateFn, called from GoEntityActionsRender), and always on
+			// the *original*, pre-ApplyEntityGormTags copy (see the ordering note on
+			// GoEntityActionsRender) - so field.Type still reads "one"/"one?" here
+			// even though, by the time this generated code actually runs, the real
+			// Entity1Entity struct's own field has already been converted to
+			// class/class? (see go-entity-gorm.go): a real, gorm-native belongs-to
+			// (foreignKey:{field}Id), not the Operation-wrapped emigo.One shape.
+			//
+			// There's no explicit resolve step needed here at all: gorm's own
+			// Create() cascades belongs-to associations automatically - if the
+			// caller populated dto.Owner with an already-persisted struct (its Id
+			// already set, e.g. from a prior lookup/Create of its own), gorm reuses
+			// that row and just wires OwnerId to it; a struct with no Id set gets
+			// inserted fresh. What's lost compared to the emigo.One-wrapped dto
+			// shape is Selector-based "resolve by some other identifier" (e.g.
+			// uniqueId) - a caller who needs that now resolves it themselves before
+			// constructing dto (see the entity's own Get/Query and the Update path,
+			// which still goes through Entity1OptionalDto and keeps the full
+			// Operation-wrapped shape, unaffected by this).
 
 		case core.FieldTypeArray, core.FieldTypeArrayNullable:
-			childStruct := structPrefix + goName
-			fmt.Fprintf(afterCreate, `
-	if %[1]s.IsSet() {
-		items := make([]*%[2]s, len(%[1]s.Items))
-		for i := range %[1]s.Items {
-			items[i] = &%[1]s.Items[i]
-		}
-		if err := emigorm.ReconcileHasMany(tx, "linker_id", dto.Id, %[1]s.Operation, items); err != nil {
-			return err
-		}
-	}
-`, accessPath, childStruct)
+			// walkCreateFields only ever runs against an *entity's* fields (called
+			// from buildCreateFn, called from GoEntityActionsRender), and always on
+			// the *original*, pre-ApplyEntityGormTags copy (see the ordering note on
+			// GoEntityActionsRender) - so field.Type still reads "array"/"array?"
+			// here even though, by the time this generated code actually runs, the
+			// real Entity1Entity struct's own field has already been converted to
+			// _list/_list? (see go-entity-gorm.go): a real, gorm-native has-many
+			// (foreignKey:LinkerId), not the Operation-wrapped emigo.Array shape.
+			// There's nothing to reconcile against on a fresh Create (no pre-existing
+			// rows), so no explicit emigorm call is needed here at all: gorm's own
+			// Create() cascades has-many children automatically, stamping LinkerId in
+			// from dto.Id as it goes, purely from this now being a real association.
 
 		case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
 			rowField := entityRowFieldName(field)
@@ -237,35 +238,49 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			wrap(afterUpdate, subAfter.String())
 
 		case core.FieldTypeOne, core.FieldTypeOneNullable:
+			// input.{Field}.Item is Entity1OptionalDto's own portable dto shape for the
+			// target entity (see preprocess-entities.go's entityDtoRelationTarget/
+			// shallowCloneField - target is rewritten from the target entity's own
+			// persisted struct to its Dto), not field.Target (the real, gorm-mapped
+			// entity type emigorm.ReconcileOne needs to Save() an inline value) - the two
+			// are never the same type, so there is no way to reconcile an inline
+			// (non-"select") payload here without a dedicated Dto->Entity mapper, which
+			// doesn't exist. Only "select" (link to an existing row by uniqueId) is
+			// supported; anything else fails loudly rather than silently dropping data.
 			idField := entityIdFieldName(field)
 			fmt.Fprintf(oneResolve, `
 	if %[1]s.IsSet() {
-		var selectorId string
-		if %[1]s.Operation == "select" {
-			if s, ok := %[1]s.Selector.(string); ok {
-				selectorId = s
-			}
-		}
-		var item *%[3]s
 		if %[1]s.Operation != "select" {
-			item = &%[1]s.Item
+			return fmt.Errorf("%[4]s: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %%q", %[1]s.Operation)
 		}
-		resolvedId, err := emigorm.ReconcileOne(tx, %[1]s.Operation, selectorId, item)
+		var selectorId string
+		if s, ok := %[1]s.Selector.(string); ok {
+			selectorId = s
+		}
+		resolvedId, err := emigorm.ReconcileOne[%[3]s](tx, %[1]s.Operation, selectorId, nil)
 		if err != nil {
 			return err
 		}
 		changes["%[2]s"] = resolvedId
 	}
-`, accessPath, idField, field.Target)
+`, accessPath, idField, field.Target, field.Name)
 
-		case core.FieldTypeArray, core.FieldTypeArrayNullable:
-			// The update dto's array item type is its *own* struct (core.Emi.Preprocess
-			// built it as a plain, portable array? field - see
-			// lib/core/preprocess-entities.go), not the real entity's child row type,
-			// so each item has to be copied field-by-field into a fresh one. UniqueId
-			// is the synthetic field the preprocessor prepends to every array item -
-			// set means "this is an existing row, patch it", matching how the entity's
-			// own child rows work (see emigorm.ReconcileHasMany).
+		case core.FieldTypeArray, core.FieldTypeArrayNullable, core.FieldTypeList, core.FieldTypeListNullable:
+			// field.Type here is entity.Fields' own type - which ApplyEntityGormTags
+			// has, for an entity's array/array? field, already converted to _list/
+			// _list? (see go-entity-gorm.go) - but input (the update dto) was built
+			// from the *pristine* fields before that conversion (core.Emi.Preprocess
+			// runs first - see BuildEntityOptionalDto in preprocess-entities.go), so
+			// input.{Field} is always still the portable, Operation-wrapped
+			// emigo.ArrayNullable shape regardless of what the entity's own field
+			// looks like now. Same code either way.
+			//
+			// The update dto's array item type is its *own* struct (a plain, portable
+			// array? field), not the real entity's child row type, so each item has to
+			// be copied field-by-field into a fresh one. UniqueId is the synthetic
+			// field the preprocessor prepends to every array item - set means "this is
+			// an existing row, patch it", matching how the entity's own child rows
+			// work (see emigorm.ReconcileHasMany).
 			childStruct := structPrefix + goName
 			var copyFields strings.Builder
 			fmt.Fprintf(&copyFields, "\t\t\t\tUniqueId: src.UniqueId.OrDefault(\"\"),\n")
@@ -291,21 +306,36 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 `, accessPath, childStruct, copyFields.String())
 
 		case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
-			// collection/one reference the same real Target type directly (Target was
-			// always a portable reference to another entity/dto, unaffected by any of
-			// this), so no conversion is needed here the way array needs one.
+			// input.{Field}.Items are Entity1OptionalDto's own portable dto values for
+			// the target entity (see preprocess-entities.go's entityDtoRelationTarget/
+			// shallowCloneField - target is rewritten from the target entity's own
+			// persisted struct to its Dto), not field.Target (the real, gorm-mapped
+			// entity type emigorm.ReconcileManyToMany needs to Save() each item) - the
+			// two are never the same type, and there's no Dto->Entity mapper to bridge
+			// them. Only referencing an existing row by its uniqueId is supported: each
+			// item is looked up and the *real* row (not the dto's own field values) is
+			// what actually gets reconciled; an item with no uniqueId fails loudly
+			// rather than silently dropping data.
 			rowField := entityRowFieldName(field)
 			fmt.Fprintf(afterUpdate, `
 	if %[1]s.IsSet() {
 		items := make([]*%[3]s, len(%[1]s.Items))
 		for i := range %[1]s.Items {
-			items[i] = &%[1]s.Items[i]
+			uid := %[1]s.Items[i].UniqueId.OrDefault("")
+			if uid == "" {
+				return fmt.Errorf("%[4]s: updating a collection/collection? relation only supports referencing existing rows by uniqueId, item %%d has none", i)
+			}
+			var existing %[3]s
+			if err := tx.First(&existing, "unique_id = ?", uid).Error; err != nil {
+				return err
+			}
+			items[i] = &existing
 		}
 		if err := emigorm.ReconcileManyToMany(tx, &entity, "%[2]s", %[1]s.Operation, items); err != nil {
 			return err
 		}
 	}
-`, accessPath, rowField, field.Target)
+`, accessPath, rowField, field.Target, field.Name)
 
 		case core.FieldTypeComplex:
 			// complex has no portable "?" counterpart (see
@@ -527,6 +557,30 @@ func hasRelationField(fields []*core.EmiField) bool {
 	return false
 }
 
+// hasOneOrCollectionField is hasRelationField narrowed to just one/one?/collection/
+// collection? (not array/array?) - walkUpdateFields' One and Collection cases both emit
+// fmt.Errorf (see their own comments: an inline, non-"select"/non-uniqueId-referenced
+// payload can't be reconciled against a portable dto without a Dto->Entity mapper), so
+// "fmt" only needs to be an import when one of those two field types actually shows up
+// somewhere in the entity.
+func hasOneOrCollectionField(fields []*core.EmiField) bool {
+	for _, f := range fields {
+		if f == nil {
+			continue
+		}
+		switch f.Type {
+		case core.FieldTypeCollection, core.FieldTypeCollectionNullable,
+			core.FieldTypeOne, core.FieldTypeOneNullable:
+			return true
+		case core.FieldTypeObject, core.FieldTypeObjectNullable:
+			if hasOneOrCollectionField(f.Fields) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // GoEntityActionsRender renders {Entity}CreateFn, {Entity}UpdateFn, {Entity}GetFn,
 // {Entity}BrowseFn, {Entity}AwareDeletePreviewFn/{Entity}AwareDeleteFn, and a
 // {Entity}ActionsSig bundle (mirroring fireback's own {Entity}ActionsSig /
@@ -568,9 +622,28 @@ func GoEntityActionsRender(
 	}
 
 	var browseQueryClassName string
+	var browseQueryChunk *core.CodeChunkCompiled
 	if browseEnabled {
 		browseQueryClassName = entityBrowseActionQueryClassName(entity)
 		buf.WriteString(buildBrowseFn(className, browseQueryClassName))
+
+		// Normally the qs struct/parsing helpers (browseQueryClassName) are generated
+		// by the portable Browse EmiAction's own file (see GoActionQueryParams, called
+		// from the generic per-action pipeline in go-action-realms.go) - but
+		// preprocessEntityActions never adds that action to m.Actions when
+		// features.browseAction (or the master features.actions) disables it, so
+		// nothing would generate the type {Entity}BrowseFn's signature still depends
+		// on. In that case, render it here directly instead, off the exact same
+		// synthetic action shape (core.BuildEntityBrowseAction), so the type keeps
+		// existing even though it's never exposed as an HTTP route/CLI command/client
+		// SDK method.
+		if !entity.Features.BrowseActionEnabled() {
+			chunk, err := GoActionQueryParams(core.BuildEntityBrowseAction(entity), ctx)
+			if err == nil && chunk != nil {
+				browseQueryChunk = chunk
+				buf.Write(chunk.ActualScript)
+			}
+		}
 	}
 
 	if deleteEnabled {
@@ -628,9 +701,18 @@ var %[1]sActions %[1]sActionsSig = %[1]sActionsSig{
 	if browseEnabled {
 		deps = append(deps, core.CodeChunkDependency{Location: "github.com/torabian/emi/emigo"})
 	}
-	// Only AwareDelete's preview builds a message via fmt.Sprintf in the generated
-	// code itself.
-	if deleteEnabled {
+	// The fallback qs struct rendered above (browseQueryChunk) uses url.Values/
+	// url.ParseQuery and *http.Request directly - both normally imported by the
+	// portable Browse action's own file, which doesn't exist in this case.
+	if browseQueryChunk != nil {
+		deps = append(deps, browseQueryChunk.CodeChunkDependensies...)
+		deps = append(deps, core.CodeChunkDependency{Location: "net/url"})
+		deps = append(deps, core.CodeChunkDependency{Location: "net/http"})
+	}
+	// AwareDelete's preview builds a message via fmt.Sprintf, and Update's One/
+	// Collection cases (see walkUpdateFields) return a fmt.Errorf when handed an
+	// inline, non-"select"/non-uniqueId-referenced payload they can't reconcile.
+	if deleteEnabled || (updateEnabled && hasOneOrCollectionField(entity.Fields)) {
 		deps = append(deps, core.CodeChunkDependency{Location: "fmt"})
 	}
 

@@ -8,13 +8,14 @@ import (
 
 // The base class definition for entity1OptionalDto
 type Entity1OptionalDto struct {
+	UniqueId           emigo.Nullable[string]                               `json:"uniqueId" yaml:"uniqueId"`
 	Title              emigo.Nullable[string]                               `json:"title" yaml:"title"`
 	Items              emigo.ArrayNullable[Entity1OptionalDtoItems]         `json:"items" yaml:"items"`
 	Items2             emigo.ArrayNullable[Entity1OptionalDtoItems2]        `json:"items2" yaml:"items2"`
-	Items3             emigo.CollectionNullable[Entity2Entity]              `json:"items3" yaml:"items3"`
-	Items4             emigo.CollectionNullable[Entity2Entity]              `json:"items4" yaml:"items4"`
-	Owner              emigo.OneNullable[Entity2Entity]                     `json:"owner" yaml:"owner"`
-	Manager            emigo.OneNullable[Entity2Entity]                     `json:"manager" yaml:"manager"`
+	Items3             emigo.CollectionNullable[Entity2Dto]                 `json:"items3" yaml:"items3"`
+	Items4             emigo.CollectionNullable[Entity2Dto]                 `json:"items4" yaml:"items4"`
+	Owner              emigo.OneNullable[Entity2Dto]                        `json:"owner" yaml:"owner"`
+	Manager            emigo.OneNullable[Entity2Dto]                        `json:"manager" yaml:"manager"`
 	Content1           emigo.Nullable[Entity1OptionalDtoContent1]           `json:"content1" yaml:"content1"`
 	Content2           emigo.Nullable[Entity1OptionalDtoContent2]           `json:"content2" yaml:"content2"`
 	Complex1           Money                                                `json:"complex1" yaml:"complex1"`
@@ -73,7 +74,7 @@ type Entity1OptionalDtoNestedContainer struct {
 // The base class definition for nestedInner
 type Entity1OptionalDtoNestedContainerNestedInner struct {
 	NestedItems emigo.ArrayNullable[Entity1OptionalDtoNestedContainerNestedInnerNestedItems] `json:"nestedItems" yaml:"nestedItems"`
-	NestedOwner emigo.OneNullable[Entity2Entity]                                             `json:"nestedOwner" yaml:"nestedOwner"`
+	NestedOwner emigo.OneNullable[Entity2Dto]                                                `json:"nestedOwner" yaml:"nestedOwner"`
 }
 
 // The base class definition for nestedItems
@@ -107,6 +108,10 @@ func (x *Entity1OptionalDto) Json() string {
 }
 func GetEntity1OptionalDtoCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
+		{
+			Name: prefix + "unique-id",
+			Type: "string?",
+		},
 		{
 			Name: prefix + "title",
 			Type: "string?",
@@ -243,6 +248,9 @@ func GetEntity1OptionalDtoCliFlags(prefix string) []emigo.CliFlag {
 }
 func CastEntity1OptionalDtoFromCli(c emigo.CliCastable) Entity1OptionalDto {
 	data := Entity1OptionalDto{}
+	if c.IsSet("unique-id") {
+		emigo.ParseNullable(c.String("unique-id"), &data.UniqueId)
+	}
 	if c.IsSet("title") {
 		emigo.ParseNullable(c.String("title"), &data.Title)
 	}
@@ -253,16 +261,16 @@ func CastEntity1OptionalDtoFromCli(c emigo.CliCastable) Entity1OptionalDto {
 		data.Items2 = emigo.CapturePossibleArrayNullable(CastEntity1OptionalDtoItems2FromCli, "items2", c)
 	}
 	if c.IsSet("items3") {
-		data.Items3 = emigo.CapturePossibleCollectionNullable(CastEntity2EntityFromCli, "items3", c)
+		data.Items3 = emigo.CapturePossibleCollectionNullable(CastEntity2DtoFromCli, "items3", c)
 	}
 	if c.IsSet("items4") {
-		data.Items4 = emigo.CapturePossibleCollectionNullable(CastEntity2EntityFromCli, "items4", c)
+		data.Items4 = emigo.CapturePossibleCollectionNullable(CastEntity2DtoFromCli, "items4", c)
 	}
 	if c.IsSet("owner") {
-		data.Owner = emigo.CapturePossibleOneNullable(CastEntity2EntityFromCli, "owner", c)
+		data.Owner = emigo.CapturePossibleOneNullable(CastEntity2DtoFromCli, "owner", c)
 	}
 	if c.IsSet("manager") {
-		data.Manager = emigo.CapturePossibleOneNullable(CastEntity2EntityFromCli, "manager", c)
+		data.Manager = emigo.CapturePossibleOneNullable(CastEntity2DtoFromCli, "manager", c)
 	}
 	if c.IsSet("content1") {
 		emigo.ParseNullable(c.String("content1"), &data.Content1)
@@ -450,7 +458,7 @@ func CastEntity1OptionalDtoNestedContainerNestedInnerFromCli(c emigo.CliCastable
 		data.NestedItems = emigo.CapturePossibleArrayNullable(CastEntity1OptionalDtoNestedContainerNestedInnerNestedItemsFromCli, "nested-items", c)
 	}
 	if c.IsSet("nested-owner") {
-		data.NestedOwner = emigo.CapturePossibleOneNullable(CastEntity2EntityFromCli, "nested-owner", c)
+		data.NestedOwner = emigo.CapturePossibleOneNullable(CastEntity2DtoFromCli, "nested-owner", c)
 	}
 	return data
 }

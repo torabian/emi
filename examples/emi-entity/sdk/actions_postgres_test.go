@@ -34,7 +34,7 @@ func openPostgresTestDB(t *testing.T) *gorm.DB {
 	}
 
 	// gorm's AutoMigrate does *not* auto-discover has-many child row types through an
-	// association field (Entity1Entity.ItemsRow) - each has to be listed explicitly, or
+	// association field (Entity1Entity.Items) - each has to be listed explicitly, or
 	// their tables never get created. This includes relations nested inside
 	// object/object? containers (NestedContainer.NestedInner.NestedItems and friends).
 	if err := db.AutoMigrate(
@@ -70,12 +70,21 @@ func TestEntity1EntityCreateFn_CascadesArrayCollectionOne(t *testing.T) {
 	dto := &Entity1Entity{
 		Title:    "hello",
 		IsActive: true,
-		Items: emigo.ArrayReplace([]Entity1EntityItems{
+		// Items is now a plain, gorm-native has-many ([]*Entity1EntityItems) on the
+		// entity struct itself - no more emigo.ArrayReplace wrapper - Operation only
+		// ever mattered for Update's reconcile-against-existing-rows semantics, which
+		// a fresh Create has nothing to reconcile against anyway.
+		Items: []*Entity1EntityItems{
 			{Item2: "child-1"},
 			{Item2: "child-2"},
-		}),
+		},
 		Items3: emigo.CollectionReplace([]Entity2Entity{*tagA, *tagB}),
-		Owner:  emigo.OneSelect[Entity2Entity]("owner-1"),
+		// Owner is now a plain, gorm-native belongs-to (*Entity2Entity) on the entity
+		// struct itself - no more emigo.OneSelect wrapper. Passing the
+		// already-persisted owner (its Id already set from the db.Create above) lets
+		// gorm's own Create() cascade recognize the existing row and just wire
+		// OwnerId to it, rather than inserting a duplicate.
+		Owner: owner,
 	}
 
 	created, err := Entity1EntityActions.Create(db, dto)
@@ -90,19 +99,19 @@ func TestEntity1EntityCreateFn_CascadesArrayCollectionOne(t *testing.T) {
 	}
 
 	var reloaded Entity1Entity
-	if err := db.Preload("ItemsRow").Preload("Items3Row").Preload("OwnerRow").
+	if err := db.Preload("Items").Preload("Items3Row").Preload("Owner").
 		First(&reloaded, "unique_id = ?", created.UniqueId).Error; err != nil {
 		t.Fatalf("reload error: %v", err)
 	}
 
-	if len(reloaded.ItemsRow) != 2 {
-		t.Fatalf("expected 2 array children, got %d", len(reloaded.ItemsRow))
+	if len(reloaded.Items) != 2 {
+		t.Fatalf("expected 2 array children, got %d", len(reloaded.Items))
 	}
 	if len(reloaded.Items3Row) != 2 {
 		t.Fatalf("expected 2 collection targets, got %d", len(reloaded.Items3Row))
 	}
-	if reloaded.OwnerRow == nil || reloaded.OwnerRow.Label2 != "owner-one" {
-		t.Fatalf("expected owner to resolve to owner-one, got %+v", reloaded.OwnerRow)
+	if reloaded.Owner == nil || reloaded.Owner.Label2 != "owner-one" {
+		t.Fatalf("expected owner to resolve to owner-one, got %+v", reloaded.Owner)
 	}
 	if reloaded.OwnerId != owner.Id {
 		t.Fatalf("expected OwnerId = owner.Id (%d), got %d", owner.Id, reloaded.OwnerId)
@@ -142,10 +151,10 @@ func TestEntity1EntityUpdateFn_ArrayReplaceAppliesContentAndDeletesOrphans(t *te
 
 	dto := &Entity1Entity{
 		Title: "hello",
-		Items: emigo.ArrayReplace([]Entity1EntityItems{
+		Items: []*Entity1EntityItems{
 			{UniqueId: "c1", Item2: "child-1"},
 			{UniqueId: "c2", Item2: "child-2"},
-		}),
+		},
 	}
 	created, err := Entity1EntityActions.Create(db, dto)
 	if err != nil {
@@ -203,8 +212,13 @@ func TestEntity1EntityUpdateFn_CollectionAppendKeepsExistingAndAddsNew(t *testin
 		t.Fatalf("Create error: %v", err)
 	}
 
+	// Entity1OptionalDto.Items3 targets Entity2Dto (the portable dto), not
+	// Entity2Entity - and Entity1EntityUpdateFn only supports referencing an existing
+	// row by its uniqueId (see go-entity-actions.go's walkUpdateFields), so tagB is
+	// referenced by UniqueId alone; its other field values are looked up fresh rather
+	// than trusted from the payload.
 	var input Entity1OptionalDto
-	input.Items3.Set("append", []Entity2Entity{tagB})
+	input.Items3.Set("append", []Entity2Dto{{UniqueId: emigo.NullableOf(tagB.UniqueId)}})
 	if _, err := Entity1EntityActions.Update(db, created.UniqueId, input); err != nil {
 		t.Fatalf("Update error: %v", err)
 	}
@@ -237,7 +251,7 @@ func TestEntity1EntityUpdateFn_OneChangesOwnerViaSelect(t *testing.T) {
 		t.Fatalf("seed owner2 error: %v", err)
 	}
 
-	dto := &Entity1Entity{Title: "hello", Owner: emigo.OneSelect[Entity2Entity]("owner-1")}
+	dto := &Entity1Entity{Title: "hello", Owner: &owner1}
 	created, err := Entity1EntityActions.Create(db, dto)
 	if err != nil {
 		t.Fatalf("Create error: %v", err)
@@ -269,11 +283,11 @@ func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t 
 		Title: "hello",
 		NestedContainer: Entity1EntityNestedContainer{
 			NestedInner: Entity1EntityNestedContainerNestedInner{
-				NestedItems: emigo.ArrayReplace([]Entity1EntityNestedContainerNestedInnerNestedItems{
+				NestedItems: []*Entity1EntityNestedContainerNestedInnerNestedItems{
 					{Label: "nested-child-1"},
 					{Label: "nested-child-2"},
-				}),
-				NestedOwner: emigo.OneSelect[Entity2Entity]("nested-owner-1"),
+				},
+				NestedOwner: &owner,
 			},
 		},
 	}
@@ -284,18 +298,18 @@ func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t 
 	}
 
 	var reloaded Entity1Entity
-	if err := db.Preload("NestedContainer.NestedInner.NestedItemsRow").
-		Preload("NestedContainer.NestedInner.NestedOwnerRow").
+	if err := db.Preload("NestedContainer.NestedInner.NestedItems").
+		Preload("NestedContainer.NestedInner.NestedOwner").
 		First(&reloaded, "unique_id = ?", created.UniqueId).Error; err != nil {
 		t.Fatalf("reload error: %v", err)
 	}
 
 	nested := reloaded.NestedContainer.NestedInner
-	if len(nested.NestedItemsRow) != 2 {
-		t.Fatalf("expected 2 nested array children, got %d", len(nested.NestedItemsRow))
+	if len(nested.NestedItems) != 2 {
+		t.Fatalf("expected 2 nested array children, got %d", len(nested.NestedItems))
 	}
-	if nested.NestedOwnerRow == nil || nested.NestedOwnerRow.Label2 != "nested-owner" {
-		t.Fatalf("expected nested owner to resolve to nested-owner, got %+v", nested.NestedOwnerRow)
+	if nested.NestedOwner == nil || nested.NestedOwner.Label2 != "nested-owner" {
+		t.Fatalf("expected nested owner to resolve to nested-owner, got %+v", nested.NestedOwner)
 	}
 
 	// Update: replace the nested array (drop one, modify one, add one) - the same
@@ -306,7 +320,7 @@ func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t 
 	nc.NestedInner.Set(&Entity1OptionalDtoNestedContainerNestedInner{})
 	ni, _ := nc.NestedInner.Get()
 	ni.NestedItems.Set("replace", []Entity1OptionalDtoNestedContainerNestedInnerNestedItems{
-		{UniqueId: emigo.NullableOf(nested.NestedItemsRow[1].UniqueId), Label: "nested-child-2-updated"},
+		{UniqueId: emigo.NullableOf(nested.NestedItems[1].UniqueId), Label: "nested-child-2-updated"},
 		{Label: "nested-child-3"},
 	})
 
@@ -315,11 +329,11 @@ func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t 
 	}
 
 	var afterUpdate Entity1Entity
-	if err := db.Preload("NestedContainer.NestedInner.NestedItemsRow").
+	if err := db.Preload("NestedContainer.NestedInner.NestedItems").
 		First(&afterUpdate, "unique_id = ?", created.UniqueId).Error; err != nil {
 		t.Fatalf("reload error: %v", err)
 	}
-	items := afterUpdate.NestedContainer.NestedInner.NestedItemsRow
+	items := afterUpdate.NestedContainer.NestedInner.NestedItems
 	if len(items) != 2 {
 		t.Fatalf("expected 2 nested children after replace, got %d", len(items))
 	}

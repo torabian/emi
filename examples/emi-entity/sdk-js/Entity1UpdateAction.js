@@ -11,7 +11,7 @@ import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
  */
 export class Entity1UpdateAction {
   //
-  static URL = "/entity1/:uniqueId string";
+  static URL = "/entity1/:uniqueId";
   static NewUrl = (params, qs) => buildUrl(Entity1UpdateAction.URL, params, qs);
   static Method = "PATCH";
   static Fetch$ = async (params, qs, ctx, init, overrideUrl) => {
@@ -55,6 +55,7 @@ export class Entity1UpdateAction {
   };
   static Definition = {
     name: "entity1Update",
+    cliShort: "entity1-u",
     url: "/entity1/:uniqueId string",
     method: "patch",
     description: 'Applies a partial update to a "entity1" row by uniqueId.',

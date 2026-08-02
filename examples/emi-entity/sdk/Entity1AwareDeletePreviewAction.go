@@ -26,6 +26,7 @@ func Entity1AwareDeletePreviewAction(c Entity1AwareDeletePreviewActionRequest) (
 func Entity1AwareDeletePreviewActionMeta() struct {
 	Name        string
 	CliName     string
+	CliShort    string
 	URL         string
 	Method      string
 	Description string
@@ -33,12 +34,14 @@ func Entity1AwareDeletePreviewActionMeta() struct {
 	return struct {
 		Name        string
 		CliName     string
+		CliShort    string
 		URL         string
 		Method      string
 		Description string
 	}{
 		Name:        "Entity1AwareDeletePreviewAction",
 		CliName:     "entity1-aware-delete-preview-action",
+		CliShort:    "entity1-dp",
 		URL:         "/entity1/delete-preview",
 		Method:      "GET",
 		Description: `Reports what deleting the given "entity1" uniqueIds would affect, without deleting anything.`,
@@ -391,6 +394,7 @@ func Entity1AwareDeletePreviewActionCliHandler(
 		Usage: meta.Description,
 		Flags: Entity1AwareDeletePreviewActionCliFlags(),
 	}
+	cmd.Aliases = []string{meta.CliShort}
 	cmd.Action = func(ctx context.Context, c *cli.Command) error {
 		req := Entity1AwareDeletePreviewActionRequest{
 			CliCtx:      c,

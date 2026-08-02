@@ -27,6 +27,7 @@ func Entity4AwareDeleteAction(c Entity4AwareDeleteActionRequest) (*Entity4AwareD
 func Entity4AwareDeleteActionMeta() struct {
 	Name        string
 	CliName     string
+	CliShort    string
 	URL         string
 	Method      string
 	Description string
@@ -34,12 +35,14 @@ func Entity4AwareDeleteActionMeta() struct {
 	return struct {
 		Name        string
 		CliName     string
+		CliShort    string
 		URL         string
 		Method      string
 		Description string
 	}{
 		Name:        "Entity4AwareDeleteAction",
 		CliName:     "entity4-aware-delete-action",
+		CliShort:    "entity4-d",
 		URL:         "/entity4/delete",
 		Method:      "POST",
 		Description: `Deletes the given "entity4" uniqueIds, along with everything entity4AwareDeletePreview reports.`,
@@ -314,6 +317,7 @@ func Entity4AwareDeleteActionCliHandler(
 		Usage: meta.Description,
 		Flags: Entity4AwareDeleteActionCliFlags(),
 	}
+	cmd.Aliases = []string{meta.CliShort}
 	cmd.Action = func(ctx context.Context, c *cli.Command) error {
 		req := Entity4AwareDeleteActionRequest{
 			CliCtx:      c,

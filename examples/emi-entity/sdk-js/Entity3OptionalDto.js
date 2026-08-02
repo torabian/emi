@@ -6,6 +6,31 @@ export class Entity3OptionalDto {
    *
    * @type {string}
    **/
+  #uniqueId = undefined;
+  /**
+   *
+   * @returns {string}
+   **/
+  get uniqueId() {
+    return this.#uniqueId;
+  }
+  /**
+   *
+   * @type {string}
+   **/
+  set uniqueId(value) {
+    const correctType =
+      typeof value === "string" || value === undefined || value === null;
+    this.#uniqueId = correctType ? value : String(value);
+  }
+  setUniqueId(value) {
+    this.uniqueId = value;
+    return this;
+  }
+  /**
+   *
+   * @type {string}
+   **/
   #message = undefined;
   /**
    *
@@ -63,6 +88,9 @@ export class Entity3OptionalDto {
    **/
   applyFromObject(data = {}) {
     const d = data;
+    if (d.uniqueId !== undefined) {
+      this.uniqueId = d.uniqueId;
+    }
     if (d.message !== undefined) {
       this.message = d.message;
     }
@@ -73,6 +101,7 @@ export class Entity3OptionalDto {
    **/
   toJSON() {
     return {
+      uniqueId: this.#uniqueId,
       message: this.#message,
     };
   }
@@ -81,6 +110,7 @@ export class Entity3OptionalDto {
   }
   static get Fields() {
     return {
+      uniqueId: "uniqueId",
       message: "message",
     };
   }

@@ -162,7 +162,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 
 
 export class {{ .className }} { //
-  static URL = '{{ .action.Url }}';
+  static URL = '{{ .safeUrl }}';
 
   static NewUrl = (
 	{{ if .queryParams }}
@@ -206,6 +206,7 @@ export class {{ .className }} { //
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"action":                  action,
+		"safeUrl":                 core.RemoveTypeAnnotations(action.GetUrl()),
 		"fetchStaticFunction":     fetchStaticFunction,
 		"websocketCreateFunction": websocketCreateFunction,
 		"shouldExport":            true,

@@ -27,6 +27,7 @@ func Entity2AwareDeleteAction(c Entity2AwareDeleteActionRequest) (*Entity2AwareD
 func Entity2AwareDeleteActionMeta() struct {
 	Name        string
 	CliName     string
+	CliShort    string
 	URL         string
 	Method      string
 	Description string
@@ -34,12 +35,14 @@ func Entity2AwareDeleteActionMeta() struct {
 	return struct {
 		Name        string
 		CliName     string
+		CliShort    string
 		URL         string
 		Method      string
 		Description string
 	}{
 		Name:        "Entity2AwareDeleteAction",
 		CliName:     "entity2-aware-delete-action",
+		CliShort:    "entity2-d",
 		URL:         "/entity2/delete",
 		Method:      "POST",
 		Description: `Deletes the given "entity2" uniqueIds, along with everything entity2AwareDeletePreview reports.`,
@@ -314,6 +317,7 @@ func Entity2AwareDeleteActionCliHandler(
 		Usage: meta.Description,
 		Flags: Entity2AwareDeleteActionCliFlags(),
 	}
+	cmd.Aliases = []string{meta.CliShort}
 	cmd.Action = func(ctx context.Context, c *cli.Command) error {
 		req := Entity2AwareDeleteActionRequest{
 			CliCtx:      c,

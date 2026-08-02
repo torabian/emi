@@ -17,7 +17,7 @@ type EmiField struct {
 	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description about the field for developers and generated documents."`
 
 	// Type of the field based on Emi types.
-	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=array,enum=map?,enum=map,enum=slice,enum=one,enum=collection,enum=object,enum=enum,enum=string,enum=bool,enum=int,enum=int32,enum=int64,enum=float32,enum=float64,enum=array?,enum=slice?,enum=one?,enum=collection?,enum=object?,enum=enum?,enum=string?,enum=bool?,enum=int?,enum=int32?,enum=int64?,enum=float32?,enum=float64?,enum=any,enum=complex,description=Type of the field based on Emi types."`
+	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=array,enum=_list,enum=map?,enum=map,enum=slice,enum=one,enum=class,enum=collection,enum=object,enum=enum,enum=string,enum=bool,enum=int,enum=int32,enum=int64,enum=float32,enum=float64,enum=array?,enum=_list?,enum=slice?,enum=one?,enum=class?,enum=collection?,enum=object?,enum=enum?,enum=string?,enum=bool?,enum=int?,enum=int32?,enum=int64?,enum=float32?,enum=float64?,enum=any,enum=complex,description=Type of the field based on Emi types."`
 
 	// In case of type map this is the map key type, can be a primitive.
 	MapKeyOf string `yaml:"mapKeyOf,omitempty" json:"mapKeyOf,omitempty" jsonschema:"enum=string,enum=int,enum=any,description=In case of type map this is the map key type, can be a primitive."`

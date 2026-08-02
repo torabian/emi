@@ -10,7 +10,7 @@ import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
  */
 export class Entity1GetAction {
   //
-  static URL = "/entity1/:uniqueId string";
+  static URL = "/entity1/:uniqueId";
   static NewUrl = (params, qs) => buildUrl(Entity1GetAction.URL, params, qs);
   static Method = "GET";
   static Fetch$ = async (params, qs, ctx, init, overrideUrl) => {
@@ -54,6 +54,7 @@ export class Entity1GetAction {
   };
   static Definition = {
     name: "entity1Get",
+    cliShort: "entity1-g",
     url: "/entity1/:uniqueId string",
     method: "get",
     description: 'Looks up a single "entity1" row by uniqueId.',

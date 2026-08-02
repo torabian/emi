@@ -32,7 +32,7 @@ import (
 {{ end }}
 
 {{ if .goGin }}
-func {{ upper .manifest.Name }}GinServerSetup(x *gin.Engine) {
+func {{ upper .manifest.Name }}GinServerSetup(x *gin.RouterGroup) {
 	{{ range .actions }}
 		 {{$.location}} {{ .ActionName }}Gin(x, {{ .ActionName }})
 	{{ end }}

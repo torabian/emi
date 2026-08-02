@@ -29,6 +29,7 @@ func Entity4UpdateAction(c Entity4UpdateActionRequest) (*Entity4UpdateActionResp
 func Entity4UpdateActionMeta() struct {
 	Name        string
 	CliName     string
+	CliShort    string
 	URL         string
 	Method      string
 	Description string
@@ -36,12 +37,14 @@ func Entity4UpdateActionMeta() struct {
 	return struct {
 		Name        string
 		CliName     string
+		CliShort    string
 		URL         string
 		Method      string
 		Description string
 	}{
 		Name:        "Entity4UpdateAction",
 		CliName:     "entity4-update-action",
+		CliShort:    "entity4-u",
 		URL:         "/entity4/:uniqueId",
 		Method:      "PATCH",
 		Description: `Applies a partial update to a "entity4" row by uniqueId.`,
@@ -349,6 +352,7 @@ func Entity4UpdateActionCliHandler(
 		Usage: meta.Description,
 		Flags: Entity4UpdateActionCliFlags(),
 	}
+	cmd.Aliases = []string{meta.CliShort}
 	cmd.Action = func(ctx context.Context, c *cli.Command) error {
 		req := Entity4UpdateActionRequest{
 			CliCtx:      c,

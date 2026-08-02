@@ -5,56 +5,49 @@ import (
 	"testing"
 )
 
-// Covers the "array" / "array?" scenario: a has-many relation where the child rows are
-// the auto-generated nested struct (Entity1EntityItems / Entity1EntityItems2), linked
-// back to the parent via a generic LinkerId column.
+// Covers the "array" / "array?" scenario on an entity: a has-many relation where the
+// child rows are the auto-generated nested struct (Entity1EntityItems /
+// Entity1EntityItems2), linked back to the parent via a generic LinkerId column.
 //
-// The DTO field itself (Items, emigo.Array[T]) can't be migrated by gorm directly - it's
-// a PATCH-payload wrapper with no Scan/Value and isn't the []*T shape gorm recognizes
-// as an association - so it's tagged gorm:"-", and a real gorm-shaped sibling field
-// (ItemsRow []*Entity1EntityItems) carries the actual has-many relation tag instead.
+// ApplyEntityGormTags converts an entity's own array/array? fields into _list/_list?
+// (see go-entity-gorm.go): the primary field itself becomes a real, gorm-native
+// []*ChildStruct/[]ChildStruct has-many, tagged directly with the foreignKey relation -
+// no gorm:"-", no hidden {field}Row shadow sibling needed, since a plain slice is
+// exactly the shape gorm's own reflection-based schema builder recognizes. DTOs
+// (Entity1Dto/Entity1OptionalDto) never see this conversion - they're built from
+// entity.Fields before ApplyEntityGormTags ever mutates it, so they keep the portable,
+// Operation-wrapped array/array? shape Create/Update's own request bodies still need.
 
-func TestArrayField_DtoFieldSkipsGorm(t *testing.T) {
+func TestArrayField_IsARealGormHasMany(t *testing.T) {
 	field, ok := reflect.TypeOf(Entity1Entity{}).FieldByName("Items")
 	if !ok {
 		t.Fatal("expected Entity1Entity to have an Items field")
 	}
 
-	if got := field.Tag.Get("gorm"); got != "-" {
-		t.Fatalf("Items gorm tag = %q, want %q", got, "-")
+	want := "foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE"
+	if got := field.Tag.Get("gorm"); got != want {
+		t.Fatalf("Items gorm tag = %q, want %q", got, want)
 	}
-
-	if field.Type.String() != "emigo.Array[github.com/torabian/emi/examples/emi-entity/sdk.Entity1EntityItems]" {
-		t.Fatalf("Items field type = %v, want emigo.Array[Entity1EntityItems]", field.Type)
+	if field.Type != reflect.TypeOf([]*Entity1EntityItems{}) {
+		t.Fatalf("Items field type = %v, want []*Entity1EntityItems (array -> _list, a pointer slice)", field.Type)
+	}
+	if got := field.Tag.Get("json"); got != "items" {
+		t.Fatalf("Items json tag = %q, want %q (still the public DTO shape, just gorm-native now)", got, "items")
 	}
 }
 
-func TestArrayNullableField_DtoFieldSkipsGorm(t *testing.T) {
+func TestArrayNullableField_IsARealGormHasMany(t *testing.T) {
 	field, ok := reflect.TypeOf(Entity1Entity{}).FieldByName("Items2")
 	if !ok {
 		t.Fatal("expected Entity1Entity to have an Items2 field")
 	}
 
-	if got := field.Tag.Get("gorm"); got != "-" {
-		t.Fatalf("Items2 gorm tag = %q, want %q", got, "-")
-	}
-}
-
-func TestArrayField_RowSiblingCarriesHasManyTag(t *testing.T) {
-	field, ok := reflect.TypeOf(Entity1Entity{}).FieldByName("ItemsRow")
-	if !ok {
-		t.Fatal("expected Entity1Entity to have an ItemsRow field")
-	}
-
 	want := "foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE"
 	if got := field.Tag.Get("gorm"); got != want {
-		t.Fatalf("ItemsRow gorm tag = %q, want %q", got, want)
+		t.Fatalf("Items2 gorm tag = %q, want %q", got, want)
 	}
-	if field.Type != reflect.TypeOf([]*Entity1EntityItems{}) {
-		t.Fatalf("ItemsRow field type = %v, want []*Entity1EntityItems", field.Type)
-	}
-	if got := field.Tag.Get("json"); got != "-" {
-		t.Fatalf("ItemsRow json tag = %q, want %q (gorm-only, not part of the public DTO shape)", got, "-")
+	if field.Type != reflect.TypeOf([]Entity1EntityItems2{}) {
+		t.Fatalf("Items2 field type = %v, want []Entity1EntityItems2 (array? -> _list?, a value slice)", field.Type)
 	}
 }
 

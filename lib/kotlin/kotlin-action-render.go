@@ -37,7 +37,7 @@ func KotlinActionRender(
 
 data class {{ .realms.ActionName }}Meta(
     val name: String = "{{ .realms.ActionName }}",
-    val url: String = "{{ .action.Url }}",
+    val url: String = "{{ .safeUrl }}",
     val method: String = "{{ .action.Method }}"
 )
 
@@ -130,8 +130,9 @@ object {{ .realms.ActionName }}Client {
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"action": action,
-		"realms": realms,
+		"action":  action,
+		"safeUrl": core.RemoveTypeAnnotations(action.GetUrl()),
+		"realms":  realms,
 	}); err != nil {
 		return nil, err
 	}
