@@ -40,16 +40,16 @@ dtos:
       type: string
   - name: items3
     type: collection?
-    target: Entity2Entity
+    target: Entity2Dto
   - name: items4
     type: collection?
-    target: Entity2Entity
+    target: Entity2Dto
   - name: owner
     type: one?
-    target: Entity2Entity
+    target: Entity2Dto
   - name: manager
     type: one?
-    target: Entity2Entity
+    target: Entity2Dto
   - name: content1
     type: object?
     fields:
@@ -134,7 +134,7 @@ dtos:
           type: string
       - name: nestedOwner
         type: one?
-        target: Entity2Entity
+        target: Entity2Dto
   - name: nestedContainerOpt
     type: object?
     fields:
@@ -189,17 +189,17 @@ dtos:
     - name: item2
       type: string
   - name: items3
-    type: collection
-    target: Entity2Entity
+    type: collection?
+    target: Entity2Dto
   - name: items4
     type: collection?
-    target: Entity2Entity
+    target: Entity2Dto
   - name: owner
-    type: one
-    target: Entity2Entity
+    type: one?
+    target: Entity2Dto
   - name: manager
     type: one?
-    target: Entity2Entity
+    target: Entity2Dto
   - name: content1
     type: object
     fields:
@@ -281,8 +281,8 @@ dtos:
         - name: label
           type: string
       - name: nestedOwner
-        type: one
-        target: Entity2Entity
+        type: one?
+        target: Entity2Dto
   - name: nestedContainerOpt
     type: object?
     fields:

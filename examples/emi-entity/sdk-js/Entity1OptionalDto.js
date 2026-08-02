@@ -1,4 +1,4 @@
-import { Entity2Entity } from "./Entity2Entity";
+import { Entity2Dto } from "./Entity2Dto";
 import { MArray, MCollection, MOne } from "./sdk/common/operators";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -165,19 +165,19 @@ export class Entity1OptionalDto {
   }
   /**
    *
-   * @type {Entity2Entity[]}
+   * @type {Entity2Dto[]}
    **/
   #items3 = undefined;
   /**
    *
-   * @returns {Entity2Entity[]}
+   * @returns {Entity2Dto[]}
    **/
   get items3() {
     return this.#items3;
   }
   /**
    *
-   * @type {Entity2Entity[]}
+   * @type {Entity2Dto[]}
    **/
   set items3(value) {
     // For nullable collection, we allow explicit undefined or null values
@@ -188,11 +188,11 @@ export class Entity1OptionalDto {
     // When the passed value is already an array, we check if we need to
     // cast the inner items into class instance.
     if (Array.isArray(value)) {
-      if (value.length > 0 && value[0] instanceof Entity2Entity) {
+      if (value.length > 0 && value[0] instanceof Entity2Dto) {
         this.#items3 = MCollection.of(value);
       } else {
         this.#items3 = MCollection.of(
-          value.map((item) => new Entity2Entity(item)),
+          value.map((item) => new Entity2Dto(item)),
         );
       }
       return;
@@ -219,19 +219,19 @@ export class Entity1OptionalDto {
   }
   /**
    *
-   * @type {Entity2Entity[]}
+   * @type {Entity2Dto[]}
    **/
   #items4 = undefined;
   /**
    *
-   * @returns {Entity2Entity[]}
+   * @returns {Entity2Dto[]}
    **/
   get items4() {
     return this.#items4;
   }
   /**
    *
-   * @type {Entity2Entity[]}
+   * @type {Entity2Dto[]}
    **/
   set items4(value) {
     // For nullable collection, we allow explicit undefined or null values
@@ -242,11 +242,11 @@ export class Entity1OptionalDto {
     // When the passed value is already an array, we check if we need to
     // cast the inner items into class instance.
     if (Array.isArray(value)) {
-      if (value.length > 0 && value[0] instanceof Entity2Entity) {
+      if (value.length > 0 && value[0] instanceof Entity2Dto) {
         this.#items4 = MCollection.of(value);
       } else {
         this.#items4 = MCollection.of(
-          value.map((item) => new Entity2Entity(item)),
+          value.map((item) => new Entity2Dto(item)),
         );
       }
       return;
@@ -273,28 +273,28 @@ export class Entity1OptionalDto {
   }
   /**
    *
-   * @type {Entity2Entity}
+   * @type {Entity2Dto}
    **/
   #owner = undefined;
   /**
    *
-   * @returns {Entity2Entity}
+   * @returns {Entity2Dto}
    **/
   get owner() {
     return this.#owner;
   }
   /**
    *
-   * @type {Entity2Entity}
+   * @type {Entity2Dto}
    **/
   set owner(value) {
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof MOne) {
       this.#owner = value;
-    } else if (value instanceof Entity2Entity) {
+    } else if (value instanceof Entity2Dto) {
       this.#owner = MOne.of(value);
     } else {
-      this.#owner = MOne.of(new Entity2Entity(value));
+      this.#owner = MOne.of(new Entity2Dto(value));
     }
   }
   setOwner(value) {
@@ -303,28 +303,28 @@ export class Entity1OptionalDto {
   }
   /**
    *
-   * @type {Entity2Entity}
+   * @type {Entity2Dto}
    **/
   #manager = undefined;
   /**
    *
-   * @returns {Entity2Entity}
+   * @returns {Entity2Dto}
    **/
   get manager() {
     return this.#manager;
   }
   /**
    *
-   * @type {Entity2Entity}
+   * @type {Entity2Dto}
    **/
   set manager(value) {
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof MOne) {
       this.#manager = value;
-    } else if (value instanceof Entity2Entity) {
+    } else if (value instanceof Entity2Dto) {
       this.#manager = MOne.of(value);
     } else {
-      this.#manager = MOne.of(new Entity2Entity(value));
+      this.#manager = MOne.of(new Entity2Dto(value));
     }
   }
   setManager(value) {
@@ -1614,28 +1614,28 @@ export class Entity1OptionalDto {
       }
       /**
        *
-       * @type {Entity2Entity}
+       * @type {Entity2Dto}
        **/
       #nestedOwner = undefined;
       /**
        *
-       * @returns {Entity2Entity}
+       * @returns {Entity2Dto}
        **/
       get nestedOwner() {
         return this.#nestedOwner;
       }
       /**
        *
-       * @type {Entity2Entity}
+       * @type {Entity2Dto}
        **/
       set nestedOwner(value) {
         // For objects, the sub type needs to always be instance of the sub class.
         if (value instanceof MOne) {
           this.#nestedOwner = value;
-        } else if (value instanceof Entity2Entity) {
+        } else if (value instanceof Entity2Dto) {
           this.#nestedOwner = MOne.of(value);
         } else {
-          this.#nestedOwner = MOne.of(new Entity2Entity(value));
+          this.#nestedOwner = MOne.of(new Entity2Dto(value));
         }
       }
       setNestedOwner(value) {
@@ -2604,11 +2604,11 @@ export class Entity1OptionalDto {
       },
       items3$: "items3",
       get items3() {
-        return withPrefix("items3", Entity2Entity.Fields);
+        return withPrefix("items3", Entity2Dto.Fields);
       },
       items4$: "items4",
       get items4() {
-        return withPrefix("items4", Entity2Entity.Fields);
+        return withPrefix("items4", Entity2Dto.Fields);
       },
       owner: "owner",
       manager: "manager",

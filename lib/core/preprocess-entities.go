@@ -1,5 +1,7 @@
 package core
 
+import "strings"
+
 // entityOptionalDtoName returns the *declared* Name for the "every field optional" dto
 // Emi.Preprocess synthesizes for an entity - not its Go (or any other language's) class
 // name. EmiDto.GetClassName() always appends "Dto" to whatever it's given, so this is
@@ -54,16 +56,80 @@ func nullableFieldType(t FieldType) FieldType {
 	}
 }
 
+// entityDtoRelationTarget rewrites a one/one?/collection/collection? field's target from
+// another entity's own persisted Go struct name - the documented "<EntityName>Entity"
+// convention (type: one / type: collection + target: <EntityName>Entity) - to that same
+// entity's portable dto class instead ("<EntityName>Entity" -> "<EntityName>Dto"). Every
+// compiler other than lib/golang's own entity codegen (js, kotlin, swift, openapi, and
+// even Go's own plain/non-entity struct generator) only ever sees an entity's derived dto
+// (see BuildEntityDto/preprocessEntityDtos) - the "Entity"-suffixed struct only exists
+// inside the one generated Go file for that entity itself - so a portable dto embedding
+// another entity by reference has to point at its Dto, or every non-Go backend (and even
+// Go's own dto struct, referencing a type most other files never generate) breaks.
+//
+// A target with no "Entity" suffix (a plain, hand-declared dto/type, or a self@-prefixed
+// self-reference - see lib/js/js-common-object-class.go's SELF_FIELD) is left untouched -
+// this only ever applies to the specific entity-relation convention.
+func entityDtoRelationTarget(target string) string {
+	const suffix = "Entity"
+	if len(target) <= len(suffix) || !strings.HasSuffix(target, suffix) {
+		return target
+	}
+	return strings.TrimSuffix(target, suffix) + "Dto"
+}
+
 // shallowCloneField copies a field (not its Tags - a clone destined for a synthesized
 // dto isn't tied to whatever persistence tags the source field carries) without
 // touching its own Fields slice, letting the caller decide whether/how to recurse.
+//
+// one/one? and collection/collection? get two extra adjustments, regardless of caller:
+// target is rewritten via entityDtoRelationTarget, and the type is forced to its
+// nullable counterpart - a portable dto can't require a caller to always nest another
+// entity's complete dto just to reference it, the same way BuildEntityOptionalDto
+// already forces every field nullable for its own reasons.
 func shallowCloneField(f *EmiField) *EmiField {
 	if f == nil {
 		return nil
 	}
 	clone := *f
 	clone.Tags = nil
+
+	switch f.Type {
+	case FieldTypeOne, FieldTypeOneNullable:
+		clone.Type = FieldTypeOneNullable
+		clone.Target = entityDtoRelationTarget(f.Target)
+	case FieldTypeCollection, FieldTypeCollectionNullable:
+		clone.Type = FieldTypeCollectionNullable
+		clone.Target = entityDtoRelationTarget(f.Target)
+	}
+
 	return &clone
+}
+
+// deepCloneEntityField is BuildEntityDto's per-field clone step - like shallowCloneField,
+// but recurses into object/object? containers at any depth, so a one/one?/collection/
+// collection? field nested inside one (e.g. nestedContainer.nestedInner.nestedOwner - see
+// nested_relations_test.go) still gets shallowCloneField's relation-target/nullability
+// adjustment, not just a top-level field. array/array? items are left exactly as
+// shallowCloneField already leaves them (see cloneEntityOptionalField's array case,
+// which behaves the same way) - a relation target nested inside an array item isn't part
+// of this fix.
+func deepCloneEntityField(field *EmiField) *EmiField {
+	if field == nil {
+		return nil
+	}
+
+	clone := shallowCloneField(field)
+
+	if field.Type == FieldTypeObject || field.Type == FieldTypeObjectNullable {
+		nested := make([]*EmiField, 0, len(field.Fields))
+		for _, f := range field.Fields {
+			nested = append(nested, deepCloneEntityField(f))
+		}
+		clone.Fields = nested
+	}
+
+	return clone
 }
 
 // cloneEntityOptionalField builds one field of an entity's optional dto - every field
@@ -84,8 +150,12 @@ func shallowCloneField(f *EmiField) *EmiField {
 //     entity's own array children get an id the Go/gorm layer can key off of (see
 //     lib/golang/go-entity-default-fields.go) - just meaningful to every compiler, not
 //     only Go's.
-//   - collection/collection? and one/one? become their "?" counterpart; Target is
-//     already a portable reference to another entity/dto, unaffected by any of this.
+//   - collection/collection? and one/one? become their "?" counterpart, and their
+//     Target is rewritten from the target entity's persisted struct name to its portable
+//     dto class - both already handled by shallowCloneField itself (see its own doc
+//     comment), since the exact same adjustment applies to a one/collection field found
+//     anywhere else a field gets shallow-cloned (e.g. nested inside an array item, just
+//     below).
 //   - complex/any have no portable "?" form, so they're left exactly as declared -
 //     Update always carries them; there's no way to say "leave this one untouched".
 func cloneEntityOptionalField(field *EmiField) *EmiField {
@@ -104,14 +174,6 @@ func cloneEntityOptionalField(field *EmiField) *EmiField {
 			nested = append(nested, shallowCloneField(f))
 		}
 		clone.Fields = nested
-
-	case FieldTypeCollection, FieldTypeCollectionNullable:
-		clone.Type = FieldTypeCollectionNullable
-		clone.Fields = nil
-
-	case FieldTypeOne, FieldTypeOneNullable:
-		clone.Type = FieldTypeOneNullable
-		clone.Fields = nil
 
 	case FieldTypeObject, FieldTypeObjectNullable:
 		clone.Type = FieldTypeObjectNullable
@@ -218,9 +280,11 @@ func entityDtoName(entity *Module3Entity) string {
 	return entity.Name
 }
 
-// BuildEntityDto derives a plain dto mirroring entity's own declared fields exactly -
-// no optional-wrapping, no relation-type rewriting (contrast BuildEntityOptionalDto,
-// which does both) - plus a synthetic uniqueId (entity.Fields itself never carries one;
+// BuildEntityDto derives a plain dto mirroring entity's own declared fields exactly - no
+// optional-wrapping (contrast BuildEntityOptionalDto, which makes every field nullable),
+// other than what shallowCloneField itself always does to one/one?/collection/collection?
+// fields (nullable-counterpart + entity-target-to-dto-target rewriting - see its own doc
+// comment) - plus a synthetic uniqueId (entity.Fields itself never carries one;
 // that's added later, Go-specifically, by PrependEntityDefaultFields, see
 // lib/golang/go-entity-default-fields.go), so it doubles as both the request body for
 // Create (a caller may supply its own uniqueId, e.g. a client-generated one - or leave
@@ -234,7 +298,7 @@ func BuildEntityDto(entity *Module3Entity) *EmiDto {
 		if f == nil {
 			continue
 		}
-		fields = append(fields, shallowCloneField(f))
+		fields = append(fields, deepCloneEntityField(f))
 	}
 
 	return &EmiDto{

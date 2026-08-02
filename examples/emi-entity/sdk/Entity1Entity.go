@@ -718,34 +718,28 @@ func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDt
 		}
 		changes := map[string]interface{}{}
 		if input.Owner.IsSet() {
-			var selectorId string
-			if input.Owner.Operation == "select" {
-				if s, ok := input.Owner.Selector.(string); ok {
-					selectorId = s
-				}
-			}
-			var item *Entity2Entity
 			if input.Owner.Operation != "select" {
-				item = &input.Owner.Item
+				return fmt.Errorf("owner: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %q", input.Owner.Operation)
 			}
-			resolvedId, err := emigorm.ReconcileOne(tx, input.Owner.Operation, selectorId, item)
+			var selectorId string
+			if s, ok := input.Owner.Selector.(string); ok {
+				selectorId = s
+			}
+			resolvedId, err := emigorm.ReconcileOne[Entity2Entity](tx, input.Owner.Operation, selectorId, nil)
 			if err != nil {
 				return err
 			}
 			changes["OwnerId"] = resolvedId
 		}
 		if input.Manager.IsSet() {
-			var selectorId string
-			if input.Manager.Operation == "select" {
-				if s, ok := input.Manager.Selector.(string); ok {
-					selectorId = s
-				}
-			}
-			var item *Entity2Entity
 			if input.Manager.Operation != "select" {
-				item = &input.Manager.Item
+				return fmt.Errorf("manager: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %q", input.Manager.Operation)
 			}
-			resolvedId, err := emigorm.ReconcileOne(tx, input.Manager.Operation, selectorId, item)
+			var selectorId string
+			if s, ok := input.Manager.Selector.(string); ok {
+				selectorId = s
+			}
+			resolvedId, err := emigorm.ReconcileOne[Entity2Entity](tx, input.Manager.Operation, selectorId, nil)
 			if err != nil {
 				return err
 			}
@@ -756,17 +750,14 @@ func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDt
 				if v.NestedInner.IsSet() {
 					if v, ok := v.NestedInner.Get(); ok && v != nil {
 						if v.NestedOwner.IsSet() {
-							var selectorId string
-							if v.NestedOwner.Operation == "select" {
-								if s, ok := v.NestedOwner.Selector.(string); ok {
-									selectorId = s
-								}
-							}
-							var item *Entity2Entity
 							if v.NestedOwner.Operation != "select" {
-								item = &v.NestedOwner.Item
+								return fmt.Errorf("nestedOwner: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %q", v.NestedOwner.Operation)
 							}
-							resolvedId, err := emigorm.ReconcileOne(tx, v.NestedOwner.Operation, selectorId, item)
+							var selectorId string
+							if s, ok := v.NestedOwner.Selector.(string); ok {
+								selectorId = s
+							}
+							resolvedId, err := emigorm.ReconcileOne[Entity2Entity](tx, v.NestedOwner.Operation, selectorId, nil)
 							if err != nil {
 								return err
 							}
@@ -891,7 +882,15 @@ func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDt
 		if input.Items3.IsSet() {
 			items := make([]*Entity2Entity, len(input.Items3.Items))
 			for i := range input.Items3.Items {
-				items[i] = &input.Items3.Items[i]
+				uid := input.Items3.Items[i].UniqueId.OrDefault("")
+				if uid == "" {
+					return fmt.Errorf("items3: updating a collection/collection? relation only supports referencing existing rows by uniqueId, item %d has none", i)
+				}
+				var existing Entity2Entity
+				if err := tx.First(&existing, "unique_id = ?", uid).Error; err != nil {
+					return err
+				}
+				items[i] = &existing
 			}
 			if err := emigorm.ReconcileManyToMany(tx, &entity, "Items3Row", input.Items3.Operation, items); err != nil {
 				return err
@@ -900,7 +899,15 @@ func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDt
 		if input.Items4.IsSet() {
 			items := make([]*Entity2Entity, len(input.Items4.Items))
 			for i := range input.Items4.Items {
-				items[i] = &input.Items4.Items[i]
+				uid := input.Items4.Items[i].UniqueId.OrDefault("")
+				if uid == "" {
+					return fmt.Errorf("items4: updating a collection/collection? relation only supports referencing existing rows by uniqueId, item %d has none", i)
+				}
+				var existing Entity2Entity
+				if err := tx.First(&existing, "unique_id = ?", uid).Error; err != nil {
+					return err
+				}
+				items[i] = &existing
 			}
 			if err := emigorm.ReconcileManyToMany(tx, &entity, "Items4Row", input.Items4.Operation, items); err != nil {
 				return err

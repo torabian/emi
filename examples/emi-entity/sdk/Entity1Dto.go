@@ -12,10 +12,10 @@ type Entity1Dto struct {
 	Title              string                                       `json:"title" yaml:"title"`
 	Items              emigo.Array[Entity1DtoItems]                 `json:"items" yaml:"items"`
 	Items2             emigo.ArrayNullable[Entity1DtoItems2]        `json:"items2" yaml:"items2"`
-	Items3             emigo.Collection[Entity2Entity]              `json:"items3" yaml:"items3"`
-	Items4             emigo.CollectionNullable[Entity2Entity]      `json:"items4" yaml:"items4"`
-	Owner              emigo.One[Entity2Entity]                     `json:"owner" yaml:"owner"`
-	Manager            emigo.OneNullable[Entity2Entity]             `json:"manager" yaml:"manager"`
+	Items3             emigo.CollectionNullable[Entity2Dto]         `json:"items3" yaml:"items3"`
+	Items4             emigo.CollectionNullable[Entity2Dto]         `json:"items4" yaml:"items4"`
+	Owner              emigo.OneNullable[Entity2Dto]                `json:"owner" yaml:"owner"`
+	Manager            emigo.OneNullable[Entity2Dto]                `json:"manager" yaml:"manager"`
 	Content1           Entity1DtoContent1                           `json:"content1" yaml:"content1"`
 	Content2           emigo.Nullable[Entity1DtoContent2]           `json:"content2" yaml:"content2"`
 	Complex1           Money                                        `json:"complex1" yaml:"complex1"`
@@ -72,7 +72,7 @@ type Entity1DtoNestedContainer struct {
 // The base class definition for nestedInner
 type Entity1DtoNestedContainerNestedInner struct {
 	NestedItems emigo.Array[Entity1DtoNestedContainerNestedInnerNestedItems] `json:"nestedItems" yaml:"nestedItems"`
-	NestedOwner emigo.One[Entity2Entity]                                     `json:"nestedOwner" yaml:"nestedOwner"`
+	NestedOwner emigo.OneNullable[Entity2Dto]                                `json:"nestedOwner" yaml:"nestedOwner"`
 }
 
 // The base class definition for nestedItems
@@ -122,7 +122,7 @@ func GetEntity1DtoCliFlags(prefix string) []emigo.CliFlag {
 		},
 		{
 			Name: prefix + "items3",
-			Type: "collection",
+			Type: "collection?",
 		},
 		{
 			Name: prefix + "items4",
@@ -130,7 +130,7 @@ func GetEntity1DtoCliFlags(prefix string) []emigo.CliFlag {
 		},
 		{
 			Name: prefix + "owner",
-			Type: "one",
+			Type: "one?",
 		},
 		{
 			Name: prefix + "manager",
@@ -259,16 +259,16 @@ func CastEntity1DtoFromCli(c emigo.CliCastable) Entity1Dto {
 		data.Items2 = emigo.CapturePossibleArrayNullable(CastEntity1DtoItems2FromCli, "items2", c)
 	}
 	if c.IsSet("items3") {
-		data.Items3 = emigo.CapturePossibleCollection(CastEntity2EntityFromCli, "items3", c)
+		data.Items3 = emigo.CapturePossibleCollectionNullable(CastEntity2DtoFromCli, "items3", c)
 	}
 	if c.IsSet("items4") {
-		data.Items4 = emigo.CapturePossibleCollectionNullable(CastEntity2EntityFromCli, "items4", c)
+		data.Items4 = emigo.CapturePossibleCollectionNullable(CastEntity2DtoFromCli, "items4", c)
 	}
 	if c.IsSet("owner") {
-		data.Owner = emigo.CapturePossibleOne(CastEntity2EntityFromCli, "owner", c)
+		data.Owner = emigo.CapturePossibleOneNullable(CastEntity2DtoFromCli, "owner", c)
 	}
 	if c.IsSet("manager") {
-		data.Manager = emigo.CapturePossibleOneNullable(CastEntity2EntityFromCli, "manager", c)
+		data.Manager = emigo.CapturePossibleOneNullable(CastEntity2DtoFromCli, "manager", c)
 	}
 	if c.IsSet("content1") {
 		data.Content1 = CastEntity1DtoContent1FromCli(c)
@@ -424,7 +424,7 @@ func GetEntity1DtoNestedContainerNestedInnerCliFlags(prefix string) []emigo.CliF
 		},
 		{
 			Name: prefix + "nested-owner",
-			Type: "one",
+			Type: "one?",
 		},
 	}
 }
@@ -434,7 +434,7 @@ func CastEntity1DtoNestedContainerNestedInnerFromCli(c emigo.CliCastable) Entity
 		data.NestedItems = emigo.CapturePossibleArray(CastEntity1DtoNestedContainerNestedInnerNestedItemsFromCli, "nested-items", c)
 	}
 	if c.IsSet("nested-owner") {
-		data.NestedOwner = emigo.CapturePossibleOne(CastEntity2EntityFromCli, "nested-owner", c)
+		data.NestedOwner = emigo.CapturePossibleOneNullable(CastEntity2DtoFromCli, "nested-owner", c)
 	}
 	return data
 }

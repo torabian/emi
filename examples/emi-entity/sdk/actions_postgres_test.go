@@ -212,8 +212,13 @@ func TestEntity1EntityUpdateFn_CollectionAppendKeepsExistingAndAddsNew(t *testin
 		t.Fatalf("Create error: %v", err)
 	}
 
+	// Entity1OptionalDto.Items3 targets Entity2Dto (the portable dto), not
+	// Entity2Entity - and Entity1EntityUpdateFn only supports referencing an existing
+	// row by its uniqueId (see go-entity-actions.go's walkUpdateFields), so tagB is
+	// referenced by UniqueId alone; its other field values are looked up fresh rather
+	// than trusted from the payload.
 	var input Entity1OptionalDto
-	input.Items3.Set("append", []Entity2Entity{tagB})
+	input.Items3.Set("append", []Entity2Dto{{UniqueId: emigo.NullableOf(tagB.UniqueId)}})
 	if _, err := Entity1EntityActions.Update(db, created.UniqueId, input); err != nil {
 		t.Fatalf("Update error: %v", err)
 	}
