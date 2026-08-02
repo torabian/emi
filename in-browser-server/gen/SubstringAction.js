@@ -10,7 +10,7 @@ export class SubstringAction {
   //
   static URL = "/";
   static NewUrl = (qs) => buildUrl(SubstringAction.URL, undefined, qs);
-  static Method = "post";
+  static Method = "POST";
   static Fetch$ = async (qs, ctx, init, overrideUrl) => {
     return fetchx(
       overrideUrl ?? SubstringAction.NewUrl(qs),

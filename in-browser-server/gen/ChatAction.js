@@ -10,7 +10,7 @@ export class ChatAction {
   //
   static URL = "/chat";
   static NewUrl = (qs) => buildUrl(ChatAction.URL, undefined, qs);
-  static Method = "reactive";
+  static Method = "REACTIVE";
   static Create = (overrideUrl, qs, options) => {
     const url = overrideUrl ?? ChatAction.NewUrl(qs);
     const Cls = options?.SocketClass ? options.SocketClass : WebSocketX;
