@@ -54,6 +54,7 @@ export class Entity2GetAction {
   };
   static Definition = {
     name: "entity2Get",
+    cliShort: "entity2-g",
     url: "/entity2/:uniqueId string",
     method: "get",
     description: 'Looks up a single "entity2" row by uniqueId.',

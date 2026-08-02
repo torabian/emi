@@ -70,26 +70,26 @@ func walkCreateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 
 		switch field.Type {
 		case core.FieldTypeOne, core.FieldTypeOneNullable:
-			idPath := accessPrefix + entityIdFieldName(field)
-			fmt.Fprintf(oneResolve, `
-	if %[1]s.IsSet() {
-		var selectorId string
-		if %[1]s.Operation == "select" {
-			if s, ok := %[1]s.Selector.(string); ok {
-				selectorId = s
-			}
-		}
-		var item *%[3]s
-		if %[1]s.Operation != "select" {
-			item = &%[1]s.Item
-		}
-		resolvedId, err := emigorm.ReconcileOne(tx, %[1]s.Operation, selectorId, item)
-		if err != nil {
-			return err
-		}
-		%[2]s = resolvedId
-	}
-`, accessPath, idPath, field.Target)
+			// walkCreateFields only ever runs against an *entity's* fields (called
+			// from buildCreateFn, called from GoEntityActionsRender), and always on
+			// the *original*, pre-ApplyEntityGormTags copy (see the ordering note on
+			// GoEntityActionsRender) - so field.Type still reads "one"/"one?" here
+			// even though, by the time this generated code actually runs, the real
+			// Entity1Entity struct's own field has already been converted to
+			// class/class? (see go-entity-gorm.go): a real, gorm-native belongs-to
+			// (foreignKey:{field}Id), not the Operation-wrapped emigo.One shape.
+			//
+			// There's no explicit resolve step needed here at all: gorm's own
+			// Create() cascades belongs-to associations automatically - if the
+			// caller populated dto.Owner with an already-persisted struct (its Id
+			// already set, e.g. from a prior lookup/Create of its own), gorm reuses
+			// that row and just wires OwnerId to it; a struct with no Id set gets
+			// inserted fresh. What's lost compared to the emigo.One-wrapped dto
+			// shape is Selector-based "resolve by some other identifier" (e.g.
+			// uniqueId) - a caller who needs that now resolves it themselves before
+			// constructing dto (see the entity's own Get/Query and the Update path,
+			// which still goes through Entity1OptionalDto and keeps the full
+			// Operation-wrapped shape, unaffected by this).
 
 		case core.FieldTypeArray, core.FieldTypeArrayNullable:
 			// walkCreateFields only ever runs against an *entity's* fields (called
@@ -577,9 +577,28 @@ func GoEntityActionsRender(
 	}
 
 	var browseQueryClassName string
+	var browseQueryChunk *core.CodeChunkCompiled
 	if browseEnabled {
 		browseQueryClassName = entityBrowseActionQueryClassName(entity)
 		buf.WriteString(buildBrowseFn(className, browseQueryClassName))
+
+		// Normally the qs struct/parsing helpers (browseQueryClassName) are generated
+		// by the portable Browse EmiAction's own file (see GoActionQueryParams, called
+		// from the generic per-action pipeline in go-action-realms.go) - but
+		// preprocessEntityActions never adds that action to m.Actions when
+		// features.browseAction (or the master features.actions) disables it, so
+		// nothing would generate the type {Entity}BrowseFn's signature still depends
+		// on. In that case, render it here directly instead, off the exact same
+		// synthetic action shape (core.BuildEntityBrowseAction), so the type keeps
+		// existing even though it's never exposed as an HTTP route/CLI command/client
+		// SDK method.
+		if !entity.Features.BrowseActionEnabled() {
+			chunk, err := GoActionQueryParams(core.BuildEntityBrowseAction(entity), ctx)
+			if err == nil && chunk != nil {
+				browseQueryChunk = chunk
+				buf.Write(chunk.ActualScript)
+			}
+		}
 	}
 
 	if deleteEnabled {
@@ -636,6 +655,14 @@ var %[1]sActions %[1]sActionsSig = %[1]sActionsSig{
 	// Browse's meta return value is a emigo.QueryResultMeta.
 	if browseEnabled {
 		deps = append(deps, core.CodeChunkDependency{Location: "github.com/torabian/emi/emigo"})
+	}
+	// The fallback qs struct rendered above (browseQueryChunk) uses url.Values/
+	// url.ParseQuery and *http.Request directly - both normally imported by the
+	// portable Browse action's own file, which doesn't exist in this case.
+	if browseQueryChunk != nil {
+		deps = append(deps, browseQueryChunk.CodeChunkDependensies...)
+		deps = append(deps, core.CodeChunkDependency{Location: "net/url"})
+		deps = append(deps, core.CodeChunkDependency{Location: "net/http"})
 	}
 	// Only AwareDelete's preview builds a message via fmt.Sprintf in the generated
 	// code itself.

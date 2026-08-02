@@ -11,29 +11,42 @@ import (
 // primary key) and uniqueId (the public identifier) to entity.Fields - see that
 // function's comment for why joins/foreign keys use id rather than uniqueId.
 //
-// The DTO-style relation fields (emigo.One/Collection/Array) stay exactly as they are -
-// they're the API/CLI shape, used for PATCH-style request bodies - but they get
-// gorm:"-", since gorm cannot map them (they don't implement driver.Valuer/sql.Scanner
-// and aren't a slice-of-struct/pointer-to-struct shape gorm recognizes as an
-// association; verified empirically via gorm.io/gorm/schema.Parse, which errors on them
-// otherwise). Real gorm-shaped sibling fields are injected alongside them:
+// array/array? and one/one? are converted in place into _list/_list?/class/class? (see
+// core.FieldTypeList/FieldTypeClass's doc comments in EmiFieldType.go) - golang-only
+// shapes where the primary field itself becomes a real, gorm-native has-many/belongs-to
+// directly (a plain []*ChildStruct/[]ChildStruct or *Target/Target is exactly what
+// gorm's reflection-based schema builder requires to recognize an association; verified
+// empirically via gorm.io/gorm/schema.Parse). No gorm:"-", no hidden {field}Row shadow
+// sibling for either - only the FK/linker scalar column siblings still exist, since a
+// belongs-to/has-many always needs a real column of its own regardless of wrapper:
 //
-//   - one/one?   -> {field}Id int64 (the FK column, referencing the target's id) +
-//     {field}Row *Target, tagged foreignKey:{field}Id;references:Id (a real "belongs
-//     to"). emigorm.ReconcileOne resolves the target's id from whatever identity the
-//     DTO field's Selector/inline value actually carries (its own uniqueId).
-//   - collection/collection? -> {field}Row []*Target, tagged
-//     many2many:{entity}_{field};foreignKey:Id;references:Id.
-//   - array/array? -> {field}Row []*{ChildStruct} (the same auto-generated nested
-//     struct as the DTO field, e.g. Entity1EntityItems), tagged
-//     foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE (a real "has
-//     many"). The child struct itself gets the same id/uniqueId pair every entity gets
-//     (so it has a real identity of its own - e.g. for grandchildren later), plus
-//     LinkerId int64 (the foreign key back to this entity's id).
+//   - one/one? -> class/class?, plus a hidden {field}Id int64 (the FK column,
+//     referencing the target's id), tagged foreignKey:{field}Id;references:Id directly
+//     on the primary field. emigorm.ReconcileOne (called from Create/Update, which
+//     still see the *original*, unconverted one/one? shape - see the ordering note on
+//     GoEntityActionsRender) resolves the target's id from whatever identity the DTO
+//     field's Selector/inline value actually carries (its own uniqueId), then writes it
+//     into {field}Id.
+//   - array/array? -> _list/_list?, tagged
+//     foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE directly on the
+//     primary field. The child struct itself gets the same id/uniqueId pair every
+//     entity gets (so it has a real identity of its own - e.g. for grandchildren
+//     later), plus LinkerId int64 (the foreign key back to this entity's id).
+//
+// collection/collection? are the one relation shape gorm genuinely can't represent
+// without a wrapper (many2many has no single "primary field" to convert - the DTO field
+// stays gorm:"-", and a hidden {field}Row []*Target sibling, tagged
+// many2many:{entity}_{field};foreignKey:Id;references:Id, carries the real relation.
 //
 // {field}Id/{field}Row are marked json:"-" yaml:"-": they're purely a persistence-layer
 // concern, so the existing DTO-shaped field (owner, items3, ...) remains the only public
 // JSON/YAML surface for that relation.
+//
+// DTOs (BuildEntityDto/BuildEntityOptionalDto in preprocess-entities.go) never see any
+// of these conversions - they're built from entity.Fields *before* ApplyEntityGormTags
+// ever mutates it (core.Emi.Preprocess runs first), so Create/Update's own request
+// bodies keep the portable, Operation-wrapped array/array?/one/one? shapes they still
+// need.
 //
 // object gets gorm:"embedded" directly (inlined into this entity's own row) -
 // including when nested inside another object any number of levels deep: gorm's own
@@ -174,18 +187,33 @@ func applyEntityGormTags(entity *core.Module3Entity, childStructPrefix string, f
 			))
 
 		case core.FieldTypeOne, core.FieldTypeOneNullable:
-			if !hasOverride {
-				field.Tags["gorm"] = "-"
-			}
-
+			// Converted to class/class? - only here, only for the entity's own
+			// persisted struct (mirrors the array -> _list conversion above, see
+			// core.FieldTypeClass's doc comment in EmiFieldType.go) - so the primary
+			// field itself becomes a real, gorm-native belongs-to: no more gorm:"-",
+			// no hidden {field}Row shadow sibling. The {field}Id FK column sibling
+			// still exists - a belongs-to always needs a real scalar FK column of its
+			// own, wrapper or not - field.Target is untouched, since one/one? already
+			// require it to be set from the source yaml (unlike array/array?, which
+			// have to compute a child struct name themselves).
+			//
+			// DTOs (BuildEntityDto/BuildEntityOptionalDto in preprocess-entities.go)
+			// never see this conversion - they're built from entity.Fields *before*
+			// ApplyEntityGormTags ever mutates it (core.Emi.Preprocess runs first),
+			// so Create/Update's own request bodies keep the portable,
+			// Operation-wrapped one/one? shape they still need.
 			idField := field.Name + "Id"
 			extra = append(extra, hiddenSibling(idField, core.FieldTypeInt64, "", "index"))
-			extra = append(extra, hiddenSibling(
-				field.Name+"Row",
-				core.FieldTypeComplex,
-				"*"+field.Target,
-				"foreignKey:"+core.ToUpper(idField)+";references:Id",
-			))
+
+			if field.Type == core.FieldTypeOne {
+				field.Type = core.FieldTypeClass
+			} else {
+				field.Type = core.FieldTypeClassNullable
+			}
+
+			if !hasOverride {
+				field.Tags["gorm"] = "foreignKey:" + core.ToUpper(idField) + ";references:Id"
+			}
 
 		case core.FieldTypeMap, core.FieldTypeSlice, core.FieldTypeAny:
 			if !hasOverride {

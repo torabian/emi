@@ -32,6 +32,7 @@ export class Entity2AwareDeleteAction {
   };
   static Definition = {
     name: "entity2AwareDelete",
+    cliShort: "entity2-d",
     url: "/entity2/delete",
     method: "post",
     description:

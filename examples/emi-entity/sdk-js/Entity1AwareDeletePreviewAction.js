@@ -56,6 +56,7 @@ export class Entity1AwareDeletePreviewAction {
   };
   static Definition = {
     name: "entity1AwareDeletePreview",
+    cliShort: "entity1-dp",
     url: "/entity1/delete-preview",
     method: "get",
     qs: [

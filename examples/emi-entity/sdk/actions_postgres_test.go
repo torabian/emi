@@ -79,7 +79,12 @@ func TestEntity1EntityCreateFn_CascadesArrayCollectionOne(t *testing.T) {
 			{Item2: "child-2"},
 		},
 		Items3: emigo.CollectionReplace([]Entity2Entity{*tagA, *tagB}),
-		Owner:  emigo.OneSelect[Entity2Entity]("owner-1"),
+		// Owner is now a plain, gorm-native belongs-to (*Entity2Entity) on the entity
+		// struct itself - no more emigo.OneSelect wrapper. Passing the
+		// already-persisted owner (its Id already set from the db.Create above) lets
+		// gorm's own Create() cascade recognize the existing row and just wire
+		// OwnerId to it, rather than inserting a duplicate.
+		Owner: owner,
 	}
 
 	created, err := Entity1EntityActions.Create(db, dto)
@@ -94,7 +99,7 @@ func TestEntity1EntityCreateFn_CascadesArrayCollectionOne(t *testing.T) {
 	}
 
 	var reloaded Entity1Entity
-	if err := db.Preload("Items").Preload("Items3Row").Preload("OwnerRow").
+	if err := db.Preload("Items").Preload("Items3Row").Preload("Owner").
 		First(&reloaded, "unique_id = ?", created.UniqueId).Error; err != nil {
 		t.Fatalf("reload error: %v", err)
 	}
@@ -105,8 +110,8 @@ func TestEntity1EntityCreateFn_CascadesArrayCollectionOne(t *testing.T) {
 	if len(reloaded.Items3Row) != 2 {
 		t.Fatalf("expected 2 collection targets, got %d", len(reloaded.Items3Row))
 	}
-	if reloaded.OwnerRow == nil || reloaded.OwnerRow.Label2 != "owner-one" {
-		t.Fatalf("expected owner to resolve to owner-one, got %+v", reloaded.OwnerRow)
+	if reloaded.Owner == nil || reloaded.Owner.Label2 != "owner-one" {
+		t.Fatalf("expected owner to resolve to owner-one, got %+v", reloaded.Owner)
 	}
 	if reloaded.OwnerId != owner.Id {
 		t.Fatalf("expected OwnerId = owner.Id (%d), got %d", owner.Id, reloaded.OwnerId)
@@ -241,7 +246,7 @@ func TestEntity1EntityUpdateFn_OneChangesOwnerViaSelect(t *testing.T) {
 		t.Fatalf("seed owner2 error: %v", err)
 	}
 
-	dto := &Entity1Entity{Title: "hello", Owner: emigo.OneSelect[Entity2Entity]("owner-1")}
+	dto := &Entity1Entity{Title: "hello", Owner: &owner1}
 	created, err := Entity1EntityActions.Create(db, dto)
 	if err != nil {
 		t.Fatalf("Create error: %v", err)
@@ -277,7 +282,7 @@ func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t 
 					{Label: "nested-child-1"},
 					{Label: "nested-child-2"},
 				},
-				NestedOwner: emigo.OneSelect[Entity2Entity]("nested-owner-1"),
+				NestedOwner: &owner,
 			},
 		},
 	}
@@ -289,7 +294,7 @@ func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t 
 
 	var reloaded Entity1Entity
 	if err := db.Preload("NestedContainer.NestedInner.NestedItems").
-		Preload("NestedContainer.NestedInner.NestedOwnerRow").
+		Preload("NestedContainer.NestedInner.NestedOwner").
 		First(&reloaded, "unique_id = ?", created.UniqueId).Error; err != nil {
 		t.Fatalf("reload error: %v", err)
 	}
@@ -298,8 +303,8 @@ func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t 
 	if len(nested.NestedItems) != 2 {
 		t.Fatalf("expected 2 nested array children, got %d", len(nested.NestedItems))
 	}
-	if nested.NestedOwnerRow == nil || nested.NestedOwnerRow.Label2 != "nested-owner" {
-		t.Fatalf("expected nested owner to resolve to nested-owner, got %+v", nested.NestedOwnerRow)
+	if nested.NestedOwner == nil || nested.NestedOwner.Label2 != "nested-owner" {
+		t.Fatalf("expected nested owner to resolve to nested-owner, got %+v", nested.NestedOwner)
 	}
 
 	// Update: replace the nested array (drop one, modify one, add one) - the same

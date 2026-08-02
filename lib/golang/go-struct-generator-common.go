@@ -472,6 +472,29 @@ func goFieldTypeOnNestedClasses(
 			return fmt.Sprintf("[]%v", field.GetTarget())
 		}
 		return fmt.Sprintf("[]*%v", field.GetTarget())
+	case core.FieldTypeClass, core.FieldTypeClassNullable:
+		// Golang-only, deliberately not wrapped in emigo.One/OneNullable: a plain
+		// struct/pointer is exactly the shape gorm's own reflection-based schema
+		// builder requires to recognize a belongs-to association directly - no
+		// gorm:"-", no hidden {field}Row shadow field (the {field}Id FK column
+		// sibling still exists - see ApplyEntityGormTags - a belongs-to always needs
+		// a real scalar FK column of its own, wrapper or not).
+		//
+		// Uses field.GetTarget() directly, same as one/one? already do - no target at
+		// all means there's nothing to reference, so it falls back to interface{}.
+		//
+		// class -> *Target (a real belongs-to, matching every other relation's
+		// pointer Row-sibling convention elsewhere in this codebase); class? ->
+		// Target (a plain value, no pointer indirection) - the two exist as distinct
+		// shapes for whichever a given association actually needs, not as a
+		// required/optional pair the way every other "?" suffix in this schema is.
+		if field.GetTarget() == "" {
+			return "interface{}"
+		}
+		if field.GetType() == core.FieldTypeClassNullable {
+			return field.GetTarget()
+		}
+		return fmt.Sprintf("*%v", field.GetTarget())
 	case core.FieldTypeObjectNullable:
 		return fmt.Sprintf("emigo.Nullable[%v]", prefix)
 	default:

@@ -56,6 +56,7 @@ export class Entity3AwareDeletePreviewAction {
   };
   static Definition = {
     name: "entity3AwareDeletePreview",
+    cliShort: "entity3-dp",
     url: "/entity3/delete-preview",
     method: "get",
     qs: [

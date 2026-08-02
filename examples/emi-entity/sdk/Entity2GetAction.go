@@ -28,6 +28,7 @@ func Entity2GetAction(c Entity2GetActionRequest) (*Entity2GetActionResponse, err
 func Entity2GetActionMeta() struct {
 	Name        string
 	CliName     string
+	CliShort    string
 	URL         string
 	Method      string
 	Description string
@@ -35,12 +36,14 @@ func Entity2GetActionMeta() struct {
 	return struct {
 		Name        string
 		CliName     string
+		CliShort    string
 		URL         string
 		Method      string
 		Description string
 	}{
 		Name:        "Entity2GetAction",
 		CliName:     "entity2-get-action",
+		CliShort:    "entity2-g",
 		URL:         "/entity2/:uniqueId",
 		Method:      "GET",
 		Description: `Looks up a single "entity2" row by uniqueId.`,
@@ -344,6 +347,7 @@ func Entity2GetActionCliHandler(
 		Usage: meta.Description,
 		Flags: Entity2GetActionCliFlags(),
 	}
+	cmd.Aliases = []string{meta.CliShort}
 	cmd.Action = func(ctx context.Context, c *cli.Command) error {
 		req := Entity2GetActionRequest{
 			CliCtx:      c,

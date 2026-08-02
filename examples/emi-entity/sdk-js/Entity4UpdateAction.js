@@ -55,6 +55,7 @@ export class Entity4UpdateAction {
   };
   static Definition = {
     name: "entity4Update",
+    cliShort: "entity4-u",
     url: "/entity4/:uniqueId string",
     method: "patch",
     description: 'Applies a partial update to a "entity4" row by uniqueId.',

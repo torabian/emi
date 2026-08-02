@@ -200,9 +200,15 @@ entities:
   # features.create: false -> no Entity4EntityCreateFn, no Create field on
   # Entity4EntityActionsSig - rows only ever come from elsewhere (e.g. a migration or
   # another system), only Update is generated.
+  #
+  # features.browseAction: false -> Entity4EntityBrowseFn is still generated (Browse
+  # itself defaults to enabled), but no Entity4BrowseAction.go gets synthesized - Browse
+  # stays callable from hand-written Go, just not reachable over the API/CLI or in any
+  # generated client SDK.
   - name: entity4
     features:
       create: false
+      browseAction: false
     fields:
       - name: note
         type: string

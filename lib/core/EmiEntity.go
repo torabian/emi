@@ -104,31 +104,85 @@ func (x Module3Entity) GetClassName() string {
 // Every feature defaults to enabled - a whole-omitted features block, or leaving one of
 // its fields unset, means that piece of generated code still gets built exactly as
 // before. Set a field to false explicitly to turn that piece off.
+//
+// Two independent axes are controlled here, per operation (create/update/get/browse/
+// delete):
+//   - The plain field (e.g. Create) gates the actual Go code: {Entity}CreateFn and its
+//     wiring into {Entity}ActionsSig. Turning this off removes the function entirely.
+//   - The matching "Action" field (e.g. CreateAction) only gates whether
+//     preprocessEntityActions synthesizes a portable EmiAction for it - the HTTP route,
+//     CLI command and client SDK exposure. The Go function/code is unaffected either
+//     way; this is for a function you want to keep calling from your own hand-written
+//     Go code, but don't want reachable over the API or generated into any client SDK.
+//
+// Actions is a single override on top of all the individual "Action" fields: set it to
+// false to suppress every built-in operation's EmiAction for this entity in one go,
+// regardless of the individual CreateAction/UpdateAction/etc settings, while every
+// operation's Go function generation is completely unaffected.
 type Module3EntityFeatures struct {
 
 	// Generates {Entity}CreateFn and wires it into {Entity}ActionsSig.Create. Enabled by
 	// default; set to false to omit Create entirely from the generated code.
 	Create *bool `yaml:"create,omitempty" json:"create,omitempty" jsonschema:"description=Generates {Entity}CreateFn and wires it into {Entity}ActionsSig.Create. Enabled by default; set to false to omit Create entirely from the generated code."`
 
+	// Exposes Create as a portable EmiAction (HTTP route, CLI command, client SDK).
+	// Enabled by default; set to false to keep {Entity}CreateFn generated but not
+	// reachable over the API or generated into any client SDK. Has no effect on the Go
+	// code itself - see Create.
+	CreateAction *bool `yaml:"createAction,omitempty" json:"createAction,omitempty" jsonschema:"description=Exposes Create as a portable EmiAction (HTTP route, CLI command, client SDK). Enabled by default; set to false to keep the generated Go function but not reachable over the API or generated into any client SDK."`
+
 	// Generates {Entity}UpdateFn (and the entity's update dto) and wires it into
 	// {Entity}ActionsSig.Update. Enabled by default; set to false to omit Update
 	// entirely from the generated code.
 	Update *bool `yaml:"update,omitempty" json:"update,omitempty" jsonschema:"description=Generates {Entity}UpdateFn (and the entity's update dto) and wires it into {Entity}ActionsSig.Update. Enabled by default; set to false to omit Update entirely from the generated code."`
+
+	// Exposes Update as a portable EmiAction (HTTP route, CLI command, client SDK).
+	// Enabled by default; set to false to keep {Entity}UpdateFn generated but not
+	// reachable over the API or generated into any client SDK. Has no effect on the Go
+	// code itself - see Update.
+	UpdateAction *bool `yaml:"updateAction,omitempty" json:"updateAction,omitempty" jsonschema:"description=Exposes Update as a portable EmiAction (HTTP route, CLI command, client SDK). Enabled by default; set to false to keep the generated Go function but not reachable over the API or generated into any client SDK."`
 
 	// Generates {Entity}GetFn (a single-row lookup by uniqueId) and wires it into
 	// {Entity}ActionsSig.Get. Enabled by default; set to false to omit Get entirely
 	// from the generated code.
 	Get *bool `yaml:"get,omitempty" json:"get,omitempty" jsonschema:"description=Generates {Entity}GetFn (a single-row lookup by uniqueId) and wires it into {Entity}ActionsSig.Get. Enabled by default; set to false to omit Get entirely from the generated code."`
 
+	// Exposes Get as a portable EmiAction (HTTP route, CLI command, client SDK).
+	// Enabled by default; set to false to keep {Entity}GetFn generated but not
+	// reachable over the API or generated into any client SDK. Has no effect on the Go
+	// code itself - see Get.
+	GetAction *bool `yaml:"getAction,omitempty" json:"getAction,omitempty" jsonschema:"description=Exposes Get as a portable EmiAction (HTTP route, CLI command, client SDK). Enabled by default; set to false to keep the generated Go function but not reachable over the API or generated into any client SDK."`
+
 	// Generates {Entity}BrowseFn (a filtered/sorted/paged list, see emigorm.ApplyQueryFilter/ApplyQueryScope)
 	// and wires it into {Entity}ActionsSig.Browse. Enabled by default; set to false to
 	// omit Browse entirely from the generated code.
 	Browse *bool `yaml:"browse,omitempty" json:"browse,omitempty" jsonschema:"description=Generates {Entity}BrowseFn (a filtered/sorted/paged list, see emigorm.ApplyQueryFilter/ApplyQueryScope) and wires it into {Entity}ActionsSig.Browse. Enabled by default; set to false to omit Browse entirely from the generated code."`
 
+	// Exposes Browse as a portable EmiAction (HTTP route, CLI command, client SDK).
+	// Enabled by default; set to false to keep {Entity}BrowseFn generated but not
+	// reachable over the API or generated into any client SDK. Has no effect on the Go
+	// code itself - see Browse.
+	BrowseAction *bool `yaml:"browseAction,omitempty" json:"browseAction,omitempty" jsonschema:"description=Exposes Browse as a portable EmiAction (HTTP route, CLI command, client SDK). Enabled by default; set to false to keep the generated Go function but not reachable over the API or generated into any client SDK."`
+
 	// Generates {Entity}AwareDeletePreviewFn/{Entity}AwareDeleteFn (see AwareDelete in
 	// lib/golang/go-entity-delete.go) and wires them into {Entity}ActionsSig. Enabled
 	// by default; set to false to omit both entirely from the generated code.
 	Delete *bool `yaml:"delete,omitempty" json:"delete,omitempty" jsonschema:"description=Generates {Entity}AwareDeletePreviewFn/{Entity}AwareDeleteFn and wires them into {Entity}ActionsSig. Enabled by default; set to false to omit both entirely from the generated code."`
+
+	// Exposes AwareDeletePreview/AwareDelete as portable EmiActions (HTTP route, CLI
+	// command, client SDK). Enabled by default; set to false to keep both generated Go
+	// functions but not reachable over the API or generated into any client SDK. Has no
+	// effect on the Go code itself - see Delete.
+	DeleteAction *bool `yaml:"deleteAction,omitempty" json:"deleteAction,omitempty" jsonschema:"description=Exposes AwareDeletePreview/AwareDelete as portable EmiActions (HTTP route, CLI command, client SDK). Enabled by default; set to false to keep the generated Go functions but not reachable over the API or generated into any client SDK."`
+
+	// Master override for every built-in operation's EmiAction exposure at once. Enabled
+	// by default; set to false to suppress Create/Update/Get/Browse/AwareDelete's
+	// EmiActions entirely for this entity - regardless of the individual
+	// CreateAction/UpdateAction/GetAction/BrowseAction/DeleteAction settings above - while
+	// every operation's Go function generation is completely unaffected. Useful for an
+	// entity that should stay code-only (called from other hand-written Go), never
+	// exposed over the API or any client SDK.
+	Actions *bool `yaml:"actions,omitempty" json:"actions,omitempty" jsonschema:"description=Master override for every built-in operation's EmiAction exposure at once. Enabled by default; set to false to suppress every operation's EmiAction for this entity regardless of the individual *Action settings, while Go function generation is completely unaffected."`
 }
 
 // CreateEnabled reports whether Create is enabled - true whenever features itself, or
@@ -171,6 +225,74 @@ func (f *Module3EntityFeatures) DeleteEnabled() bool {
 		return true
 	}
 	return *f.Delete
+}
+
+// actionsEnabled reports whether the master Actions override permits synthesizing any
+// EmiAction for this entity at all - true whenever features itself, or its Actions field
+// specifically, was never set.
+func (f *Module3EntityFeatures) actionsEnabled() bool {
+	if f == nil || f.Actions == nil {
+		return true
+	}
+	return *f.Actions
+}
+
+// CreateActionEnabled reports whether Create should be synthesized as a portable
+// EmiAction - false if the master Actions override or CreateAction specifically was set
+// to false. Independent of CreateEnabled, which gates the Go function itself.
+func (f *Module3EntityFeatures) CreateActionEnabled() bool {
+	if !f.actionsEnabled() {
+		return false
+	}
+	if f == nil || f.CreateAction == nil {
+		return true
+	}
+	return *f.CreateAction
+}
+
+// UpdateActionEnabled is CreateActionEnabled's counterpart for Update.
+func (f *Module3EntityFeatures) UpdateActionEnabled() bool {
+	if !f.actionsEnabled() {
+		return false
+	}
+	if f == nil || f.UpdateAction == nil {
+		return true
+	}
+	return *f.UpdateAction
+}
+
+// GetActionEnabled is CreateActionEnabled's counterpart for Get.
+func (f *Module3EntityFeatures) GetActionEnabled() bool {
+	if !f.actionsEnabled() {
+		return false
+	}
+	if f == nil || f.GetAction == nil {
+		return true
+	}
+	return *f.GetAction
+}
+
+// BrowseActionEnabled is CreateActionEnabled's counterpart for Browse.
+func (f *Module3EntityFeatures) BrowseActionEnabled() bool {
+	if !f.actionsEnabled() {
+		return false
+	}
+	if f == nil || f.BrowseAction == nil {
+		return true
+	}
+	return *f.BrowseAction
+}
+
+// DeleteActionEnabled is CreateActionEnabled's counterpart for Delete
+// (AwareDeletePreview/AwareDelete).
+func (f *Module3EntityFeatures) DeleteActionEnabled() bool {
+	if !f.actionsEnabled() {
+		return false
+	}
+	if f == nil || f.DeleteAction == nil {
+		return true
+	}
+	return *f.DeleteAction
 }
 
 type GormOverrideMap struct {

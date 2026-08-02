@@ -18,8 +18,8 @@ type Entity1Entity struct {
 	Items2                []Entity1EntityItems2                           `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"items2" yaml:"items2"`
 	Items3                emigo.Collection[Entity2Entity]                 `gorm:"-" json:"items3" yaml:"items3"`
 	Items4                emigo.CollectionNullable[Entity2Entity]         `gorm:"-" json:"items4" yaml:"items4"`
-	Owner                 emigo.One[Entity2Entity]                        `gorm:"-" json:"owner" yaml:"owner"`
-	Manager               emigo.OneNullable[Entity2Entity]                `gorm:"-" json:"manager" yaml:"manager"`
+	Owner                 *Entity2Entity                                  `gorm:"foreignKey:OwnerId;references:Id" json:"owner" yaml:"owner"`
+	Manager               Entity2Entity                                   `gorm:"foreignKey:ManagerId;references:Id" json:"manager" yaml:"manager"`
 	Content1              Entity1EntityContent1                           `gorm:"embedded" json:"content1" yaml:"content1"`
 	Content2              emigo.Nullable[Entity1EntityContent2]           `gorm:"-" json:"content2" yaml:"content2"`
 	Complex1              Money                                           `json:"complex1" yaml:"complex1"`
@@ -49,9 +49,7 @@ type Entity1Entity struct {
 	Items3Row             []*Entity2Entity                                `gorm:"many2many:entity1_items3;foreignKey:Id;references:Id" json:"-" yaml:"-"`
 	Items4Row             []*Entity2Entity                                `gorm:"many2many:entity1_items4;foreignKey:Id;references:Id" json:"-" yaml:"-"`
 	OwnerId               int64                                           `gorm:"index" json:"-" yaml:"-"`
-	OwnerRow              *Entity2Entity                                  `gorm:"foreignKey:OwnerId;references:Id" json:"-" yaml:"-"`
 	ManagerId             int64                                           `gorm:"index" json:"-" yaml:"-"`
-	ManagerRow            *Entity2Entity                                  `gorm:"foreignKey:ManagerId;references:Id" json:"-" yaml:"-"`
 	Content2Row           *Entity1EntityContent2                          `gorm:"embedded" json:"-" yaml:"-"`
 	NestedContainerOptRow *Entity1EntityNestedContainerOpt                `gorm:"embedded" json:"-" yaml:"-"`
 }
@@ -89,10 +87,9 @@ type Entity1EntityNestedContainer struct {
 
 // The base class definition for nestedInner
 type Entity1EntityNestedContainerNestedInner struct {
-	NestedItems    []*Entity1EntityNestedContainerNestedInnerNestedItems `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"nestedItems" yaml:"nestedItems"`
-	NestedOwner    emigo.One[Entity2Entity]                              `gorm:"-" json:"nestedOwner" yaml:"nestedOwner"`
-	NestedOwnerId  int64                                                 `gorm:"index" json:"-" yaml:"-"`
-	NestedOwnerRow *Entity2Entity                                        `gorm:"foreignKey:NestedOwnerId;references:Id" json:"-" yaml:"-"`
+	NestedItems   []*Entity1EntityNestedContainerNestedInnerNestedItems `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"nestedItems" yaml:"nestedItems"`
+	NestedOwner   *Entity2Entity                                        `gorm:"foreignKey:NestedOwnerId;references:Id" json:"nestedOwner" yaml:"nestedOwner"`
+	NestedOwnerId int64                                                 `gorm:"index" json:"-" yaml:"-"`
 }
 
 // The base class definition for nestedItems
@@ -160,11 +157,11 @@ func GetEntity1EntityCliFlags(prefix string) []emigo.CliFlag {
 		},
 		{
 			Name: prefix + "owner",
-			Type: "one",
+			Type: "class",
 		},
 		{
 			Name: prefix + "manager",
-			Type: "one?",
+			Type: "class?",
 		},
 		{
 			Name:     prefix + "content1",
@@ -285,16 +282,8 @@ func GetEntity1EntityCliFlags(prefix string) []emigo.CliFlag {
 			Type: "int64",
 		},
 		{
-			Name: prefix + "owner-row",
-			Type: "complex",
-		},
-		{
 			Name: prefix + "manager-id",
 			Type: "int64",
-		},
-		{
-			Name: prefix + "manager-row",
-			Type: "complex",
 		},
 		{
 			Name: prefix + "content2-row",
@@ -322,12 +311,6 @@ func CastEntity1EntityFromCli(c emigo.CliCastable) Entity1Entity {
 	}
 	if c.IsSet("items4") {
 		data.Items4 = emigo.CapturePossibleCollectionNullable(CastEntity2EntityFromCli, "items4", c)
-	}
-	if c.IsSet("owner") {
-		data.Owner = emigo.CapturePossibleOne(CastEntity2EntityFromCli, "owner", c)
-	}
-	if c.IsSet("manager") {
-		data.Manager = emigo.CapturePossibleOneNullable(CastEntity2EntityFromCli, "manager", c)
 	}
 	if c.IsSet("content1") {
 		data.Content1 = CastEntity1EntityContent1FromCli(c)
@@ -410,18 +393,8 @@ func CastEntity1EntityFromCli(c emigo.CliCastable) Entity1Entity {
 	if c.IsSet("owner-id") {
 		data.OwnerId = int64(c.Int64("owner-id"))
 	}
-	if c.IsSet("owner-row") {
-		if u, ok := any(&data.OwnerRow).(encoding.TextUnmarshaler); ok {
-			u.UnmarshalText([]byte(c.String("owner-row")))
-		}
-	}
 	if c.IsSet("manager-id") {
 		data.ManagerId = int64(c.Int64("manager-id"))
-	}
-	if c.IsSet("manager-row") {
-		if u, ok := any(&data.ManagerRow).(encoding.TextUnmarshaler); ok {
-			u.UnmarshalText([]byte(c.String("manager-row")))
-		}
 	}
 	if c.IsSet("content2-row") {
 		if u, ok := any(&data.Content2Row).(encoding.TextUnmarshaler); ok {
@@ -561,30 +534,18 @@ func GetEntity1EntityNestedContainerNestedInnerCliFlags(prefix string) []emigo.C
 		},
 		{
 			Name: prefix + "nested-owner",
-			Type: "one",
+			Type: "class",
 		},
 		{
 			Name: prefix + "nested-owner-id",
 			Type: "int64",
 		},
-		{
-			Name: prefix + "nested-owner-row",
-			Type: "complex",
-		},
 	}
 }
 func CastEntity1EntityNestedContainerNestedInnerFromCli(c emigo.CliCastable) Entity1EntityNestedContainerNestedInner {
 	data := Entity1EntityNestedContainerNestedInner{}
-	if c.IsSet("nested-owner") {
-		data.NestedOwner = emigo.CapturePossibleOne(CastEntity2EntityFromCli, "nested-owner", c)
-	}
 	if c.IsSet("nested-owner-id") {
 		data.NestedOwnerId = int64(c.Int64("nested-owner-id"))
-	}
-	if c.IsSet("nested-owner-row") {
-		if u, ok := any(&data.NestedOwnerRow).(encoding.TextUnmarshaler); ok {
-			u.UnmarshalText([]byte(c.String("nested-owner-row")))
-		}
 	}
 	return data
 }
@@ -705,59 +666,8 @@ func (x *Entity1Entity) TableName() string {
 // dto.Id is known.
 func Entity1EntityCreateFn(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, error) {
 	err := tx.Transaction(func(tx *gorm.DB) error {
-		if dto.Owner.IsSet() {
-			var selectorId string
-			if dto.Owner.Operation == "select" {
-				if s, ok := dto.Owner.Selector.(string); ok {
-					selectorId = s
-				}
-			}
-			var item *Entity2Entity
-			if dto.Owner.Operation != "select" {
-				item = &dto.Owner.Item
-			}
-			resolvedId, err := emigorm.ReconcileOne(tx, dto.Owner.Operation, selectorId, item)
-			if err != nil {
-				return err
-			}
-			dto.OwnerId = resolvedId
-		}
-		if dto.Manager.IsSet() {
-			var selectorId string
-			if dto.Manager.Operation == "select" {
-				if s, ok := dto.Manager.Selector.(string); ok {
-					selectorId = s
-				}
-			}
-			var item *Entity2Entity
-			if dto.Manager.Operation != "select" {
-				item = &dto.Manager.Item
-			}
-			resolvedId, err := emigorm.ReconcileOne(tx, dto.Manager.Operation, selectorId, item)
-			if err != nil {
-				return err
-			}
-			dto.ManagerId = resolvedId
-		}
 		if v, ok := dto.Content2.Get(); ok && v != nil {
 			dto.Content2Row = v
-		}
-		if dto.NestedContainer.NestedInner.NestedOwner.IsSet() {
-			var selectorId string
-			if dto.NestedContainer.NestedInner.NestedOwner.Operation == "select" {
-				if s, ok := dto.NestedContainer.NestedInner.NestedOwner.Selector.(string); ok {
-					selectorId = s
-				}
-			}
-			var item *Entity2Entity
-			if dto.NestedContainer.NestedInner.NestedOwner.Operation != "select" {
-				item = &dto.NestedContainer.NestedInner.NestedOwner.Item
-			}
-			resolvedId, err := emigorm.ReconcileOne(tx, dto.NestedContainer.NestedInner.NestedOwner.Operation, selectorId, item)
-			if err != nil {
-				return err
-			}
-			dto.NestedContainer.NestedInner.NestedOwnerId = resolvedId
 		}
 		if v, ok := dto.NestedContainerOpt.Get(); ok && v != nil {
 			dto.NestedContainerOptRow = v

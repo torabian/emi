@@ -6,6 +6,8 @@ import (
 	"github.com/torabian/emi/emigo"
 	"github.com/torabian/emi/emigorm"
 	"gorm.io/gorm"
+	"net/http"
+	"net/url"
 )
 
 // The base class definition for entity4Entity
@@ -125,6 +127,56 @@ func Entity4EntityBrowseFn(tx *gorm.DB, qs Entity4BrowseActionQuery, scope strin
 		Cursor:     emigorm.BuildQueryCursor(items),
 	}
 	return items, meta, nil
+}
+
+/**
+ * Query parameters for Entity4BrowseAction
+ */
+// Query wrapper with private fields
+type Entity4BrowseActionQuery struct {
+	values url.Values
+	mapped map[string]interface{}
+	// Typesafe fields
+	Filter       string `json:"filter"`
+	Sort         string `json:"sort"`
+	StartIndex   int    `json:"startIndex"`
+	ItemsPerPage int    `json:"itemsPerPage"`
+	Cursor       string `json:"cursor"`
+}
+
+func Entity4BrowseActionQueryFromString(rawQuery string) Entity4BrowseActionQuery {
+	v := Entity4BrowseActionQuery{}
+	values, _ := url.ParseQuery(rawQuery)
+	mapped := map[string]interface{}{}
+	if result, err := emigo.UnmarshalQs(rawQuery); err == nil {
+		mapped = result
+	}
+	decoder, err := emigo.NewDecoder(&emigo.DecoderConfig{
+		TagName:          "json", // reuse json tags
+		WeaklyTypedInput: true,   // "1" -> int, "true" -> bool
+		Result:           &v,
+	})
+	if err == nil {
+		_ = decoder.Decode(mapped)
+	}
+	v.values = values
+	v.mapped = mapped
+	return v
+}
+func Entity4BrowseActionQueryFromHttp(r *http.Request) Entity4BrowseActionQuery {
+	return Entity4BrowseActionQueryFromString(r.URL.RawQuery)
+}
+func (q Entity4BrowseActionQuery) Values() url.Values {
+	return q.values
+}
+func (q Entity4BrowseActionQuery) Mapped() map[string]interface{} {
+	return q.mapped
+}
+func (q *Entity4BrowseActionQuery) SetValues(v url.Values) {
+	q.values = v
+}
+func (q *Entity4BrowseActionQuery) SetMapped(m map[string]interface{}) {
+	q.mapped = m
 }
 
 // Entity4EntityAwareDeleteAffected reports one relation of Entity4Entity that would be affected by

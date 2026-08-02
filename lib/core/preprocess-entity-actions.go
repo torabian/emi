@@ -21,6 +21,16 @@ func entityActionName(entity *Module3Entity, suffix string) string {
 	return entity.Name + suffix
 }
 
+// entityActionCliShort is the action's CLI alias (EmiAction.CliShort -> cmd.Aliases,
+// see lib/golang/go-action-cli-render.go) - entity-prefixed (not just "c"/"u"/...) since
+// every entity's actions end up registered in the same flat, global CLI command list
+// (see lib/gorunner/gorunner.go), so a bare per-operation short code would collide
+// across entities. Still meaningfully shorter than the full kebab-case name (e.g.
+// "widget-c" vs "widget-create") for quicker/easier reading and typing at the CLI.
+func entityActionCliShort(entity *Module3Entity, short string) string {
+	return entity.Name + "-" + short
+}
+
 // entityActionResponseEnvelope is the envelope every entity action's Out uses -
 // "GResponse", the same google-json-style-guide envelope class hand-declared actions
 // elsewhere in this repo opt into by hand (see lib/js/js-envelopes and
@@ -34,6 +44,7 @@ func buildEntityCreateAction(entity *Module3Entity) *EmiAction {
 	dtoClassName := BuildEntityDto(entity).GetClassName()
 	return &EmiAction{
 		Name:        entityActionName(entity, "Create"),
+		CliShort:    entityActionCliShort(entity, "c"),
 		Description: "Creates a new \"" + entity.Name + "\" row.",
 		Method:      "post",
 		Url:         "/" + entity.Name,
@@ -45,6 +56,7 @@ func buildEntityCreateAction(entity *Module3Entity) *EmiAction {
 func buildEntityUpdateAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "Update"),
+		CliShort:    entityActionCliShort(entity, "u"),
 		Description: "Applies a partial update to a \"" + entity.Name + "\" row by uniqueId.",
 		Method:      "patch",
 		Url:         "/" + entity.Name + "/:uniqueId string",
@@ -56,6 +68,7 @@ func buildEntityUpdateAction(entity *Module3Entity) *EmiAction {
 func buildEntityGetAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "Get"),
+		CliShort:    entityActionCliShort(entity, "g"),
 		Description: "Looks up a single \"" + entity.Name + "\" row by uniqueId.",
 		Method:      "get",
 		Url:         "/" + entity.Name + "/:uniqueId string",
@@ -72,9 +85,20 @@ func buildEntityGetAction(entity *Module3Entity) *EmiAction {
 // only select or return some fields, not the complete row every time, so its items need
 // to be able to say "this field wasn't included" the same way Update's input can say
 // "this field wasn't set".
+// BuildEntityBrowseAction is buildEntityBrowseAction exposed for callers outside this
+// package (namely lib/golang's GoEntityActionsRender) that need the exact same synthetic
+// EmiAction shape even when features.browseAction (or the master features.actions)
+// suppresses it from ever being added to m.Actions - {Entity}BrowseFn's own generated Go
+// code still needs the qs struct/parsing helpers this action's Query fields drive (see
+// GoActionQueryParams), regardless of whether it's exposed as a portable action.
+func BuildEntityBrowseAction(entity *Module3Entity) *EmiAction {
+	return buildEntityBrowseAction(entity)
+}
+
 func buildEntityBrowseAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "Browse"),
+		CliShort:    entityActionCliShort(entity, "b"),
 		Description: "Returns \"" + entity.Name + "\" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).",
 		Method:      "get",
 		Url:         "/" + entity.Name + "/browse",
@@ -108,6 +132,7 @@ func buildEntityBrowseAction(entity *Module3Entity) *EmiAction {
 func buildEntityAwareDeletePreviewAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "AwareDeletePreview"),
+		CliShort:    entityActionCliShort(entity, "dp"),
 		Description: "Reports what deleting the given \"" + entity.Name + "\" uniqueIds would affect, without deleting anything.",
 		Method:      "get",
 		Url:         "/" + entity.Name + "/delete-preview",
@@ -130,6 +155,7 @@ func buildEntityAwareDeletePreviewAction(entity *Module3Entity) *EmiAction {
 func buildEntityAwareDeleteAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "AwareDelete"),
+		CliShort:    entityActionCliShort(entity, "d"),
 		Description: "Deletes the given \"" + entity.Name + "\" uniqueIds, along with everything " + entityActionName(entity, "AwareDeletePreview") + " reports.",
 		Method:      "post",
 		Url:         "/" + entity.Name + "/delete",
@@ -163,19 +189,19 @@ func (m *Emi) preprocessEntityActions() {
 		if e == nil || e.Name == "" {
 			continue
 		}
-		if e.Features.CreateEnabled() {
+		if e.Features.CreateEnabled() && e.Features.CreateActionEnabled() {
 			add(buildEntityCreateAction(e))
 		}
-		if e.Features.UpdateEnabled() {
+		if e.Features.UpdateEnabled() && e.Features.UpdateActionEnabled() {
 			add(buildEntityUpdateAction(e))
 		}
-		if e.Features.GetEnabled() {
+		if e.Features.GetEnabled() && e.Features.GetActionEnabled() {
 			add(buildEntityGetAction(e))
 		}
-		if e.Features.BrowseEnabled() {
+		if e.Features.BrowseEnabled() && e.Features.BrowseActionEnabled() {
 			add(buildEntityBrowseAction(e))
 		}
-		if e.Features.DeleteEnabled() {
+		if e.Features.DeleteEnabled() && e.Features.DeleteActionEnabled() {
 			add(buildEntityAwareDeletePreviewAction(e))
 			add(buildEntityAwareDeleteAction(e))
 		}

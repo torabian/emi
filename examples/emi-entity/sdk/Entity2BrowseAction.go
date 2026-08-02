@@ -27,6 +27,7 @@ func Entity2BrowseAction(c Entity2BrowseActionRequest) (*Entity2BrowseActionResp
 func Entity2BrowseActionMeta() struct {
 	Name        string
 	CliName     string
+	CliShort    string
 	URL         string
 	Method      string
 	Description string
@@ -34,12 +35,14 @@ func Entity2BrowseActionMeta() struct {
 	return struct {
 		Name        string
 		CliName     string
+		CliShort    string
 		URL         string
 		Method      string
 		Description string
 	}{
 		Name:        "Entity2BrowseAction",
 		CliName:     "entity2-browse-action",
+		CliShort:    "entity2-b",
 		URL:         "/entity2/browse",
 		Method:      "GET",
 		Description: `Returns "entity2" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).`,
@@ -363,6 +366,7 @@ func Entity2BrowseActionCliHandler(
 		Usage: meta.Description,
 		Flags: Entity2BrowseActionCliFlags(),
 	}
+	cmd.Aliases = []string{meta.CliShort}
 	cmd.Action = func(ctx context.Context, c *cli.Command) error {
 		req := Entity2BrowseActionRequest{
 			CliCtx:      c,

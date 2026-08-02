@@ -35,7 +35,7 @@ func TestNestedRelations_ArrayInsidePlainObjectContainer(t *testing.T) {
 		t.Fatalf("NestedContainer gorm tag = %q, want %q (plain object embeds directly)", got, "embedded")
 	}
 
-	// NestedItems/NestedOwnerId/NestedOwnerRow are real Go fields nested inside
+	// NestedItems/NestedOwnerId/NestedOwner are real Go fields nested inside
 	// NestedContainer.NestedInner - not Go-anonymous-embedded, so reflect.FieldByName
 	// on Entity1Entity itself won't find them; gorm's own "embedded" tag handles that
 	// flattening for its own schema, independently of Go's language-level promotion.
@@ -67,12 +67,19 @@ func TestNestedRelations_ArrayInsidePlainObjectContainer(t *testing.T) {
 	if nestedOwnerId.Type.Kind() != reflect.Int64 {
 		t.Fatalf("NestedOwnerId kind = %v, want int64", nestedOwnerId.Type.Kind())
 	}
-	nestedOwnerRow, ok := nestedInner.Type.FieldByName("NestedOwnerRow")
+	// NestedOwner is the one field itself, not a hidden {field}Row sibling -
+	// ApplyEntityGormTags converts an entity's one/one? fields into class/class? (see
+	// go-entity-gorm.go), so the primary field is a real, gorm-native belongs-to
+	// directly, with no indirection needed.
+	nestedOwner, ok := nestedInner.Type.FieldByName("NestedOwner")
 	if !ok {
-		t.Fatal("expected NestedContainer.NestedInner to have a NestedOwnerRow field")
+		t.Fatal("expected NestedContainer.NestedInner to have a NestedOwner field")
 	}
-	if got := nestedOwnerRow.Tag.Get("gorm"); got != "foreignKey:NestedOwnerId;references:Id" {
-		t.Fatalf("NestedOwnerRow gorm tag = %q", got)
+	if got := nestedOwner.Tag.Get("gorm"); got != "foreignKey:NestedOwnerId;references:Id" {
+		t.Fatalf("NestedOwner gorm tag = %q", got)
+	}
+	if nestedOwner.Type != reflect.TypeOf(&Entity2Entity{}) {
+		t.Fatalf("NestedOwner type = %v, want *Entity2Entity", nestedOwner.Type)
 	}
 }
 
@@ -135,7 +142,7 @@ func TestNestedRelations_GormSchemaRecognizesEverything(t *testing.T) {
 
 	wantRelations := map[string]schema.RelationshipType{
 		"NestedItems":    schema.HasMany,
-		"NestedOwnerRow": schema.BelongsTo,
+		"NestedOwner":    schema.BelongsTo,
 		"NestedItemsOpt": schema.HasMany,
 	}
 	for name, wantType := range wantRelations {

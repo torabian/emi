@@ -19,9 +19,20 @@ const (
 	// Operation - replace vs append - matters); use _list/_list? for the persisted
 	// side of an entity's own struct, where there's nothing to apply an operation
 	// *against* other than the database itself.
-	FieldTypeList       FieldType = "_list"
-	FieldTypeSlice      FieldType = "slice"
-	FieldTypeOne        FieldType = "one"
+	FieldTypeList  FieldType = "_list"
+	FieldTypeSlice FieldType = "slice"
+	FieldTypeOne   FieldType = "one"
+
+	// Class is like one, but golang-only for now: it renders as a plain *Target (no
+	// emigo.One[T]/Operation wrapper), so gorm's own reflection-based schema builder
+	// recognizes it as a real belongs-to association directly - no gorm:"-", no hidden
+	// {field}Row shadow field (the {field}Id FK column sibling still exists, same as
+	// one/one? - a belongs-to always needs a real scalar FK column of its own). Use
+	// one/one? for a dto's request/response shape (where Operation - select vs inline
+	// value - matters); use class/class? for the persisted side of an entity's own
+	// struct, where there's nothing to apply an operation *against* other than the
+	// database itself.
+	FieldTypeClass      FieldType = "class"
 	FieldTypeCollection FieldType = "collection"
 	FieldTypeObject     FieldType = "object"
 	FieldTypeEnum       FieldType = "enum"
@@ -38,6 +49,7 @@ const (
 	FieldTypeListNullable       FieldType = "_list?"
 	FieldTypeSliceNullable      FieldType = "slice?"
 	FieldTypeOneNullable        FieldType = "one?"
+	FieldTypeClassNullable      FieldType = "class?"
 	FieldTypeCollectionNullable FieldType = "collection?"
 	FieldTypeObjectNullable     FieldType = "object?"
 	FieldTypeEnumNullable       FieldType = "enum?"
@@ -69,6 +81,7 @@ func GetEmiFieldTypeCatalog() FieldSupportCatalog {
 			FieldTypeList,
 			FieldTypeSlice,
 			FieldTypeOne,
+			FieldTypeClass,
 			FieldTypeCollection,
 			FieldTypeObject,
 			FieldTypeEnum,
@@ -86,6 +99,7 @@ func GetEmiFieldTypeCatalog() FieldSupportCatalog {
 			FieldTypeListNullable,
 			FieldTypeSliceNullable,
 			FieldTypeOneNullable,
+			FieldTypeClassNullable,
 			FieldTypeCollectionNullable,
 			FieldTypeObjectNullable,
 			FieldTypeEnumNullable,
