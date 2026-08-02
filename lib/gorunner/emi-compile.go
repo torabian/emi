@@ -56,6 +56,7 @@ var CompileCommand = cli.Command{
 				if err != nil {
 					return err
 				}
+				preprocessed.StripActionUrlTypeAnnotations()
 
 				yamlBytes, err := yaml.Marshal(preprocessed)
 				if err != nil {

@@ -465,7 +465,7 @@ actions:
     dto: Entity2Dto
 - name: entity2Update
   cliShort: entity2-u
-  url: /entity2/:uniqueId string
+  url: /entity2/:uniqueId
   method: patch
   description: Applies a partial update to a "entity2" row by uniqueId.
   in:
@@ -475,7 +475,7 @@ actions:
     dto: Entity2Dto
 - name: entity2Get
   cliShort: entity2-g
-  url: /entity2/:uniqueId string
+  url: /entity2/:uniqueId
   method: get
   description: Looks up a single "entity2" row by uniqueId.
   out:
@@ -545,7 +545,7 @@ actions:
     dto: Entity1Dto
 - name: entity1Update
   cliShort: entity1-u
-  url: /entity1/:uniqueId string
+  url: /entity1/:uniqueId
   method: patch
   description: Applies a partial update to a "entity1" row by uniqueId.
   in:
@@ -555,7 +555,7 @@ actions:
     dto: Entity1Dto
 - name: entity1Get
   cliShort: entity1-g
-  url: /entity1/:uniqueId string
+  url: /entity1/:uniqueId
   method: get
   description: Looks up a single "entity1" row by uniqueId.
   out:
@@ -625,7 +625,7 @@ actions:
     dto: Entity3Dto
 - name: entity3Get
   cliShort: entity3-g
-  url: /entity3/:uniqueId string
+  url: /entity3/:uniqueId
   method: get
   description: Looks up a single "entity3" row by uniqueId.
   out:
@@ -685,7 +685,7 @@ actions:
       primitive: string
 - name: entity4Update
   cliShort: entity4-u
-  url: /entity4/:uniqueId string
+  url: /entity4/:uniqueId
   method: patch
   description: Applies a partial update to a "entity4" row by uniqueId.
   in:
@@ -695,7 +695,7 @@ actions:
     dto: Entity4Dto
 - name: entity4Get
   cliShort: entity4-g
-  url: /entity4/:uniqueId string
+  url: /entity4/:uniqueId
   method: get
   description: Looks up a single "entity4" row by uniqueId.
   out:

@@ -269,6 +269,37 @@ func RemoveTypeAnnotations(url string) string {
 	})
 }
 
+// StripActionUrlTypeAnnotations rewrites every Actions/Remotes Url on m in place, via
+// RemoveTypeAnnotations, so a path param declared as "/:uniqueId string" becomes
+// "/:uniqueId". This is deliberately NOT part of Preprocess() itself: every renderer that
+// needs per-param TYPE info (lib/golang/go-path-parameter-realms.go,
+// lib/js/js-action-path-parameters.go, lib/kotlin/kotlin-path-paramer.go,
+// lib/swift/swift-path-parameter.go, all via core.ExtractPlaceholdersInUrl) reads it off
+// the same, still-annotated Url field - stripping it globally would silently default
+// every path param's type to string. Callers that only ever display or dump a module's
+// Url (the "preprocessor" compiler target's yaml snapshot - see
+// lib/gorunner/emi-compile.go and lib/preproceesor/preprocessor-public-api.go - openapi/
+// postman/md already normalize their own copy independently) call this on their own,
+// dedicated *Emi instance instead, since the annotated form was never meant to be a
+// human/tool-facing "final" url in the first place.
+func (m *Emi) StripActionUrlTypeAnnotations() {
+	if m == nil {
+		return
+	}
+	for _, a := range m.Actions {
+		if a == nil {
+			continue
+		}
+		a.Url = RemoveTypeAnnotations(a.Url)
+	}
+	for _, r := range m.Remotes {
+		if r == nil {
+			continue
+		}
+		r.Url = RemoveTypeAnnotations(r.Url)
+	}
+}
+
 // ====================
 // YAML Parsing Utilities
 // ====================

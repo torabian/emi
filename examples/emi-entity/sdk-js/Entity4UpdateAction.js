@@ -11,7 +11,7 @@ import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
  */
 export class Entity4UpdateAction {
   //
-  static URL = "/entity4/:uniqueId string";
+  static URL = "/entity4/:uniqueId";
   static NewUrl = (params, qs) => buildUrl(Entity4UpdateAction.URL, params, qs);
   static Method = "PATCH";
   static Fetch$ = async (params, qs, ctx, init, overrideUrl) => {

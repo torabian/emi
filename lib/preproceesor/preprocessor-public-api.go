@@ -32,6 +32,7 @@ func GetPreprocessorPublicActions() core.PublicAPIActions {
 					if err != nil {
 						return nil, err
 					}
+					emiModule.StripActionUrlTypeAnnotations()
 
 					content, err := yaml.Marshal(emiModule)
 					if err != nil {

@@ -10,7 +10,7 @@ import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
  */
 export class Entity4GetAction {
   //
-  static URL = "/entity4/:uniqueId string";
+  static URL = "/entity4/:uniqueId";
   static NewUrl = (params, qs) => buildUrl(Entity4GetAction.URL, params, qs);
   static Method = "GET";
   static Fetch$ = async (params, qs, ctx, init, overrideUrl) => {
