@@ -195,64 +195,53 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		// ordinary declared fields with one consistent shape.
 		PrependEntityDefaultFields(entity)
 
-		// IMPORTANT: build the update-input BEFORE GoEntityRender runs. GoEntityRender
-		// calls ApplyEntityGormTags, which mutates entity.Fields (and the individual
-		// *EmiField values) in place - appending Row-sibling fields, injecting
-		// LinkerId/id/uniqueId into array children. None of that belongs in the
-		// update-input struct, so it has to see the fields as originally declared.
+		// IMPORTANT: build the update-input and actions BEFORE GoEntityRender runs.
+		// GoEntityRender calls ApplyEntityGormTags, which mutates entity.Fields (and
+		// the individual *EmiField values) in place - appending Row-sibling fields,
+		// injecting LinkerId/id/uniqueId into array children. None of that belongs in
+		// the update-input struct or the actions codegen, so both have to see the
+		// fields as originally declared.
 		updateInputRendered, err := GoEntityUpdateInputRender(entity, ctx, complexes)
 		if err != nil {
 			return nil, err
 		}
 
-		updateInputItem := updateInputRendered.MainClass
-
-		files = append(files, core.VirtualFile{
-			Name:         updateInputItem.SuggestedFileName,
-			Extension:    updateInputItem.SuggestedExtension,
-			ActualScript: AsFullDocument(updateInputItem, f.PackageName),
-		})
-
-		if updateInputRendered.CliHelpers != nil {
-			files = append(files, core.VirtualFile{
-				Name:         updateInputRendered.CliHelpers.SuggestedFileName,
-				Extension:    updateInputRendered.CliHelpers.SuggestedExtension,
-				ActualScript: AsFullDocument(updateInputRendered.CliHelpers, f.PackageName),
-			})
-		}
-
-		// Also has to run before GoEntityRender, for the same reason.
 		actionsRendered, err := GoEntityActionsRender(entity, ctx)
 		if err != nil {
 			return nil, err
 		}
-
-		files = append(files, core.VirtualFile{
-			Name:         actionsRendered.SuggestedFileName,
-			Extension:    actionsRendered.SuggestedExtension,
-			ActualScript: AsFullDocument(actionsRendered, f.PackageName),
-		})
 
 		entityRendered, err := GoEntityRender(entity, ctx, complexes)
 		if err != nil {
 			return nil, err
 		}
 
-		entityItem := entityRendered.MainClass
+		// One file per entity - the struct, its update input, and its Create/Update
+		// actions are all facets of the same thing, splitting them across separate
+		// files just makes them harder to find.
+		combined := &core.CodeChunkCompiled{
+			SuggestedFileName:  entityRendered.MainClass.SuggestedFileName,
+			SuggestedExtension: entityRendered.MainClass.SuggestedExtension,
+		}
+		appendChunk := func(c *core.CodeChunkCompiled) {
+			if c == nil {
+				return
+			}
+			combined.ActualScript = append(combined.ActualScript, c.ActualScript...)
+			combined.CodeChunkDependensies = append(combined.CodeChunkDependensies, c.CodeChunkDependensies...)
+		}
+
+		appendChunk(entityRendered.MainClass)
+		appendChunk(entityRendered.CliHelpers)
+		appendChunk(updateInputRendered.MainClass)
+		appendChunk(updateInputRendered.CliHelpers)
+		appendChunk(actionsRendered)
 
 		files = append(files, core.VirtualFile{
-			Name:         entityItem.SuggestedFileName,
-			Extension:    entityItem.SuggestedExtension,
-			ActualScript: AsFullDocument(entityItem, f.PackageName),
+			Name:         combined.SuggestedFileName,
+			Extension:    combined.SuggestedExtension,
+			ActualScript: AsFullDocument(combined, f.PackageName),
 		})
-
-		if entityRendered.CliHelpers != nil {
-			files = append(files, core.VirtualFile{
-				Name:         entityRendered.CliHelpers.SuggestedFileName,
-				Extension:    entityRendered.CliHelpers.SuggestedExtension,
-				ActualScript: AsFullDocument(entityRendered.CliHelpers, f.PackageName),
-			})
-		}
 	}
 
 	for _, action := range module.Actions {
