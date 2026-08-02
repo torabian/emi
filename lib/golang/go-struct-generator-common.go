@@ -80,6 +80,17 @@ func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fi
 			hasInnerStruct = true
 		}
 
+		// _list/_list? are target-driven, not name-guessed (see
+		// goFieldTypeOnNestedClasses) - they only get an inner struct generated for
+		// them when fields are actually supplied alongside a target (the entity
+		// generator's own array-to-list conversion does exactly this, see
+		// ApplyEntityGormTags in go-entity-gorm.go); plain _list/_list? usage with no
+		// fields (the normal case - just reference an existing target type) generates
+		// nothing extra.
+		if (f.Type == core.FieldTypeList || f.Type == core.FieldTypeListNullable) && len(f.Fields) > 0 {
+			hasInnerStruct = true
+		}
+
 		if f != nil && (hasInnerStruct) {
 			childName := core.ToUpper(f.Name)
 			newDepth := fieldDepth + f.Name
@@ -436,6 +447,31 @@ func goFieldTypeOnNestedClasses(
 		return fmt.Sprintf("emigo.Array[%v]", prefix)
 	case core.FieldTypeArrayNullable:
 		return fmt.Sprintf("emigo.ArrayNullable[%v]", prefix)
+	case core.FieldTypeList, core.FieldTypeListNullable:
+		// Golang-only, deliberately not wrapped in emigo.Array/ArrayNullable: a plain
+		// slice is exactly the shape gorm's own reflection-based schema builder
+		// requires to recognize a has-many association directly - no gorm:"-", no
+		// hidden shadow field needed.
+		//
+		// Unlike array/array?, _list/_list? use field.GetTarget() directly - the same
+		// existing-type reference collection/one already use - rather than guessing a
+		// name from the field/prefix chain: a plain slice has no Operation wrapper to
+		// carry caller-supplied item data, so there's no reason for it to auto-generate
+		// its own child struct the way array does. No target at all means there's
+		// nothing to reference, so it falls back to interface{}.
+		//
+		// _list -> []*Target (a real has-many, matching every other relation's
+		// pointer-slice Row-sibling convention elsewhere in this codebase); _list? ->
+		// []Target (plain values, no pointer indirection) - the two exist as distinct
+		// shapes for whichever a given association actually needs, not as a
+		// required/optional pair the way every other "?" suffix in this schema is.
+		if field.GetTarget() == "" {
+			return "interface{}"
+		}
+		if field.GetType() == core.FieldTypeListNullable {
+			return fmt.Sprintf("[]%v", field.GetTarget())
+		}
+		return fmt.Sprintf("[]*%v", field.GetTarget())
 	case core.FieldTypeObjectNullable:
 		return fmt.Sprintf("emigo.Nullable[%v]", prefix)
 	default:

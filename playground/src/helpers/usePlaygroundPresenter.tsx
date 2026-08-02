@@ -106,6 +106,11 @@ entities:
     fields:
     - name: field1
       type: string
+    - name: users
+      type: array
+      fields:
+      - name: firstname1
+        type: string
 actions:
   - name: getSinglePost
     url: https://jsonplaceholder.typicode.com/posts/1

@@ -98,9 +98,19 @@ func applyEntityGormTags(entity *core.Module3Entity, childStructPrefix string, f
 
 		switch field.Type {
 		case core.FieldTypeArray, core.FieldTypeArrayNullable:
-			if !hasOverride {
-				field.Tags["gorm"] = "-"
-			}
+			// Converted to _list/_list? - only here, only for the entity's own
+			// persisted struct (see core.FieldTypeList's doc comment in
+			// EmiFieldType.go) - so the primary field itself becomes a real,
+			// gorm-native has-many: no more gorm:"-", no hidden {field}Row shadow
+			// sibling; gorm's own reflection-based schema builder can finally see it
+			// directly, since a plain slice is exactly the shape it requires.
+			//
+			// DTOs (BuildEntityDto/BuildEntityOptionalDto in preprocess-entities.go)
+			// never see this conversion - they're built from entity.Fields *before*
+			// ApplyEntityGormTags ever mutates it (core.Emi.Preprocess runs first),
+			// so Create/Update's own request bodies keep the portable,
+			// Operation-wrapped array/array? shape they still need.
+			childStruct := childStructPrefix + core.ToUpper(field.Name)
 
 			field.Fields = append(field.Fields, cloneEntityDefaultFields()...)
 			field.Fields = append(field.Fields, &core.EmiField{
@@ -109,13 +119,16 @@ func applyEntityGormTags(entity *core.Module3Entity, childStructPrefix string, f
 				Tags: map[string]string{"gorm": "index"},
 			})
 
-			childStruct := childStructPrefix + core.ToUpper(field.Name)
-			extra = append(extra, hiddenSibling(
-				field.Name+"Row",
-				core.FieldTypeComplex,
-				"[]*"+childStruct,
-				"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE",
-			))
+			field.Target = childStruct
+			if field.Type == core.FieldTypeArray {
+				field.Type = core.FieldTypeList
+			} else {
+				field.Type = core.FieldTypeListNullable
+			}
+
+			if !hasOverride {
+				field.Tags["gorm"] = "foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE"
+			}
 
 		case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
 			if !hasOverride {

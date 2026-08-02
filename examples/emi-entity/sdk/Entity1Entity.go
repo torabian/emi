@@ -14,8 +14,8 @@ type Entity1Entity struct {
 	Id                    int64                                           `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
 	UniqueId              string                                          `gorm:"type:uuid;default:gen_random_uuid();unique" json:"uniqueId" yaml:"uniqueId"`
 	Title                 string                                          `json:"title" yaml:"title"`
-	Items                 emigo.Array[Entity1EntityItems]                 `gorm:"-" json:"items" yaml:"items"`
-	Items2                emigo.ArrayNullable[Entity1EntityItems2]        `gorm:"-" json:"items2" yaml:"items2"`
+	Items                 []*Entity1EntityItems                           `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"items" yaml:"items"`
+	Items2                []Entity1EntityItems2                           `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"items2" yaml:"items2"`
 	Items3                emigo.Collection[Entity2Entity]                 `gorm:"-" json:"items3" yaml:"items3"`
 	Items4                emigo.CollectionNullable[Entity2Entity]         `gorm:"-" json:"items4" yaml:"items4"`
 	Owner                 emigo.One[Entity2Entity]                        `gorm:"-" json:"owner" yaml:"owner"`
@@ -46,8 +46,6 @@ type Entity1Entity struct {
 	Misc                  interface{}                                     `gorm:"serializer:json" json:"misc" yaml:"misc"`
 	NestedContainer       Entity1EntityNestedContainer                    `gorm:"embedded" json:"nestedContainer" yaml:"nestedContainer"`
 	NestedContainerOpt    emigo.Nullable[Entity1EntityNestedContainerOpt] `gorm:"-" json:"nestedContainerOpt" yaml:"nestedContainerOpt"`
-	ItemsRow              []*Entity1EntityItems                           `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"-" yaml:"-"`
-	Items2Row             []*Entity1EntityItems2                          `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"-" yaml:"-"`
 	Items3Row             []*Entity2Entity                                `gorm:"many2many:entity1_items3;foreignKey:Id;references:Id" json:"-" yaml:"-"`
 	Items4Row             []*Entity2Entity                                `gorm:"many2many:entity1_items4;foreignKey:Id;references:Id" json:"-" yaml:"-"`
 	OwnerId               int64                                           `gorm:"index" json:"-" yaml:"-"`
@@ -91,11 +89,10 @@ type Entity1EntityNestedContainer struct {
 
 // The base class definition for nestedInner
 type Entity1EntityNestedContainerNestedInner struct {
-	NestedItems    emigo.Array[Entity1EntityNestedContainerNestedInnerNestedItems] `gorm:"-" json:"nestedItems" yaml:"nestedItems"`
-	NestedOwner    emigo.One[Entity2Entity]                                        `gorm:"-" json:"nestedOwner" yaml:"nestedOwner"`
-	NestedItemsRow []*Entity1EntityNestedContainerNestedInnerNestedItems           `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"-" yaml:"-"`
-	NestedOwnerId  int64                                                           `gorm:"index" json:"-" yaml:"-"`
-	NestedOwnerRow *Entity2Entity                                                  `gorm:"foreignKey:NestedOwnerId;references:Id" json:"-" yaml:"-"`
+	NestedItems    []*Entity1EntityNestedContainerNestedInnerNestedItems `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"nestedItems" yaml:"nestedItems"`
+	NestedOwner    emigo.One[Entity2Entity]                              `gorm:"-" json:"nestedOwner" yaml:"nestedOwner"`
+	NestedOwnerId  int64                                                 `gorm:"index" json:"-" yaml:"-"`
+	NestedOwnerRow *Entity2Entity                                        `gorm:"foreignKey:NestedOwnerId;references:Id" json:"-" yaml:"-"`
 }
 
 // The base class definition for nestedItems
@@ -113,8 +110,7 @@ type Entity1EntityNestedContainerOpt struct {
 
 // The base class definition for nestedInner
 type Entity1EntityNestedContainerOptNestedInner struct {
-	NestedItemsOpt    emigo.Array[Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt] `gorm:"-" json:"nestedItemsOpt" yaml:"nestedItemsOpt"`
-	NestedItemsOptRow []*Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt           `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"-" yaml:"-"`
+	NestedItemsOpt []*Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"nestedItemsOpt" yaml:"nestedItemsOpt"`
 }
 
 // The base class definition for nestedItemsOpt
@@ -148,11 +144,11 @@ func GetEntity1EntityCliFlags(prefix string) []emigo.CliFlag {
 		},
 		{
 			Name: prefix + "items",
-			Type: "array",
+			Type: "_list",
 		},
 		{
 			Name: prefix + "items2",
-			Type: "array?",
+			Type: "_list?",
 		},
 		{
 			Name: prefix + "items3",
@@ -277,14 +273,6 @@ func GetEntity1EntityCliFlags(prefix string) []emigo.CliFlag {
 			Type: "object?",
 		},
 		{
-			Name: prefix + "items-row",
-			Type: "complex",
-		},
-		{
-			Name: prefix + "items2-row",
-			Type: "complex",
-		},
-		{
 			Name: prefix + "items3-row",
 			Type: "complex",
 		},
@@ -328,12 +316,6 @@ func CastEntity1EntityFromCli(c emigo.CliCastable) Entity1Entity {
 	}
 	if c.IsSet("title") {
 		data.Title = c.String("title")
-	}
-	if c.IsSet("items") {
-		data.Items = emigo.CapturePossibleArray(CastEntity1EntityItemsFromCli, "items", c)
-	}
-	if c.IsSet("items2") {
-		data.Items2 = emigo.CapturePossibleArrayNullable(CastEntity1EntityItems2FromCli, "items2", c)
 	}
 	if c.IsSet("items3") {
 		data.Items3 = emigo.CapturePossibleCollection(CastEntity2EntityFromCli, "items3", c)
@@ -414,16 +396,6 @@ func CastEntity1EntityFromCli(c emigo.CliCastable) Entity1Entity {
 	}
 	if c.IsSet("nested-container-opt") {
 		emigo.ParseNullable(c.String("nested-container-opt"), &data.NestedContainerOpt)
-	}
-	if c.IsSet("items-row") {
-		if u, ok := any(&data.ItemsRow).(encoding.TextUnmarshaler); ok {
-			u.UnmarshalText([]byte(c.String("items-row")))
-		}
-	}
-	if c.IsSet("items2-row") {
-		if u, ok := any(&data.Items2Row).(encoding.TextUnmarshaler); ok {
-			u.UnmarshalText([]byte(c.String("items2-row")))
-		}
 	}
 	if c.IsSet("items3-row") {
 		if u, ok := any(&data.Items3Row).(encoding.TextUnmarshaler); ok {
@@ -585,15 +557,11 @@ func GetEntity1EntityNestedContainerNestedInnerCliFlags(prefix string) []emigo.C
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "nested-items",
-			Type: "array",
+			Type: "_list",
 		},
 		{
 			Name: prefix + "nested-owner",
 			Type: "one",
-		},
-		{
-			Name: prefix + "nested-items-row",
-			Type: "complex",
 		},
 		{
 			Name: prefix + "nested-owner-id",
@@ -607,16 +575,8 @@ func GetEntity1EntityNestedContainerNestedInnerCliFlags(prefix string) []emigo.C
 }
 func CastEntity1EntityNestedContainerNestedInnerFromCli(c emigo.CliCastable) Entity1EntityNestedContainerNestedInner {
 	data := Entity1EntityNestedContainerNestedInner{}
-	if c.IsSet("nested-items") {
-		data.NestedItems = emigo.CapturePossibleArray(CastEntity1EntityNestedContainerNestedInnerNestedItemsFromCli, "nested-items", c)
-	}
 	if c.IsSet("nested-owner") {
 		data.NestedOwner = emigo.CapturePossibleOne(CastEntity2EntityFromCli, "nested-owner", c)
-	}
-	if c.IsSet("nested-items-row") {
-		if u, ok := any(&data.NestedItemsRow).(encoding.TextUnmarshaler); ok {
-			u.UnmarshalText([]byte(c.String("nested-items-row")))
-		}
 	}
 	if c.IsSet("nested-owner-id") {
 		data.NestedOwnerId = int64(c.Int64("nested-owner-id"))
@@ -684,24 +644,12 @@ func GetEntity1EntityNestedContainerOptNestedInnerCliFlags(prefix string) []emig
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "nested-items-opt",
-			Type: "array",
-		},
-		{
-			Name: prefix + "nested-items-opt-row",
-			Type: "complex",
+			Type: "_list",
 		},
 	}
 }
 func CastEntity1EntityNestedContainerOptNestedInnerFromCli(c emigo.CliCastable) Entity1EntityNestedContainerOptNestedInner {
 	data := Entity1EntityNestedContainerOptNestedInner{}
-	if c.IsSet("nested-items-opt") {
-		data.NestedItemsOpt = emigo.CapturePossibleArray(CastEntity1EntityNestedContainerOptNestedInnerNestedItemsOptFromCli, "nested-items-opt", c)
-	}
-	if c.IsSet("nested-items-opt-row") {
-		if u, ok := any(&data.NestedItemsOptRow).(encoding.TextUnmarshaler); ok {
-			u.UnmarshalText([]byte(c.String("nested-items-opt-row")))
-		}
-	}
 	return data
 }
 func GetEntity1EntityNestedContainerOptNestedInnerNestedItemsOptCliFlags(prefix string) []emigo.CliFlag {
@@ -817,24 +765,6 @@ func Entity1EntityCreateFn(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, err
 		if err := tx.Create(dto).Error; err != nil {
 			return err
 		}
-		if dto.Items.IsSet() {
-			items := make([]*Entity1EntityItems, len(dto.Items.Items))
-			for i := range dto.Items.Items {
-				items[i] = &dto.Items.Items[i]
-			}
-			if err := emigorm.ReconcileHasMany(tx, "linker_id", dto.Id, dto.Items.Operation, items); err != nil {
-				return err
-			}
-		}
-		if dto.Items2.IsSet() {
-			items := make([]*Entity1EntityItems2, len(dto.Items2.Items))
-			for i := range dto.Items2.Items {
-				items[i] = &dto.Items2.Items[i]
-			}
-			if err := emigorm.ReconcileHasMany(tx, "linker_id", dto.Id, dto.Items2.Operation, items); err != nil {
-				return err
-			}
-		}
 		if dto.Items3.IsSet() {
 			items := make([]*Entity2Entity, len(dto.Items3.Items))
 			for i := range dto.Items3.Items {
@@ -851,26 +781,6 @@ func Entity1EntityCreateFn(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, err
 			}
 			if err := emigorm.ReconcileManyToMany(tx, dto, "Items4Row", dto.Items4.Operation, items); err != nil {
 				return err
-			}
-		}
-		if dto.NestedContainer.NestedInner.NestedItems.IsSet() {
-			items := make([]*Entity1EntityNestedContainerNestedInnerNestedItems, len(dto.NestedContainer.NestedInner.NestedItems.Items))
-			for i := range dto.NestedContainer.NestedInner.NestedItems.Items {
-				items[i] = &dto.NestedContainer.NestedInner.NestedItems.Items[i]
-			}
-			if err := emigorm.ReconcileHasMany(tx, "linker_id", dto.Id, dto.NestedContainer.NestedInner.NestedItems.Operation, items); err != nil {
-				return err
-			}
-		}
-		if v, ok := dto.NestedContainerOpt.Get(); ok && v != nil {
-			if v.NestedInner.NestedItemsOpt.IsSet() {
-				items := make([]*Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt, len(v.NestedInner.NestedItemsOpt.Items))
-				for i := range v.NestedInner.NestedItemsOpt.Items {
-					items[i] = &v.NestedInner.NestedItemsOpt.Items[i]
-				}
-				if err := emigorm.ReconcileHasMany(tx, "linker_id", dto.Id, v.NestedInner.NestedItemsOpt.Operation, items); err != nil {
-					return err
-				}
 			}
 		}
 		return nil

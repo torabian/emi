@@ -60,6 +60,7 @@
           "type": "string",
           "enum": [
             "array",
+            "_list",
             "map?",
             "map",
             "slice",
@@ -75,6 +76,7 @@
             "float32",
             "float64",
             "array?",
+            "_list?",
             "slice?",
             "one?",
             "collection?",

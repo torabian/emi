@@ -114,6 +114,13 @@ func (x goFieldVariable) CliCaptureStatement() string {
 	// Array and ArrayNullable, Collection and CollectionNullable
 	// are being also casted with special function
 	switch possibleType {
+	case core.FieldTypeList, core.FieldTypeListNullable:
+		// No CLI flag support yet for the plain, golang-only has-many shape - has to be
+		// an explicit case (rather than falling through to the generic core.IsNullable
+		// branch below) since _list?'s ComputedType is a plain []*ChildStruct, not a
+		// Nullable[T] emigo.ParseNullable could ever populate from a string.
+		return ""
+
 	case core.FieldTypeArray, core.FieldTypeArrayNullable:
 		captureFn := "CapturePossibleArray"
 		if possibleType == core.FieldTypeArrayNullable {

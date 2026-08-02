@@ -89,10 +89,10 @@ func TestEntity1EntityAwareDeleteFn_RemovesArrayAndCollectionChildrenAlongsideTh
 
 	dto := &Entity1Entity{
 		Title: "to-be-deleted",
-		Items: emigo.ArrayReplace([]Entity1EntityItems{
+		Items: []*Entity1EntityItems{
 			{Item2: "child-1"},
 			{Item2: "child-2"},
-		}),
+		},
 		Items3: emigo.CollectionReplace([]Entity2Entity{tagA}),
 	}
 	created, err := Entity1EntityActions.Create(db, dto)

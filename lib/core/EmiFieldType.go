@@ -10,7 +10,16 @@ const (
 
 	// Array referes to Array<object>, when the field is an object, which can contain
 	// another object in it. It's different from
-	FieldTypeArray      FieldType = "array"
+	FieldTypeArray FieldType = "array"
+
+	// List is like array, but golang-only for now: it renders as a plain []*ChildStruct
+	// (no emigo.Array[T]/Operation wrapper), so gorm's own reflection-based schema
+	// builder recognizes it as a real has-many association directly - no gorm:"-", no
+	// hidden shadow field. Use array/array? for a dto's request/response shape (where
+	// Operation - replace vs append - matters); use _list/_list? for the persisted
+	// side of an entity's own struct, where there's nothing to apply an operation
+	// *against* other than the database itself.
+	FieldTypeList       FieldType = "_list"
 	FieldTypeSlice      FieldType = "slice"
 	FieldTypeOne        FieldType = "one"
 	FieldTypeCollection FieldType = "collection"
@@ -26,6 +35,7 @@ const (
 	FieldTypeMap        FieldType = "map"
 
 	FieldTypeArrayNullable      FieldType = "array?"
+	FieldTypeListNullable       FieldType = "_list?"
 	FieldTypeSliceNullable      FieldType = "slice?"
 	FieldTypeOneNullable        FieldType = "one?"
 	FieldTypeCollectionNullable FieldType = "collection?"
@@ -56,6 +66,7 @@ func GetEmiFieldTypeCatalog() FieldSupportCatalog {
 	return FieldSupportCatalog{
 		DtoFieldTypes: []FieldType{
 			FieldTypeArray,
+			FieldTypeList,
 			FieldTypeSlice,
 			FieldTypeOne,
 			FieldTypeCollection,
@@ -72,6 +83,7 @@ func GetEmiFieldTypeCatalog() FieldSupportCatalog {
 		},
 		DtoNullableFieldTypes: []FieldType{
 			FieldTypeArrayNullable,
+			FieldTypeListNullable,
 			FieldTypeSliceNullable,
 			FieldTypeOneNullable,
 			FieldTypeCollectionNullable,

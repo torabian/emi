@@ -30,6 +30,7 @@ func entityIdFieldName(field *core.EmiField) string {
 func isScalarLikeFieldType(t core.FieldType) bool {
 	switch t {
 	case core.FieldTypeArray, core.FieldTypeArrayNullable,
+		core.FieldTypeList, core.FieldTypeListNullable,
 		core.FieldTypeCollection, core.FieldTypeCollectionNullable,
 		core.FieldTypeOne, core.FieldTypeOneNullable,
 		core.FieldTypeObject, core.FieldTypeObjectNullable:
@@ -91,18 +92,18 @@ func walkCreateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 `, accessPath, idPath, field.Target)
 
 		case core.FieldTypeArray, core.FieldTypeArrayNullable:
-			childStruct := structPrefix + goName
-			fmt.Fprintf(afterCreate, `
-	if %[1]s.IsSet() {
-		items := make([]*%[2]s, len(%[1]s.Items))
-		for i := range %[1]s.Items {
-			items[i] = &%[1]s.Items[i]
-		}
-		if err := emigorm.ReconcileHasMany(tx, "linker_id", dto.Id, %[1]s.Operation, items); err != nil {
-			return err
-		}
-	}
-`, accessPath, childStruct)
+			// walkCreateFields only ever runs against an *entity's* fields (called
+			// from buildCreateFn, called from GoEntityActionsRender), and always on
+			// the *original*, pre-ApplyEntityGormTags copy (see the ordering note on
+			// GoEntityActionsRender) - so field.Type still reads "array"/"array?"
+			// here even though, by the time this generated code actually runs, the
+			// real Entity1Entity struct's own field has already been converted to
+			// _list/_list? (see go-entity-gorm.go): a real, gorm-native has-many
+			// (foreignKey:LinkerId), not the Operation-wrapped emigo.Array shape.
+			// There's nothing to reconcile against on a fresh Create (no pre-existing
+			// rows), so no explicit emigorm call is needed here at all: gorm's own
+			// Create() cascades has-many children automatically, stamping LinkerId in
+			// from dto.Id as it goes, purely from this now being a real association.
 
 		case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
 			rowField := entityRowFieldName(field)
@@ -258,14 +259,22 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 	}
 `, accessPath, idField, field.Target)
 
-		case core.FieldTypeArray, core.FieldTypeArrayNullable:
-			// The update dto's array item type is its *own* struct (core.Emi.Preprocess
-			// built it as a plain, portable array? field - see
-			// lib/core/preprocess-entities.go), not the real entity's child row type,
-			// so each item has to be copied field-by-field into a fresh one. UniqueId
-			// is the synthetic field the preprocessor prepends to every array item -
-			// set means "this is an existing row, patch it", matching how the entity's
-			// own child rows work (see emigorm.ReconcileHasMany).
+		case core.FieldTypeArray, core.FieldTypeArrayNullable, core.FieldTypeList, core.FieldTypeListNullable:
+			// field.Type here is entity.Fields' own type - which ApplyEntityGormTags
+			// has, for an entity's array/array? field, already converted to _list/
+			// _list? (see go-entity-gorm.go) - but input (the update dto) was built
+			// from the *pristine* fields before that conversion (core.Emi.Preprocess
+			// runs first - see BuildEntityOptionalDto in preprocess-entities.go), so
+			// input.{Field} is always still the portable, Operation-wrapped
+			// emigo.ArrayNullable shape regardless of what the entity's own field
+			// looks like now. Same code either way.
+			//
+			// The update dto's array item type is its *own* struct (a plain, portable
+			// array? field), not the real entity's child row type, so each item has to
+			// be copied field-by-field into a fresh one. UniqueId is the synthetic
+			// field the preprocessor prepends to every array item - set means "this is
+			// an existing row, patch it", matching how the entity's own child rows
+			// work (see emigorm.ReconcileHasMany).
 			childStruct := structPrefix + goName
 			var copyFields strings.Builder
 			fmt.Fprintf(&copyFields, "\t\t\t\tUniqueId: src.UniqueId.OrDefault(\"\"),\n")
