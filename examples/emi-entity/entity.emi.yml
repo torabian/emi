@@ -1,6 +1,8 @@
 targets:
   - compiler: go
     output: ./sdk
+  - compiler: js
+    output: ./sdk-js
 
 complexes:
   - compiler: go
@@ -9,7 +11,7 @@ complexes:
 entities:
   - name: entity2
     fields:
-      - name: label
+      - name: label2
         type: string
 
   - name: entity1

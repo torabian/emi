@@ -54,9 +54,9 @@ func openPostgresTestDB(t *testing.T) *gorm.DB {
 func TestEntity1EntityCreateFn_CascadesArrayCollectionOne(t *testing.T) {
 	db := openPostgresTestDB(t)
 
-	owner := &Entity2Entity{UniqueId: "owner-1", Label: "owner-one"}
-	tagA := &Entity2Entity{UniqueId: "tag-a", Label: "tag-a"}
-	tagB := &Entity2Entity{UniqueId: "tag-b", Label: "tag-b"}
+	owner := &Entity2Entity{UniqueId: "owner-1", Label2: "owner-one"}
+	tagA := &Entity2Entity{UniqueId: "tag-a", Label2: "tag-a"}
+	tagB := &Entity2Entity{UniqueId: "tag-b", Label2: "tag-b"}
 	if err := db.Create(owner).Error; err != nil {
 		t.Fatalf("seed owner error: %v", err)
 	}
@@ -101,7 +101,7 @@ func TestEntity1EntityCreateFn_CascadesArrayCollectionOne(t *testing.T) {
 	if len(reloaded.Items3Row) != 2 {
 		t.Fatalf("expected 2 collection targets, got %d", len(reloaded.Items3Row))
 	}
-	if reloaded.OwnerRow == nil || reloaded.OwnerRow.Label != "owner-one" {
+	if reloaded.OwnerRow == nil || reloaded.OwnerRow.Label2 != "owner-one" {
 		t.Fatalf("expected owner to resolve to owner-one, got %+v", reloaded.OwnerRow)
 	}
 	if reloaded.OwnerId != owner.Id {
@@ -118,7 +118,7 @@ func TestEntity1EntityUpdateFn_PartialScalarLeavesOtherFieldsAlone(t *testing.T)
 		t.Fatalf("Create error: %v", err)
 	}
 
-	var input Entity1EntityUpdateInput
+	var input Entity1EntityUpdateDto
 	input.Title.Set(emigo.Ptr("updated"))
 
 	updated, err := Entity1EntityActions.Update(db, created.UniqueId, input)
@@ -152,10 +152,10 @@ func TestEntity1EntityUpdateFn_ArrayReplaceAppliesContentAndDeletesOrphans(t *te
 		t.Fatalf("Create error: %v", err)
 	}
 
-	var input Entity1EntityUpdateInput
-	input.Items.Set("replace", []Entity1EntityItems{
-		{UniqueId: "c2", Item2: "child-2-updated"},
-		{UniqueId: "c3", Item2: "child-3"},
+	var input Entity1EntityUpdateDto
+	input.Items.Set("replace", []Entity1EntityUpdateDtoItems{
+		{UniqueId: emigo.NullableOf("c2"), Item2: "child-2-updated"},
+		{UniqueId: emigo.NullableOf("c3"), Item2: "child-3"},
 	})
 
 	if _, err := Entity1EntityActions.Update(db, created.UniqueId, input); err != nil {
@@ -188,8 +188,8 @@ func TestEntity1EntityUpdateFn_ArrayReplaceAppliesContentAndDeletesOrphans(t *te
 func TestEntity1EntityUpdateFn_CollectionAppendKeepsExistingAndAddsNew(t *testing.T) {
 	db := openPostgresTestDB(t)
 
-	tagA := Entity2Entity{UniqueId: "tag-a", Label: "tag-a"}
-	tagB := Entity2Entity{UniqueId: "tag-b", Label: "tag-b"}
+	tagA := Entity2Entity{UniqueId: "tag-a", Label2: "tag-a"}
+	tagB := Entity2Entity{UniqueId: "tag-b", Label2: "tag-b"}
 	if err := db.Create(&tagA).Error; err != nil {
 		t.Fatalf("seed tagA error: %v", err)
 	}
@@ -203,7 +203,7 @@ func TestEntity1EntityUpdateFn_CollectionAppendKeepsExistingAndAddsNew(t *testin
 		t.Fatalf("Create error: %v", err)
 	}
 
-	var input Entity1EntityUpdateInput
+	var input Entity1EntityUpdateDto
 	input.Items3.Set("append", []Entity2Entity{tagB})
 	if _, err := Entity1EntityActions.Update(db, created.UniqueId, input); err != nil {
 		t.Fatalf("Update error: %v", err)
@@ -228,8 +228,8 @@ func TestEntity1EntityUpdateFn_CollectionAppendKeepsExistingAndAddsNew(t *testin
 func TestEntity1EntityUpdateFn_OneChangesOwnerViaSelect(t *testing.T) {
 	db := openPostgresTestDB(t)
 
-	owner1 := Entity2Entity{UniqueId: "owner-1", Label: "owner-one"}
-	owner2 := Entity2Entity{UniqueId: "owner-2", Label: "owner-two"}
+	owner1 := Entity2Entity{UniqueId: "owner-1", Label2: "owner-one"}
+	owner2 := Entity2Entity{UniqueId: "owner-2", Label2: "owner-two"}
 	if err := db.Create(&owner1).Error; err != nil {
 		t.Fatalf("seed owner1 error: %v", err)
 	}
@@ -243,7 +243,7 @@ func TestEntity1EntityUpdateFn_OneChangesOwnerViaSelect(t *testing.T) {
 		t.Fatalf("Create error: %v", err)
 	}
 
-	var input Entity1EntityUpdateInput
+	var input Entity1EntityUpdateDto
 	input.Owner.SetSelector("owner-2")
 	updated, err := Entity1EntityActions.Update(db, created.UniqueId, input)
 	if err != nil {
@@ -260,7 +260,7 @@ func TestEntity1EntityUpdateFn_OneChangesOwnerViaSelect(t *testing.T) {
 func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t *testing.T) {
 	db := openPostgresTestDB(t)
 
-	owner := Entity2Entity{UniqueId: "nested-owner-1", Label: "nested-owner"}
+	owner := Entity2Entity{UniqueId: "nested-owner-1", Label2: "nested-owner"}
 	if err := db.Create(&owner).Error; err != nil {
 		t.Fatalf("seed owner error: %v", err)
 	}
@@ -294,19 +294,19 @@ func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t 
 	if len(nested.NestedItemsRow) != 2 {
 		t.Fatalf("expected 2 nested array children, got %d", len(nested.NestedItemsRow))
 	}
-	if nested.NestedOwnerRow == nil || nested.NestedOwnerRow.Label != "nested-owner" {
+	if nested.NestedOwnerRow == nil || nested.NestedOwnerRow.Label2 != "nested-owner" {
 		t.Fatalf("expected nested owner to resolve to nested-owner, got %+v", nested.NestedOwnerRow)
 	}
 
 	// Update: replace the nested array (drop one, modify one, add one) - the same
 	// reconcile guarantees as a top-level array, just reached through two objects.
-	var input Entity1EntityUpdateInput
-	input.NestedContainer.Set(&Entity1EntityUpdateInputNestedContainer{})
+	var input Entity1EntityUpdateDto
+	input.NestedContainer.Set(&Entity1EntityUpdateDtoNestedContainer{})
 	nc, _ := input.NestedContainer.Get()
-	nc.NestedInner.Set(&Entity1EntityUpdateInputNestedContainerNestedInner{})
+	nc.NestedInner.Set(&Entity1EntityUpdateDtoNestedContainerNestedInner{})
 	ni, _ := nc.NestedInner.Get()
-	ni.NestedItems.Set("replace", []Entity1EntityNestedContainerNestedInnerNestedItems{
-		{UniqueId: nested.NestedItemsRow[1].UniqueId, Label: "nested-child-2-updated"},
+	ni.NestedItems.Set("replace", []Entity1EntityUpdateDtoNestedContainerNestedInnerNestedItems{
+		{UniqueId: emigo.NullableOf(nested.NestedItemsRow[1].UniqueId), Label: "nested-child-2-updated"},
 		{Label: "nested-child-3"},
 	})
 

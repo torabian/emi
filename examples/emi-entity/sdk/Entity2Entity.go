@@ -10,7 +10,7 @@ import (
 type Entity2Entity struct {
 	Id       int64  `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
 	UniqueId string `gorm:"type:uuid;default:gen_random_uuid();unique" json:"uniqueId" yaml:"uniqueId"`
-	Label    string `json:"label" yaml:"label"`
+	Label2   string `json:"label2" yaml:"label2"`
 }
 
 func (x *Entity2Entity) Json() string {
@@ -31,7 +31,7 @@ func GetEntity2EntityCliFlags(prefix string) []emigo.CliFlag {
 			Type: "string",
 		},
 		{
-			Name: prefix + "label",
+			Name: prefix + "label2",
 			Type: "string",
 		},
 	}
@@ -44,42 +44,14 @@ func CastEntity2EntityFromCli(c emigo.CliCastable) Entity2Entity {
 	if c.IsSet("unique-id") {
 		data.UniqueId = c.String("unique-id")
 	}
-	if c.IsSet("label") {
-		data.Label = c.String("label")
+	if c.IsSet("label2") {
+		data.Label2 = c.String("label2")
 	}
 	return data
 }
 
 // Extra entity-specific code (hooks, custom methods, business logic, etc.) can be
 // appended here in this template, after the struct GoCommonStructGenerator produced.
-// The base class definition for entity2EntityUpdateInput
-type Entity2EntityUpdateInput struct {
-	Label emigo.Nullable[string] `json:"label" yaml:"label"`
-}
-
-func (x *Entity2EntityUpdateInput) Json() string {
-	if x != nil {
-		str, _ := json.MarshalIndent(x, "", "  ")
-		return string(str)
-	}
-	return ""
-}
-func GetEntity2EntityUpdateInputCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "label",
-			Type: "string?",
-		},
-	}
-}
-func CastEntity2EntityUpdateInputFromCli(c emigo.CliCastable) Entity2EntityUpdateInput {
-	data := Entity2EntityUpdateInput{}
-	if c.IsSet("label") {
-		emigo.ParseNullable(c.String("label"), &data.Label)
-	}
-	return data
-}
-
 // Entity2EntityCreateFn creates a new Entity2Entity row (and its array/collection/one relations,
 // including ones nested inside object/object? fields) from dto. dto.Id/dto.UniqueId are
 // assigned by the database (see AutoMigrate's column defaults) and populated back onto
@@ -109,15 +81,15 @@ func Entity2EntityCreateFn(tx *gorm.DB, dto *Entity2Entity) (*Entity2Entity, err
 // Entity2EntityCreateFn uses, against entity.Id (the row's real primary key, resolved from id
 // up front - gorm's Association API and the has-many reconcile both join on it, not on
 // uniqueId).
-func Entity2EntityUpdateFn(tx *gorm.DB, id string, input Entity2EntityUpdateInput) (*Entity2Entity, error) {
+func Entity2EntityUpdateFn(tx *gorm.DB, id string, input Entity2EntityUpdateDto) (*Entity2Entity, error) {
 	var entity Entity2Entity
 	err := tx.Transaction(func(tx *gorm.DB) error {
 		if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
 			return err
 		}
 		changes := map[string]interface{}{}
-		if input.Label.IsSet() {
-			changes["Label"] = input.Label
+		if input.Label2.IsSet() {
+			changes["Label2"] = input.Label2
 		}
 		if len(changes) > 0 {
 			if err := tx.Model(&entity).Updates(changes).Error; err != nil {
@@ -142,7 +114,7 @@ func Entity2EntityUpdateFn(tx *gorm.DB, id string, input Entity2EntityUpdateInpu
 // (e.g. in tests, or to layer extra validation/side effects around them).
 type Entity2EntityActionsSig struct {
 	Create func(tx *gorm.DB, dto *Entity2Entity) (*Entity2Entity, error)
-	Update func(tx *gorm.DB, id string, input Entity2EntityUpdateInput) (*Entity2Entity, error)
+	Update func(tx *gorm.DB, id string, input Entity2EntityUpdateDto) (*Entity2Entity, error)
 }
 
 var Entity2EntityActions Entity2EntityActionsSig = Entity2EntityActionsSig{

@@ -66,13 +66,13 @@ func TestCollectionNullableField_RowSiblingCarriesMany2ManyTag(t *testing.T) {
 }
 
 func TestCollectionField_TargetEntityAndCliHelpers(t *testing.T) {
-	target := Entity2Entity{Label: "tag-a"}
-	if target.Label != "tag-a" {
+	target := Entity2Entity{Label2: "tag-a"}
+	if target.Label2 != "tag-a" {
 		t.Fatalf("unexpected target entity value: %+v", target)
 	}
 
 	flags := GetEntity2EntityCliFlags("")
 	if len(flags) != 3 {
-		t.Fatalf("expected 3 cli flags (id, uniqueId, label), got %+v", flags)
+		t.Fatalf("expected 3 cli flags (id, uniqueId, label2), got %+v", flags)
 	}
 }

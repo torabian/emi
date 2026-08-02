@@ -150,6 +150,11 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		config.Dtos = &str
 	}
 
+	// core.Emi.Preprocess synthesizes each entity's update dto directly into
+	// module.Dto (see lib/core/preprocess-entities.go) - by the time Go codegen runs,
+	// it's an ordinary dto like any other, so it's rendered here through the same
+	// generic pipeline as every hand-declared dto, landing in its own
+	// {Entity}EntityUpdateDto.go file.
 	for _, dto := range module.Dto {
 		if dto.Name == "" {
 			continue
@@ -195,17 +200,14 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		// ordinary declared fields with one consistent shape.
 		PrependEntityDefaultFields(entity)
 
-		// IMPORTANT: build the update-input and actions BEFORE GoEntityRender runs.
+		// IMPORTANT: the actions codegen has to run BEFORE GoEntityRender does.
 		// GoEntityRender calls ApplyEntityGormTags, which mutates entity.Fields (and
 		// the individual *EmiField values) in place - appending Row-sibling fields,
 		// injecting LinkerId/id/uniqueId into array children. None of that belongs in
-		// the update-input struct or the actions codegen, so both have to see the
-		// fields as originally declared.
-		updateInputRendered, err := GoEntityUpdateInputRender(entity, ctx, complexes)
-		if err != nil {
-			return nil, err
-		}
-
+		// the actions codegen, which needs the fields as originally declared. The
+		// update dto itself doesn't have this hazard - core.Emi.Preprocess already
+		// built it, long before Go-specific mutation ever happens, and it's rendered
+		// separately by the generic per-dto loop above.
 		actionsRendered, err := GoEntityActionsRender(entity, ctx)
 		if err != nil {
 			return nil, err
@@ -216,9 +218,11 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 			return nil, err
 		}
 
-		// One file per entity - the struct, its update input, and its Create/Update
-		// actions are all facets of the same thing, splitting them across separate
-		// files just makes them harder to find.
+		// One file per entity - the struct and its Create/Update actions are facets of
+		// the same thing, splitting them across separate files just makes them harder
+		// to find. The update dto is a plain, portable dto by this point though (see
+		// the generic per-dto loop above), so it gets its own {Entity}EntityUpdateDto.go
+		// like any other dto instead of being folded in here.
 		combined := &core.CodeChunkCompiled{
 			SuggestedFileName:  entityRendered.MainClass.SuggestedFileName,
 			SuggestedExtension: entityRendered.MainClass.SuggestedExtension,
@@ -233,8 +237,6 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 
 		appendChunk(entityRendered.MainClass)
 		appendChunk(entityRendered.CliHelpers)
-		appendChunk(updateInputRendered.MainClass)
-		appendChunk(updateInputRendered.CliHelpers)
 		appendChunk(actionsRendered)
 
 		files = append(files, core.VirtualFile{

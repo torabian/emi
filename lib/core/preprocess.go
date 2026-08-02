@@ -59,6 +59,9 @@ func (m *Emi) Preprocess() error {
 		v.Params = merged
 		v.Captures = nil
 	}
+
+	m.preprocessEntityUpdateDtos()
+
 	return nil
 }
 
