@@ -6,106 +6,106 @@ import (
 	"github.com/torabian/emi/emigo"
 )
 
-// The base class definition for entity1EntityUpdateDto
-type Entity1EntityUpdateDto struct {
-	Title              emigo.Nullable[string]                                   `json:"title" yaml:"title"`
-	Items              emigo.ArrayNullable[Entity1EntityUpdateDtoItems]         `json:"items" yaml:"items"`
-	Items2             emigo.ArrayNullable[Entity1EntityUpdateDtoItems2]        `json:"items2" yaml:"items2"`
-	Items3             emigo.CollectionNullable[Entity2Entity]                  `json:"items3" yaml:"items3"`
-	Items4             emigo.CollectionNullable[Entity2Entity]                  `json:"items4" yaml:"items4"`
-	Owner              emigo.OneNullable[Entity2Entity]                         `json:"owner" yaml:"owner"`
-	Manager            emigo.OneNullable[Entity2Entity]                         `json:"manager" yaml:"manager"`
-	Content1           emigo.Nullable[Entity1EntityUpdateDtoContent1]           `json:"content1" yaml:"content1"`
-	Content2           emigo.Nullable[Entity1EntityUpdateDtoContent2]           `json:"content2" yaml:"content2"`
-	Complex1           Money                                                    `json:"complex1" yaml:"complex1"`
-	Subtitle           emigo.Nullable[string]                                   `json:"subtitle" yaml:"subtitle"`
-	IsActive           emigo.Nullable[bool]                                     `json:"isActive" yaml:"isActive"`
-	IsFeatured         emigo.Nullable[bool]                                     `json:"isFeatured" yaml:"isFeatured"`
-	ViewCount          emigo.Nullable[int]                                      `json:"viewCount" yaml:"viewCount"`
-	ViewCountOpt       emigo.Nullable[int]                                      `json:"viewCountOpt" yaml:"viewCountOpt"`
-	SmallCount         emigo.Nullable[int32]                                    `json:"smallCount" yaml:"smallCount"`
-	SmallCountOpt      emigo.Nullable[int32]                                    `json:"smallCountOpt" yaml:"smallCountOpt"`
-	BigCount           emigo.Nullable[int64]                                    `json:"bigCount" yaml:"bigCount"`
-	BigCountOpt        emigo.Nullable[int64]                                    `json:"bigCountOpt" yaml:"bigCountOpt"`
-	Ratio32            emigo.Nullable[float32]                                  `json:"ratio32" yaml:"ratio32"`
-	Ratio32Opt         emigo.Nullable[float32]                                  `json:"ratio32Opt" yaml:"ratio32Opt"`
-	Ratio64            emigo.Nullable[float64]                                  `json:"ratio64" yaml:"ratio64"`
-	Ratio64Opt         emigo.Nullable[float64]                                  `json:"ratio64Opt" yaml:"ratio64Opt"`
-	Status             emigo.Nullable[string]                                   `json:"status" yaml:"status"`
-	StatusOpt          emigo.Nullable[string]                                   `json:"statusOpt" yaml:"statusOpt"`
-	Metadata           emigo.Nullable[map[string]string]                        `json:"metadata" yaml:"metadata"`
-	MetadataOpt        emigo.Nullable[map[string]string]                        `json:"metadataOpt" yaml:"metadataOpt"`
-	RawSettings        emigo.Nullable[map[string]string]                        `json:"rawSettings" yaml:"rawSettings"`
-	Labels             emigo.Nullable[[]string]                                 `json:"labels" yaml:"labels"`
-	LabelsOpt          emigo.Nullable[[]string]                                 `json:"labelsOpt" yaml:"labelsOpt"`
-	Misc               interface{}                                              `json:"misc" yaml:"misc"`
-	NestedContainer    emigo.Nullable[Entity1EntityUpdateDtoNestedContainer]    `json:"nestedContainer" yaml:"nestedContainer"`
-	NestedContainerOpt emigo.Nullable[Entity1EntityUpdateDtoNestedContainerOpt] `json:"nestedContainerOpt" yaml:"nestedContainerOpt"`
+// The base class definition for entity1OptionalDto
+type Entity1OptionalDto struct {
+	Title              emigo.Nullable[string]                               `json:"title" yaml:"title"`
+	Items              emigo.ArrayNullable[Entity1OptionalDtoItems]         `json:"items" yaml:"items"`
+	Items2             emigo.ArrayNullable[Entity1OptionalDtoItems2]        `json:"items2" yaml:"items2"`
+	Items3             emigo.CollectionNullable[Entity2Entity]              `json:"items3" yaml:"items3"`
+	Items4             emigo.CollectionNullable[Entity2Entity]              `json:"items4" yaml:"items4"`
+	Owner              emigo.OneNullable[Entity2Entity]                     `json:"owner" yaml:"owner"`
+	Manager            emigo.OneNullable[Entity2Entity]                     `json:"manager" yaml:"manager"`
+	Content1           emigo.Nullable[Entity1OptionalDtoContent1]           `json:"content1" yaml:"content1"`
+	Content2           emigo.Nullable[Entity1OptionalDtoContent2]           `json:"content2" yaml:"content2"`
+	Complex1           Money                                                `json:"complex1" yaml:"complex1"`
+	Subtitle           emigo.Nullable[string]                               `json:"subtitle" yaml:"subtitle"`
+	IsActive           emigo.Nullable[bool]                                 `json:"isActive" yaml:"isActive"`
+	IsFeatured         emigo.Nullable[bool]                                 `json:"isFeatured" yaml:"isFeatured"`
+	ViewCount          emigo.Nullable[int]                                  `json:"viewCount" yaml:"viewCount"`
+	ViewCountOpt       emigo.Nullable[int]                                  `json:"viewCountOpt" yaml:"viewCountOpt"`
+	SmallCount         emigo.Nullable[int32]                                `json:"smallCount" yaml:"smallCount"`
+	SmallCountOpt      emigo.Nullable[int32]                                `json:"smallCountOpt" yaml:"smallCountOpt"`
+	BigCount           emigo.Nullable[int64]                                `json:"bigCount" yaml:"bigCount"`
+	BigCountOpt        emigo.Nullable[int64]                                `json:"bigCountOpt" yaml:"bigCountOpt"`
+	Ratio32            emigo.Nullable[float32]                              `json:"ratio32" yaml:"ratio32"`
+	Ratio32Opt         emigo.Nullable[float32]                              `json:"ratio32Opt" yaml:"ratio32Opt"`
+	Ratio64            emigo.Nullable[float64]                              `json:"ratio64" yaml:"ratio64"`
+	Ratio64Opt         emigo.Nullable[float64]                              `json:"ratio64Opt" yaml:"ratio64Opt"`
+	Status             emigo.Nullable[string]                               `json:"status" yaml:"status"`
+	StatusOpt          emigo.Nullable[string]                               `json:"statusOpt" yaml:"statusOpt"`
+	Metadata           emigo.Nullable[map[string]string]                    `json:"metadata" yaml:"metadata"`
+	MetadataOpt        emigo.Nullable[map[string]string]                    `json:"metadataOpt" yaml:"metadataOpt"`
+	RawSettings        emigo.Nullable[map[string]string]                    `json:"rawSettings" yaml:"rawSettings"`
+	Labels             emigo.Nullable[[]string]                             `json:"labels" yaml:"labels"`
+	LabelsOpt          emigo.Nullable[[]string]                             `json:"labelsOpt" yaml:"labelsOpt"`
+	Misc               interface{}                                          `json:"misc" yaml:"misc"`
+	NestedContainer    emigo.Nullable[Entity1OptionalDtoNestedContainer]    `json:"nestedContainer" yaml:"nestedContainer"`
+	NestedContainerOpt emigo.Nullable[Entity1OptionalDtoNestedContainerOpt] `json:"nestedContainerOpt" yaml:"nestedContainerOpt"`
 }
 
 // The base class definition for items
-type Entity1EntityUpdateDtoItems struct {
+type Entity1OptionalDtoItems struct {
 	UniqueId emigo.Nullable[string] `json:"uniqueId" yaml:"uniqueId"`
 	Item2    string                 `json:"item2" yaml:"item2"`
 }
 
 // The base class definition for items2
-type Entity1EntityUpdateDtoItems2 struct {
+type Entity1OptionalDtoItems2 struct {
 	UniqueId emigo.Nullable[string] `json:"uniqueId" yaml:"uniqueId"`
 	Item2    string                 `json:"item2" yaml:"item2"`
 }
 
 // The base class definition for content1
-type Entity1EntityUpdateDtoContent1 struct {
+type Entity1OptionalDtoContent1 struct {
 	Item1 emigo.Nullable[int64] `json:"item1" yaml:"item1"`
 }
 
 // The base class definition for content2
-type Entity1EntityUpdateDtoContent2 struct {
+type Entity1OptionalDtoContent2 struct {
 	Item2 emigo.Nullable[int64] `json:"item2" yaml:"item2"`
 }
 
 // The base class definition for nestedContainer
-type Entity1EntityUpdateDtoNestedContainer struct {
-	NestedInner emigo.Nullable[Entity1EntityUpdateDtoNestedContainerNestedInner] `json:"nestedInner" yaml:"nestedInner"`
+type Entity1OptionalDtoNestedContainer struct {
+	NestedInner emigo.Nullable[Entity1OptionalDtoNestedContainerNestedInner] `json:"nestedInner" yaml:"nestedInner"`
 }
 
 // The base class definition for nestedInner
-type Entity1EntityUpdateDtoNestedContainerNestedInner struct {
-	NestedItems emigo.ArrayNullable[Entity1EntityUpdateDtoNestedContainerNestedInnerNestedItems] `json:"nestedItems" yaml:"nestedItems"`
-	NestedOwner emigo.OneNullable[Entity2Entity]                                                 `json:"nestedOwner" yaml:"nestedOwner"`
+type Entity1OptionalDtoNestedContainerNestedInner struct {
+	NestedItems emigo.ArrayNullable[Entity1OptionalDtoNestedContainerNestedInnerNestedItems] `json:"nestedItems" yaml:"nestedItems"`
+	NestedOwner emigo.OneNullable[Entity2Entity]                                             `json:"nestedOwner" yaml:"nestedOwner"`
 }
 
 // The base class definition for nestedItems
-type Entity1EntityUpdateDtoNestedContainerNestedInnerNestedItems struct {
+type Entity1OptionalDtoNestedContainerNestedInnerNestedItems struct {
 	UniqueId emigo.Nullable[string] `json:"uniqueId" yaml:"uniqueId"`
 	Label    string                 `json:"label" yaml:"label"`
 }
 
 // The base class definition for nestedContainerOpt
-type Entity1EntityUpdateDtoNestedContainerOpt struct {
-	NestedInner emigo.Nullable[Entity1EntityUpdateDtoNestedContainerOptNestedInner] `json:"nestedInner" yaml:"nestedInner"`
+type Entity1OptionalDtoNestedContainerOpt struct {
+	NestedInner emigo.Nullable[Entity1OptionalDtoNestedContainerOptNestedInner] `json:"nestedInner" yaml:"nestedInner"`
 }
 
 // The base class definition for nestedInner
-type Entity1EntityUpdateDtoNestedContainerOptNestedInner struct {
-	NestedItemsOpt emigo.ArrayNullable[Entity1EntityUpdateDtoNestedContainerOptNestedInnerNestedItemsOpt] `json:"nestedItemsOpt" yaml:"nestedItemsOpt"`
+type Entity1OptionalDtoNestedContainerOptNestedInner struct {
+	NestedItemsOpt emigo.ArrayNullable[Entity1OptionalDtoNestedContainerOptNestedInnerNestedItemsOpt] `json:"nestedItemsOpt" yaml:"nestedItemsOpt"`
 }
 
 // The base class definition for nestedItemsOpt
-type Entity1EntityUpdateDtoNestedContainerOptNestedInnerNestedItemsOpt struct {
+type Entity1OptionalDtoNestedContainerOptNestedInnerNestedItemsOpt struct {
 	UniqueId emigo.Nullable[string] `json:"uniqueId" yaml:"uniqueId"`
 	Label    string                 `json:"label" yaml:"label"`
 }
 
-func (x *Entity1EntityUpdateDto) Json() string {
+func (x *Entity1OptionalDto) Json() string {
 	if x != nil {
 		str, _ := json.MarshalIndent(x, "", "  ")
 		return string(str)
 	}
 	return ""
 }
-func GetEntity1EntityUpdateDtoCliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "title",
@@ -241,16 +241,16 @@ func GetEntity1EntityUpdateDtoCliFlags(prefix string) []emigo.CliFlag {
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoFromCli(c emigo.CliCastable) Entity1EntityUpdateDto {
-	data := Entity1EntityUpdateDto{}
+func CastEntity1OptionalDtoFromCli(c emigo.CliCastable) Entity1OptionalDto {
+	data := Entity1OptionalDto{}
 	if c.IsSet("title") {
 		emigo.ParseNullable(c.String("title"), &data.Title)
 	}
 	if c.IsSet("items") {
-		data.Items = emigo.CapturePossibleArrayNullable(CastEntity1EntityUpdateDtoItemsFromCli, "items", c)
+		data.Items = emigo.CapturePossibleArrayNullable(CastEntity1OptionalDtoItemsFromCli, "items", c)
 	}
 	if c.IsSet("items2") {
-		data.Items2 = emigo.CapturePossibleArrayNullable(CastEntity1EntityUpdateDtoItems2FromCli, "items2", c)
+		data.Items2 = emigo.CapturePossibleArrayNullable(CastEntity1OptionalDtoItems2FromCli, "items2", c)
 	}
 	if c.IsSet("items3") {
 		data.Items3 = emigo.CapturePossibleCollectionNullable(CastEntity2EntityFromCli, "items3", c)
@@ -343,7 +343,7 @@ func CastEntity1EntityUpdateDtoFromCli(c emigo.CliCastable) Entity1EntityUpdateD
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoItemsCliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoItemsCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "unique-id",
@@ -355,8 +355,8 @@ func GetEntity1EntityUpdateDtoItemsCliFlags(prefix string) []emigo.CliFlag {
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoItemsFromCli(c emigo.CliCastable) Entity1EntityUpdateDtoItems {
-	data := Entity1EntityUpdateDtoItems{}
+func CastEntity1OptionalDtoItemsFromCli(c emigo.CliCastable) Entity1OptionalDtoItems {
+	data := Entity1OptionalDtoItems{}
 	if c.IsSet("unique-id") {
 		emigo.ParseNullable(c.String("unique-id"), &data.UniqueId)
 	}
@@ -365,7 +365,7 @@ func CastEntity1EntityUpdateDtoItemsFromCli(c emigo.CliCastable) Entity1EntityUp
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoItems2CliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoItems2CliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "unique-id",
@@ -377,8 +377,8 @@ func GetEntity1EntityUpdateDtoItems2CliFlags(prefix string) []emigo.CliFlag {
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoItems2FromCli(c emigo.CliCastable) Entity1EntityUpdateDtoItems2 {
-	data := Entity1EntityUpdateDtoItems2{}
+func CastEntity1OptionalDtoItems2FromCli(c emigo.CliCastable) Entity1OptionalDtoItems2 {
+	data := Entity1OptionalDtoItems2{}
 	if c.IsSet("unique-id") {
 		emigo.ParseNullable(c.String("unique-id"), &data.UniqueId)
 	}
@@ -387,7 +387,7 @@ func CastEntity1EntityUpdateDtoItems2FromCli(c emigo.CliCastable) Entity1EntityU
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoContent1CliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoContent1CliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "item1",
@@ -395,14 +395,14 @@ func GetEntity1EntityUpdateDtoContent1CliFlags(prefix string) []emigo.CliFlag {
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoContent1FromCli(c emigo.CliCastable) Entity1EntityUpdateDtoContent1 {
-	data := Entity1EntityUpdateDtoContent1{}
+func CastEntity1OptionalDtoContent1FromCli(c emigo.CliCastable) Entity1OptionalDtoContent1 {
+	data := Entity1OptionalDtoContent1{}
 	if c.IsSet("item1") {
 		emigo.ParseNullable(c.String("item1"), &data.Item1)
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoContent2CliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoContent2CliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "item2",
@@ -410,14 +410,14 @@ func GetEntity1EntityUpdateDtoContent2CliFlags(prefix string) []emigo.CliFlag {
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoContent2FromCli(c emigo.CliCastable) Entity1EntityUpdateDtoContent2 {
-	data := Entity1EntityUpdateDtoContent2{}
+func CastEntity1OptionalDtoContent2FromCli(c emigo.CliCastable) Entity1OptionalDtoContent2 {
+	data := Entity1OptionalDtoContent2{}
 	if c.IsSet("item2") {
 		emigo.ParseNullable(c.String("item2"), &data.Item2)
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoNestedContainerCliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoNestedContainerCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "nested-inner",
@@ -425,14 +425,14 @@ func GetEntity1EntityUpdateDtoNestedContainerCliFlags(prefix string) []emigo.Cli
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoNestedContainerFromCli(c emigo.CliCastable) Entity1EntityUpdateDtoNestedContainer {
-	data := Entity1EntityUpdateDtoNestedContainer{}
+func CastEntity1OptionalDtoNestedContainerFromCli(c emigo.CliCastable) Entity1OptionalDtoNestedContainer {
+	data := Entity1OptionalDtoNestedContainer{}
 	if c.IsSet("nested-inner") {
 		emigo.ParseNullable(c.String("nested-inner"), &data.NestedInner)
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoNestedContainerNestedInnerCliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoNestedContainerNestedInnerCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "nested-items",
@@ -444,17 +444,17 @@ func GetEntity1EntityUpdateDtoNestedContainerNestedInnerCliFlags(prefix string) 
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoNestedContainerNestedInnerFromCli(c emigo.CliCastable) Entity1EntityUpdateDtoNestedContainerNestedInner {
-	data := Entity1EntityUpdateDtoNestedContainerNestedInner{}
+func CastEntity1OptionalDtoNestedContainerNestedInnerFromCli(c emigo.CliCastable) Entity1OptionalDtoNestedContainerNestedInner {
+	data := Entity1OptionalDtoNestedContainerNestedInner{}
 	if c.IsSet("nested-items") {
-		data.NestedItems = emigo.CapturePossibleArrayNullable(CastEntity1EntityUpdateDtoNestedContainerNestedInnerNestedItemsFromCli, "nested-items", c)
+		data.NestedItems = emigo.CapturePossibleArrayNullable(CastEntity1OptionalDtoNestedContainerNestedInnerNestedItemsFromCli, "nested-items", c)
 	}
 	if c.IsSet("nested-owner") {
 		data.NestedOwner = emigo.CapturePossibleOneNullable(CastEntity2EntityFromCli, "nested-owner", c)
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoNestedContainerNestedInnerNestedItemsCliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoNestedContainerNestedInnerNestedItemsCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "unique-id",
@@ -466,8 +466,8 @@ func GetEntity1EntityUpdateDtoNestedContainerNestedInnerNestedItemsCliFlags(pref
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoNestedContainerNestedInnerNestedItemsFromCli(c emigo.CliCastable) Entity1EntityUpdateDtoNestedContainerNestedInnerNestedItems {
-	data := Entity1EntityUpdateDtoNestedContainerNestedInnerNestedItems{}
+func CastEntity1OptionalDtoNestedContainerNestedInnerNestedItemsFromCli(c emigo.CliCastable) Entity1OptionalDtoNestedContainerNestedInnerNestedItems {
+	data := Entity1OptionalDtoNestedContainerNestedInnerNestedItems{}
 	if c.IsSet("unique-id") {
 		emigo.ParseNullable(c.String("unique-id"), &data.UniqueId)
 	}
@@ -476,7 +476,7 @@ func CastEntity1EntityUpdateDtoNestedContainerNestedInnerNestedItemsFromCli(c em
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoNestedContainerOptCliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoNestedContainerOptCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "nested-inner",
@@ -484,14 +484,14 @@ func GetEntity1EntityUpdateDtoNestedContainerOptCliFlags(prefix string) []emigo.
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoNestedContainerOptFromCli(c emigo.CliCastable) Entity1EntityUpdateDtoNestedContainerOpt {
-	data := Entity1EntityUpdateDtoNestedContainerOpt{}
+func CastEntity1OptionalDtoNestedContainerOptFromCli(c emigo.CliCastable) Entity1OptionalDtoNestedContainerOpt {
+	data := Entity1OptionalDtoNestedContainerOpt{}
 	if c.IsSet("nested-inner") {
 		emigo.ParseNullable(c.String("nested-inner"), &data.NestedInner)
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoNestedContainerOptNestedInnerCliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoNestedContainerOptNestedInnerCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "nested-items-opt",
@@ -499,14 +499,14 @@ func GetEntity1EntityUpdateDtoNestedContainerOptNestedInnerCliFlags(prefix strin
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoNestedContainerOptNestedInnerFromCli(c emigo.CliCastable) Entity1EntityUpdateDtoNestedContainerOptNestedInner {
-	data := Entity1EntityUpdateDtoNestedContainerOptNestedInner{}
+func CastEntity1OptionalDtoNestedContainerOptNestedInnerFromCli(c emigo.CliCastable) Entity1OptionalDtoNestedContainerOptNestedInner {
+	data := Entity1OptionalDtoNestedContainerOptNestedInner{}
 	if c.IsSet("nested-items-opt") {
-		data.NestedItemsOpt = emigo.CapturePossibleArrayNullable(CastEntity1EntityUpdateDtoNestedContainerOptNestedInnerNestedItemsOptFromCli, "nested-items-opt", c)
+		data.NestedItemsOpt = emigo.CapturePossibleArrayNullable(CastEntity1OptionalDtoNestedContainerOptNestedInnerNestedItemsOptFromCli, "nested-items-opt", c)
 	}
 	return data
 }
-func GetEntity1EntityUpdateDtoNestedContainerOptNestedInnerNestedItemsOptCliFlags(prefix string) []emigo.CliFlag {
+func GetEntity1OptionalDtoNestedContainerOptNestedInnerNestedItemsOptCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
 			Name: prefix + "unique-id",
@@ -518,8 +518,8 @@ func GetEntity1EntityUpdateDtoNestedContainerOptNestedInnerNestedItemsOptCliFlag
 		},
 	}
 }
-func CastEntity1EntityUpdateDtoNestedContainerOptNestedInnerNestedItemsOptFromCli(c emigo.CliCastable) Entity1EntityUpdateDtoNestedContainerOptNestedInnerNestedItemsOpt {
-	data := Entity1EntityUpdateDtoNestedContainerOptNestedInnerNestedItemsOpt{}
+func CastEntity1OptionalDtoNestedContainerOptNestedInnerNestedItemsOptFromCli(c emigo.CliCastable) Entity1OptionalDtoNestedContainerOptNestedInnerNestedItemsOpt {
+	data := Entity1OptionalDtoNestedContainerOptNestedInnerNestedItemsOpt{}
 	if c.IsSet("unique-id") {
 		emigo.ParseNullable(c.String("unique-id"), &data.UniqueId)
 	}

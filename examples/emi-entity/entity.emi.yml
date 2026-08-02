@@ -1,18 +1,23 @@
 targets:
   - compiler: go
     output: ./sdk
+    # This example's generated sdk lives in the root module (no separate go.mod, unlike
+    # examples/flightstick/flightstick-server), which has no gin-gonic/gin dependency by
+    # design - skip-gin keeps the entity-synthesized EmiActions' generated code (see
+    # lib/core/preprocess-entity-actions.go) from requiring one.
+    tags:
+      - skip-gin
   - compiler: js
     output: ./sdk-js
+  - compiler: preprocessor
+    output: ./preprocessor
 
 complexes:
   - compiler: go
     name: Money
 
+
 entities:
-  - name: entity2
-    fields:
-      - name: label2
-        type: string
 
   - name: entity1
     table: entity1_table
@@ -175,3 +180,22 @@ entities:
                 fields:
                   - name: label
                     type: string
+
+  # features.update: false -> no Entity3EntityUpdateFn/UpdateDto, no Update field on
+  # Entity3EntityActionsSig - append-only log style entity.
+  - name: entity3
+    features:
+      update: false
+    fields:
+      - name: message
+        type: string
+
+  # features.create: false -> no Entity4EntityCreateFn, no Create field on
+  # Entity4EntityActionsSig - rows only ever come from elsewhere (e.g. a migration or
+  # another system), only Update is generated.
+  - name: entity4
+    features:
+      create: false
+    fields:
+      - name: note
+        type: string

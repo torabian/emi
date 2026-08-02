@@ -118,7 +118,7 @@ func TestEntity1EntityUpdateFn_PartialScalarLeavesOtherFieldsAlone(t *testing.T)
 		t.Fatalf("Create error: %v", err)
 	}
 
-	var input Entity1EntityUpdateDto
+	var input Entity1OptionalDto
 	input.Title.Set(emigo.Ptr("updated"))
 
 	updated, err := Entity1EntityActions.Update(db, created.UniqueId, input)
@@ -152,8 +152,8 @@ func TestEntity1EntityUpdateFn_ArrayReplaceAppliesContentAndDeletesOrphans(t *te
 		t.Fatalf("Create error: %v", err)
 	}
 
-	var input Entity1EntityUpdateDto
-	input.Items.Set("replace", []Entity1EntityUpdateDtoItems{
+	var input Entity1OptionalDto
+	input.Items.Set("replace", []Entity1OptionalDtoItems{
 		{UniqueId: emigo.NullableOf("c2"), Item2: "child-2-updated"},
 		{UniqueId: emigo.NullableOf("c3"), Item2: "child-3"},
 	})
@@ -203,7 +203,7 @@ func TestEntity1EntityUpdateFn_CollectionAppendKeepsExistingAndAddsNew(t *testin
 		t.Fatalf("Create error: %v", err)
 	}
 
-	var input Entity1EntityUpdateDto
+	var input Entity1OptionalDto
 	input.Items3.Set("append", []Entity2Entity{tagB})
 	if _, err := Entity1EntityActions.Update(db, created.UniqueId, input); err != nil {
 		t.Fatalf("Update error: %v", err)
@@ -243,7 +243,7 @@ func TestEntity1EntityUpdateFn_OneChangesOwnerViaSelect(t *testing.T) {
 		t.Fatalf("Create error: %v", err)
 	}
 
-	var input Entity1EntityUpdateDto
+	var input Entity1OptionalDto
 	input.Owner.SetSelector("owner-2")
 	updated, err := Entity1EntityActions.Update(db, created.UniqueId, input)
 	if err != nil {
@@ -300,12 +300,12 @@ func TestEntity1EntityCreateAndUpdateFn_NestedRelationsInsideObjectContainers(t 
 
 	// Update: replace the nested array (drop one, modify one, add one) - the same
 	// reconcile guarantees as a top-level array, just reached through two objects.
-	var input Entity1EntityUpdateDto
-	input.NestedContainer.Set(&Entity1EntityUpdateDtoNestedContainer{})
+	var input Entity1OptionalDto
+	input.NestedContainer.Set(&Entity1OptionalDtoNestedContainer{})
 	nc, _ := input.NestedContainer.Get()
-	nc.NestedInner.Set(&Entity1EntityUpdateDtoNestedContainerNestedInner{})
+	nc.NestedInner.Set(&Entity1OptionalDtoNestedContainerNestedInner{})
 	ni, _ := nc.NestedInner.Get()
-	ni.NestedItems.Set("replace", []Entity1EntityUpdateDtoNestedContainerNestedInnerNestedItems{
+	ni.NestedItems.Set("replace", []Entity1OptionalDtoNestedContainerNestedInnerNestedItems{
 		{UniqueId: emigo.NullableOf(nested.NestedItemsRow[1].UniqueId), Label: "nested-child-2-updated"},
 		{Label: "nested-child-3"},
 	})

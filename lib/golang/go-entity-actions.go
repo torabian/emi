@@ -396,15 +396,86 @@ func %[1]sUpdateFn(tx *gorm.DB, id string, input %[2]s) (*%[1]s, error) {
 `, className, updateDtoClassName, oneResolve.String(), scalarChanges.String(), afterUpdate.String())
 }
 
-// entityUpdateDtoClassName computes the same class name
-// core.Emi.Preprocess's synthesized update dto resolves to (entityUpdateDtoName in
-// lib/core/preprocess-entities.go, run through EmiDto.GetClassName()'s "+Dto" suffix) -
-// deterministic from entity.GetClassName() alone, so the actions codegen can reference
-// the dto's type name in a signature without needing to look it up in module.Dto (the
-// dto itself is rendered separately, through the plain generic per-dto pipeline in
-// go-public-api.go, since it's just an ordinary dto by the time Go codegen sees it).
-func entityUpdateDtoClassName(entity *core.Module3Entity) string {
-	return entity.GetClassName() + "UpdateDto"
+// buildGetFn renders {Entity}GetFn(tx *gorm.DB, id string) (*{Entity}, error) - a plain
+// single-row lookup by the public uniqueId (the same identity Update/AwareDelete use,
+// never the internal auto-increment id).
+func buildGetFn(className string) string {
+	return fmt.Sprintf(`
+// %[1]sGetFn looks up a single %[1]s row by its public uniqueId (e.g. from an API path
+// parameter - never the internal auto-increment id).
+func %[1]sGetFn(tx *gorm.DB, id string) (*%[1]s, error) {
+	var entity %[1]s
+	if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+`, className)
+}
+
+// buildBrowseFn renders {Entity}BrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*{Entity}, *emigo.QueryResultMeta, error).
+// Named "Browse" (not "Query") because it's deliberately the simple case - a
+// straightforward filtered/sorted/paged list; "query" is reserved for a more advanced
+// mechanism later.
+//
+// dsl.Filter (if set) is transpiled from JSON-logic to SQL via emigorm.ApplyQueryFilter
+// (github.com/h22rana/jsonlogic2sql under the hood - mirrors fireback's own
+// modules/fireback/JsonQueryTools.go mechanism); dsl.Scope (if set) is applied
+// separately via emigorm.ApplyQueryScope - a second, independent condition a caller's
+// own handler enforces (e.g. workspace isolation), kept apart from Filter so end-user
+// input can never widen or bypass it. Both apply *before* Count(), so the returned
+// total reflects them but ignores paging; Sort/StartIndex/ItemsPerPage/Cursor are only
+// applied afterwards, to the rows actually fetched - see emigorm.ApplyQueryCursor/
+// BuildQueryCursor for how the keyset-pagination cursor itself works (mirrors
+// fireback's own cursor mechanism, see fireback's CrudCoreActions.go).
+func buildBrowseFn(className string) string {
+	return fmt.Sprintf(`
+// %[1]sBrowseFn returns %[1]s rows matching dsl.Filter (a JSON-logic expression) and
+// dsl.Scope (a second, handler-enforced condition - e.g. workspace isolation - see
+// emigorm.QueryDSL), sorted/paged per dsl.Sort/StartIndex/ItemsPerPage/Cursor, alongside
+// a emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
+// paging) and a cursor for fetching the next page.
+func %[1]sBrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*%[1]s, *emigo.QueryResultMeta, error) {
+	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&%[1]s{}), dsl)
+	if err != nil {
+		return nil, nil, err
+	}
+	filtered = emigorm.ApplyQueryScope(filtered, dsl)
+
+	var total int64
+	if err := filtered.Count(&total).Error; err != nil {
+		return nil, nil, err
+	}
+
+	var items []*%[1]s
+	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, dsl), dsl), dsl)
+	if err := paged.Find(&items).Error; err != nil {
+		return nil, nil, err
+	}
+
+	meta := &emigo.QueryResultMeta{
+		TotalItems: total,
+		Cursor:     emigorm.BuildQueryCursor(items),
+	}
+
+	return items, meta, nil
+}
+`, className)
+}
+
+// entityOptionalDtoClassName computes the same class name core.Emi.Preprocess's
+// synthesized optional dto resolves to: entity.Name + "Optional" (see
+// entityOptionalDtoName in lib/core/preprocess-entities.go), then
+// EmiDto.GetClassName()'s "+Dto" suffix - "entity1" -> "Entity1OptionalDto".
+// Deliberately built from entity.Name directly, *not* entity.GetClassName() (which
+// would add its own "Entity" suffix and land on "Entity1EntityOptionalDto" instead) -
+// has to match preprocess-entities.go's formula exactly, since this lets the actions
+// codegen reference the dto's type name in a signature without needing to look it up in
+// module.Dto (the dto itself is rendered
+// separately, through the plain generic per-dto pipeline in go-public-api.go, since
+// it's just an ordinary dto by the time Go codegen sees it).
+func entityOptionalDtoClassName(entity *core.Module3Entity) string {
+	return core.ToUpper(entity.Name) + "OptionalDto"
 }
 
 // hasRelationField reports whether fields contains an array/collection/one at any
@@ -428,9 +499,12 @@ func hasRelationField(fields []*core.EmiField) bool {
 	return false
 }
 
-// GoEntityActionsRender renders {Entity}CreateFn, {Entity}UpdateFn, and a
+// GoEntityActionsRender renders {Entity}CreateFn, {Entity}UpdateFn, {Entity}GetFn,
+// {Entity}BrowseFn, {Entity}AwareDeletePreviewFn/{Entity}AwareDeleteFn, and a
 // {Entity}ActionsSig bundle (mirroring fireback's own {Entity}ActionsSig /
-// {Entity}Actions pattern) with Create/Update wired to those two functions by default.
+// {Entity}Actions pattern) wiring all of them up by default. Any of them can be turned
+// off via entity.Features (see Module3EntityFeatures) - all default to enabled, so an
+// entity with no features block gets exactly what's described above.
 //
 // IMPORTANT: like GoEntityUpdateDtoRender, this must run against the entity's
 // *original* Fields, before ApplyEntityGormTags/GoEntityRender mutate them in place.
@@ -440,35 +514,94 @@ func GoEntityActionsRender(
 ) (*core.CodeChunkCompiled, error) {
 
 	className := entity.GetClassName()
-	updateDtoClassName := entityUpdateDtoClassName(entity)
+	createEnabled := entity.Features.CreateEnabled()
+	updateEnabled := entity.Features.UpdateEnabled()
+	getEnabled := entity.Features.GetEnabled()
+	browseEnabled := entity.Features.BrowseEnabled()
+	deleteEnabled := entity.Features.DeleteEnabled()
 
 	var buf strings.Builder
-	buf.WriteString(buildCreateFn(className, entity.Fields))
-	buf.WriteString(buildUpdateFn(className, updateDtoClassName, entity.Fields))
+	if createEnabled {
+		buf.WriteString(buildCreateFn(className, entity.Fields))
+	}
+
+	var optionalDtoClassName string
+	if updateEnabled {
+		// core.Emi.Preprocess only synthesizes this dto when features.update or
+		// features.browse is enabled too (see preprocessEntityOptionalDtos in
+		// preprocess-entities.go) - the two have to agree, or this would reference a
+		// type that was never generated.
+		optionalDtoClassName = entityOptionalDtoClassName(entity)
+		buf.WriteString(buildUpdateFn(className, optionalDtoClassName, entity.Fields))
+	}
+
+	if getEnabled {
+		buf.WriteString(buildGetFn(className))
+	}
+
+	if browseEnabled {
+		buf.WriteString(buildBrowseFn(className))
+	}
+
+	if deleteEnabled {
+		buf.WriteString(buildAwareDeleteFns(className, entity.Fields))
+	}
+
+	var sigFields, sigInit strings.Builder
+	if createEnabled {
+		fmt.Fprintf(&sigFields, "\tCreate func(tx *gorm.DB, dto *%[1]s) (*%[1]s, error)\n", className)
+		fmt.Fprintf(&sigInit, "\tCreate: %[1]sCreateFn,\n", className)
+	}
+	if updateEnabled {
+		fmt.Fprintf(&sigFields, "\tUpdate func(tx *gorm.DB, id string, input %[1]s) (*%[2]s, error)\n", optionalDtoClassName, className)
+		fmt.Fprintf(&sigInit, "\tUpdate: %[1]sUpdateFn,\n", className)
+	}
+	if getEnabled {
+		fmt.Fprintf(&sigFields, "\tGet func(tx *gorm.DB, id string) (*%[1]s, error)\n", className)
+		fmt.Fprintf(&sigInit, "\tGet: %[1]sGetFn,\n", className)
+	}
+	if browseEnabled {
+		fmt.Fprintf(&sigFields, "\tBrowse func(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*%[1]s, *emigo.QueryResultMeta, error)\n", className)
+		fmt.Fprintf(&sigInit, "\tBrowse: %[1]sBrowseFn,\n", className)
+	}
+	if deleteEnabled {
+		fmt.Fprintf(&sigFields, "\tAwareDeletePreview func(tx *gorm.DB, uniqueIds []string) (*%[1]sAwareDeletePreview, error)\n", className)
+		fmt.Fprintf(&sigFields, "\tAwareDelete func(tx *gorm.DB, uniqueIds []string) error\n")
+		fmt.Fprintf(&sigInit, "\tAwareDeletePreview: %[1]sAwareDeletePreviewFn,\n", className)
+		fmt.Fprintf(&sigInit, "\tAwareDelete: %[1]sAwareDeleteFn,\n", className)
+	}
 
 	fmt.Fprintf(&buf, `
 // %[1]sActionsSig bundles the actions available for %[1]s. Extend this (and
-// %[1]sActions below) with more fields as more actions are generated - Create/Update
-// are wired to %[1]sCreateFn/%[1]sUpdateFn by default, but callers can swap either out
-// (e.g. in tests, or to layer extra validation/side effects around them).
+// %[1]sActions below) with more fields as more actions are generated. Which fields are
+// present here depends on entity.Features (see Module3EntityFeatures) - a disabled
+// feature is omitted entirely rather than left as a nil func.
 type %[1]sActionsSig struct {
-	Create func(tx *gorm.DB, dto *%[1]s) (*%[1]s, error)
-	Update func(tx *gorm.DB, id string, input %[2]s) (*%[1]s, error)
-}
+%[2]s}
 
 var %[1]sActions %[1]sActionsSig = %[1]sActionsSig{
-	Create: %[1]sCreateFn,
-	Update: %[1]sUpdateFn,
-}
-`, className, updateDtoClassName)
+%[3]s}
+`, className, sigFields.String(), sigInit.String())
 
-	deps := []core.CodeChunkDependency{
-		{Location: "gorm.io/gorm"},
+	deps := []core.CodeChunkDependency{}
+	if createEnabled || updateEnabled || getEnabled || browseEnabled || deleteEnabled {
+		deps = append(deps, core.CodeChunkDependency{Location: "gorm.io/gorm"})
 	}
-	// Only entities with an array/collection/one field (at any nesting depth) actually
-	// call into emigorm - a purely-scalar entity's Create/Update never reference it.
-	if hasRelationField(entity.Fields) {
+	// Only Create/Update actually call into emigorm's reconcile helpers, and only when
+	// the entity has an array/collection/one field (at any nesting depth) to reconcile
+	// in the first place; Browse always needs it for QueryDSL/ApplyQueryFilter, and
+	// AwareDelete never does - it works directly off tx.Where/Delete/Association.
+	if browseEnabled || ((createEnabled || updateEnabled) && hasRelationField(entity.Fields)) {
 		deps = append(deps, core.CodeChunkDependency{Location: "github.com/torabian/emi/emigorm"})
+	}
+	// Browse's meta return value is a emigo.QueryResultMeta.
+	if browseEnabled {
+		deps = append(deps, core.CodeChunkDependency{Location: "github.com/torabian/emi/emigo"})
+	}
+	// Only AwareDelete's preview builds a message via fmt.Sprintf in the generated
+	// code itself.
+	if deleteEnabled {
+		deps = append(deps, core.CodeChunkDependency{Location: "fmt"})
 	}
 
 	return &core.CodeChunkCompiled{

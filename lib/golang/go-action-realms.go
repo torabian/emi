@@ -214,6 +214,9 @@ func GoActionRealms(
 		realms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
 		// Not sure if this is needed in golang
 		// deps = append(deps, realms.ResponseClass.CodeChunkDependensies...)
+		if token := core.FindTokenByName(realms.ResponseClass.Tokens, TOKEN_ROOT_CLASS); token != nil {
+			realms.IdealResponseType = token.Value
+		}
 	}
 
 	if realms.RequestClass != nil {

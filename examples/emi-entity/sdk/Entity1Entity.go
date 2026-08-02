@@ -3,6 +3,7 @@ package external
 import (
 	"encoding"
 	"encoding/json"
+	"fmt"
 	"github.com/torabian/emi/emigo"
 	"github.com/torabian/emi/emigorm"
 	"gorm.io/gorm"
@@ -889,7 +890,7 @@ func Entity1EntityCreateFn(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, err
 // Entity1EntityCreateFn uses, against entity.Id (the row's real primary key, resolved from id
 // up front - gorm's Association API and the has-many reconcile both join on it, not on
 // uniqueId).
-func Entity1EntityUpdateFn(tx *gorm.DB, id string, input Entity1EntityUpdateDto) (*Entity1Entity, error) {
+func Entity1EntityUpdateFn(tx *gorm.DB, id string, input Entity1OptionalDto) (*Entity1Entity, error) {
 	var entity Entity1Entity
 	err := tx.Transaction(func(tx *gorm.DB) error {
 		if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
@@ -1139,16 +1140,184 @@ func Entity1EntityUpdateFn(tx *gorm.DB, id string, input Entity1EntityUpdateDto)
 	return &updated, nil
 }
 
+// Entity1EntityGetFn looks up a single Entity1Entity row by its public uniqueId (e.g. from an API path
+// parameter - never the internal auto-increment id).
+func Entity1EntityGetFn(tx *gorm.DB, id string) (*Entity1Entity, error) {
+	var entity Entity1Entity
+	if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
+// Entity1EntityBrowseFn returns Entity1Entity rows matching dsl.Filter (a JSON-logic expression) and
+// dsl.Scope (a second, handler-enforced condition - e.g. workspace isolation - see
+// emigorm.QueryDSL), sorted/paged per dsl.Sort/StartIndex/ItemsPerPage/Cursor, alongside
+// a emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
+// paging) and a cursor for fetching the next page.
+func Entity1EntityBrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity1Entity, *emigo.QueryResultMeta, error) {
+	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity1Entity{}), dsl)
+	if err != nil {
+		return nil, nil, err
+	}
+	filtered = emigorm.ApplyQueryScope(filtered, dsl)
+	var total int64
+	if err := filtered.Count(&total).Error; err != nil {
+		return nil, nil, err
+	}
+	var items []*Entity1Entity
+	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, dsl), dsl), dsl)
+	if err := paged.Find(&items).Error; err != nil {
+		return nil, nil, err
+	}
+	meta := &emigo.QueryResultMeta{
+		TotalItems: total,
+		Cursor:     emigorm.BuildQueryCursor(items),
+	}
+	return items, meta, nil
+}
+
+// Entity1EntityAwareDeleteAffected reports one relation of Entity1Entity that would be affected by
+// deleting the matching row(s) - either its has-many child rows are hard-deleted
+// (array/array?) or its many-to-many join rows are cleared, leaving the target rows
+// themselves untouched (collection/collection?). one/one? relations are never listed:
+// they're a plain FK column on Entity1Entity itself, so deleting Entity1Entity doesn't cascade into them.
+type Entity1EntityAwareDeleteAffected struct {
+	Relation string `json:"relation"`
+	Count    int64  `json:"count"`
+}
+
+// Entity1EntityAwareDeletePreview is the result of Entity1EntityAwareDeletePreviewFn: a human-readable
+// summary plus the exact per-relation counts Entity1EntityAwareDeleteFn would delete/clear
+// alongside the Entity1Entity row(s) themselves.
+type Entity1EntityAwareDeletePreview struct {
+	Message  string                             `json:"message"`
+	Affected []Entity1EntityAwareDeleteAffected `json:"affected"`
+}
+
+// Entity1EntityAwareDeletePreviewFn looks up the Entity1Entity rows matching uniqueIds and reports what
+// deleting them would affect - every array/array?/collection/collection? relation (at
+// any nesting depth inside object/object? containers), matching exactly what
+// Entity1EntityAwareDeleteFn deletes/clears. Intended as a confirmation step before actually
+// calling Entity1EntityAwareDeleteFn.
+func Entity1EntityAwareDeletePreviewFn(tx *gorm.DB, uniqueIds []string) (*Entity1EntityAwareDeletePreview, error) {
+	var rows []*Entity1Entity
+	if err := tx.Where("unique_id IN ?", uniqueIds).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
+		return &Entity1EntityAwareDeletePreview{Message: "No matching Entity1Entity row was found for the given uniqueIds."}, nil
+	}
+	ids := make([]int64, len(rows))
+	for i := range rows {
+		ids[i] = rows[i].Id
+	}
+	affected := []Entity1EntityAwareDeleteAffected{}
+	var total int64
+	var affected0 int64
+	tx.Model(&Entity1EntityItems{}).Where("linker_id IN ?", ids).Count(&affected0)
+	if affected0 > 0 {
+		affected = append(affected, Entity1EntityAwareDeleteAffected{Relation: "items", Count: affected0})
+		total += affected0
+	}
+	var affected1 int64
+	tx.Model(&Entity1EntityItems2{}).Where("linker_id IN ?", ids).Count(&affected1)
+	if affected1 > 0 {
+		affected = append(affected, Entity1EntityAwareDeleteAffected{Relation: "items2", Count: affected1})
+		total += affected1
+	}
+	var affected2 int64
+	for i := range rows {
+		affected2 += tx.Model(rows[i]).Association("Items3Row").Count()
+	}
+	if affected2 > 0 {
+		affected = append(affected, Entity1EntityAwareDeleteAffected{Relation: "items3", Count: affected2})
+		total += affected2
+	}
+	var affected3 int64
+	for i := range rows {
+		affected3 += tx.Model(rows[i]).Association("Items4Row").Count()
+	}
+	if affected3 > 0 {
+		affected = append(affected, Entity1EntityAwareDeleteAffected{Relation: "items4", Count: affected3})
+		total += affected3
+	}
+	var affected4 int64
+	tx.Model(&Entity1EntityNestedContainerNestedInnerNestedItems{}).Where("linker_id IN ?", ids).Count(&affected4)
+	if affected4 > 0 {
+		affected = append(affected, Entity1EntityAwareDeleteAffected{Relation: "nestedContainer.nestedInner.nestedItems", Count: affected4})
+		total += affected4
+	}
+	var affected5 int64
+	tx.Model(&Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt{}).Where("linker_id IN ?", ids).Count(&affected5)
+	if affected5 > 0 {
+		affected = append(affected, Entity1EntityAwareDeleteAffected{Relation: "nestedContainerOpt.nestedInner.nestedItemsOpt", Count: affected5})
+		total += affected5
+	}
+	message := fmt.Sprintf("Deleting %d Entity1Entity row(s) will affect %d related record(s) across %d relation(s).", len(rows), total, len(affected))
+	return &Entity1EntityAwareDeletePreview{Message: message, Affected: affected}, nil
+}
+
+// Entity1EntityAwareDeleteFn deletes the Entity1Entity rows matching uniqueIds, along with every
+// array/array?/collection/collection? relation Entity1EntityAwareDeletePreviewFn reports (see
+// its own doc comment for exactly what that means per relation kind).
+func Entity1EntityAwareDeleteFn(tx *gorm.DB, uniqueIds []string) error {
+	return tx.Transaction(func(tx *gorm.DB) error {
+		var rows []*Entity1Entity
+		if err := tx.Where("unique_id IN ?", uniqueIds).Find(&rows).Error; err != nil {
+			return err
+		}
+		if len(rows) == 0 {
+			return nil
+		}
+		ids := make([]int64, len(rows))
+		for i := range rows {
+			ids[i] = rows[i].Id
+		}
+		if err := tx.Where("linker_id IN ?", ids).Delete(&Entity1EntityItems{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("linker_id IN ?", ids).Delete(&Entity1EntityItems2{}).Error; err != nil {
+			return err
+		}
+		for i := range rows {
+			if err := tx.Model(rows[i]).Association("Items3Row").Clear(); err != nil {
+				return err
+			}
+		}
+		for i := range rows {
+			if err := tx.Model(rows[i]).Association("Items4Row").Clear(); err != nil {
+				return err
+			}
+		}
+		if err := tx.Where("linker_id IN ?", ids).Delete(&Entity1EntityNestedContainerNestedInnerNestedItems{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Where("linker_id IN ?", ids).Delete(&Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt{}).Error; err != nil {
+			return err
+		}
+		return tx.Where("id IN ?", ids).Delete(&Entity1Entity{}).Error
+	})
+}
+
 // Entity1EntityActionsSig bundles the actions available for Entity1Entity. Extend this (and
-// Entity1EntityActions below) with more fields as more actions are generated - Create/Update
-// are wired to Entity1EntityCreateFn/Entity1EntityUpdateFn by default, but callers can swap either out
-// (e.g. in tests, or to layer extra validation/side effects around them).
+// Entity1EntityActions below) with more fields as more actions are generated. Which fields are
+// present here depends on entity.Features (see Module3EntityFeatures) - a disabled
+// feature is omitted entirely rather than left as a nil func.
 type Entity1EntityActionsSig struct {
-	Create func(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, error)
-	Update func(tx *gorm.DB, id string, input Entity1EntityUpdateDto) (*Entity1Entity, error)
+	Create             func(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, error)
+	Update             func(tx *gorm.DB, id string, input Entity1OptionalDto) (*Entity1Entity, error)
+	Get                func(tx *gorm.DB, id string) (*Entity1Entity, error)
+	Browse             func(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity1Entity, *emigo.QueryResultMeta, error)
+	AwareDeletePreview func(tx *gorm.DB, uniqueIds []string) (*Entity1EntityAwareDeletePreview, error)
+	AwareDelete        func(tx *gorm.DB, uniqueIds []string) error
 }
 
 var Entity1EntityActions Entity1EntityActionsSig = Entity1EntityActionsSig{
-	Create: Entity1EntityCreateFn,
-	Update: Entity1EntityUpdateFn,
+	Create:             Entity1EntityCreateFn,
+	Update:             Entity1EntityUpdateFn,
+	Get:                Entity1EntityGetFn,
+	Browse:             Entity1EntityBrowseFn,
+	AwareDeletePreview: Entity1EntityAwareDeletePreviewFn,
+	AwareDelete:        Entity1EntityAwareDeleteFn,
 }

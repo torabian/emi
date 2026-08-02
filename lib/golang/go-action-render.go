@@ -234,15 +234,19 @@ type {{ .realms.ActionName }}Request struct {
 	Application interface{}
 }
 
+{{ if .realms.EnabledGin }}
 // Returns the gin ctx. You need to manually cast this to .(*gin.Context)
 func (x {{ .realms.ActionName }}Request) GetGinCtx() interface{} {
 	return x.GinCtx
 }
+{{ end }}
 
+{{ if .realms.EnabledCli }}
 // Returns the urfave 3 cli context. You need to manullay cast to .(*cli.Command)
 func (x {{ .realms.ActionName }}Request) GetCliCtx() interface{} {
 	return x.CliCtx
 }
+{{ end }}
 
 
 {{ if .EnableClientRequest }}

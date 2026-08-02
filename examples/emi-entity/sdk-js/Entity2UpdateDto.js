@@ -1,7 +1,7 @@
 /**
- * The base class definition for entity2EntityUpdateDto
+ * The base class definition for entity2UpdateDto
  **/
-export class Entity2EntityUpdateDto {
+export class Entity2UpdateDto {
   /**
    *
    * @type {string}
@@ -85,25 +85,25 @@ export class Entity2EntityUpdateDto {
     };
   }
   /**
-   * Creates an instance of Entity2EntityUpdateDto, and possibleDtoObject
+   * Creates an instance of Entity2UpdateDto, and possibleDtoObject
    * needs to satisfy the type requirement fully, otherwise typescript compile would
    * be complaining.
    **/
   static from(possibleDtoObject) {
-    return new Entity2EntityUpdateDto(possibleDtoObject);
+    return new Entity2UpdateDto(possibleDtoObject);
   }
   /**
-   * Creates an instance of Entity2EntityUpdateDto, and partialDtoObject
+   * Creates an instance of Entity2UpdateDto, and partialDtoObject
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
   static with(partialDtoObject) {
-    return new Entity2EntityUpdateDto(partialDtoObject);
+    return new Entity2UpdateDto(partialDtoObject);
   }
   copyWith(partial) {
-    return new Entity2EntityUpdateDto({ ...this.toJSON(), ...partial });
+    return new Entity2UpdateDto({ ...this.toJSON(), ...partial });
   }
   clone() {
-    return new Entity2EntityUpdateDto(this.toJSON());
+    return new Entity2UpdateDto(this.toJSON());
   }
 }

@@ -1,0 +1,633 @@
+targets:
+- compiler: go
+  output: ./sdk
+  tags:
+  - skip-gin
+- compiler: js
+  output: ./sdk-js
+- compiler: preprocessor
+  output: ./preprocessor
+dtos:
+- description: Every field of the "entity1" entity, but optional - used both as Update's
+    partial input and as Browse's response item shape.
+  name: entity1Optional
+  fields:
+  - name: title
+    type: string?
+  - name: items
+    type: array?
+    fields:
+    - name: uniqueId
+      type: string?
+    - name: item2
+      type: string
+  - name: items2
+    type: array?
+    fields:
+    - name: uniqueId
+      type: string?
+    - name: item2
+      type: string
+  - name: items3
+    type: collection?
+    target: Entity2Entity
+  - name: items4
+    type: collection?
+    target: Entity2Entity
+  - name: owner
+    type: one?
+    target: Entity2Entity
+  - name: manager
+    type: one?
+    target: Entity2Entity
+  - name: content1
+    type: object?
+    fields:
+    - name: item1
+      type: int64?
+  - name: content2
+    type: object?
+    fields:
+    - name: item2
+      type: int64?
+  - name: complex1
+    type: complex
+    complex: Money
+  - name: subtitle
+    type: string?
+  - name: isActive
+    type: bool?
+  - name: isFeatured
+    type: bool?
+  - name: viewCount
+    type: int?
+  - name: viewCountOpt
+    type: int?
+  - name: smallCount
+    type: int32?
+  - name: smallCountOpt
+    type: int32?
+  - name: bigCount
+    type: int64?
+  - name: bigCountOpt
+    type: int64?
+  - name: ratio32
+    type: float32?
+  - name: ratio32Opt
+    type: float32?
+  - name: ratio64
+    type: float64?
+  - name: ratio64Opt
+    type: float64?
+  - name: status
+    type: enum?
+    of:
+    - k: active
+    - k: inactive
+  - name: statusOpt
+    type: enum?
+    of:
+    - k: active
+    - k: inactive
+  - name: metadata
+    type: map?
+    mapKeyOf: string
+    mapPairOf: string
+  - name: metadataOpt
+    type: map?
+    mapKeyOf: string
+    mapPairOf: string
+  - name: rawSettings
+    type: map?
+    mapKeyOf: string
+    mapPairOf: string
+  - name: labels
+    type: slice?
+    primitive: string
+  - name: labelsOpt
+    type: slice?
+    primitive: string
+  - name: misc
+    type: any
+  - name: nestedContainer
+    type: object?
+    fields:
+    - name: nestedInner
+      type: object?
+      fields:
+      - name: nestedItems
+        type: array?
+        fields:
+        - name: uniqueId
+          type: string?
+        - name: label
+          type: string
+      - name: nestedOwner
+        type: one?
+        target: Entity2Entity
+  - name: nestedContainerOpt
+    type: object?
+    fields:
+    - name: nestedInner
+      type: object?
+      fields:
+      - name: nestedItemsOpt
+        type: array?
+        fields:
+        - name: uniqueId
+          type: string?
+        - name: label
+          type: string
+- description: Every field of the "entity3" entity, but optional - used both as Update's
+    partial input and as Browse's response item shape.
+  name: entity3Optional
+  fields:
+  - name: message
+    type: string?
+- description: Every field of the "entity4" entity, but optional - used both as Update's
+    partial input and as Browse's response item shape.
+  name: entity4Optional
+  fields:
+  - name: note
+    type: string?
+- description: Plain dto mirroring the "entity1" entity's own fields.
+  name: entity1
+  fields:
+  - name: uniqueId
+    type: string?
+  - name: title
+    type: string
+  - name: items
+    type: array
+    fields:
+    - name: item2
+      type: string
+  - name: items2
+    type: array?
+    fields:
+    - name: item2
+      type: string
+  - name: items3
+    type: collection
+    target: Entity2Entity
+  - name: items4
+    type: collection?
+    target: Entity2Entity
+  - name: owner
+    type: one
+    target: Entity2Entity
+  - name: manager
+    type: one?
+    target: Entity2Entity
+  - name: content1
+    type: object
+    fields:
+    - name: item1
+      type: int64?
+  - name: content2
+    type: object?
+    fields:
+    - name: item2
+      type: int64?
+  - name: complex1
+    type: complex
+    complex: Money
+  - name: subtitle
+    type: string?
+  - name: isActive
+    type: bool
+  - name: isFeatured
+    type: bool?
+  - name: viewCount
+    type: int
+  - name: viewCountOpt
+    type: int?
+  - name: smallCount
+    type: int32
+  - name: smallCountOpt
+    type: int32?
+  - name: bigCount
+    type: int64
+  - name: bigCountOpt
+    type: int64?
+  - name: ratio32
+    type: float32
+  - name: ratio32Opt
+    type: float32?
+  - name: ratio64
+    type: float64
+  - name: ratio64Opt
+    type: float64?
+  - name: status
+    type: enum
+    of:
+    - k: active
+    - k: inactive
+  - name: statusOpt
+    type: enum?
+    of:
+    - k: active
+    - k: inactive
+  - name: metadata
+    type: map
+    mapKeyOf: string
+    mapPairOf: string
+  - name: metadataOpt
+    type: map?
+    mapKeyOf: string
+    mapPairOf: string
+  - name: rawSettings
+    type: map
+    mapKeyOf: string
+    mapPairOf: string
+  - name: labels
+    type: slice
+    primitive: string
+  - name: labelsOpt
+    type: slice?
+    primitive: string
+  - name: misc
+    type: any
+  - name: nestedContainer
+    type: object
+    fields:
+    - name: nestedInner
+      type: object
+      fields:
+      - name: nestedItems
+        type: array
+        fields:
+        - name: label
+          type: string
+      - name: nestedOwner
+        type: one
+        target: Entity2Entity
+  - name: nestedContainerOpt
+    type: object?
+    fields:
+    - name: nestedInner
+      type: object
+      fields:
+      - name: nestedItemsOpt
+        type: array
+        fields:
+        - name: label
+          type: string
+- description: Plain dto mirroring the "entity3" entity's own fields.
+  name: entity3
+  fields:
+  - name: uniqueId
+    type: string?
+  - name: message
+    type: string
+- description: Plain dto mirroring the "entity4" entity's own fields.
+  name: entity4
+  fields:
+  - name: uniqueId
+    type: string?
+  - name: note
+    type: string
+entities:
+- name: entity1
+  table: entity1_table
+  fields:
+  - name: title
+    type: string
+  - name: items
+    type: array
+    fields:
+    - name: item2
+      type: string
+  - name: items2
+    type: array?
+    fields:
+    - name: item2
+      type: string
+  - name: items3
+    type: collection
+    target: Entity2Entity
+  - name: items4
+    type: collection?
+    target: Entity2Entity
+  - name: owner
+    type: one
+    target: Entity2Entity
+  - name: manager
+    type: one?
+    target: Entity2Entity
+  - name: content1
+    type: object
+    fields:
+    - name: item1
+      type: int64?
+  - name: content2
+    type: object?
+    fields:
+    - name: item2
+      type: int64?
+  - name: complex1
+    type: complex
+    complex: Money
+  - name: subtitle
+    type: string?
+  - name: isActive
+    type: bool
+  - name: isFeatured
+    type: bool?
+  - name: viewCount
+    type: int
+  - name: viewCountOpt
+    type: int?
+  - name: smallCount
+    type: int32
+  - name: smallCountOpt
+    type: int32?
+  - name: bigCount
+    type: int64
+  - name: bigCountOpt
+    type: int64?
+  - name: ratio32
+    type: float32
+  - name: ratio32Opt
+    type: float32?
+  - name: ratio64
+    type: float64
+  - name: ratio64Opt
+    type: float64?
+  - name: status
+    type: enum
+    of:
+    - k: active
+    - k: inactive
+  - name: statusOpt
+    type: enum?
+    of:
+    - k: active
+    - k: inactive
+  - name: metadata
+    type: map
+    mapKeyOf: string
+    mapPairOf: string
+  - name: metadataOpt
+    type: map?
+    mapKeyOf: string
+    mapPairOf: string
+  - name: rawSettings
+    type: map
+    mapKeyOf: string
+    mapPairOf: string
+    tags:
+      gorm: serializer:json;type:jsonb
+  - name: labels
+    type: slice
+    primitive: string
+  - name: labelsOpt
+    type: slice?
+    primitive: string
+  - name: misc
+    type: any
+  - name: nestedContainer
+    type: object
+    fields:
+    - name: nestedInner
+      type: object
+      fields:
+      - name: nestedItems
+        type: array
+        fields:
+        - name: label
+          type: string
+      - name: nestedOwner
+        type: one
+        target: Entity2Entity
+  - name: nestedContainerOpt
+    type: object?
+    fields:
+    - name: nestedInner
+      type: object
+      fields:
+      - name: nestedItemsOpt
+        type: array
+        fields:
+        - name: label
+          type: string
+- name: entity3
+  features:
+    update: false
+  fields:
+  - name: message
+    type: string
+- name: entity4
+  features:
+    create: false
+  fields:
+  - name: note
+    type: string
+complexes:
+- name: Money
+  compiler: go
+actions:
+- name: entity1Create
+  url: /entity1
+  method: post
+  description: Creates a new "entity1" row.
+  in:
+    dto: Entity1Dto
+  out:
+    envelope: GResponse
+    dto: Entity1Dto
+- name: entity1Update
+  url: /entity1/:id string
+  method: patch
+  description: Applies a partial update to a "entity1" row by uniqueId.
+  in:
+    dto: Entity1OptionalDto
+  out:
+    envelope: GResponse
+    dto: Entity1Dto
+- name: entity1Get
+  url: /entity1/:id string
+  method: get
+  description: Looks up a single "entity1" row by uniqueId.
+  out:
+    envelope: GResponse
+    dto: Entity1Dto
+- name: entity1Browse
+  url: /entity1/browse
+  method: get
+  qs:
+  - name: filter
+    type: string
+  - name: sort
+    type: string
+  - name: startIndex
+    type: int
+  - name: itemsPerPage
+    type: int
+  - name: cursor
+    type: string
+  description: Returns "entity1" rows matching a filter, sorted/paged (see emigorm.QueryDSL).
+  out:
+    envelope: GResponse
+    dto: Entity1OptionalDto
+- name: entity1AwareDeletePreview
+  url: /entity1/delete-preview
+  method: get
+  qs:
+  - name: uniqueIds
+    type: slice
+    primitive: string
+  description: Reports what deleting the given "entity1" uniqueIds would affect, without
+    deleting anything.
+  out:
+    envelope: GResponse
+    fields:
+    - name: message
+      type: string
+    - name: affected
+      type: array
+      fields:
+      - name: relation
+        type: string
+      - name: count
+        type: int64
+- name: entity1AwareDelete
+  url: /entity1/delete
+  method: post
+  description: Deletes the given "entity1" uniqueIds, along with everything entity1AwareDeletePreview
+    reports.
+  in:
+    fields:
+    - name: uniqueIds
+      type: slice
+      primitive: string
+- name: entity3Create
+  url: /entity3
+  method: post
+  description: Creates a new "entity3" row.
+  in:
+    dto: Entity3Dto
+  out:
+    envelope: GResponse
+    dto: Entity3Dto
+- name: entity3Get
+  url: /entity3/:id string
+  method: get
+  description: Looks up a single "entity3" row by uniqueId.
+  out:
+    envelope: GResponse
+    dto: Entity3Dto
+- name: entity3Browse
+  url: /entity3/browse
+  method: get
+  qs:
+  - name: filter
+    type: string
+  - name: sort
+    type: string
+  - name: startIndex
+    type: int
+  - name: itemsPerPage
+    type: int
+  - name: cursor
+    type: string
+  description: Returns "entity3" rows matching a filter, sorted/paged (see emigorm.QueryDSL).
+  out:
+    envelope: GResponse
+    dto: Entity3OptionalDto
+- name: entity3AwareDeletePreview
+  url: /entity3/delete-preview
+  method: get
+  qs:
+  - name: uniqueIds
+    type: slice
+    primitive: string
+  description: Reports what deleting the given "entity3" uniqueIds would affect, without
+    deleting anything.
+  out:
+    envelope: GResponse
+    fields:
+    - name: message
+      type: string
+    - name: affected
+      type: array
+      fields:
+      - name: relation
+        type: string
+      - name: count
+        type: int64
+- name: entity3AwareDelete
+  url: /entity3/delete
+  method: post
+  description: Deletes the given "entity3" uniqueIds, along with everything entity3AwareDeletePreview
+    reports.
+  in:
+    fields:
+    - name: uniqueIds
+      type: slice
+      primitive: string
+- name: entity4Update
+  url: /entity4/:id string
+  method: patch
+  description: Applies a partial update to a "entity4" row by uniqueId.
+  in:
+    dto: Entity4OptionalDto
+  out:
+    envelope: GResponse
+    dto: Entity4Dto
+- name: entity4Get
+  url: /entity4/:id string
+  method: get
+  description: Looks up a single "entity4" row by uniqueId.
+  out:
+    envelope: GResponse
+    dto: Entity4Dto
+- name: entity4Browse
+  url: /entity4/browse
+  method: get
+  qs:
+  - name: filter
+    type: string
+  - name: sort
+    type: string
+  - name: startIndex
+    type: int
+  - name: itemsPerPage
+    type: int
+  - name: cursor
+    type: string
+  description: Returns "entity4" rows matching a filter, sorted/paged (see emigorm.QueryDSL).
+  out:
+    envelope: GResponse
+    dto: Entity4OptionalDto
+- name: entity4AwareDeletePreview
+  url: /entity4/delete-preview
+  method: get
+  qs:
+  - name: uniqueIds
+    type: slice
+    primitive: string
+  description: Reports what deleting the given "entity4" uniqueIds would affect, without
+    deleting anything.
+  out:
+    envelope: GResponse
+    fields:
+    - name: message
+      type: string
+    - name: affected
+      type: array
+      fields:
+      - name: relation
+        type: string
+      - name: count
+        type: int64
+- name: entity4AwareDelete
+  url: /entity4/delete
+  method: post
+  description: Deletes the given "entity4" uniqueIds, along with everything entity4AwareDeletePreview
+    reports.
+  in:
+    fields:
+    - name: uniqueIds
+      type: slice
+      primitive: string

@@ -13,6 +13,7 @@ import (
 	"github.com/torabian/emi/lib/kotlin"
 	"github.com/torabian/emi/lib/swift"
 	"github.com/urfave/cli/v3"
+	"gopkg.in/yaml.v2"
 )
 
 // Compiles a emi file automatically, based on common compiler functions enabled into
@@ -45,27 +46,52 @@ var CompileCommand = cli.Command{
 			ctx.Tags = strings.Join(target.Tags, ",")
 			files := []core.VirtualFile{}
 
-			var action core.ActionFile
+			// "preprocessor" isn't a real per-language core.ActionFile - it doesn't
+			// generate code, it just writes back out what core.Emi.Preprocess()
+			// expanded the module into (synthesized entity update dtos/actions, etc. -
+			// see lib/core/preprocess*.go), as plain yaml. Useful for inspecting what
+			// every other compiler actually sees once preprocessing has run.
+			if target.Compiler == "preprocessor" {
+				preprocessed, err := core.ReadEmiFromString(ctx.Content)
+				if err != nil {
+					return err
+				}
 
-			switch target.Compiler {
-			case "go":
-				action = golang.GoPrimaryAction
-			case "kotlin":
-				action = kotlin.KotlinPrimaryAction
-			case "swift":
-				action = swift.SwiftPrimaryAction
-			case "js":
-				action = js.JsPrimaryAction
-			default:
-				continue
-			}
+				yamlBytes, err := yaml.Marshal(preprocessed)
+				if err != nil {
+					return err
+				}
 
-			res, err := action.Run(ctx)
-			if err != nil {
-				fmt.Println(err)
-				return err
+				files = []core.VirtualFile{
+					{
+						Name:         "preprocessed",
+						Extension:    ".yml",
+						ActualScript: string(yamlBytes),
+					},
+				}
+			} else {
+				var action core.ActionFile
+
+				switch target.Compiler {
+				case "go":
+					action = golang.GoPrimaryAction
+				case "kotlin":
+					action = kotlin.KotlinPrimaryAction
+				case "swift":
+					action = swift.SwiftPrimaryAction
+				case "js":
+					action = js.JsPrimaryAction
+				default:
+					continue
+				}
+
+				res, err := action.Run(ctx)
+				if err != nil {
+					fmt.Println(err)
+					return err
+				}
+				files = res
 			}
-			files = res
 
 			if target.Output != "" {
 				if path.IsAbs(target.Output) {

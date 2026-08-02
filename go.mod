@@ -1,10 +1,11 @@
 module github.com/torabian/emi
 
-go 1.25.0
+go 1.25.1
 
 require (
 	github.com/getkin/kin-openapi v0.133.0
 	github.com/goccy/go-json v0.10.6
+	github.com/h22rana/jsonlogic2sql v1.0.10
 	github.com/invopop/jsonschema v0.13.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0

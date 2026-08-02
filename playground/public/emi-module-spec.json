@@ -243,6 +243,7 @@
           "type": "string",
           "enum": [
             "go",
+            "preprocessor",
             "js",
             "kotlin",
             "swift"
@@ -792,6 +793,10 @@
           "type": "string",
           "description": "The entity name is crucial as it determines database table names and is used by Fireback's Go and code generation tools; note that changing an entity name does not delete previously created entities requiring manual file deletion and only camelCase naming is supported."
         },
+        "features": {
+          "$ref": "#/definitions/Module3EntityFeatures",
+          "description": "Customize the features generated for entity"
+        },
         "table": {
           "type": "string",
           "description": "Changes the default table name based on project prefix and entity name useful for times that you want to connect project to an existing database"
@@ -822,6 +827,32 @@
         "cte": {
           "type": "boolean",
           "description": "CTE is a common recursive feature of an entity; enabling it generates SQL for recursive parent-child CTE queries and makes it available in Golang."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Module3EntityFeatures": {
+      "properties": {
+        "create": {
+          "type": "boolean",
+          "description": "Generates {Entity}CreateFn and wires it into {Entity}ActionsSig.Create. Enabled by default; set to false to omit Create entirely from the generated code."
+        },
+        "update": {
+          "type": "boolean",
+          "description": "Generates {Entity}UpdateFn (and the entity's update dto) and wires it into {Entity}ActionsSig.Update. Enabled by default; set to false to omit Update entirely from the generated code."
+        },
+        "get": {
+          "type": "boolean",
+          "description": "Generates {Entity}GetFn (a single-row lookup by uniqueId) and wires it into {Entity}ActionsSig.Get. Enabled by default; set to false to omit Get entirely from the generated code."
+        },
+        "browse": {
+          "type": "boolean",
+          "description": "Generates {Entity}BrowseFn (a filtered/sorted/paged list"
+        },
+        "delete": {
+          "type": "boolean",
+          "description": "Generates {Entity}AwareDeletePreviewFn/{Entity}AwareDeleteFn and wires them into {Entity}ActionsSig. Enabled by default; set to false to omit both entirely from the generated code."
         }
       },
       "additionalProperties": false,

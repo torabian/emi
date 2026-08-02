@@ -35,8 +35,8 @@ type Module3Entity struct {
 	// and it will do the job
 	// DistinctBy string `yaml:"distinctBy,omitempty" json:"distinctBy,omitempty" jsonschema:"enum=workspace,enum=user,description=You can ensure there is only one record of the entity per user or workspace using this option for example if you want only one credit card per workspace set distinctBy: workspace and it will do the job"`
 
-	// // Customize the features generated for entity, less common  changes goes to this object
-	// Features Module3EntityFeatures `yaml:"features,omitempty" json:"features,omitempty" jsonschema:"description=Customize the features generated for entity, less common  changes goes to this object"`
+	// Customize the features generated for entity, less common changes goes to this object
+	Features *Module3EntityFeatures `yaml:"features,omitempty" json:"features,omitempty" jsonschema:"description=Customize the features generated for entity, less common changes goes to this object"`
 
 	// Changes the default table name based on project prefix and entity name useful for times that you want to connect project to an existing database
 	Table string `yaml:"table,omitempty" json:"table,omitempty" jsonschema:"description=Changes the default table name based on project prefix and entity name useful for times that you want to connect project to an existing database"`
@@ -98,6 +98,79 @@ type Module3Entity struct {
 // relation fields (type: one / type: collection + target: <EntityName>Entity).
 func (x Module3Entity) GetClassName() string {
 	return ToUpper(x.Name) + "Entity"
+}
+
+// Module3EntityFeatures lets an entity opt out of default-generated functionality.
+// Every feature defaults to enabled - a whole-omitted features block, or leaving one of
+// its fields unset, means that piece of generated code still gets built exactly as
+// before. Set a field to false explicitly to turn that piece off.
+type Module3EntityFeatures struct {
+
+	// Generates {Entity}CreateFn and wires it into {Entity}ActionsSig.Create. Enabled by
+	// default; set to false to omit Create entirely from the generated code.
+	Create *bool `yaml:"create,omitempty" json:"create,omitempty" jsonschema:"description=Generates {Entity}CreateFn and wires it into {Entity}ActionsSig.Create. Enabled by default; set to false to omit Create entirely from the generated code."`
+
+	// Generates {Entity}UpdateFn (and the entity's update dto) and wires it into
+	// {Entity}ActionsSig.Update. Enabled by default; set to false to omit Update
+	// entirely from the generated code.
+	Update *bool `yaml:"update,omitempty" json:"update,omitempty" jsonschema:"description=Generates {Entity}UpdateFn (and the entity's update dto) and wires it into {Entity}ActionsSig.Update. Enabled by default; set to false to omit Update entirely from the generated code."`
+
+	// Generates {Entity}GetFn (a single-row lookup by uniqueId) and wires it into
+	// {Entity}ActionsSig.Get. Enabled by default; set to false to omit Get entirely
+	// from the generated code.
+	Get *bool `yaml:"get,omitempty" json:"get,omitempty" jsonschema:"description=Generates {Entity}GetFn (a single-row lookup by uniqueId) and wires it into {Entity}ActionsSig.Get. Enabled by default; set to false to omit Get entirely from the generated code."`
+
+	// Generates {Entity}BrowseFn (a filtered/sorted/paged list, see emigorm.QueryDSL)
+	// and wires it into {Entity}ActionsSig.Browse. Enabled by default; set to false to
+	// omit Browse entirely from the generated code.
+	Browse *bool `yaml:"browse,omitempty" json:"browse,omitempty" jsonschema:"description=Generates {Entity}BrowseFn (a filtered/sorted/paged list, see emigorm.QueryDSL) and wires it into {Entity}ActionsSig.Browse. Enabled by default; set to false to omit Browse entirely from the generated code."`
+
+	// Generates {Entity}AwareDeletePreviewFn/{Entity}AwareDeleteFn (see AwareDelete in
+	// lib/golang/go-entity-delete.go) and wires them into {Entity}ActionsSig. Enabled
+	// by default; set to false to omit both entirely from the generated code.
+	Delete *bool `yaml:"delete,omitempty" json:"delete,omitempty" jsonschema:"description=Generates {Entity}AwareDeletePreviewFn/{Entity}AwareDeleteFn and wires them into {Entity}ActionsSig. Enabled by default; set to false to omit both entirely from the generated code."`
+}
+
+// CreateEnabled reports whether Create is enabled - true whenever features itself, or
+// its Create field specifically, was never set (nil receiver included, so calling this
+// on an entity with no features block at all is safe and returns true).
+func (f *Module3EntityFeatures) CreateEnabled() bool {
+	if f == nil || f.Create == nil {
+		return true
+	}
+	return *f.Create
+}
+
+// UpdateEnabled is CreateEnabled's counterpart for Update.
+func (f *Module3EntityFeatures) UpdateEnabled() bool {
+	if f == nil || f.Update == nil {
+		return true
+	}
+	return *f.Update
+}
+
+// GetEnabled is CreateEnabled's counterpart for Get.
+func (f *Module3EntityFeatures) GetEnabled() bool {
+	if f == nil || f.Get == nil {
+		return true
+	}
+	return *f.Get
+}
+
+// BrowseEnabled is CreateEnabled's counterpart for Browse.
+func (f *Module3EntityFeatures) BrowseEnabled() bool {
+	if f == nil || f.Browse == nil {
+		return true
+	}
+	return *f.Browse
+}
+
+// DeleteEnabled is CreateEnabled's counterpart for Delete (AwareDelete).
+func (f *Module3EntityFeatures) DeleteEnabled() bool {
+	if f == nil || f.Delete == nil {
+		return true
+	}
+	return *f.Delete
 }
 
 type GormOverrideMap struct {

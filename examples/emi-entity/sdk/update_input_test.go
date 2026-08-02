@@ -7,18 +7,18 @@ import (
 	"github.com/torabian/emi/emigo"
 )
 
-// Covers Entity1EntityUpdateDto: every field - even ones that are plain, always-
+// Covers Entity1OptionalDto: every field - even ones that are plain, always-
 // present scalars on Entity1Entity itself - must be optional here, so a caller can tell
 // gorm "this field wasn't touched" vs "explicitly set to the zero value." It carries no
 // gorm tags of its own: it's not a model of its own table, just an input read back by
 // the Update function to build a partial change-set against Entity1Entity's own table.
 // It's synthesized by core.Emi.Preprocess (lib/core/preprocess-entities.go), not by Go's
-// own codegen - see Entity1EntityUpdateDtoItems below for the consequence of that.
+// own codegen - see Entity1OptionalDtoItems below for the consequence of that.
 
 func TestUpdateInput_PlainScalarBecomesNullable(t *testing.T) {
 	// Title/IsActive/ViewCount/etc. are plain string/bool/int on Entity1Entity, but
 	// must be Nullable here.
-	typ := reflect.TypeOf(Entity1EntityUpdateDto{})
+	typ := reflect.TypeOf(Entity1OptionalDto{})
 
 	cases := []struct {
 		field    string
@@ -36,7 +36,7 @@ func TestUpdateInput_PlainScalarBecomesNullable(t *testing.T) {
 	for _, c := range cases {
 		field, ok := typ.FieldByName(c.field)
 		if !ok {
-			t.Fatalf("expected Entity1EntityUpdateDto to have a %s field", c.field)
+			t.Fatalf("expected Entity1OptionalDto to have a %s field", c.field)
 		}
 		if field.Type != c.wantType {
 			t.Fatalf("%s type = %v, want %v", c.field, field.Type, c.wantType)
@@ -48,13 +48,13 @@ func TestUpdateInput_PlainScalarBecomesNullable(t *testing.T) {
 }
 
 func TestUpdateInput_AlreadyOptionalFieldsStayOptional(t *testing.T) {
-	typ := reflect.TypeOf(Entity1EntityUpdateDto{})
+	typ := reflect.TypeOf(Entity1OptionalDto{})
 
 	// Subtitle is already string? on the entity; should still be Nullable[string], not
 	// double-wrapped.
 	field, ok := typ.FieldByName("Subtitle")
 	if !ok {
-		t.Fatal("expected Entity1EntityUpdateDto to have a Subtitle field")
+		t.Fatal("expected Entity1OptionalDto to have a Subtitle field")
 	}
 	if field.Type != reflect.TypeOf(emigo.Nullable[string]{}) {
 		t.Fatalf("Subtitle type = %v, want emigo.Nullable[string]", field.Type)
@@ -62,7 +62,7 @@ func TestUpdateInput_AlreadyOptionalFieldsStayOptional(t *testing.T) {
 }
 
 func TestUpdateInput_RelationFieldsBecomeNullableVariant(t *testing.T) {
-	typ := reflect.TypeOf(Entity1EntityUpdateDto{})
+	typ := reflect.TypeOf(Entity1OptionalDto{})
 
 	cases := []struct {
 		field    string
@@ -75,7 +75,7 @@ func TestUpdateInput_RelationFieldsBecomeNullableVariant(t *testing.T) {
 	for _, c := range cases {
 		field, ok := typ.FieldByName(c.field)
 		if !ok {
-			t.Fatalf("expected Entity1EntityUpdateDto to have a %s field", c.field)
+			t.Fatalf("expected Entity1OptionalDto to have a %s field", c.field)
 		}
 		if field.Type != c.wantType {
 			t.Fatalf("%s type = %v, want %v", c.field, field.Type, c.wantType)
@@ -83,7 +83,7 @@ func TestUpdateInput_RelationFieldsBecomeNullableVariant(t *testing.T) {
 	}
 
 	// Items/Items2 (array) get their OWN auto-generated item type
-	// (Entity1EntityUpdateDtoItems), separate from the real entity's
+	// (Entity1OptionalDtoItems), separate from the real entity's
 	// Entity1EntityItems child row type - this dto is built portably by
 	// core.Emi.Preprocess, so its item type can't reference gorm-only fields like
 	// Id/LinkerId that only exist on the real entity's Go struct. Entity1EntityActions'
@@ -91,13 +91,13 @@ func TestUpdateInput_RelationFieldsBecomeNullableVariant(t *testing.T) {
 	// before calling emigorm.ReconcileHasMany.
 	itemsField, ok := typ.FieldByName("Items")
 	if !ok {
-		t.Fatal("expected Entity1EntityUpdateDto to have an Items field")
+		t.Fatal("expected Entity1OptionalDto to have an Items field")
 	}
-	if itemsField.Type != reflect.TypeOf(emigo.ArrayNullable[Entity1EntityUpdateDtoItems]{}) {
-		t.Fatalf("Items type = %v, want emigo.ArrayNullable[Entity1EntityUpdateDtoItems]", itemsField.Type)
+	if itemsField.Type != reflect.TypeOf(emigo.ArrayNullable[Entity1OptionalDtoItems]{}) {
+		t.Fatalf("Items type = %v, want emigo.ArrayNullable[Entity1OptionalDtoItems]", itemsField.Type)
 	}
 
-	itemTyp := reflect.TypeOf(Entity1EntityUpdateDtoItems{})
+	itemTyp := reflect.TypeOf(Entity1OptionalDtoItems{})
 	itemCases := []struct {
 		field    string
 		wantType reflect.Type
@@ -108,7 +108,7 @@ func TestUpdateInput_RelationFieldsBecomeNullableVariant(t *testing.T) {
 	for _, c := range itemCases {
 		field, ok := itemTyp.FieldByName(c.field)
 		if !ok {
-			t.Fatalf("expected Entity1EntityUpdateDtoItems to have a %s field", c.field)
+			t.Fatalf("expected Entity1OptionalDtoItems to have a %s field", c.field)
 		}
 		if field.Type != c.wantType {
 			t.Fatalf("%s type = %v, want %v", c.field, field.Type, c.wantType)
@@ -120,9 +120,9 @@ func TestUpdateInput_ComplexIsPlainValueAlwaysApplied(t *testing.T) {
 	// complex has no portable "?" counterpart, so the update dto carries it as a plain
 	// value (not a pointer) and Entity1EntityActions.Update always includes it in the
 	// change-set unconditionally - there's no way to say "leave Complex1 untouched."
-	field, ok := reflect.TypeOf(Entity1EntityUpdateDto{}).FieldByName("Complex1")
+	field, ok := reflect.TypeOf(Entity1OptionalDto{}).FieldByName("Complex1")
 	if !ok {
-		t.Fatal("expected Entity1EntityUpdateDto to have a Complex1 field")
+		t.Fatal("expected Entity1OptionalDto to have a Complex1 field")
 	}
 	if field.Type != reflect.TypeOf(Money{}) {
 		t.Fatalf("Complex1 type = %v, want Money", field.Type)
@@ -130,10 +130,10 @@ func TestUpdateInput_ComplexIsPlainValueAlwaysApplied(t *testing.T) {
 }
 
 func TestUpdateInput_IsSetDistinguishesUntouchedFromZeroValue(t *testing.T) {
-	var input Entity1EntityUpdateDto
+	var input Entity1OptionalDto
 
 	if input.Title.IsSet() {
-		t.Fatal("expected a zero-value Entity1EntityUpdateDto to have Title unset")
+		t.Fatal("expected a zero-value Entity1OptionalDto to have Title unset")
 	}
 
 	input.Title.Set(emigo.Ptr(""))

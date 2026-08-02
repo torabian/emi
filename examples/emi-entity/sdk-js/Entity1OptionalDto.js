@@ -2,9 +2,9 @@ import { Entity2Entity } from "./Entity2Entity";
 import { MArray, MCollection, MOne } from "./sdk/common/operators";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
- * The base class definition for entity1EntityUpdateDto
+ * The base class definition for entity1OptionalDto
  **/
-export class Entity1EntityUpdateDto {
+export class Entity1OptionalDto {
   /**
    *
    * @type {string}
@@ -32,19 +32,19 @@ export class Entity1EntityUpdateDto {
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.Items}
+   * @type {Entity1OptionalDto.Items}
    **/
   #items = undefined;
   /**
    *
-   * @returns {Entity1EntityUpdateDto.Items}
+   * @returns {Entity1OptionalDto.Items}
    **/
   get items() {
     return this.#items;
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.Items}
+   * @type {Entity1OptionalDto.Items}
    **/
   set items(value) {
     // For nullable array, we allow explicit undefined or null values
@@ -55,14 +55,11 @@ export class Entity1EntityUpdateDto {
     // When the passed value is already an array, we check if we need to
     // cast the inner items into class instance.
     if (Array.isArray(value)) {
-      if (
-        value.length > 0 &&
-        value[0] instanceof Entity1EntityUpdateDto.Items
-      ) {
+      if (value.length > 0 && value[0] instanceof Entity1OptionalDto.Items) {
         this.#items = MArray.of(value);
       } else {
         this.#items = MArray.of(
-          value.map((item) => new Entity1EntityUpdateDto.Items(item)),
+          value.map((item) => new Entity1OptionalDto.Items(item)),
         );
       }
       return;
@@ -89,19 +86,19 @@ export class Entity1EntityUpdateDto {
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.Items2}
+   * @type {Entity1OptionalDto.Items2}
    **/
   #items2 = undefined;
   /**
    *
-   * @returns {Entity1EntityUpdateDto.Items2}
+   * @returns {Entity1OptionalDto.Items2}
    **/
   get items2() {
     return this.#items2;
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.Items2}
+   * @type {Entity1OptionalDto.Items2}
    **/
   set items2(value) {
     // For nullable array, we allow explicit undefined or null values
@@ -112,14 +109,11 @@ export class Entity1EntityUpdateDto {
     // When the passed value is already an array, we check if we need to
     // cast the inner items into class instance.
     if (Array.isArray(value)) {
-      if (
-        value.length > 0 &&
-        value[0] instanceof Entity1EntityUpdateDto.Items2
-      ) {
+      if (value.length > 0 && value[0] instanceof Entity1OptionalDto.Items2) {
         this.#items2 = MArray.of(value);
       } else {
         this.#items2 = MArray.of(
-          value.map((item) => new Entity1EntityUpdateDto.Items2(item)),
+          value.map((item) => new Entity1OptionalDto.Items2(item)),
         );
       }
       return;
@@ -314,26 +308,26 @@ export class Entity1EntityUpdateDto {
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.Content1}
+   * @type {Entity1OptionalDto.Content1}
    **/
   #content1 = undefined;
   /**
    *
-   * @returns {Entity1EntityUpdateDto.Content1}
+   * @returns {Entity1OptionalDto.Content1}
    **/
   get content1() {
     return this.#content1;
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.Content1}
+   * @type {Entity1OptionalDto.Content1}
    **/
   set content1(value) {
     // For objects, the sub type needs to always be instance of the sub class.
-    if (value instanceof Entity1EntityUpdateDto.Content1) {
+    if (value instanceof Entity1OptionalDto.Content1) {
       this.#content1 = value;
     } else {
-      this.#content1 = new Entity1EntityUpdateDto.Content1(value);
+      this.#content1 = new Entity1OptionalDto.Content1(value);
     }
   }
   setContent1(value) {
@@ -342,26 +336,26 @@ export class Entity1EntityUpdateDto {
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.Content2}
+   * @type {Entity1OptionalDto.Content2}
    **/
   #content2 = undefined;
   /**
    *
-   * @returns {Entity1EntityUpdateDto.Content2}
+   * @returns {Entity1OptionalDto.Content2}
    **/
   get content2() {
     return this.#content2;
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.Content2}
+   * @type {Entity1OptionalDto.Content2}
    **/
   set content2(value) {
     // For objects, the sub type needs to always be instance of the sub class.
-    if (value instanceof Entity1EntityUpdateDto.Content2) {
+    if (value instanceof Entity1OptionalDto.Content2) {
       this.#content2 = value;
     } else {
-      this.#content2 = new Entity1EntityUpdateDto.Content2(value);
+      this.#content2 = new Entity1OptionalDto.Content2(value);
     }
   }
   setContent2(value) {
@@ -938,26 +932,26 @@ export class Entity1EntityUpdateDto {
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.NestedContainer}
+   * @type {Entity1OptionalDto.NestedContainer}
    **/
   #nestedContainer = undefined;
   /**
    *
-   * @returns {Entity1EntityUpdateDto.NestedContainer}
+   * @returns {Entity1OptionalDto.NestedContainer}
    **/
   get nestedContainer() {
     return this.#nestedContainer;
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.NestedContainer}
+   * @type {Entity1OptionalDto.NestedContainer}
    **/
   set nestedContainer(value) {
     // For objects, the sub type needs to always be instance of the sub class.
-    if (value instanceof Entity1EntityUpdateDto.NestedContainer) {
+    if (value instanceof Entity1OptionalDto.NestedContainer) {
       this.#nestedContainer = value;
     } else {
-      this.#nestedContainer = new Entity1EntityUpdateDto.NestedContainer(value);
+      this.#nestedContainer = new Entity1OptionalDto.NestedContainer(value);
     }
   }
   setNestedContainer(value) {
@@ -966,26 +960,26 @@ export class Entity1EntityUpdateDto {
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.NestedContainerOpt}
+   * @type {Entity1OptionalDto.NestedContainerOpt}
    **/
   #nestedContainerOpt = undefined;
   /**
    *
-   * @returns {Entity1EntityUpdateDto.NestedContainerOpt}
+   * @returns {Entity1OptionalDto.NestedContainerOpt}
    **/
   get nestedContainerOpt() {
     return this.#nestedContainerOpt;
   }
   /**
    *
-   * @type {Entity1EntityUpdateDto.NestedContainerOpt}
+   * @type {Entity1OptionalDto.NestedContainerOpt}
    **/
   set nestedContainerOpt(value) {
     // For objects, the sub type needs to always be instance of the sub class.
-    if (value instanceof Entity1EntityUpdateDto.NestedContainerOpt) {
+    if (value instanceof Entity1OptionalDto.NestedContainerOpt) {
       this.#nestedContainerOpt = value;
     } else {
-      this.#nestedContainerOpt = new Entity1EntityUpdateDto.NestedContainerOpt(
+      this.#nestedContainerOpt = new Entity1OptionalDto.NestedContainerOpt(
         value,
       );
     }
@@ -1109,26 +1103,26 @@ export class Entity1EntityUpdateDto {
       };
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.Items, and possibleDtoObject
+     * Creates an instance of Entity1OptionalDto.Items, and possibleDtoObject
      * needs to satisfy the type requirement fully, otherwise typescript compile would
      * be complaining.
      **/
     static from(possibleDtoObject) {
-      return new Entity1EntityUpdateDto.Items(possibleDtoObject);
+      return new Entity1OptionalDto.Items(possibleDtoObject);
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.Items, and partialDtoObject
+     * Creates an instance of Entity1OptionalDto.Items, and partialDtoObject
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
     static with(partialDtoObject) {
-      return new Entity1EntityUpdateDto.Items(partialDtoObject);
+      return new Entity1OptionalDto.Items(partialDtoObject);
     }
     copyWith(partial) {
-      return new Entity1EntityUpdateDto.Items({ ...this.toJSON(), ...partial });
+      return new Entity1OptionalDto.Items({ ...this.toJSON(), ...partial });
     }
     clone() {
-      return new Entity1EntityUpdateDto.Items(this.toJSON());
+      return new Entity1OptionalDto.Items(this.toJSON());
     }
   };
   /**
@@ -1246,29 +1240,26 @@ export class Entity1EntityUpdateDto {
       };
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.Items2, and possibleDtoObject
+     * Creates an instance of Entity1OptionalDto.Items2, and possibleDtoObject
      * needs to satisfy the type requirement fully, otherwise typescript compile would
      * be complaining.
      **/
     static from(possibleDtoObject) {
-      return new Entity1EntityUpdateDto.Items2(possibleDtoObject);
+      return new Entity1OptionalDto.Items2(possibleDtoObject);
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.Items2, and partialDtoObject
+     * Creates an instance of Entity1OptionalDto.Items2, and partialDtoObject
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
     static with(partialDtoObject) {
-      return new Entity1EntityUpdateDto.Items2(partialDtoObject);
+      return new Entity1OptionalDto.Items2(partialDtoObject);
     }
     copyWith(partial) {
-      return new Entity1EntityUpdateDto.Items2({
-        ...this.toJSON(),
-        ...partial,
-      });
+      return new Entity1OptionalDto.Items2({ ...this.toJSON(), ...partial });
     }
     clone() {
-      return new Entity1EntityUpdateDto.Items2(this.toJSON());
+      return new Entity1OptionalDto.Items2(this.toJSON());
     }
   };
   /**
@@ -1361,29 +1352,26 @@ export class Entity1EntityUpdateDto {
       };
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.Content1, and possibleDtoObject
+     * Creates an instance of Entity1OptionalDto.Content1, and possibleDtoObject
      * needs to satisfy the type requirement fully, otherwise typescript compile would
      * be complaining.
      **/
     static from(possibleDtoObject) {
-      return new Entity1EntityUpdateDto.Content1(possibleDtoObject);
+      return new Entity1OptionalDto.Content1(possibleDtoObject);
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.Content1, and partialDtoObject
+     * Creates an instance of Entity1OptionalDto.Content1, and partialDtoObject
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
     static with(partialDtoObject) {
-      return new Entity1EntityUpdateDto.Content1(partialDtoObject);
+      return new Entity1OptionalDto.Content1(partialDtoObject);
     }
     copyWith(partial) {
-      return new Entity1EntityUpdateDto.Content1({
-        ...this.toJSON(),
-        ...partial,
-      });
+      return new Entity1OptionalDto.Content1({ ...this.toJSON(), ...partial });
     }
     clone() {
-      return new Entity1EntityUpdateDto.Content1(this.toJSON());
+      return new Entity1OptionalDto.Content1(this.toJSON());
     }
   };
   /**
@@ -1476,29 +1464,26 @@ export class Entity1EntityUpdateDto {
       };
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.Content2, and possibleDtoObject
+     * Creates an instance of Entity1OptionalDto.Content2, and possibleDtoObject
      * needs to satisfy the type requirement fully, otherwise typescript compile would
      * be complaining.
      **/
     static from(possibleDtoObject) {
-      return new Entity1EntityUpdateDto.Content2(possibleDtoObject);
+      return new Entity1OptionalDto.Content2(possibleDtoObject);
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.Content2, and partialDtoObject
+     * Creates an instance of Entity1OptionalDto.Content2, and partialDtoObject
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
     static with(partialDtoObject) {
-      return new Entity1EntityUpdateDto.Content2(partialDtoObject);
+      return new Entity1OptionalDto.Content2(partialDtoObject);
     }
     copyWith(partial) {
-      return new Entity1EntityUpdateDto.Content2({
-        ...this.toJSON(),
-        ...partial,
-      });
+      return new Entity1OptionalDto.Content2({ ...this.toJSON(), ...partial });
     }
     clone() {
-      return new Entity1EntityUpdateDto.Content2(this.toJSON());
+      return new Entity1OptionalDto.Content2(this.toJSON());
     }
   };
   /**
@@ -1507,27 +1492,28 @@ export class Entity1EntityUpdateDto {
   static NestedContainer = class NestedContainer {
     /**
      *
-     * @type {Entity1EntityUpdateDto.NestedContainer.NestedInner}
+     * @type {Entity1OptionalDto.NestedContainer.NestedInner}
      **/
     #nestedInner = undefined;
     /**
      *
-     * @returns {Entity1EntityUpdateDto.NestedContainer.NestedInner}
+     * @returns {Entity1OptionalDto.NestedContainer.NestedInner}
      **/
     get nestedInner() {
       return this.#nestedInner;
     }
     /**
      *
-     * @type {Entity1EntityUpdateDto.NestedContainer.NestedInner}
+     * @type {Entity1OptionalDto.NestedContainer.NestedInner}
      **/
     set nestedInner(value) {
       // For objects, the sub type needs to always be instance of the sub class.
-      if (value instanceof Entity1EntityUpdateDto.NestedContainer.NestedInner) {
+      if (value instanceof Entity1OptionalDto.NestedContainer.NestedInner) {
         this.#nestedInner = value;
       } else {
-        this.#nestedInner =
-          new Entity1EntityUpdateDto.NestedContainer.NestedInner(value);
+        this.#nestedInner = new Entity1OptionalDto.NestedContainer.NestedInner(
+          value,
+        );
       }
     }
     setNestedInner(value) {
@@ -1540,19 +1526,19 @@ export class Entity1EntityUpdateDto {
     static NestedInner = class NestedInner {
       /**
        *
-       * @type {Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems}
+       * @type {Entity1OptionalDto.NestedContainer.NestedInner.NestedItems}
        **/
       #nestedItems = undefined;
       /**
        *
-       * @returns {Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems}
+       * @returns {Entity1OptionalDto.NestedContainer.NestedInner.NestedItems}
        **/
       get nestedItems() {
         return this.#nestedItems;
       }
       /**
        *
-       * @type {Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems}
+       * @type {Entity1OptionalDto.NestedContainer.NestedInner.NestedItems}
        **/
       set nestedItems(value) {
         // For nullable array, we allow explicit undefined or null values
@@ -1566,14 +1552,14 @@ export class Entity1EntityUpdateDto {
           if (
             value.length > 0 &&
             value[0] instanceof
-              Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems
+              Entity1OptionalDto.NestedContainer.NestedInner.NestedItems
           ) {
             this.#nestedItems = MArray.of(value);
           } else {
             this.#nestedItems = MArray.of(
               value.map(
                 (item) =>
-                  new Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems(
+                  new Entity1OptionalDto.NestedContainer.NestedInner.NestedItems(
                     item,
                   ),
               ),
@@ -1746,32 +1732,32 @@ export class Entity1EntityUpdateDto {
           };
         }
         /**
-         * Creates an instance of Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems, and possibleDtoObject
+         * Creates an instance of Entity1OptionalDto.NestedContainer.NestedInner.NestedItems, and possibleDtoObject
          * needs to satisfy the type requirement fully, otherwise typescript compile would
          * be complaining.
          **/
         static from(possibleDtoObject) {
-          return new Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems(
+          return new Entity1OptionalDto.NestedContainer.NestedInner.NestedItems(
             possibleDtoObject,
           );
         }
         /**
-         * Creates an instance of Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems, and partialDtoObject
+         * Creates an instance of Entity1OptionalDto.NestedContainer.NestedInner.NestedItems, and partialDtoObject
          * needs to satisfy the type, but partially, and rest of the content would
          * be constructed according to data types and nullability.
          **/
         static with(partialDtoObject) {
-          return new Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems(
+          return new Entity1OptionalDto.NestedContainer.NestedInner.NestedItems(
             partialDtoObject,
           );
         }
         copyWith(partial) {
-          return new Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems(
+          return new Entity1OptionalDto.NestedContainer.NestedInner.NestedItems(
             { ...this.toJSON(), ...partial },
           );
         }
         clone() {
-          return new Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems(
+          return new Entity1OptionalDto.NestedContainer.NestedInner.NestedItems(
             this.toJSON(),
           );
         }
@@ -1838,41 +1824,40 @@ export class Entity1EntityUpdateDto {
           get nestedItems() {
             return withPrefix(
               "nestedContainer.nestedInner.nestedItems[:i]",
-              Entity1EntityUpdateDto.NestedContainer.NestedInner.NestedItems
-                .Fields,
+              Entity1OptionalDto.NestedContainer.NestedInner.NestedItems.Fields,
             );
           },
           nestedOwner: "nestedOwner",
         };
       }
       /**
-       * Creates an instance of Entity1EntityUpdateDto.NestedContainer.NestedInner, and possibleDtoObject
+       * Creates an instance of Entity1OptionalDto.NestedContainer.NestedInner, and possibleDtoObject
        * needs to satisfy the type requirement fully, otherwise typescript compile would
        * be complaining.
        **/
       static from(possibleDtoObject) {
-        return new Entity1EntityUpdateDto.NestedContainer.NestedInner(
+        return new Entity1OptionalDto.NestedContainer.NestedInner(
           possibleDtoObject,
         );
       }
       /**
-       * Creates an instance of Entity1EntityUpdateDto.NestedContainer.NestedInner, and partialDtoObject
+       * Creates an instance of Entity1OptionalDto.NestedContainer.NestedInner, and partialDtoObject
        * needs to satisfy the type, but partially, and rest of the content would
        * be constructed according to data types and nullability.
        **/
       static with(partialDtoObject) {
-        return new Entity1EntityUpdateDto.NestedContainer.NestedInner(
+        return new Entity1OptionalDto.NestedContainer.NestedInner(
           partialDtoObject,
         );
       }
       copyWith(partial) {
-        return new Entity1EntityUpdateDto.NestedContainer.NestedInner({
+        return new Entity1OptionalDto.NestedContainer.NestedInner({
           ...this.toJSON(),
           ...partial,
         });
       }
       clone() {
-        return new Entity1EntityUpdateDto.NestedContainer.NestedInner(
+        return new Entity1OptionalDto.NestedContainer.NestedInner(
           this.toJSON(),
         );
       }
@@ -1935,35 +1920,35 @@ export class Entity1EntityUpdateDto {
         get nestedInner() {
           return withPrefix(
             "nestedContainer.nestedInner",
-            Entity1EntityUpdateDto.NestedContainer.NestedInner.Fields,
+            Entity1OptionalDto.NestedContainer.NestedInner.Fields,
           );
         },
       };
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.NestedContainer, and possibleDtoObject
+     * Creates an instance of Entity1OptionalDto.NestedContainer, and possibleDtoObject
      * needs to satisfy the type requirement fully, otherwise typescript compile would
      * be complaining.
      **/
     static from(possibleDtoObject) {
-      return new Entity1EntityUpdateDto.NestedContainer(possibleDtoObject);
+      return new Entity1OptionalDto.NestedContainer(possibleDtoObject);
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.NestedContainer, and partialDtoObject
+     * Creates an instance of Entity1OptionalDto.NestedContainer, and partialDtoObject
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
     static with(partialDtoObject) {
-      return new Entity1EntityUpdateDto.NestedContainer(partialDtoObject);
+      return new Entity1OptionalDto.NestedContainer(partialDtoObject);
     }
     copyWith(partial) {
-      return new Entity1EntityUpdateDto.NestedContainer({
+      return new Entity1OptionalDto.NestedContainer({
         ...this.toJSON(),
         ...partial,
       });
     }
     clone() {
-      return new Entity1EntityUpdateDto.NestedContainer(this.toJSON());
+      return new Entity1OptionalDto.NestedContainer(this.toJSON());
     }
   };
   /**
@@ -1972,29 +1957,27 @@ export class Entity1EntityUpdateDto {
   static NestedContainerOpt = class NestedContainerOpt {
     /**
      *
-     * @type {Entity1EntityUpdateDto.NestedContainerOpt.NestedInner}
+     * @type {Entity1OptionalDto.NestedContainerOpt.NestedInner}
      **/
     #nestedInner = undefined;
     /**
      *
-     * @returns {Entity1EntityUpdateDto.NestedContainerOpt.NestedInner}
+     * @returns {Entity1OptionalDto.NestedContainerOpt.NestedInner}
      **/
     get nestedInner() {
       return this.#nestedInner;
     }
     /**
      *
-     * @type {Entity1EntityUpdateDto.NestedContainerOpt.NestedInner}
+     * @type {Entity1OptionalDto.NestedContainerOpt.NestedInner}
      **/
     set nestedInner(value) {
       // For objects, the sub type needs to always be instance of the sub class.
-      if (
-        value instanceof Entity1EntityUpdateDto.NestedContainerOpt.NestedInner
-      ) {
+      if (value instanceof Entity1OptionalDto.NestedContainerOpt.NestedInner) {
         this.#nestedInner = value;
       } else {
         this.#nestedInner =
-          new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner(value);
+          new Entity1OptionalDto.NestedContainerOpt.NestedInner(value);
       }
     }
     setNestedInner(value) {
@@ -2007,19 +1990,19 @@ export class Entity1EntityUpdateDto {
     static NestedInner = class NestedInner {
       /**
        *
-       * @type {Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt}
+       * @type {Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt}
        **/
       #nestedItemsOpt = undefined;
       /**
        *
-       * @returns {Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt}
+       * @returns {Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt}
        **/
       get nestedItemsOpt() {
         return this.#nestedItemsOpt;
       }
       /**
        *
-       * @type {Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt}
+       * @type {Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt}
        **/
       set nestedItemsOpt(value) {
         // For nullable array, we allow explicit undefined or null values
@@ -2033,15 +2016,14 @@ export class Entity1EntityUpdateDto {
           if (
             value.length > 0 &&
             value[0] instanceof
-              Entity1EntityUpdateDto.NestedContainerOpt.NestedInner
-                .NestedItemsOpt
+              Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt
           ) {
             this.#nestedItemsOpt = MArray.of(value);
           } else {
             this.#nestedItemsOpt = MArray.of(
               value.map(
                 (item) =>
-                  new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
+                  new Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
                     item,
                   ),
               ),
@@ -2184,32 +2166,32 @@ export class Entity1EntityUpdateDto {
           };
         }
         /**
-         * Creates an instance of Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt, and possibleDtoObject
+         * Creates an instance of Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt, and possibleDtoObject
          * needs to satisfy the type requirement fully, otherwise typescript compile would
          * be complaining.
          **/
         static from(possibleDtoObject) {
-          return new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
+          return new Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
             possibleDtoObject,
           );
         }
         /**
-         * Creates an instance of Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt, and partialDtoObject
+         * Creates an instance of Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt, and partialDtoObject
          * needs to satisfy the type, but partially, and rest of the content would
          * be constructed according to data types and nullability.
          **/
         static with(partialDtoObject) {
-          return new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
+          return new Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
             partialDtoObject,
           );
         }
         copyWith(partial) {
-          return new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
+          return new Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
             { ...this.toJSON(), ...partial },
           );
         }
         clone() {
-          return new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
+          return new Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt(
             this.toJSON(),
           );
         }
@@ -2272,40 +2254,40 @@ export class Entity1EntityUpdateDto {
           get nestedItemsOpt() {
             return withPrefix(
               "nestedContainerOpt.nestedInner.nestedItemsOpt[:i]",
-              Entity1EntityUpdateDto.NestedContainerOpt.NestedInner
-                .NestedItemsOpt.Fields,
+              Entity1OptionalDto.NestedContainerOpt.NestedInner.NestedItemsOpt
+                .Fields,
             );
           },
         };
       }
       /**
-       * Creates an instance of Entity1EntityUpdateDto.NestedContainerOpt.NestedInner, and possibleDtoObject
+       * Creates an instance of Entity1OptionalDto.NestedContainerOpt.NestedInner, and possibleDtoObject
        * needs to satisfy the type requirement fully, otherwise typescript compile would
        * be complaining.
        **/
       static from(possibleDtoObject) {
-        return new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner(
+        return new Entity1OptionalDto.NestedContainerOpt.NestedInner(
           possibleDtoObject,
         );
       }
       /**
-       * Creates an instance of Entity1EntityUpdateDto.NestedContainerOpt.NestedInner, and partialDtoObject
+       * Creates an instance of Entity1OptionalDto.NestedContainerOpt.NestedInner, and partialDtoObject
        * needs to satisfy the type, but partially, and rest of the content would
        * be constructed according to data types and nullability.
        **/
       static with(partialDtoObject) {
-        return new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner(
+        return new Entity1OptionalDto.NestedContainerOpt.NestedInner(
           partialDtoObject,
         );
       }
       copyWith(partial) {
-        return new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner({
+        return new Entity1OptionalDto.NestedContainerOpt.NestedInner({
           ...this.toJSON(),
           ...partial,
         });
       }
       clone() {
-        return new Entity1EntityUpdateDto.NestedContainerOpt.NestedInner(
+        return new Entity1OptionalDto.NestedContainerOpt.NestedInner(
           this.toJSON(),
         );
       }
@@ -2368,35 +2350,35 @@ export class Entity1EntityUpdateDto {
         get nestedInner() {
           return withPrefix(
             "nestedContainerOpt.nestedInner",
-            Entity1EntityUpdateDto.NestedContainerOpt.NestedInner.Fields,
+            Entity1OptionalDto.NestedContainerOpt.NestedInner.Fields,
           );
         },
       };
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.NestedContainerOpt, and possibleDtoObject
+     * Creates an instance of Entity1OptionalDto.NestedContainerOpt, and possibleDtoObject
      * needs to satisfy the type requirement fully, otherwise typescript compile would
      * be complaining.
      **/
     static from(possibleDtoObject) {
-      return new Entity1EntityUpdateDto.NestedContainerOpt(possibleDtoObject);
+      return new Entity1OptionalDto.NestedContainerOpt(possibleDtoObject);
     }
     /**
-     * Creates an instance of Entity1EntityUpdateDto.NestedContainerOpt, and partialDtoObject
+     * Creates an instance of Entity1OptionalDto.NestedContainerOpt, and partialDtoObject
      * needs to satisfy the type, but partially, and rest of the content would
      * be constructed according to data types and nullability.
      **/
     static with(partialDtoObject) {
-      return new Entity1EntityUpdateDto.NestedContainerOpt(partialDtoObject);
+      return new Entity1OptionalDto.NestedContainerOpt(partialDtoObject);
     }
     copyWith(partial) {
-      return new Entity1EntityUpdateDto.NestedContainerOpt({
+      return new Entity1OptionalDto.NestedContainerOpt({
         ...this.toJSON(),
         ...partial,
       });
     }
     clone() {
-      return new Entity1EntityUpdateDto.NestedContainerOpt(this.toJSON());
+      return new Entity1OptionalDto.NestedContainerOpt(this.toJSON());
     }
   };
   constructor(data) {
@@ -2584,11 +2566,11 @@ export class Entity1EntityUpdateDto {
       title: "title",
       items$: "items",
       get items() {
-        return withPrefix("items[:i]", Entity1EntityUpdateDto.Items.Fields);
+        return withPrefix("items[:i]", Entity1OptionalDto.Items.Fields);
       },
       items2$: "items2",
       get items2() {
-        return withPrefix("items2[:i]", Entity1EntityUpdateDto.Items2.Fields);
+        return withPrefix("items2[:i]", Entity1OptionalDto.Items2.Fields);
       },
       items3$: "items3",
       get items3() {
@@ -2602,11 +2584,11 @@ export class Entity1EntityUpdateDto {
       manager: "manager",
       content1$: "content1",
       get content1() {
-        return withPrefix("content1", Entity1EntityUpdateDto.Content1.Fields);
+        return withPrefix("content1", Entity1OptionalDto.Content1.Fields);
       },
       content2$: "content2",
       get content2() {
-        return withPrefix("content2", Entity1EntityUpdateDto.Content2.Fields);
+        return withPrefix("content2", Entity1OptionalDto.Content2.Fields);
       },
       complex1: "complex1",
       subtitle: "subtitle",
@@ -2634,38 +2616,38 @@ export class Entity1EntityUpdateDto {
       get nestedContainer() {
         return withPrefix(
           "nestedContainer",
-          Entity1EntityUpdateDto.NestedContainer.Fields,
+          Entity1OptionalDto.NestedContainer.Fields,
         );
       },
       nestedContainerOpt$: "nestedContainerOpt",
       get nestedContainerOpt() {
         return withPrefix(
           "nestedContainerOpt",
-          Entity1EntityUpdateDto.NestedContainerOpt.Fields,
+          Entity1OptionalDto.NestedContainerOpt.Fields,
         );
       },
     };
   }
   /**
-   * Creates an instance of Entity1EntityUpdateDto, and possibleDtoObject
+   * Creates an instance of Entity1OptionalDto, and possibleDtoObject
    * needs to satisfy the type requirement fully, otherwise typescript compile would
    * be complaining.
    **/
   static from(possibleDtoObject) {
-    return new Entity1EntityUpdateDto(possibleDtoObject);
+    return new Entity1OptionalDto(possibleDtoObject);
   }
   /**
-   * Creates an instance of Entity1EntityUpdateDto, and partialDtoObject
+   * Creates an instance of Entity1OptionalDto, and partialDtoObject
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
   static with(partialDtoObject) {
-    return new Entity1EntityUpdateDto(partialDtoObject);
+    return new Entity1OptionalDto(partialDtoObject);
   }
   copyWith(partial) {
-    return new Entity1EntityUpdateDto({ ...this.toJSON(), ...partial });
+    return new Entity1OptionalDto({ ...this.toJSON(), ...partial });
   }
   clone() {
-    return new Entity1EntityUpdateDto(this.toJSON());
+    return new Entity1OptionalDto(this.toJSON());
   }
 }

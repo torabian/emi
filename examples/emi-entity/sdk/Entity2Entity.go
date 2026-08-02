@@ -2,7 +2,9 @@ package external
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/torabian/emi/emigo"
+	"github.com/torabian/emi/emigorm"
 	"gorm.io/gorm"
 )
 
@@ -81,7 +83,7 @@ func Entity2EntityCreateFn(tx *gorm.DB, dto *Entity2Entity) (*Entity2Entity, err
 // Entity2EntityCreateFn uses, against entity.Id (the row's real primary key, resolved from id
 // up front - gorm's Association API and the has-many reconcile both join on it, not on
 // uniqueId).
-func Entity2EntityUpdateFn(tx *gorm.DB, id string, input Entity2EntityUpdateDto) (*Entity2Entity, error) {
+func Entity2EntityUpdateFn(tx *gorm.DB, id string, input Entity2UpdateDto) (*Entity2Entity, error) {
 	var entity Entity2Entity
 	err := tx.Transaction(func(tx *gorm.DB) error {
 		if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
@@ -108,16 +110,115 @@ func Entity2EntityUpdateFn(tx *gorm.DB, id string, input Entity2EntityUpdateDto)
 	return &updated, nil
 }
 
+// Entity2EntityGetFn looks up a single Entity2Entity row by its public uniqueId (e.g. from an API path
+// parameter - never the internal auto-increment id).
+func Entity2EntityGetFn(tx *gorm.DB, id string) (*Entity2Entity, error) {
+	var entity Entity2Entity
+	if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
+// Entity2EntityQueryFn returns Entity2Entity rows matching dsl.Filter (a JSON-logic expression, see
+// emigorm.QueryDSL), sorted/paged per dsl.Sort/StartIndex/ItemsPerPage, alongside the
+// total row count matching the filter (ignoring paging - useful for building a pager).
+func Entity2EntityQueryFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity2Entity, int64, error) {
+	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity2Entity{}), dsl)
+	if err != nil {
+		return nil, 0, err
+	}
+	var total int64
+	if err := filtered.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var items []*Entity2Entity
+	paged := emigorm.ApplyQueryPage(emigorm.ApplyQuerySort(filtered, dsl), dsl)
+	if err := paged.Find(&items).Error; err != nil {
+		return nil, 0, err
+	}
+	return items, total, nil
+}
+
+// Entity2EntityAwareDeleteAffected reports one relation of Entity2Entity that would be affected by
+// deleting the matching row(s) - either its has-many child rows are hard-deleted
+// (array/array?) or its many-to-many join rows are cleared, leaving the target rows
+// themselves untouched (collection/collection?). one/one? relations are never listed:
+// they're a plain FK column on Entity2Entity itself, so deleting Entity2Entity doesn't cascade into them.
+type Entity2EntityAwareDeleteAffected struct {
+	Relation string `json:"relation"`
+	Count    int64  `json:"count"`
+}
+
+// Entity2EntityAwareDeletePreview is the result of Entity2EntityAwareDeletePreviewFn: a human-readable
+// summary plus the exact per-relation counts Entity2EntityAwareDeleteFn would delete/clear
+// alongside the Entity2Entity row(s) themselves.
+type Entity2EntityAwareDeletePreview struct {
+	Message  string                             `json:"message"`
+	Affected []Entity2EntityAwareDeleteAffected `json:"affected"`
+}
+
+// Entity2EntityAwareDeletePreviewFn looks up the Entity2Entity rows matching uniqueIds and reports what
+// deleting them would affect - every array/array?/collection/collection? relation (at
+// any nesting depth inside object/object? containers), matching exactly what
+// Entity2EntityAwareDeleteFn deletes/clears. Intended as a confirmation step before actually
+// calling Entity2EntityAwareDeleteFn.
+func Entity2EntityAwareDeletePreviewFn(tx *gorm.DB, uniqueIds []string) (*Entity2EntityAwareDeletePreview, error) {
+	var rows []*Entity2Entity
+	if err := tx.Where("unique_id IN ?", uniqueIds).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
+		return &Entity2EntityAwareDeletePreview{Message: "No matching Entity2Entity row was found for the given uniqueIds."}, nil
+	}
+	ids := make([]int64, len(rows))
+	for i := range rows {
+		ids[i] = rows[i].Id
+	}
+	affected := []Entity2EntityAwareDeleteAffected{}
+	var total int64
+	message := fmt.Sprintf("Deleting %d Entity2Entity row(s) will affect %d related record(s) across %d relation(s).", len(rows), total, len(affected))
+	return &Entity2EntityAwareDeletePreview{Message: message, Affected: affected}, nil
+}
+
+// Entity2EntityAwareDeleteFn deletes the Entity2Entity rows matching uniqueIds, along with every
+// array/array?/collection/collection? relation Entity2EntityAwareDeletePreviewFn reports (see
+// its own doc comment for exactly what that means per relation kind).
+func Entity2EntityAwareDeleteFn(tx *gorm.DB, uniqueIds []string) error {
+	return tx.Transaction(func(tx *gorm.DB) error {
+		var rows []*Entity2Entity
+		if err := tx.Where("unique_id IN ?", uniqueIds).Find(&rows).Error; err != nil {
+			return err
+		}
+		if len(rows) == 0 {
+			return nil
+		}
+		ids := make([]int64, len(rows))
+		for i := range rows {
+			ids[i] = rows[i].Id
+		}
+		return tx.Where("id IN ?", ids).Delete(&Entity2Entity{}).Error
+	})
+}
+
 // Entity2EntityActionsSig bundles the actions available for Entity2Entity. Extend this (and
-// Entity2EntityActions below) with more fields as more actions are generated - Create/Update
-// are wired to Entity2EntityCreateFn/Entity2EntityUpdateFn by default, but callers can swap either out
-// (e.g. in tests, or to layer extra validation/side effects around them).
+// Entity2EntityActions below) with more fields as more actions are generated. Which fields are
+// present here depends on entity.Features (see Module3EntityFeatures) - a disabled
+// feature is omitted entirely rather than left as a nil func.
 type Entity2EntityActionsSig struct {
-	Create func(tx *gorm.DB, dto *Entity2Entity) (*Entity2Entity, error)
-	Update func(tx *gorm.DB, id string, input Entity2EntityUpdateDto) (*Entity2Entity, error)
+	Create             func(tx *gorm.DB, dto *Entity2Entity) (*Entity2Entity, error)
+	Update             func(tx *gorm.DB, id string, input Entity2UpdateDto) (*Entity2Entity, error)
+	Get                func(tx *gorm.DB, id string) (*Entity2Entity, error)
+	Query              func(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity2Entity, int64, error)
+	AwareDeletePreview func(tx *gorm.DB, uniqueIds []string) (*Entity2EntityAwareDeletePreview, error)
+	AwareDelete        func(tx *gorm.DB, uniqueIds []string) error
 }
 
 var Entity2EntityActions Entity2EntityActionsSig = Entity2EntityActionsSig{
-	Create: Entity2EntityCreateFn,
-	Update: Entity2EntityUpdateFn,
+	Create:             Entity2EntityCreateFn,
+	Update:             Entity2EntityUpdateFn,
+	Get:                Entity2EntityGetFn,
+	Query:              Entity2EntityQueryFn,
+	AwareDeletePreview: Entity2EntityAwareDeletePreviewFn,
+	AwareDelete:        Entity2EntityAwareDeleteFn,
 }
