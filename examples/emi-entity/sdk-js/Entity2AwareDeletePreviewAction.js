@@ -1,3 +1,4 @@
+import { GResponse } from "./sdk/envelopes/index";
 import { MArray } from "./sdk/common/operators";
 import { URLSearchParamsX } from "./sdk/common/URLSearchParamsX";
 import { buildUrl } from "./sdk/common/buildUrl";
@@ -41,7 +42,14 @@ export class Entity2AwareDeletePreviewAction {
     );
     return handleFetchResponse(
       res,
-      (item) => (creatorFn ? creatorFn(item) : item),
+      (data) => {
+        const resp = new GResponse();
+        if (creatorFn) {
+          resp.setCreator(creatorFn);
+        }
+        resp.inject(data);
+        return resp;
+      },
       onMessage,
       init?.signal,
     );
@@ -60,6 +68,7 @@ export class Entity2AwareDeletePreviewAction {
     description:
       'Reports what deleting the given "entity2" uniqueIds would affect, without deleting anything.',
     out: {
+      envelope: "GResponse",
       fields: [
         {
           name: "message",

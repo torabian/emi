@@ -73,7 +73,7 @@ export class Entity3BrowseAction {
       },
     ],
     description:
-      'Returns "entity3" rows matching a filter, sorted/paged (see emigorm.QueryDSL).',
+      'Returns "entity3" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).',
     out: {
       envelope: "GResponse",
       dto: "Entity3OptionalDto",

@@ -120,10 +120,10 @@ type Module3EntityFeatures struct {
 	// from the generated code.
 	Get *bool `yaml:"get,omitempty" json:"get,omitempty" jsonschema:"description=Generates {Entity}GetFn (a single-row lookup by uniqueId) and wires it into {Entity}ActionsSig.Get. Enabled by default; set to false to omit Get entirely from the generated code."`
 
-	// Generates {Entity}BrowseFn (a filtered/sorted/paged list, see emigorm.QueryDSL)
+	// Generates {Entity}BrowseFn (a filtered/sorted/paged list, see emigorm.ApplyQueryFilter/ApplyQueryScope)
 	// and wires it into {Entity}ActionsSig.Browse. Enabled by default; set to false to
 	// omit Browse entirely from the generated code.
-	Browse *bool `yaml:"browse,omitempty" json:"browse,omitempty" jsonschema:"description=Generates {Entity}BrowseFn (a filtered/sorted/paged list, see emigorm.QueryDSL) and wires it into {Entity}ActionsSig.Browse. Enabled by default; set to false to omit Browse entirely from the generated code."`
+	Browse *bool `yaml:"browse,omitempty" json:"browse,omitempty" jsonschema:"description=Generates {Entity}BrowseFn (a filtered/sorted/paged list, see emigorm.ApplyQueryFilter/ApplyQueryScope) and wires it into {Entity}ActionsSig.Browse. Enabled by default; set to false to omit Browse entirely from the generated code."`
 
 	// Generates {Entity}AwareDeletePreviewFn/{Entity}AwareDeleteFn (see AwareDelete in
 	// lib/golang/go-entity-delete.go) and wires them into {Entity}ActionsSig. Enabled

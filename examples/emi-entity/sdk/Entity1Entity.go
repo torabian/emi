@@ -881,19 +881,19 @@ func Entity1EntityCreateFn(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, err
 	return dto, nil
 }
 
-// Entity1EntityUpdateFn applies a partial update to the Entity1Entity row identified by id (its public
-// uniqueId, e.g. from an API path parameter - never the internal auto-increment id).
-// Only fields the caller actually set on input (input.{Field}.IsSet()) are touched -
+// Entity1EntityUpdateFn applies a partial update to the Entity1Entity row identified by uniqueId (its
+// public identity, e.g. from an API path parameter - never the internal auto-increment
+// id). Only fields the caller actually set on input (input.{Field}.IsSet()) are touched -
 // anything else is left exactly as it was. one/one? are resolved into their {field}Id
 // FK column alongside the rest of the scalar changes; array/array? and
 // collection/collection? are reconciled afterwards via the same emigorm helpers
-// Entity1EntityCreateFn uses, against entity.Id (the row's real primary key, resolved from id
-// up front - gorm's Association API and the has-many reconcile both join on it, not on
-// uniqueId).
-func Entity1EntityUpdateFn(tx *gorm.DB, id string, input Entity1OptionalDto) (*Entity1Entity, error) {
+// Entity1EntityCreateFn uses, against entity.Id (the row's real primary key, resolved from
+// uniqueId up front - gorm's Association API and the has-many reconcile both join on
+// it, not on uniqueId).
+func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDto) (*Entity1Entity, error) {
 	var entity Entity1Entity
 	err := tx.Transaction(func(tx *gorm.DB) error {
-		if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+		if err := tx.First(&entity, "unique_id = ?", uniqueId).Error; err != nil {
 			return err
 		}
 		changes := map[string]interface{}{}
@@ -1134,7 +1134,7 @@ func Entity1EntityUpdateFn(tx *gorm.DB, id string, input Entity1OptionalDto) (*E
 		return nil, err
 	}
 	var updated Entity1Entity
-	if err := tx.First(&updated, "unique_id = ?", id).Error; err != nil {
+	if err := tx.First(&updated, "unique_id = ?", uniqueId).Error; err != nil {
 		return nil, err
 	}
 	return &updated, nil
@@ -1142,31 +1142,31 @@ func Entity1EntityUpdateFn(tx *gorm.DB, id string, input Entity1OptionalDto) (*E
 
 // Entity1EntityGetFn looks up a single Entity1Entity row by its public uniqueId (e.g. from an API path
 // parameter - never the internal auto-increment id).
-func Entity1EntityGetFn(tx *gorm.DB, id string) (*Entity1Entity, error) {
+func Entity1EntityGetFn(tx *gorm.DB, uniqueId string) (*Entity1Entity, error) {
 	var entity Entity1Entity
-	if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+	if err := tx.First(&entity, "unique_id = ?", uniqueId).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
 }
 
-// Entity1EntityBrowseFn returns Entity1Entity rows matching dsl.Filter (a JSON-logic expression) and
-// dsl.Scope (a second, handler-enforced condition - e.g. workspace isolation - see
-// emigorm.QueryDSL), sorted/paged per dsl.Sort/StartIndex/ItemsPerPage/Cursor, alongside
-// a emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
+// Entity1EntityBrowseFn returns Entity1Entity rows matching qs.Filter (a JSON-logic expression) and
+// scope/scopeArgs (a second, handler-enforced condition - e.g. workspace isolation),
+// sorted/paged per qs.Sort/StartIndex/ItemsPerPage/Cursor, alongside a
+// emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
 // paging) and a cursor for fetching the next page.
-func Entity1EntityBrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity1Entity, *emigo.QueryResultMeta, error) {
-	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity1Entity{}), dsl)
+func Entity1EntityBrowseFn(tx *gorm.DB, qs Entity1BrowseActionQuery, scope string, scopeArgs ...interface{}) ([]*Entity1Entity, *emigo.QueryResultMeta, error) {
+	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity1Entity{}), qs.Filter)
 	if err != nil {
 		return nil, nil, err
 	}
-	filtered = emigorm.ApplyQueryScope(filtered, dsl)
+	filtered = emigorm.ApplyQueryScope(filtered, scope, scopeArgs...)
 	var total int64
 	if err := filtered.Count(&total).Error; err != nil {
 		return nil, nil, err
 	}
 	var items []*Entity1Entity
-	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, dsl), dsl), dsl)
+	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, qs.Sort), qs.Cursor), qs.StartIndex, qs.ItemsPerPage)
 	if err := paged.Find(&items).Error; err != nil {
 		return nil, nil, err
 	}
@@ -1306,9 +1306,9 @@ func Entity1EntityAwareDeleteFn(tx *gorm.DB, uniqueIds []string) error {
 // feature is omitted entirely rather than left as a nil func.
 type Entity1EntityActionsSig struct {
 	Create             func(tx *gorm.DB, dto *Entity1Entity) (*Entity1Entity, error)
-	Update             func(tx *gorm.DB, id string, input Entity1OptionalDto) (*Entity1Entity, error)
-	Get                func(tx *gorm.DB, id string) (*Entity1Entity, error)
-	Browse             func(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity1Entity, *emigo.QueryResultMeta, error)
+	Update             func(tx *gorm.DB, uniqueId string, input Entity1OptionalDto) (*Entity1Entity, error)
+	Get                func(tx *gorm.DB, uniqueId string) (*Entity1Entity, error)
+	Browse             func(tx *gorm.DB, qs Entity1BrowseActionQuery, scope string, scopeArgs ...interface{}) ([]*Entity1Entity, *emigo.QueryResultMeta, error)
 	AwareDeletePreview func(tx *gorm.DB, uniqueIds []string) (*Entity1EntityAwareDeletePreview, error)
 	AwareDelete        func(tx *gorm.DB, uniqueIds []string) error
 }

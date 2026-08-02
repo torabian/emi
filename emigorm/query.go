@@ -10,47 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// QueryDSL is the input to a generated {Entity}BrowseFn: a JSON-logic filter
-// (https://jsonlogic.com) transpiled to a SQL WHERE clause via jsonlogic2sql, plus a
-// plain offset/limit pager, a raw sort expression, a keyset-pagination cursor, and a
-// second, independent scope condition. Deliberately much leaner than fireback's own
-// QueryDSL (no gin/cli/websocket/permission coupling) - emi's generated code has no
-// HTTP framework opinion of its own; a caller's own handler layer is expected to build
-// one of these from whatever request shape it has.
-type QueryDSL struct {
-	// Filter is a JSON-logic expression as JSON text, e.g.
-	// `{"contains":[{"var":"title"},"hello"]}`. Empty means no filtering at all. This is
-	// the *user*-controlled half of filtering - see Scope for the other half.
-	Filter string `json:"filter"`
-
-	// Scope is a second, independent SQL WHERE fragment (optionally with `?`
-	// placeholders, values in ScopeArgs) - e.g. "workspace_id = ?" - that the *caller's
-	// own handler* enforces, never something derived from end-user input. Applied via
-	// ApplyQueryScope, as its own step separate from Filter/ApplyQueryFilter, so a
-	// user-supplied Filter has no way to widen or bypass it. json:"-" deliberately:
-	// unlike Filter, Scope must never be settable from a request body/querystring the
-	// way an EmiAction's fields are - only a handler assembling QueryDSL by hand sets
-	// it, after that caller's identity/permissions are already known.
-	Scope     string        `json:"-"`
-	ScopeArgs []interface{} `json:"-"`
-
-	// Sort is passed straight to gorm's Order() - e.g. "created_at desc". Empty means
-	// the database's own default order.
-	Sort string `json:"sort"`
-
-	// StartIndex/ItemsPerPage are a plain offset/limit pager. Values <= 0 mean that
-	// part of paging isn't applied (no offset / no limit, respectively).
-	StartIndex   int `json:"startIndex"`
-	ItemsPerPage int `json:"itemsPerPage"`
-
-	// Cursor resumes a previous page - always exactly what a prior call's
-	// emigo.QueryResultMeta.Cursor returned (see ApplyQueryCursor/BuildQueryCursor);
-	// empty means "start from the beginning" (or use StartIndex, if set, for a plain
-	// offset instead).
-	Cursor string `json:"cursor"`
-}
-
-// registerQueryOperators adds the custom operators emi's Query filter understands on
+// registerQueryOperators adds the custom operators emi's Browse filter understands on
 // top of jsonlogic2sql's own built-ins (==, !=, >, <, and, or, in, ...). "contains" -
 // substring match via LIKE - mirrors fireback's own JsonQueryTools.go exactly, since
 // json-logic has no native substring operator.
@@ -66,14 +26,19 @@ func registerQueryOperators(tr *jsonlogic2sql.Transpiler) {
 	})
 }
 
-// ApplyQueryFilter transpiles dsl.Filter (if set) to SQL and applies it to tx via
-// Where(), returning the resulting *gorm.DB. Deliberately does *not* apply
-// Sort/StartIndex/ItemsPerPage - see ApplyQuerySort/ApplyQueryPage - since a caller
-// almost always wants to run Count() against the filtered-but-unpaged query before
-// paging the actual Find(), and gorm's Count() only ignores Limit/Offset reliably when
-// they were never added to the statement being counted in the first place.
-func ApplyQueryFilter(tx *gorm.DB, dsl QueryDSL) (*gorm.DB, error) {
-	if dsl.Filter == "" {
+// ApplyQueryFilter transpiles filter (a JSON-logic expression, https://jsonlogic.com -
+// e.g. `{"contains":[{"var":"title"},"hello"]}` - empty means no filtering at all) to
+// SQL via jsonlogic2sql and applies it to tx via Where(), returning the resulting
+// *gorm.DB. filter is the *user*-controlled half of filtering - see ApplyQueryScope for
+// the other half.
+//
+// Deliberately does *not* apply sort/paging - see ApplyQuerySort/ApplyQueryPage - since
+// a caller almost always wants to run Count() against the filtered-but-unpaged query
+// before paging the actual Find(), and gorm's Count() only ignores Limit/Offset
+// reliably when they were never added to the statement being counted in the first
+// place.
+func ApplyQueryFilter(tx *gorm.DB, filter string) (*gorm.DB, error) {
+	if filter == "" {
 		return tx, nil
 	}
 
@@ -83,7 +48,7 @@ func ApplyQueryFilter(tx *gorm.DB, dsl QueryDSL) (*gorm.DB, error) {
 	}
 	registerQueryOperators(tr)
 
-	sql, err := tr.TranspileCondition(dsl.Filter)
+	sql, err := tr.TranspileCondition(filter)
 	if err != nil {
 		return nil, err
 	}
@@ -93,33 +58,36 @@ func ApplyQueryFilter(tx *gorm.DB, dsl QueryDSL) (*gorm.DB, error) {
 	return tx.Where(sql), nil
 }
 
-// ApplyQueryScope applies dsl.Scope (if set) via Where(), exactly like ApplyQueryFilter
-// but for the condition a caller's own handler enforces rather than one derived from
-// end-user input (see QueryDSL.Scope) - e.g. workspace/tenant isolation. Kept as its
-// own step (rather than folded into ApplyQueryFilter) precisely so it can be applied
-// unconditionally, with Filter having no way to interact with or override it.
-func ApplyQueryScope(tx *gorm.DB, dsl QueryDSL) *gorm.DB {
-	if dsl.Scope == "" {
+// ApplyQueryScope applies scope (a raw SQL WHERE fragment, optionally with `?`
+// placeholders, values in scopeArgs - e.g. "workspace_id = ?" - empty means no scoping
+// at all) via Where(), exactly like ApplyQueryFilter but for a condition the *caller's
+// own handler* enforces - e.g. workspace/tenant isolation - rather than one derived
+// from end-user input. Kept as its own step (rather than folded into ApplyQueryFilter)
+// precisely so it can be applied unconditionally, with filter having no way to interact
+// with or override it.
+func ApplyQueryScope(tx *gorm.DB, scope string, scopeArgs ...interface{}) *gorm.DB {
+	if scope == "" {
 		return tx
 	}
-	return tx.Where(dsl.Scope, dsl.ScopeArgs...)
+	return tx.Where(scope, scopeArgs...)
 }
 
-// ApplyQuerySort applies dsl.Sort (if set) via Order().
-func ApplyQuerySort(tx *gorm.DB, dsl QueryDSL) *gorm.DB {
-	if dsl.Sort == "" {
+// ApplyQuerySort applies sort (if non-empty) via Order() - e.g. "created_at desc".
+func ApplyQuerySort(tx *gorm.DB, sort string) *gorm.DB {
+	if sort == "" {
 		return tx
 	}
-	return tx.Order(dsl.Sort)
+	return tx.Order(sort)
 }
 
-// ApplyQueryPage applies dsl.StartIndex/ItemsPerPage (if set) via Offset()/Limit().
-func ApplyQueryPage(tx *gorm.DB, dsl QueryDSL) *gorm.DB {
-	if dsl.StartIndex > 0 {
-		tx = tx.Offset(dsl.StartIndex)
+// ApplyQueryPage applies startIndex/itemsPerPage (values <= 0 mean that part of paging
+// isn't applied - no offset / no limit, respectively) via Offset()/Limit().
+func ApplyQueryPage(tx *gorm.DB, startIndex int, itemsPerPage int) *gorm.DB {
+	if startIndex > 0 {
+		tx = tx.Offset(startIndex)
 	}
-	if dsl.ItemsPerPage > 0 {
-		tx = tx.Limit(dsl.ItemsPerPage)
+	if itemsPerPage > 0 {
+		tx = tx.Limit(itemsPerPage)
 	}
 	return tx
 }
@@ -128,24 +96,27 @@ func ApplyQueryPage(tx *gorm.DB, dsl QueryDSL) *gorm.DB {
 // BuildQueryCursor use - mirrors fireback's own cursor encoding exactly (see
 // fireback's CrudCoreActions.go, parseCursor/QueryEntitiesPointer), minus the
 // "+sort(...)" suffix fireback tacks on (the same information already travels
-// separately as QueryDSL.Sort, so it doesn't need to be re-embedded in the cursor).
+// separately as the sort value, so it doesn't need to be re-embedded in the cursor).
 var cursorPattern = regexp.MustCompile(`^(\w+)\((\d+)\)$`)
 
-// ApplyQueryCursor applies dsl.Cursor (if set and well-formed) as a keyset-pagination
-// WHERE clause, picking up right after the last row a previous page returned - id > n,
-// where n is whatever BuildQueryCursor encoded into the cursor a prior call returned.
-// A malformed or empty cursor is silently ignored (same behavior ApplyQueryFilter has
-// for a bad filter), returning tx unchanged.
+// ApplyQueryCursor applies cursor (if non-empty and well-formed) as a
+// keyset-pagination WHERE clause, picking up right after the last row a previous page
+// returned - id > n, where n is whatever BuildQueryCursor encoded into the cursor a
+// prior call returned. Resumes a previous page - cursor is always exactly what a prior
+// call's own emigo.QueryResultMeta.Cursor returned; empty means "start from the
+// beginning" (or use startIndex, if set, for a plain offset instead). A malformed or
+// empty cursor is silently ignored (same behavior ApplyQueryFilter has for a bad
+// filter), returning tx unchanged.
 //
 // Like fireback's own implementation, the comparison operator is unconditionally ">" -
 // correct for the common "ascending by id" case, but not adjusted for a descending
-// dsl.Sort. Keyset pagination direction-awareness is a real gap in both, not something
+// sort. Keyset pagination direction-awareness is a real gap in both, not something
 // unique to this port.
-func ApplyQueryCursor(tx *gorm.DB, dsl QueryDSL) *gorm.DB {
-	if dsl.Cursor == "" {
+func ApplyQueryCursor(tx *gorm.DB, cursor string) *gorm.DB {
+	if cursor == "" {
 		return tx
 	}
-	matches := cursorPattern.FindStringSubmatch(dsl.Cursor)
+	matches := cursorPattern.FindStringSubmatch(cursor)
 	if len(matches) != 3 || matches[1] != "id" {
 		return tx
 	}

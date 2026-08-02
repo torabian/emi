@@ -42,7 +42,7 @@ func Entity4UpdateActionMeta() struct {
 	}{
 		Name:        "Entity4UpdateAction",
 		CliName:     "entity4-update-action",
-		URL:         "/entity4/:id",
+		URL:         "/entity4/:uniqueId",
 		Method:      "PATCH",
 		Description: `Applies a partial update to a "entity4" row by uniqueId.`,
 	}
@@ -122,19 +122,19 @@ type Entity4UpdateActionRequestSig = func(c Entity4UpdateActionRequest) (*Entity
  * Path parameters for Entity4UpdateAction
  */
 type Entity4UpdateActionPathParameter struct {
-	Id string
+	UniqueId string
 }
 
 // Converts a placeholder url, and applies the parameters to it.
 func Entity4UpdateActionPathParameterApply(params Entity4UpdateActionPathParameter, templateUrl string) string {
-	templateUrl = strings.ReplaceAll(templateUrl, ":id", fmt.Sprintf("%v", params.Id))
+	templateUrl = strings.ReplaceAll(templateUrl, ":uniqueId", fmt.Sprintf("%v", params.UniqueId))
 	return templateUrl
 }
 
 // General purpose to extract the value and cast based on type.
 func Entity4UpdateActionPathParameterFromFn(fn func(key string) string) Entity4UpdateActionPathParameter {
 	res := Entity4UpdateActionPathParameter{}
-	res.Id = fn("id")
+	res.UniqueId = fn("uniqueId")
 	return res
 }
 
@@ -291,7 +291,7 @@ func Entity4UpdateActionCall(
 func GetEntity4UpdateActionPathParameterCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
-			Name:     prefix + "pp-id",
+			Name:     prefix + "pp-uniqueId",
 			Type:     "string",
 			Required: true,
 		},

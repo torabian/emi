@@ -46,42 +46,6 @@ func Entity2CreateActionMeta() struct {
 	}
 }
 
-// The base class definition for entity2CreateActionRes
-type Entity2CreateActionRes struct {
-	UniqueId string `json:"uniqueId" yaml:"uniqueId"`
-	Label2   string `json:"label2" yaml:"label2"`
-}
-
-func (x *Entity2CreateActionRes) Json() string {
-	if x != nil {
-		str, _ := json.MarshalIndent(x, "", "  ")
-		return string(str)
-	}
-	return ""
-}
-func GetEntity2CreateActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "unique-id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "label2",
-			Type: "string",
-		},
-	}
-}
-func CastEntity2CreateActionResFromCli(c emigo.CliCastable) Entity2CreateActionRes {
-	data := Entity2CreateActionRes{}
-	if c.IsSet("unique-id") {
-		data.UniqueId = c.String("unique-id")
-	}
-	if c.IsSet("label2") {
-		data.Label2 = c.String("label2")
-	}
-	return data
-}
-
 type Entity2CreateActionResponse struct {
 	StatusCode int
 	Headers    map[string]string
@@ -112,18 +76,18 @@ func (x *Entity2CreateActionResponse) AsJSON(payload any) *Entity2CreateActionRe
 
 // When the response is expected as documentation, you call this to get some type
 // safety for the action which is happening.
-func (x *Entity2CreateActionResponse) WithIdeal(payload Entity2CreateActionRes) *Entity2CreateActionResponse {
+func (x *Entity2CreateActionResponse) WithIdeal(payload Entity2Dto) *Entity2CreateActionResponse {
 	x.Payload = payload
 	return x
 }
 
 // Use this for client calls, so the payload is being casted
-func (x *Entity2CreateActionResponse) AsIdeal() (*Entity2CreateActionRes, error) {
+func (x *Entity2CreateActionResponse) AsIdeal() (*Entity2Dto, error) {
 	b, err := json.Marshal(x.GetPayload())
 	if err != nil {
 		return nil, err
 	}
-	var res Entity2CreateActionRes
+	var res Entity2Dto
 	if err := json.Unmarshal(b, &res); err != nil {
 		return nil, err
 	}

@@ -6,10 +6,9 @@ import (
 	"testing"
 
 	"github.com/torabian/emi/emigo"
-	"github.com/torabian/emi/emigorm"
 )
 
-// These exercise Entity1EntityGetFn/Entity1EntityQueryFn/Entity1EntityAwareDeletePreviewFn/
+// These exercise Entity1EntityGetFn/Entity1EntityBrowseFn/Entity1EntityAwareDeletePreviewFn/
 // Entity1EntityAwareDeleteFn end to end - see actions_postgres_test.go for
 // openPostgresTestDB and why these need a real Postgres instance rather than sqlite.
 
@@ -39,13 +38,13 @@ func TestEntity1EntityBrowseFn_FiltersSortsAndPagesWithTotalIgnoringPaging(t *te
 		}
 	}
 
-	items, meta, err := Entity1EntityActions.Browse(db, emigorm.QueryDSL{
+	items, meta, err := Entity1EntityActions.Browse(db, Entity1BrowseActionQuery{
 		Filter:       `{"contains":[{"var":"title"},"apple"]}`,
 		Sort:         "title asc",
 		ItemsPerPage: 2,
-	})
+	}, "")
 	if err != nil {
-		t.Fatalf("Query error: %v", err)
+		t.Fatalf("Browse error: %v", err)
 	}
 	if meta.TotalItems != 3 {
 		t.Fatalf("TotalItems = %d, want 3 (paging must not affect the count)", meta.TotalItems)
@@ -63,14 +62,14 @@ func TestEntity1EntityBrowseFn_FiltersSortsAndPagesWithTotalIgnoringPaging(t *te
 	// Following the returned cursor should resume right after the last item already
 	// seen, regardless of StartIndex - the remaining "apple-3" row, not a second copy
 	// of the first page.
-	nextItems, nextMeta, err := Entity1EntityActions.Browse(db, emigorm.QueryDSL{
+	nextItems, nextMeta, err := Entity1EntityActions.Browse(db, Entity1BrowseActionQuery{
 		Filter:       `{"contains":[{"var":"title"},"apple"]}`,
 		Sort:         "title asc",
 		ItemsPerPage: 2,
 		Cursor:       *meta.Cursor,
-	})
+	}, "")
 	if err != nil {
-		t.Fatalf("Query (cursor) error: %v", err)
+		t.Fatalf("Browse (cursor) error: %v", err)
 	}
 	if nextMeta.TotalItems != 3 {
 		t.Fatalf("TotalItems (cursor page) = %d, want 3", nextMeta.TotalItems)

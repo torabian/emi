@@ -41,7 +41,7 @@ func Entity4GetActionMeta() struct {
 	}{
 		Name:        "Entity4GetAction",
 		CliName:     "entity4-get-action",
-		URL:         "/entity4/:id",
+		URL:         "/entity4/:uniqueId",
 		Method:      "GET",
 		Description: `Looks up a single "entity4" row by uniqueId.`,
 	}
@@ -121,19 +121,19 @@ type Entity4GetActionRequestSig = func(c Entity4GetActionRequest) (*Entity4GetAc
  * Path parameters for Entity4GetAction
  */
 type Entity4GetActionPathParameter struct {
-	Id string
+	UniqueId string
 }
 
 // Converts a placeholder url, and applies the parameters to it.
 func Entity4GetActionPathParameterApply(params Entity4GetActionPathParameter, templateUrl string) string {
-	templateUrl = strings.ReplaceAll(templateUrl, ":id", fmt.Sprintf("%v", params.Id))
+	templateUrl = strings.ReplaceAll(templateUrl, ":uniqueId", fmt.Sprintf("%v", params.UniqueId))
 	return templateUrl
 }
 
 // General purpose to extract the value and cast based on type.
 func Entity4GetActionPathParameterFromFn(fn func(key string) string) Entity4GetActionPathParameter {
 	res := Entity4GetActionPathParameter{}
-	res.Id = fn("id")
+	res.UniqueId = fn("uniqueId")
 	return res
 }
 
@@ -286,7 +286,7 @@ func Entity4GetActionCall(
 func GetEntity4GetActionPathParameterCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
-			Name:     prefix + "pp-id",
+			Name:     prefix + "pp-uniqueId",
 			Type:     "string",
 			Required: true,
 		},

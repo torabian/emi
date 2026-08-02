@@ -31,7 +31,7 @@ func TestApplyQueryFilter_EmptyFilterReturnsTxUnchanged(t *testing.T) {
 	// entity tests instead).
 	tx := &gorm.DB{}
 
-	out, err := ApplyQueryFilter(tx, QueryDSL{})
+	out, err := ApplyQueryFilter(tx, "")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -44,7 +44,7 @@ func TestApplyQueryCursor_EmptyOrMalformedCursorReturnsTxUnchanged(t *testing.T)
 	tx := &gorm.DB{}
 
 	for _, cursor := range []string{"", "not-a-cursor", "sort(title)"} {
-		out := ApplyQueryCursor(tx, QueryDSL{Cursor: cursor})
+		out := ApplyQueryCursor(tx, cursor)
 		if out != tx {
 			t.Fatalf("cursor %q: expected the exact same *gorm.DB back, got a different one", cursor)
 		}

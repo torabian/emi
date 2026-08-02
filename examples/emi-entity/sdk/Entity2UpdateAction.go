@@ -42,46 +42,10 @@ func Entity2UpdateActionMeta() struct {
 	}{
 		Name:        "Entity2UpdateAction",
 		CliName:     "entity2-update-action",
-		URL:         "/entity2/:id",
+		URL:         "/entity2/:uniqueId",
 		Method:      "PATCH",
 		Description: `Applies a partial update to a "entity2" row by uniqueId.`,
 	}
-}
-
-// The base class definition for entity2UpdateActionRes
-type Entity2UpdateActionRes struct {
-	UniqueId string `json:"uniqueId" yaml:"uniqueId"`
-	Label2   string `json:"label2" yaml:"label2"`
-}
-
-func (x *Entity2UpdateActionRes) Json() string {
-	if x != nil {
-		str, _ := json.MarshalIndent(x, "", "  ")
-		return string(str)
-	}
-	return ""
-}
-func GetEntity2UpdateActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "unique-id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "label2",
-			Type: "string",
-		},
-	}
-}
-func CastEntity2UpdateActionResFromCli(c emigo.CliCastable) Entity2UpdateActionRes {
-	data := Entity2UpdateActionRes{}
-	if c.IsSet("unique-id") {
-		data.UniqueId = c.String("unique-id")
-	}
-	if c.IsSet("label2") {
-		data.Label2 = c.String("label2")
-	}
-	return data
 }
 
 type Entity2UpdateActionResponse struct {
@@ -114,18 +78,18 @@ func (x *Entity2UpdateActionResponse) AsJSON(payload any) *Entity2UpdateActionRe
 
 // When the response is expected as documentation, you call this to get some type
 // safety for the action which is happening.
-func (x *Entity2UpdateActionResponse) WithIdeal(payload Entity2UpdateActionRes) *Entity2UpdateActionResponse {
+func (x *Entity2UpdateActionResponse) WithIdeal(payload Entity2Dto) *Entity2UpdateActionResponse {
 	x.Payload = payload
 	return x
 }
 
 // Use this for client calls, so the payload is being casted
-func (x *Entity2UpdateActionResponse) AsIdeal() (*Entity2UpdateActionRes, error) {
+func (x *Entity2UpdateActionResponse) AsIdeal() (*Entity2Dto, error) {
 	b, err := json.Marshal(x.GetPayload())
 	if err != nil {
 		return nil, err
 	}
-	var res Entity2UpdateActionRes
+	var res Entity2Dto
 	if err := json.Unmarshal(b, &res); err != nil {
 		return nil, err
 	}
@@ -158,19 +122,19 @@ type Entity2UpdateActionRequestSig = func(c Entity2UpdateActionRequest) (*Entity
  * Path parameters for Entity2UpdateAction
  */
 type Entity2UpdateActionPathParameter struct {
-	Id string
+	UniqueId string
 }
 
 // Converts a placeholder url, and applies the parameters to it.
 func Entity2UpdateActionPathParameterApply(params Entity2UpdateActionPathParameter, templateUrl string) string {
-	templateUrl = strings.ReplaceAll(templateUrl, ":id", fmt.Sprintf("%v", params.Id))
+	templateUrl = strings.ReplaceAll(templateUrl, ":uniqueId", fmt.Sprintf("%v", params.UniqueId))
 	return templateUrl
 }
 
 // General purpose to extract the value and cast based on type.
 func Entity2UpdateActionPathParameterFromFn(fn func(key string) string) Entity2UpdateActionPathParameter {
 	res := Entity2UpdateActionPathParameter{}
-	res.Id = fn("id")
+	res.UniqueId = fn("uniqueId")
 	return res
 }
 
@@ -220,7 +184,7 @@ func (q *Entity2UpdateActionQuery) SetMapped(m map[string]interface{}) {
 }
 
 type Entity2UpdateActionRequest struct {
-	Body        Entity2UpdateDto
+	Body        Entity2OptionalDto
 	Params      Entity2UpdateActionPathParameter
 	QueryParams url.Values
 	// Automatically casted headers, for purpose of typesafe headers in later versions
@@ -327,7 +291,7 @@ func Entity2UpdateActionCall(
 func GetEntity2UpdateActionPathParameterCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
-			Name:     prefix + "pp-id",
+			Name:     prefix + "pp-uniqueId",
 			Type:     "string",
 			Required: true,
 		},
@@ -418,7 +382,7 @@ func Entity2UpdateActionHttpHandler(
 ) (method, pattern string, h http.HandlerFunc) {
 	meta := Entity2UpdateActionMeta()
 	return meta.Method, meta.URL, func(w http.ResponseWriter, r *http.Request) {
-		var body Entity2UpdateDto
+		var body Entity2OptionalDto
 		if r.Body != nil {
 			defer r.Body.Close()
 			if data, _ := io.ReadAll(r.Body); len(data) > 0 {

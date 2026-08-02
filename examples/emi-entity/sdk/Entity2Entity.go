@@ -74,19 +74,19 @@ func Entity2EntityCreateFn(tx *gorm.DB, dto *Entity2Entity) (*Entity2Entity, err
 	return dto, nil
 }
 
-// Entity2EntityUpdateFn applies a partial update to the Entity2Entity row identified by id (its public
-// uniqueId, e.g. from an API path parameter - never the internal auto-increment id).
-// Only fields the caller actually set on input (input.{Field}.IsSet()) are touched -
+// Entity2EntityUpdateFn applies a partial update to the Entity2Entity row identified by uniqueId (its
+// public identity, e.g. from an API path parameter - never the internal auto-increment
+// id). Only fields the caller actually set on input (input.{Field}.IsSet()) are touched -
 // anything else is left exactly as it was. one/one? are resolved into their {field}Id
 // FK column alongside the rest of the scalar changes; array/array? and
 // collection/collection? are reconciled afterwards via the same emigorm helpers
-// Entity2EntityCreateFn uses, against entity.Id (the row's real primary key, resolved from id
-// up front - gorm's Association API and the has-many reconcile both join on it, not on
-// uniqueId).
-func Entity2EntityUpdateFn(tx *gorm.DB, id string, input Entity2UpdateDto) (*Entity2Entity, error) {
+// Entity2EntityCreateFn uses, against entity.Id (the row's real primary key, resolved from
+// uniqueId up front - gorm's Association API and the has-many reconcile both join on
+// it, not on uniqueId).
+func Entity2EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity2OptionalDto) (*Entity2Entity, error) {
 	var entity Entity2Entity
 	err := tx.Transaction(func(tx *gorm.DB) error {
-		if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+		if err := tx.First(&entity, "unique_id = ?", uniqueId).Error; err != nil {
 			return err
 		}
 		changes := map[string]interface{}{}
@@ -104,7 +104,7 @@ func Entity2EntityUpdateFn(tx *gorm.DB, id string, input Entity2UpdateDto) (*Ent
 		return nil, err
 	}
 	var updated Entity2Entity
-	if err := tx.First(&updated, "unique_id = ?", id).Error; err != nil {
+	if err := tx.First(&updated, "unique_id = ?", uniqueId).Error; err != nil {
 		return nil, err
 	}
 	return &updated, nil
@@ -112,32 +112,39 @@ func Entity2EntityUpdateFn(tx *gorm.DB, id string, input Entity2UpdateDto) (*Ent
 
 // Entity2EntityGetFn looks up a single Entity2Entity row by its public uniqueId (e.g. from an API path
 // parameter - never the internal auto-increment id).
-func Entity2EntityGetFn(tx *gorm.DB, id string) (*Entity2Entity, error) {
+func Entity2EntityGetFn(tx *gorm.DB, uniqueId string) (*Entity2Entity, error) {
 	var entity Entity2Entity
-	if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+	if err := tx.First(&entity, "unique_id = ?", uniqueId).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
 }
 
-// Entity2EntityQueryFn returns Entity2Entity rows matching dsl.Filter (a JSON-logic expression, see
-// emigorm.QueryDSL), sorted/paged per dsl.Sort/StartIndex/ItemsPerPage, alongside the
-// total row count matching the filter (ignoring paging - useful for building a pager).
-func Entity2EntityQueryFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity2Entity, int64, error) {
-	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity2Entity{}), dsl)
+// Entity2EntityBrowseFn returns Entity2Entity rows matching qs.Filter (a JSON-logic expression) and
+// scope/scopeArgs (a second, handler-enforced condition - e.g. workspace isolation),
+// sorted/paged per qs.Sort/StartIndex/ItemsPerPage/Cursor, alongside a
+// emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
+// paging) and a cursor for fetching the next page.
+func Entity2EntityBrowseFn(tx *gorm.DB, qs Entity2BrowseActionQuery, scope string, scopeArgs ...interface{}) ([]*Entity2Entity, *emigo.QueryResultMeta, error) {
+	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity2Entity{}), qs.Filter)
 	if err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
+	filtered = emigorm.ApplyQueryScope(filtered, scope, scopeArgs...)
 	var total int64
 	if err := filtered.Count(&total).Error; err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
 	var items []*Entity2Entity
-	paged := emigorm.ApplyQueryPage(emigorm.ApplyQuerySort(filtered, dsl), dsl)
+	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, qs.Sort), qs.Cursor), qs.StartIndex, qs.ItemsPerPage)
 	if err := paged.Find(&items).Error; err != nil {
-		return nil, 0, err
+		return nil, nil, err
 	}
-	return items, total, nil
+	meta := &emigo.QueryResultMeta{
+		TotalItems: total,
+		Cursor:     emigorm.BuildQueryCursor(items),
+	}
+	return items, meta, nil
 }
 
 // Entity2EntityAwareDeleteAffected reports one relation of Entity2Entity that would be affected by
@@ -207,9 +214,9 @@ func Entity2EntityAwareDeleteFn(tx *gorm.DB, uniqueIds []string) error {
 // feature is omitted entirely rather than left as a nil func.
 type Entity2EntityActionsSig struct {
 	Create             func(tx *gorm.DB, dto *Entity2Entity) (*Entity2Entity, error)
-	Update             func(tx *gorm.DB, id string, input Entity2UpdateDto) (*Entity2Entity, error)
-	Get                func(tx *gorm.DB, id string) (*Entity2Entity, error)
-	Query              func(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity2Entity, int64, error)
+	Update             func(tx *gorm.DB, uniqueId string, input Entity2OptionalDto) (*Entity2Entity, error)
+	Get                func(tx *gorm.DB, uniqueId string) (*Entity2Entity, error)
+	Browse             func(tx *gorm.DB, qs Entity2BrowseActionQuery, scope string, scopeArgs ...interface{}) ([]*Entity2Entity, *emigo.QueryResultMeta, error)
 	AwareDeletePreview func(tx *gorm.DB, uniqueIds []string) (*Entity2EntityAwareDeletePreview, error)
 	AwareDelete        func(tx *gorm.DB, uniqueIds []string) error
 }
@@ -218,7 +225,7 @@ var Entity2EntityActions Entity2EntityActionsSig = Entity2EntityActionsSig{
 	Create:             Entity2EntityCreateFn,
 	Update:             Entity2EntityUpdateFn,
 	Get:                Entity2EntityGetFn,
-	Query:              Entity2EntityQueryFn,
+	Browse:             Entity2EntityBrowseFn,
 	AwareDeletePreview: Entity2EntityAwareDeletePreviewFn,
 	AwareDelete:        Entity2EntityAwareDeleteFn,
 }

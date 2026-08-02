@@ -1,24 +1,24 @@
-import { Entity4OptionalDto } from "./Entity4OptionalDto";
+import { Entity2OptionalDto } from "./Entity2OptionalDto";
 import { GResponse } from "./sdk/envelopes/index";
 import { URLSearchParamsX } from "./sdk/common/URLSearchParamsX";
 import { buildUrl } from "./sdk/common/buildUrl";
 import { fetchx, handleFetchResponse } from "./sdk/common/fetchx";
 /**
- * Action to communicate with the action entity4Browse
+ * Action to communicate with the action entity2Browse
  */
 /**
- * Entity4BrowseAction
+ * Entity2BrowseAction
  */
-export class Entity4BrowseAction {
+export class Entity2BrowseAction {
   //
-  static URL = "/entity4/browse";
-  static NewUrl = (qs) => buildUrl(Entity4BrowseAction.URL, undefined, qs);
+  static URL = "/entity2/browse";
+  static NewUrl = (qs) => buildUrl(Entity2BrowseAction.URL, undefined, qs);
   static Method = "GET";
   static Fetch$ = async (qs, ctx, init, overrideUrl) => {
     return fetchx(
-      overrideUrl ?? Entity4BrowseAction.NewUrl(qs),
+      overrideUrl ?? Entity2BrowseAction.NewUrl(qs),
       {
-        method: Entity4BrowseAction.Method,
+        method: Entity2BrowseAction.Method,
         ...(init || {}),
       },
       ctx,
@@ -27,11 +27,11 @@ export class Entity4BrowseAction {
   static Fetch = async (
     init,
     { creatorFn, qs, ctx, onMessage, overrideUrl } = {
-      creatorFn: (item) => new Entity4OptionalDto(item),
+      creatorFn: (item) => new Entity2OptionalDto(item),
     },
   ) => {
-    creatorFn = creatorFn || ((item) => new Entity4OptionalDto(item));
-    const res = await Entity4BrowseAction.Fetch$(qs, ctx, init, overrideUrl);
+    creatorFn = creatorFn || ((item) => new Entity2OptionalDto(item));
+    const res = await Entity2BrowseAction.Fetch$(qs, ctx, init, overrideUrl);
     return handleFetchResponse(
       res,
       (data) => {
@@ -47,8 +47,8 @@ export class Entity4BrowseAction {
     );
   };
   static Definition = {
-    name: "entity4Browse",
-    url: "/entity4/browse",
+    name: "entity2Browse",
+    url: "/entity2/browse",
     method: "get",
     qs: [
       {
@@ -73,18 +73,18 @@ export class Entity4BrowseAction {
       },
     ],
     description:
-      'Returns "entity4" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).',
+      'Returns "entity2" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).',
     out: {
       envelope: "GResponse",
-      dto: "Entity4OptionalDto",
+      dto: "Entity2OptionalDto",
     },
   };
 }
 /**
- * Entity4BrowseActionQueryParams class
+ * Entity2BrowseActionQueryParams class
  * Auto-generated from EmiAction
  */
-export class Entity4BrowseActionQueryParams extends URLSearchParamsX {
+export class Entity2BrowseActionQueryParams extends URLSearchParamsX {
   /**
    *
    * @returns { string | null }

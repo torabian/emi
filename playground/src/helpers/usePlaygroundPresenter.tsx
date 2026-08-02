@@ -27,7 +27,7 @@ export const usePlaygroundPresenter = () => {
       });
 
       if (!res) {
-        return
+        return;
       }
 
       const formattedPromises = res.map(async (item: any) => {
@@ -101,6 +101,11 @@ export const usePlaygroundPresenter = () => {
 };
 
 const sampleDocument = `name: sampleModule
+entities:
+  - name: entity1
+    fields:
+    - name: field1
+      type: string
 actions:
   - name: getSinglePost
     url: https://jsonplaceholder.typicode.com/posts/1

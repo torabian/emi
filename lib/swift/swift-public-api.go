@@ -67,7 +67,7 @@ func GetSwiftPublicActions() core.PublicAPIActions {
 		},
 	}
 
-	fileActions := []core.ActionFile{}
+	fileActions := []core.ActionFile{SwiftPrimaryAction}
 
 	return core.PublicAPIActions{
 		TextActions: textActions,

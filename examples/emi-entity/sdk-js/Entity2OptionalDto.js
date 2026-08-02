@@ -1,37 +1,12 @@
 /**
- * The base class definition for entity2Dto
+ * The base class definition for entity2OptionalDto
  **/
-export class Entity2Dto {
+export class Entity2OptionalDto {
   /**
    *
    * @type {string}
    **/
-  #uniqueId = undefined;
-  /**
-   *
-   * @returns {string}
-   **/
-  get uniqueId() {
-    return this.#uniqueId;
-  }
-  /**
-   *
-   * @type {string}
-   **/
-  set uniqueId(value) {
-    const correctType =
-      typeof value === "string" || value === undefined || value === null;
-    this.#uniqueId = correctType ? value : String(value);
-  }
-  setUniqueId(value) {
-    this.uniqueId = value;
-    return this;
-  }
-  /**
-   *
-   * @type {string}
-   **/
-  #label2 = "";
+  #label2 = undefined;
   /**
    *
    * @returns {string}
@@ -44,7 +19,9 @@ export class Entity2Dto {
    * @type {string}
    **/
   set label2(value) {
-    this.#label2 = String(value);
+    const correctType =
+      typeof value === "string" || value === undefined || value === null;
+    this.#label2 = correctType ? value : String(value);
   }
   setLabel2(value) {
     this.label2 = value;
@@ -86,9 +63,6 @@ export class Entity2Dto {
    **/
   applyFromObject(data = {}) {
     const d = data;
-    if (d.uniqueId !== undefined) {
-      this.uniqueId = d.uniqueId;
-    }
     if (d.label2 !== undefined) {
       this.label2 = d.label2;
     }
@@ -99,7 +73,6 @@ export class Entity2Dto {
    **/
   toJSON() {
     return {
-      uniqueId: this.#uniqueId,
       label2: this.#label2,
     };
   }
@@ -108,30 +81,29 @@ export class Entity2Dto {
   }
   static get Fields() {
     return {
-      uniqueId: "uniqueId",
       label2: "label2",
     };
   }
   /**
-   * Creates an instance of Entity2Dto, and possibleDtoObject
+   * Creates an instance of Entity2OptionalDto, and possibleDtoObject
    * needs to satisfy the type requirement fully, otherwise typescript compile would
    * be complaining.
    **/
   static from(possibleDtoObject) {
-    return new Entity2Dto(possibleDtoObject);
+    return new Entity2OptionalDto(possibleDtoObject);
   }
   /**
-   * Creates an instance of Entity2Dto, and partialDtoObject
+   * Creates an instance of Entity2OptionalDto, and partialDtoObject
    * needs to satisfy the type, but partially, and rest of the content would
    * be constructed according to data types and nullability.
    **/
   static with(partialDtoObject) {
-    return new Entity2Dto(partialDtoObject);
+    return new Entity2OptionalDto(partialDtoObject);
   }
   copyWith(partial) {
-    return new Entity2Dto({ ...this.toJSON(), ...partial });
+    return new Entity2OptionalDto({ ...this.toJSON(), ...partial });
   }
   clone() {
-    return new Entity2Dto(this.toJSON());
+    return new Entity2OptionalDto(this.toJSON());
   }
 }

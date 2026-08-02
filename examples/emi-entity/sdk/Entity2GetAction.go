@@ -41,46 +41,10 @@ func Entity2GetActionMeta() struct {
 	}{
 		Name:        "Entity2GetAction",
 		CliName:     "entity2-get-action",
-		URL:         "/entity2/:id",
+		URL:         "/entity2/:uniqueId",
 		Method:      "GET",
 		Description: `Looks up a single "entity2" row by uniqueId.`,
 	}
-}
-
-// The base class definition for entity2GetActionRes
-type Entity2GetActionRes struct {
-	UniqueId string `json:"uniqueId" yaml:"uniqueId"`
-	Label2   string `json:"label2" yaml:"label2"`
-}
-
-func (x *Entity2GetActionRes) Json() string {
-	if x != nil {
-		str, _ := json.MarshalIndent(x, "", "  ")
-		return string(str)
-	}
-	return ""
-}
-func GetEntity2GetActionResCliFlags(prefix string) []emigo.CliFlag {
-	return []emigo.CliFlag{
-		{
-			Name: prefix + "unique-id",
-			Type: "string",
-		},
-		{
-			Name: prefix + "label2",
-			Type: "string",
-		},
-	}
-}
-func CastEntity2GetActionResFromCli(c emigo.CliCastable) Entity2GetActionRes {
-	data := Entity2GetActionRes{}
-	if c.IsSet("unique-id") {
-		data.UniqueId = c.String("unique-id")
-	}
-	if c.IsSet("label2") {
-		data.Label2 = c.String("label2")
-	}
-	return data
 }
 
 type Entity2GetActionResponse struct {
@@ -113,18 +77,18 @@ func (x *Entity2GetActionResponse) AsJSON(payload any) *Entity2GetActionResponse
 
 // When the response is expected as documentation, you call this to get some type
 // safety for the action which is happening.
-func (x *Entity2GetActionResponse) WithIdeal(payload Entity2GetActionRes) *Entity2GetActionResponse {
+func (x *Entity2GetActionResponse) WithIdeal(payload Entity2Dto) *Entity2GetActionResponse {
 	x.Payload = payload
 	return x
 }
 
 // Use this for client calls, so the payload is being casted
-func (x *Entity2GetActionResponse) AsIdeal() (*Entity2GetActionRes, error) {
+func (x *Entity2GetActionResponse) AsIdeal() (*Entity2Dto, error) {
 	b, err := json.Marshal(x.GetPayload())
 	if err != nil {
 		return nil, err
 	}
-	var res Entity2GetActionRes
+	var res Entity2Dto
 	if err := json.Unmarshal(b, &res); err != nil {
 		return nil, err
 	}
@@ -157,19 +121,19 @@ type Entity2GetActionRequestSig = func(c Entity2GetActionRequest) (*Entity2GetAc
  * Path parameters for Entity2GetAction
  */
 type Entity2GetActionPathParameter struct {
-	Id string
+	UniqueId string
 }
 
 // Converts a placeholder url, and applies the parameters to it.
 func Entity2GetActionPathParameterApply(params Entity2GetActionPathParameter, templateUrl string) string {
-	templateUrl = strings.ReplaceAll(templateUrl, ":id", fmt.Sprintf("%v", params.Id))
+	templateUrl = strings.ReplaceAll(templateUrl, ":uniqueId", fmt.Sprintf("%v", params.UniqueId))
 	return templateUrl
 }
 
 // General purpose to extract the value and cast based on type.
 func Entity2GetActionPathParameterFromFn(fn func(key string) string) Entity2GetActionPathParameter {
 	res := Entity2GetActionPathParameter{}
-	res.Id = fn("id")
+	res.UniqueId = fn("uniqueId")
 	return res
 }
 
@@ -322,7 +286,7 @@ func Entity2GetActionCall(
 func GetEntity2GetActionPathParameterCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
-			Name:     prefix + "pp-id",
+			Name:     prefix + "pp-uniqueId",
 			Type:     "string",
 			Required: true,
 		},

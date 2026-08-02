@@ -8,6 +8,12 @@ targets:
 - compiler: preprocessor
   output: ./preprocessor
 dtos:
+- description: Every field of the "entity2" entity, but optional - used both as Update's
+    partial input and as Browse's response item shape.
+  name: entity2Optional
+  fields:
+  - name: label2
+    type: string?
 - description: Every field of the "entity1" entity, but optional - used both as Update's
     partial input and as Browse's response item shape.
   name: entity1Optional
@@ -150,6 +156,13 @@ dtos:
   fields:
   - name: note
     type: string?
+- description: Plain dto mirroring the "entity2" entity's own fields.
+  name: entity2
+  fields:
+  - name: uniqueId
+    type: string?
+  - name: label2
+    type: string
 - description: Plain dto mirroring the "entity1" entity's own fields.
   name: entity1
   fields:
@@ -288,6 +301,10 @@ dtos:
   - name: note
     type: string
 entities:
+- name: entity2
+  fields:
+  - name: label2
+    type: string
 - name: entity1
   table: entity1_table
   fields:
@@ -427,6 +444,80 @@ complexes:
 - name: Money
   compiler: go
 actions:
+- name: entity2Create
+  url: /entity2
+  method: post
+  description: Creates a new "entity2" row.
+  in:
+    dto: Entity2Dto
+  out:
+    envelope: GResponse
+    dto: Entity2Dto
+- name: entity2Update
+  url: /entity2/:uniqueId string
+  method: patch
+  description: Applies a partial update to a "entity2" row by uniqueId.
+  in:
+    dto: Entity2OptionalDto
+  out:
+    envelope: GResponse
+    dto: Entity2Dto
+- name: entity2Get
+  url: /entity2/:uniqueId string
+  method: get
+  description: Looks up a single "entity2" row by uniqueId.
+  out:
+    envelope: GResponse
+    dto: Entity2Dto
+- name: entity2Browse
+  url: /entity2/browse
+  method: get
+  qs:
+  - name: filter
+    type: string
+  - name: sort
+    type: string
+  - name: startIndex
+    type: int
+  - name: itemsPerPage
+    type: int
+  - name: cursor
+    type: string
+  description: Returns "entity2" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).
+  out:
+    envelope: GResponse
+    dto: Entity2OptionalDto
+- name: entity2AwareDeletePreview
+  url: /entity2/delete-preview
+  method: get
+  qs:
+  - name: uniqueIds
+    type: slice
+    primitive: string
+  description: Reports what deleting the given "entity2" uniqueIds would affect, without
+    deleting anything.
+  out:
+    envelope: GResponse
+    fields:
+    - name: message
+      type: string
+    - name: affected
+      type: array
+      fields:
+      - name: relation
+        type: string
+      - name: count
+        type: int64
+- name: entity2AwareDelete
+  url: /entity2/delete
+  method: post
+  description: Deletes the given "entity2" uniqueIds, along with everything entity2AwareDeletePreview
+    reports.
+  in:
+    fields:
+    - name: uniqueIds
+      type: slice
+      primitive: string
 - name: entity1Create
   url: /entity1
   method: post
@@ -437,7 +528,7 @@ actions:
     envelope: GResponse
     dto: Entity1Dto
 - name: entity1Update
-  url: /entity1/:id string
+  url: /entity1/:uniqueId string
   method: patch
   description: Applies a partial update to a "entity1" row by uniqueId.
   in:
@@ -446,7 +537,7 @@ actions:
     envelope: GResponse
     dto: Entity1Dto
 - name: entity1Get
-  url: /entity1/:id string
+  url: /entity1/:uniqueId string
   method: get
   description: Looks up a single "entity1" row by uniqueId.
   out:
@@ -466,7 +557,7 @@ actions:
     type: int
   - name: cursor
     type: string
-  description: Returns "entity1" rows matching a filter, sorted/paged (see emigorm.QueryDSL).
+  description: Returns "entity1" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).
   out:
     envelope: GResponse
     dto: Entity1OptionalDto
@@ -511,7 +602,7 @@ actions:
     envelope: GResponse
     dto: Entity3Dto
 - name: entity3Get
-  url: /entity3/:id string
+  url: /entity3/:uniqueId string
   method: get
   description: Looks up a single "entity3" row by uniqueId.
   out:
@@ -531,7 +622,7 @@ actions:
     type: int
   - name: cursor
     type: string
-  description: Returns "entity3" rows matching a filter, sorted/paged (see emigorm.QueryDSL).
+  description: Returns "entity3" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).
   out:
     envelope: GResponse
     dto: Entity3OptionalDto
@@ -567,7 +658,7 @@ actions:
       type: slice
       primitive: string
 - name: entity4Update
-  url: /entity4/:id string
+  url: /entity4/:uniqueId string
   method: patch
   description: Applies a partial update to a "entity4" row by uniqueId.
   in:
@@ -576,7 +667,7 @@ actions:
     envelope: GResponse
     dto: Entity4Dto
 - name: entity4Get
-  url: /entity4/:id string
+  url: /entity4/:uniqueId string
   method: get
   description: Looks up a single "entity4" row by uniqueId.
   out:
@@ -596,7 +687,7 @@ actions:
     type: int
   - name: cursor
     type: string
-  description: Returns "entity4" rows matching a filter, sorted/paged (see emigorm.QueryDSL).
+  description: Returns "entity4" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).
   out:
     envelope: GResponse
     dto: Entity4OptionalDto

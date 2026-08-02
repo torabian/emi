@@ -42,7 +42,7 @@ func Entity4BrowseActionMeta() struct {
 		CliName:     "entity4-browse-action",
 		URL:         "/entity4/browse",
 		Method:      "GET",
-		Description: `Returns "entity4" rows matching a filter, sorted/paged (see emigorm.QueryDSL).`,
+		Description: `Returns "entity4" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).`,
 	}
 }
 

@@ -19,6 +19,13 @@ complexes:
 
 entities:
 
+  # entity1's items3/items4/owner/manager/nestedOwner relations all target
+  # Entity2Entity - it has to exist for those to generate/compile.
+  - name: entity2
+    fields:
+      - name: label2
+        type: string
+
   - name: entity1
     table: entity1_table
     fields:

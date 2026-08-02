@@ -54,19 +54,19 @@ func CastEntity4EntityFromCli(c emigo.CliCastable) Entity4Entity {
 
 // Extra entity-specific code (hooks, custom methods, business logic, etc.) can be
 // appended here in this template, after the struct GoCommonStructGenerator produced.
-// Entity4EntityUpdateFn applies a partial update to the Entity4Entity row identified by id (its public
-// uniqueId, e.g. from an API path parameter - never the internal auto-increment id).
-// Only fields the caller actually set on input (input.{Field}.IsSet()) are touched -
+// Entity4EntityUpdateFn applies a partial update to the Entity4Entity row identified by uniqueId (its
+// public identity, e.g. from an API path parameter - never the internal auto-increment
+// id). Only fields the caller actually set on input (input.{Field}.IsSet()) are touched -
 // anything else is left exactly as it was. one/one? are resolved into their {field}Id
 // FK column alongside the rest of the scalar changes; array/array? and
 // collection/collection? are reconciled afterwards via the same emigorm helpers
-// Entity4EntityCreateFn uses, against entity.Id (the row's real primary key, resolved from id
-// up front - gorm's Association API and the has-many reconcile both join on it, not on
-// uniqueId).
-func Entity4EntityUpdateFn(tx *gorm.DB, id string, input Entity4OptionalDto) (*Entity4Entity, error) {
+// Entity4EntityCreateFn uses, against entity.Id (the row's real primary key, resolved from
+// uniqueId up front - gorm's Association API and the has-many reconcile both join on
+// it, not on uniqueId).
+func Entity4EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity4OptionalDto) (*Entity4Entity, error) {
 	var entity Entity4Entity
 	err := tx.Transaction(func(tx *gorm.DB) error {
-		if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+		if err := tx.First(&entity, "unique_id = ?", uniqueId).Error; err != nil {
 			return err
 		}
 		changes := map[string]interface{}{}
@@ -84,7 +84,7 @@ func Entity4EntityUpdateFn(tx *gorm.DB, id string, input Entity4OptionalDto) (*E
 		return nil, err
 	}
 	var updated Entity4Entity
-	if err := tx.First(&updated, "unique_id = ?", id).Error; err != nil {
+	if err := tx.First(&updated, "unique_id = ?", uniqueId).Error; err != nil {
 		return nil, err
 	}
 	return &updated, nil
@@ -92,31 +92,31 @@ func Entity4EntityUpdateFn(tx *gorm.DB, id string, input Entity4OptionalDto) (*E
 
 // Entity4EntityGetFn looks up a single Entity4Entity row by its public uniqueId (e.g. from an API path
 // parameter - never the internal auto-increment id).
-func Entity4EntityGetFn(tx *gorm.DB, id string) (*Entity4Entity, error) {
+func Entity4EntityGetFn(tx *gorm.DB, uniqueId string) (*Entity4Entity, error) {
 	var entity Entity4Entity
-	if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+	if err := tx.First(&entity, "unique_id = ?", uniqueId).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
 }
 
-// Entity4EntityBrowseFn returns Entity4Entity rows matching dsl.Filter (a JSON-logic expression) and
-// dsl.Scope (a second, handler-enforced condition - e.g. workspace isolation - see
-// emigorm.QueryDSL), sorted/paged per dsl.Sort/StartIndex/ItemsPerPage/Cursor, alongside
-// a emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
+// Entity4EntityBrowseFn returns Entity4Entity rows matching qs.Filter (a JSON-logic expression) and
+// scope/scopeArgs (a second, handler-enforced condition - e.g. workspace isolation),
+// sorted/paged per qs.Sort/StartIndex/ItemsPerPage/Cursor, alongside a
+// emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
 // paging) and a cursor for fetching the next page.
-func Entity4EntityBrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity4Entity, *emigo.QueryResultMeta, error) {
-	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity4Entity{}), dsl)
+func Entity4EntityBrowseFn(tx *gorm.DB, qs Entity4BrowseActionQuery, scope string, scopeArgs ...interface{}) ([]*Entity4Entity, *emigo.QueryResultMeta, error) {
+	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity4Entity{}), qs.Filter)
 	if err != nil {
 		return nil, nil, err
 	}
-	filtered = emigorm.ApplyQueryScope(filtered, dsl)
+	filtered = emigorm.ApplyQueryScope(filtered, scope, scopeArgs...)
 	var total int64
 	if err := filtered.Count(&total).Error; err != nil {
 		return nil, nil, err
 	}
 	var items []*Entity4Entity
-	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, dsl), dsl), dsl)
+	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, qs.Sort), qs.Cursor), qs.StartIndex, qs.ItemsPerPage)
 	if err := paged.Find(&items).Error; err != nil {
 		return nil, nil, err
 	}
@@ -193,9 +193,9 @@ func Entity4EntityAwareDeleteFn(tx *gorm.DB, uniqueIds []string) error {
 // present here depends on entity.Features (see Module3EntityFeatures) - a disabled
 // feature is omitted entirely rather than left as a nil func.
 type Entity4EntityActionsSig struct {
-	Update             func(tx *gorm.DB, id string, input Entity4OptionalDto) (*Entity4Entity, error)
-	Get                func(tx *gorm.DB, id string) (*Entity4Entity, error)
-	Browse             func(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity4Entity, *emigo.QueryResultMeta, error)
+	Update             func(tx *gorm.DB, uniqueId string, input Entity4OptionalDto) (*Entity4Entity, error)
+	Get                func(tx *gorm.DB, uniqueId string) (*Entity4Entity, error)
+	Browse             func(tx *gorm.DB, qs Entity4BrowseActionQuery, scope string, scopeArgs ...interface{}) ([]*Entity4Entity, *emigo.QueryResultMeta, error)
 	AwareDeletePreview func(tx *gorm.DB, uniqueIds []string) (*Entity4EntityAwareDeletePreview, error)
 	AwareDelete        func(tx *gorm.DB, uniqueIds []string) error
 }

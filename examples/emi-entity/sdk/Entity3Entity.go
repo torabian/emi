@@ -76,31 +76,31 @@ func Entity3EntityCreateFn(tx *gorm.DB, dto *Entity3Entity) (*Entity3Entity, err
 
 // Entity3EntityGetFn looks up a single Entity3Entity row by its public uniqueId (e.g. from an API path
 // parameter - never the internal auto-increment id).
-func Entity3EntityGetFn(tx *gorm.DB, id string) (*Entity3Entity, error) {
+func Entity3EntityGetFn(tx *gorm.DB, uniqueId string) (*Entity3Entity, error) {
 	var entity Entity3Entity
-	if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+	if err := tx.First(&entity, "unique_id = ?", uniqueId).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
 }
 
-// Entity3EntityBrowseFn returns Entity3Entity rows matching dsl.Filter (a JSON-logic expression) and
-// dsl.Scope (a second, handler-enforced condition - e.g. workspace isolation - see
-// emigorm.QueryDSL), sorted/paged per dsl.Sort/StartIndex/ItemsPerPage/Cursor, alongside
-// a emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
+// Entity3EntityBrowseFn returns Entity3Entity rows matching qs.Filter (a JSON-logic expression) and
+// scope/scopeArgs (a second, handler-enforced condition - e.g. workspace isolation),
+// sorted/paged per qs.Sort/StartIndex/ItemsPerPage/Cursor, alongside a
+// emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
 // paging) and a cursor for fetching the next page.
-func Entity3EntityBrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity3Entity, *emigo.QueryResultMeta, error) {
-	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity3Entity{}), dsl)
+func Entity3EntityBrowseFn(tx *gorm.DB, qs Entity3BrowseActionQuery, scope string, scopeArgs ...interface{}) ([]*Entity3Entity, *emigo.QueryResultMeta, error) {
+	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&Entity3Entity{}), qs.Filter)
 	if err != nil {
 		return nil, nil, err
 	}
-	filtered = emigorm.ApplyQueryScope(filtered, dsl)
+	filtered = emigorm.ApplyQueryScope(filtered, scope, scopeArgs...)
 	var total int64
 	if err := filtered.Count(&total).Error; err != nil {
 		return nil, nil, err
 	}
 	var items []*Entity3Entity
-	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, dsl), dsl), dsl)
+	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, qs.Sort), qs.Cursor), qs.StartIndex, qs.ItemsPerPage)
 	if err := paged.Find(&items).Error; err != nil {
 		return nil, nil, err
 	}
@@ -178,8 +178,8 @@ func Entity3EntityAwareDeleteFn(tx *gorm.DB, uniqueIds []string) error {
 // feature is omitted entirely rather than left as a nil func.
 type Entity3EntityActionsSig struct {
 	Create             func(tx *gorm.DB, dto *Entity3Entity) (*Entity3Entity, error)
-	Get                func(tx *gorm.DB, id string) (*Entity3Entity, error)
-	Browse             func(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*Entity3Entity, *emigo.QueryResultMeta, error)
+	Get                func(tx *gorm.DB, uniqueId string) (*Entity3Entity, error)
+	Browse             func(tx *gorm.DB, qs Entity3BrowseActionQuery, scope string, scopeArgs ...interface{}) ([]*Entity3Entity, *emigo.QueryResultMeta, error)
 	AwareDeletePreview func(tx *gorm.DB, uniqueIds []string) (*Entity3EntityAwareDeletePreview, error)
 	AwareDelete        func(tx *gorm.DB, uniqueIds []string) error
 }

@@ -47,7 +47,7 @@ func buildEntityUpdateAction(entity *Module3Entity) *EmiAction {
 		Name:        entityActionName(entity, "Update"),
 		Description: "Applies a partial update to a \"" + entity.Name + "\" row by uniqueId.",
 		Method:      "patch",
-		Url:         "/" + entity.Name + "/:id string",
+		Url:         "/" + entity.Name + "/:uniqueId string",
 		In:          &EmiActionBody{Dto: BuildEntityOptionalDto(entity).GetClassName()},
 		Out:         &EmiActionBody{Dto: BuildEntityDto(entity).GetClassName(), Envelope: entityActionResponseEnvelope},
 	}
@@ -58,7 +58,7 @@ func buildEntityGetAction(entity *Module3Entity) *EmiAction {
 		Name:        entityActionName(entity, "Get"),
 		Description: "Looks up a single \"" + entity.Name + "\" row by uniqueId.",
 		Method:      "get",
-		Url:         "/" + entity.Name + "/:id string",
+		Url:         "/" + entity.Name + "/:uniqueId string",
 		Out:         &EmiActionBody{Dto: BuildEntityDto(entity).GetClassName(), Envelope: entityActionResponseEnvelope},
 	}
 }
@@ -75,7 +75,7 @@ func buildEntityGetAction(entity *Module3Entity) *EmiAction {
 func buildEntityBrowseAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "Browse"),
-		Description: "Returns \"" + entity.Name + "\" rows matching a filter, sorted/paged (see emigorm.QueryDSL).",
+		Description: "Returns \"" + entity.Name + "\" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).",
 		Method:      "get",
 		Url:         "/" + entity.Name + "/browse",
 		Query: []*EmiQueryField{

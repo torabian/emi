@@ -337,7 +337,11 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 	}
 }
 
-// buildUpdateFn renders {Entity}UpdateFn(tx *gorm.DB, id string, input {Entity}UpdateDto) (*{Entity}Entity, error).
+// buildUpdateFn renders {Entity}UpdateFn(tx *gorm.DB, uniqueId string, input {Entity}UpdateDto) (*{Entity}Entity, error).
+// The parameter is named uniqueId (not id) to match the ":uniqueId" path parameter
+// preprocess-entity-actions.go's Update action declares - emi's action codegen derives
+// {Action}PathParameter's field name directly from the URL segment, so the two have to
+// agree.
 //
 // input's type is the dto core.Emi.Preprocess synthesized for this entity (see
 // lib/core/preprocess-entities.go) - a plain, portable dto, not something built here.
@@ -349,26 +353,26 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 // zero values, verified unreliable for this). one/one? are resolved into their
 // {field}Id FK column the same way Create does. array/array? and
 // collection/collection? are reconciled via the same emigorm helpers Create uses,
-// against the given id - all regardless of how deeply the field is nested inside
+// against the given uniqueId - all regardless of how deeply the field is nested inside
 // object/object? containers, see walkUpdateFields.
 func buildUpdateFn(className string, updateDtoClassName string, fields []*core.EmiField) string {
 	var scalarChanges, oneResolve, afterUpdate strings.Builder
 	walkUpdateFields(fields, "input.", className, &scalarChanges, &oneResolve, &afterUpdate)
 
 	return fmt.Sprintf(`
-// %[1]sUpdateFn applies a partial update to the %[1]s row identified by id (its public
-// uniqueId, e.g. from an API path parameter - never the internal auto-increment id).
-// Only fields the caller actually set on input (input.{Field}.IsSet()) are touched -
+// %[1]sUpdateFn applies a partial update to the %[1]s row identified by uniqueId (its
+// public identity, e.g. from an API path parameter - never the internal auto-increment
+// id). Only fields the caller actually set on input (input.{Field}.IsSet()) are touched -
 // anything else is left exactly as it was. one/one? are resolved into their {field}Id
 // FK column alongside the rest of the scalar changes; array/array? and
 // collection/collection? are reconciled afterwards via the same emigorm helpers
-// %[1]sCreateFn uses, against entity.Id (the row's real primary key, resolved from id
-// up front - gorm's Association API and the has-many reconcile both join on it, not on
-// uniqueId).
-func %[1]sUpdateFn(tx *gorm.DB, id string, input %[2]s) (*%[1]s, error) {
+// %[1]sCreateFn uses, against entity.Id (the row's real primary key, resolved from
+// uniqueId up front - gorm's Association API and the has-many reconcile both join on
+// it, not on uniqueId).
+func %[1]sUpdateFn(tx *gorm.DB, uniqueId string, input %[2]s) (*%[1]s, error) {
 	var entity %[1]s
 	err := tx.Transaction(func(tx *gorm.DB) error {
-		if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+		if err := tx.First(&entity, "unique_id = ?", uniqueId).Error; err != nil {
 			return err
 		}
 
@@ -388,7 +392,7 @@ func %[1]sUpdateFn(tx *gorm.DB, id string, input %[2]s) (*%[1]s, error) {
 	}
 
 	var updated %[1]s
-	if err := tx.First(&updated, "unique_id = ?", id).Error; err != nil {
+	if err := tx.First(&updated, "unique_id = ?", uniqueId).Error; err != nil {
 		return nil, err
 	}
 	return &updated, nil
@@ -396,16 +400,17 @@ func %[1]sUpdateFn(tx *gorm.DB, id string, input %[2]s) (*%[1]s, error) {
 `, className, updateDtoClassName, oneResolve.String(), scalarChanges.String(), afterUpdate.String())
 }
 
-// buildGetFn renders {Entity}GetFn(tx *gorm.DB, id string) (*{Entity}, error) - a plain
-// single-row lookup by the public uniqueId (the same identity Update/AwareDelete use,
-// never the internal auto-increment id).
+// buildGetFn renders {Entity}GetFn(tx *gorm.DB, uniqueId string) (*{Entity}, error) - a
+// plain single-row lookup by the public uniqueId (the same identity Update/AwareDelete
+// use, never the internal auto-increment id). Named uniqueId, not id, to match the
+// ":uniqueId" path parameter preprocess-entity-actions.go's Get action declares.
 func buildGetFn(className string) string {
 	return fmt.Sprintf(`
 // %[1]sGetFn looks up a single %[1]s row by its public uniqueId (e.g. from an API path
 // parameter - never the internal auto-increment id).
-func %[1]sGetFn(tx *gorm.DB, id string) (*%[1]s, error) {
+func %[1]sGetFn(tx *gorm.DB, uniqueId string) (*%[1]s, error) {
 	var entity %[1]s
-	if err := tx.First(&entity, "unique_id = ?", id).Error; err != nil {
+	if err := tx.First(&entity, "unique_id = ?", uniqueId).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -413,34 +418,57 @@ func %[1]sGetFn(tx *gorm.DB, id string) (*%[1]s, error) {
 `, className)
 }
 
-// buildBrowseFn renders {Entity}BrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*{Entity}, *emigo.QueryResultMeta, error).
+// entityBrowseActionQueryClassName computes the same class name emi's own action
+// codegen (lib/golang/go-query-params.go's GoActionQueryParams) generates for the
+// Browse action's querystring-bound struct: {ActionName}Query, where ActionName is
+// EmiAction.GetName() run through core.ToUpper+core.NormaliseKey - and GetName() itself
+// already appends "Action" to the declared name (see core.EmiAction.GetName). For our
+// synthesized Browse action (declared name "{entity}Browse"), that's
+// "Entity1Browse" -> GetName() -> "Entity1BrowseAction" -> struct "Entity1BrowseActionQuery".
+// This has to match that formula exactly, since {Entity}BrowseFn takes this
+// already-generated struct as its own qs parameter (see buildBrowseFn) rather than
+// building a second, separately-maintained one.
+func entityBrowseActionQueryClassName(entity *core.Module3Entity) string {
+	return core.ToUpper(entity.Name+"Browse") + "ActionQuery"
+}
+
+// buildBrowseFn renders {Entity}BrowseFn(tx *gorm.DB, qs {Entity}BrowseActionQuery,
+// scope string, scopeArgs ...interface{}) ([]*{Entity}, *emigo.QueryResultMeta, error).
 // Named "Browse" (not "Query") because it's deliberately the simple case - a
 // straightforward filtered/sorted/paged list; "query" is reserved for a more advanced
 // mechanism later.
 //
-// dsl.Filter (if set) is transpiled from JSON-logic to SQL via emigorm.ApplyQueryFilter
+// qs is exactly the struct emi's own action codegen already generates for reading the
+// Browse action's querystring (see entityBrowseActionQueryClassName) - passed straight
+// through rather than re-declared as individual parameters, since a caller reading a
+// real request's query params already has one of these on hand (see
+// {Entity}BrowseActionQueryFromHttp/FromString/FromGin in {Entity}BrowseAction.go).
+// scope/scopeArgs never come from qs at all - only ever set by a caller's own handler
+// code.
+//
+// qs.Filter (if set) is transpiled from JSON-logic to SQL via emigorm.ApplyQueryFilter
 // (github.com/h22rana/jsonlogic2sql under the hood - mirrors fireback's own
-// modules/fireback/JsonQueryTools.go mechanism); dsl.Scope (if set) is applied
+// modules/fireback/JsonQueryTools.go mechanism); scope/scopeArgs (if set) are applied
 // separately via emigorm.ApplyQueryScope - a second, independent condition a caller's
-// own handler enforces (e.g. workspace isolation), kept apart from Filter so end-user
-// input can never widen or bypass it. Both apply *before* Count(), so the returned
-// total reflects them but ignores paging; Sort/StartIndex/ItemsPerPage/Cursor are only
-// applied afterwards, to the rows actually fetched - see emigorm.ApplyQueryCursor/
-// BuildQueryCursor for how the keyset-pagination cursor itself works (mirrors
-// fireback's own cursor mechanism, see fireback's CrudCoreActions.go).
-func buildBrowseFn(className string) string {
+// own handler enforces (e.g. workspace isolation), kept apart from qs.Filter so
+// end-user input can never widen or bypass it. Both apply *before* Count(), so the
+// returned total reflects them but ignores paging; qs.Sort/StartIndex/ItemsPerPage/
+// Cursor are only applied afterwards, to the rows actually fetched - see
+// emigorm.ApplyQueryCursor/BuildQueryCursor for how the keyset-pagination cursor itself
+// works (mirrors fireback's own cursor mechanism, see fireback's CrudCoreActions.go).
+func buildBrowseFn(className string, queryClassName string) string {
 	return fmt.Sprintf(`
-// %[1]sBrowseFn returns %[1]s rows matching dsl.Filter (a JSON-logic expression) and
-// dsl.Scope (a second, handler-enforced condition - e.g. workspace isolation - see
-// emigorm.QueryDSL), sorted/paged per dsl.Sort/StartIndex/ItemsPerPage/Cursor, alongside
-// a emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
+// %[1]sBrowseFn returns %[1]s rows matching qs.Filter (a JSON-logic expression) and
+// scope/scopeArgs (a second, handler-enforced condition - e.g. workspace isolation),
+// sorted/paged per qs.Sort/StartIndex/ItemsPerPage/Cursor, alongside a
+// emigo.QueryResultMeta reporting the total row count matching both filters (ignoring
 // paging) and a cursor for fetching the next page.
-func %[1]sBrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*%[1]s, *emigo.QueryResultMeta, error) {
-	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&%[1]s{}), dsl)
+func %[1]sBrowseFn(tx *gorm.DB, qs %[2]s, scope string, scopeArgs ...interface{}) ([]*%[1]s, *emigo.QueryResultMeta, error) {
+	filtered, err := emigorm.ApplyQueryFilter(tx.Model(&%[1]s{}), qs.Filter)
 	if err != nil {
 		return nil, nil, err
 	}
-	filtered = emigorm.ApplyQueryScope(filtered, dsl)
+	filtered = emigorm.ApplyQueryScope(filtered, scope, scopeArgs...)
 
 	var total int64
 	if err := filtered.Count(&total).Error; err != nil {
@@ -448,7 +476,7 @@ func %[1]sBrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*%[1]s, *emigo.QueryRes
 	}
 
 	var items []*%[1]s
-	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, dsl), dsl), dsl)
+	paged := emigorm.ApplyQueryPage(emigorm.ApplyQueryCursor(emigorm.ApplyQuerySort(filtered, qs.Sort), qs.Cursor), qs.StartIndex, qs.ItemsPerPage)
 	if err := paged.Find(&items).Error; err != nil {
 		return nil, nil, err
 	}
@@ -460,7 +488,7 @@ func %[1]sBrowseFn(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*%[1]s, *emigo.QueryRes
 
 	return items, meta, nil
 }
-`, className)
+`, className, queryClassName)
 }
 
 // entityOptionalDtoClassName computes the same class name core.Emi.Preprocess's
@@ -539,8 +567,10 @@ func GoEntityActionsRender(
 		buf.WriteString(buildGetFn(className))
 	}
 
+	var browseQueryClassName string
 	if browseEnabled {
-		buf.WriteString(buildBrowseFn(className))
+		browseQueryClassName = entityBrowseActionQueryClassName(entity)
+		buf.WriteString(buildBrowseFn(className, browseQueryClassName))
 	}
 
 	if deleteEnabled {
@@ -553,15 +583,15 @@ func GoEntityActionsRender(
 		fmt.Fprintf(&sigInit, "\tCreate: %[1]sCreateFn,\n", className)
 	}
 	if updateEnabled {
-		fmt.Fprintf(&sigFields, "\tUpdate func(tx *gorm.DB, id string, input %[1]s) (*%[2]s, error)\n", optionalDtoClassName, className)
+		fmt.Fprintf(&sigFields, "\tUpdate func(tx *gorm.DB, uniqueId string, input %[1]s) (*%[2]s, error)\n", optionalDtoClassName, className)
 		fmt.Fprintf(&sigInit, "\tUpdate: %[1]sUpdateFn,\n", className)
 	}
 	if getEnabled {
-		fmt.Fprintf(&sigFields, "\tGet func(tx *gorm.DB, id string) (*%[1]s, error)\n", className)
+		fmt.Fprintf(&sigFields, "\tGet func(tx *gorm.DB, uniqueId string) (*%[1]s, error)\n", className)
 		fmt.Fprintf(&sigInit, "\tGet: %[1]sGetFn,\n", className)
 	}
 	if browseEnabled {
-		fmt.Fprintf(&sigFields, "\tBrowse func(tx *gorm.DB, dsl emigorm.QueryDSL) ([]*%[1]s, *emigo.QueryResultMeta, error)\n", className)
+		fmt.Fprintf(&sigFields, "\tBrowse func(tx *gorm.DB, qs %[1]s, scope string, scopeArgs ...interface{}) ([]*%[2]s, *emigo.QueryResultMeta, error)\n", browseQueryClassName, className)
 		fmt.Fprintf(&sigInit, "\tBrowse: %[1]sBrowseFn,\n", className)
 	}
 	if deleteEnabled {
@@ -589,7 +619,7 @@ var %[1]sActions %[1]sActionsSig = %[1]sActionsSig{
 	}
 	// Only Create/Update actually call into emigorm's reconcile helpers, and only when
 	// the entity has an array/collection/one field (at any nesting depth) to reconcile
-	// in the first place; Browse always needs it for QueryDSL/ApplyQueryFilter, and
+	// in the first place; Browse always needs it for ApplyQueryFilter/etc, and
 	// AwareDelete never does - it works directly off tx.Where/Delete/Association.
 	if browseEnabled || ((createEnabled || updateEnabled) && hasRelationField(entity.Fields)) {
 		deps = append(deps, core.CodeChunkDependency{Location: "github.com/torabian/emi/emigorm"})
