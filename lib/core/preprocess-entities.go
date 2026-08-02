@@ -140,11 +140,16 @@ func cloneEntityOptionalField(field *EmiField) *EmiField {
 //     strict, every-field-required entity dto (see BuildEntityDto) the same way a
 //     single Create/Get/Update response can.
 //
+// Carries a synthetic, nullable uniqueId field, same as BuildEntityDto (entity.Fields
+// itself never declares one - see PrependEntityDefaultFields) - without it, a Browse
+// response item would have no portable way to say which row it actually is.
+//
 // Must be called with the entity's Fields exactly as declared - i.e. as part of
 // Emi.Preprocess(), before any language-specific compiler (which may mutate an
 // entity's Fields in place - see ApplyEntityGormTags) ever sees it.
 func BuildEntityOptionalDto(entity *Module3Entity) *EmiDto {
-	fields := make([]*EmiField, 0, len(entity.Fields))
+	fields := make([]*EmiField, 0, len(entity.Fields)+1)
+	fields = append(fields, &EmiField{Name: "uniqueId", Type: FieldTypeStringNullable})
 	for _, f := range entity.Fields {
 		if f == nil {
 			continue

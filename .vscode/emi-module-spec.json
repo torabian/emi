@@ -842,21 +842,45 @@
           "type": "boolean",
           "description": "Generates {Entity}CreateFn and wires it into {Entity}ActionsSig.Create. Enabled by default; set to false to omit Create entirely from the generated code."
         },
+        "createAction": {
+          "type": "boolean",
+          "description": "Exposes Create as a portable EmiAction (HTTP route"
+        },
         "update": {
           "type": "boolean",
           "description": "Generates {Entity}UpdateFn (and the entity's update dto) and wires it into {Entity}ActionsSig.Update. Enabled by default; set to false to omit Update entirely from the generated code."
+        },
+        "updateAction": {
+          "type": "boolean",
+          "description": "Exposes Update as a portable EmiAction (HTTP route"
         },
         "get": {
           "type": "boolean",
           "description": "Generates {Entity}GetFn (a single-row lookup by uniqueId) and wires it into {Entity}ActionsSig.Get. Enabled by default; set to false to omit Get entirely from the generated code."
         },
+        "getAction": {
+          "type": "boolean",
+          "description": "Exposes Get as a portable EmiAction (HTTP route"
+        },
         "browse": {
           "type": "boolean",
           "description": "Generates {Entity}BrowseFn (a filtered/sorted/paged list"
         },
+        "browseAction": {
+          "type": "boolean",
+          "description": "Exposes Browse as a portable EmiAction (HTTP route"
+        },
         "delete": {
           "type": "boolean",
           "description": "Generates {Entity}AwareDeletePreviewFn/{Entity}AwareDeleteFn and wires them into {Entity}ActionsSig. Enabled by default; set to false to omit both entirely from the generated code."
+        },
+        "deleteAction": {
+          "type": "boolean",
+          "description": "Exposes AwareDeletePreview/AwareDelete as portable EmiActions (HTTP route"
+        },
+        "actions": {
+          "type": "boolean",
+          "description": "Master override for every built-in operation's EmiAction exposure at once. Enabled by default; set to false to suppress every operation's EmiAction for this entity regardless of the individual *Action settings"
         }
       },
       "additionalProperties": false,

@@ -7,7 +7,8 @@ import (
 
 // The base class definition for entity3OptionalDto
 type Entity3OptionalDto struct {
-	Message emigo.Nullable[string] `json:"message" yaml:"message"`
+	UniqueId emigo.Nullable[string] `json:"uniqueId" yaml:"uniqueId"`
+	Message  emigo.Nullable[string] `json:"message" yaml:"message"`
 }
 
 func (x *Entity3OptionalDto) Json() string {
@@ -20,6 +21,10 @@ func (x *Entity3OptionalDto) Json() string {
 func GetEntity3OptionalDtoCliFlags(prefix string) []emigo.CliFlag {
 	return []emigo.CliFlag{
 		{
+			Name: prefix + "unique-id",
+			Type: "string?",
+		},
+		{
 			Name: prefix + "message",
 			Type: "string?",
 		},
@@ -27,6 +32,9 @@ func GetEntity3OptionalDtoCliFlags(prefix string) []emigo.CliFlag {
 }
 func CastEntity3OptionalDtoFromCli(c emigo.CliCastable) Entity3OptionalDto {
 	data := Entity3OptionalDto{}
+	if c.IsSet("unique-id") {
+		emigo.ParseNullable(c.String("unique-id"), &data.UniqueId)
+	}
 	if c.IsSet("message") {
 		emigo.ParseNullable(c.String("message"), &data.Message)
 	}

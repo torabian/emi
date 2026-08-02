@@ -12,12 +12,16 @@ dtos:
     partial input and as Browse's response item shape.
   name: entity2Optional
   fields:
+  - name: uniqueId
+    type: string?
   - name: label2
     type: string?
 - description: Every field of the "entity1" entity, but optional - used both as Update's
     partial input and as Browse's response item shape.
   name: entity1Optional
   fields:
+  - name: uniqueId
+    type: string?
   - name: title
     type: string?
   - name: items
@@ -148,12 +152,16 @@ dtos:
     partial input and as Browse's response item shape.
   name: entity3Optional
   fields:
+  - name: uniqueId
+    type: string?
   - name: message
     type: string?
 - description: Every field of the "entity4" entity, but optional - used both as Update's
     partial input and as Browse's response item shape.
   name: entity4Optional
   fields:
+  - name: uniqueId
+    type: string?
   - name: note
     type: string?
 - description: Plain dto mirroring the "entity2" entity's own fields.
