@@ -38,17 +38,17 @@ func SwiftActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, e
 	const tmpl = `/**
  * Path parameters for {{ .ClassName }}
  */
-struct {{ .TypeName }} (
+struct {{ .TypeName }} {
 {{- range .Params }}
-	var {{ .GolangFieldName }}: String,
+	var {{ .GolangFieldName }}: String
 {{- end }}
-)
+}
 
 // Converts a placeholder url, and applies the parameters to it.
-fun {{ .TypeName }}Apply(params: {{ .TypeName }}, templateUrl: String): String {
+func {{ .TypeName }}Apply(_ params: {{ .TypeName }}, _ templateUrl: String) -> String {
 	var url = templateUrl
 	{{- range .Params }}
-		url = url.replace(":{{ .PlaceHolderValue }}", params.{{.GolangFieldName}})
+	url = url.replacingOccurrences(of: ":{{ .PlaceHolderValue }}", with: params.{{.GolangFieldName}})
 	{{- end }}
 
 	return url

@@ -18,6 +18,10 @@ func SwiftActionRender(
 		return nil, nil
 	}
 
+	if action.GetMethod() == "reactive" {
+		return SwiftActionRenderReactive(action, ctx, complexes)
+	}
+
 	realms, deps, err := GetActionRealms(action, ctx, complexes)
 	if err != nil {
 		return nil, err
@@ -43,7 +47,7 @@ import FoundationNetworking
 struct {{ .realms.ActionName }}Meta {
     let name: String = "{{ .realms.ActionName }}"
     let url: String = "{{ .safeUrl }}"
-    let method: String = "{{ .action.Method | upper }}"
+    let method: String = "{{ .methodUpper }}"
 }
 
 /*
@@ -86,8 +90,10 @@ final class {{ .realms.ActionName }}Client {
         }
 
         components.path = path
-        components.queryItems = query.map {
-            URLQueryItem(name: $0.key, value: $0.value)
+        if !query.isEmpty {
+            components.queryItems = query.map {
+                URLQueryItem(name: $0.key, value: $0.value)
+            }
         }
 
         return components.url
@@ -103,19 +109,21 @@ final class {{ .realms.ActionName }}Client {
     ) async throws -> {{ .realms.ActionName }}Response {
 
         let meta = {{ .realms.ActionName }}Meta()
-        let baseUrl = ""
+        let baseUrl = EmiClientConfig.baseUrl
 
-        guard var url = buildUrl(
+        {{ if .realms.PathParameter }}
+        let resolvedPath = {{ .realms.ActionName }}PathParameterApply(path, meta.url)
+        {{ else }}
+        let resolvedPath = meta.url
+        {{ end }}
+
+        guard let url = buildUrl(
             base: baseUrl,
-            path: meta.url,
+            path: resolvedPath,
             query: query
         ) else {
             throw URLError(.badURL)
         }
-
-        {{ if .realms.PathParameter }}
-        url = {{ .realms.ActionName }}PathParameterApply(path, url)
-        {{ end }}
 
         var request = URLRequest(url: url)
         request.httpMethod = meta.method
@@ -158,9 +166,10 @@ final class {{ .realms.ActionName }}Client {
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"action":  action,
-		"safeUrl": core.RemoveTypeAnnotations(action.GetUrl()),
-		"realms":  realms,
+		"action":      action,
+		"safeUrl":     core.RemoveTypeAnnotations(action.GetUrl()),
+		"methodUpper": action.MethodUpper(),
+		"realms":      realms,
 	}); err != nil {
 		return nil, err
 	}

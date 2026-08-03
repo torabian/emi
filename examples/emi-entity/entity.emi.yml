@@ -9,13 +9,36 @@ targets:
       - skip-gin
   - compiler: js
     output: ./sdk-js
+  - compiler: swift
+    output: ./sdk-swift
   - compiler: preprocessor
     output: ./preprocessor
 
 complexes:
   - compiler: go
     name: Money
+  - compiler: swift
+    name: Money
 
+# reactiveEcho is a hand-declared "method: reactive" action, used specifically to
+# exercise the swift compiler's WebSocket support (see lib/swift/swift-action-reactive-
+# render.go / EmiWebSocketX) end to end: a real path param, and a typed in/out shape, not
+# just a bare qs-only channel.
+actions:
+  - name: reactiveEcho
+    description: Echoes messages back over a websocket, scoped to a channel.
+    method: reactive
+    url: /reactive/echo/:channel string
+    in:
+      fields:
+        - name: message
+          type: string
+    out:
+      fields:
+        - name: message
+          type: string
+        - name: echoedAt
+          type: string
 
 entities:
 

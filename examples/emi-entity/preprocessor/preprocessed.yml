@@ -5,6 +5,8 @@ targets:
   - skip-gin
 - compiler: js
   output: ./sdk-js
+- compiler: swift
+  output: ./sdk-swift
 - compiler: preprocessor
   output: ./preprocessor
 dtos:
@@ -452,7 +454,23 @@ entities:
 complexes:
 - name: Money
   compiler: go
+- name: Money
+  compiler: swift
 actions:
+- name: reactiveEcho
+  url: /reactive/echo/:channel
+  method: reactive
+  description: Echoes messages back over a websocket, scoped to a channel.
+  in:
+    fields:
+    - name: message
+      type: string
+  out:
+    fields:
+    - name: message
+      type: string
+    - name: echoedAt
+      type: string
 - name: entity2Create
   cliShort: entity2-c
   url: /entity2

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
-	SwiftInclude "github.com/torabian/emi/lib/swift/swift-include"
 )
 
 func GetSwiftPublicActions() core.PublicAPIActions {
@@ -196,8 +195,9 @@ func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtual
 		})
 	}
 
-	// Append the sdk include files
-	files = append(files, core.GenMoveIncludeDir(&SwiftInclude.SwiftInclude)...)
+	files = append(files, SwiftAnyCodableFile())
+	files = append(files, SwiftClientConfigFile())
+	files = append(files, SwiftWebSocketRuntimeFile())
 
 	return files, nil
 }
@@ -209,29 +209,42 @@ func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
 	finalContent = string(core.EscapeLines([]byte(finalContent)))
 	return finalContent
 }
+
+// CombineJavaImport builds the leading `import` block for a generated Swift file.
+//
+// A dependency with Objects set (a specific class/type - e.g. another generated Dto
+// referenced by a relation field, via castDtoNameToCodeChunk) always refers to a type
+// generated into another file in the very same compiled Swift target: unlike JS/TS,
+// where every file is its own module and a sibling type genuinely needs a relative
+// import, Swift compiles a whole target as one unit, so every file already sees every
+// other file's top-level types with zero import needed - emitting one here (as this
+// used to, via a JS/TS-shaped "import Name "location" //x" statement) is not just
+// unnecessary but invalid Swift syntax.
+//
+// Only a bare Location with no Objects (a real external Swift module name, e.g.
+// "Foundation") is import-worthy - Swift's import statement is always just
+// `import ModuleName`, it has no per-symbol form the way JS/TS's does, so Objects is
+// never part of the emitted statement even when both are present.
 func CombineJavaImport(chunk core.CodeChunkCompiled) string {
 	statements := map[string]struct{}{}
 
-	// Collect unique import statements
 	for _, dep := range chunk.CodeChunkDependensies {
-		statement := ""
-		if len(dep.Objects) > 0 {
-			statement = fmt.Sprintf(`%v "%v" //x`, dep.Objects[0], dep.Location)
-		} else {
-			statement = fmt.Sprintf(`%v`, dep.Location)
+		if len(dep.Objects) > 0 || dep.Location == "" {
+			continue
 		}
-		statements[statement] = struct{}{}
+		statements[dep.Location] = struct{}{}
 	}
 
-	// Sort statements for deterministic output
-	var sorted []string
+	// Sort for deterministic output - iterating the map directly would shuffle import
+	// order on every compile run.
+	sorted := make([]string, 0, len(statements))
 	for stmt := range statements {
 		sorted = append(sorted, stmt)
 	}
 	sort.Strings(sorted)
 
-	statementsX := []string{}
-	for v := range statements {
+	statementsX := make([]string, 0, len(sorted))
+	for _, v := range sorted {
 		statementsX = append(statementsX, fmt.Sprintf("import %v", v))
 	}
 
