@@ -1,6 +1,7 @@
 package strings
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -34,6 +35,45 @@ func ReadYamlFile[T any](filename string, out *T) error {
 		return err
 	}
 	return yaml.Unmarshal(data, out)
+}
+
+// normalizeYamlValue recursively converts the map[interface{}]interface{}
+// nodes that yaml.v2 produces for nested mappings (anything typed as a bare
+// interface{}, e.g. values inside TranslationResource.Content) into
+// map[string]interface{}, so downstream code that only handles the latter
+// (convertToTypeScript, addMissingKeysRecursive, mergeMaps2) sees nested
+// objects consistently instead of silently treating them as unknown values.
+func normalizeYamlValue(v interface{}) interface{} {
+	switch vv := v.(type) {
+	case map[interface{}]interface{}:
+		out := make(map[string]interface{}, len(vv))
+		for k, val := range vv {
+			out[fmt.Sprintf("%v", k)] = normalizeYamlValue(val)
+		}
+		return out
+	case map[string]interface{}:
+		out := make(map[string]interface{}, len(vv))
+		for k, val := range vv {
+			out[k] = normalizeYamlValue(val)
+		}
+		return out
+	case []interface{}:
+		out := make([]interface{}, len(vv))
+		for i, val := range vv {
+			out[i] = normalizeYamlValue(val)
+		}
+		return out
+	default:
+		return v
+	}
+}
+
+func normalizeYamlContent(content map[string]interface{}) map[string]interface{} {
+	normalized := normalizeYamlValue(content)
+	if m, ok := normalized.(map[string]interface{}); ok {
+		return m
+	}
+	return content
 }
 
 func Contains(haystack []string, needle string) bool {
@@ -73,7 +113,16 @@ func convertToTypeScript(content map[string]interface{}, indent string) string {
 		case map[string]interface{}:
 			result.WriteString(convertToTypeScript(v, indent+"  "))
 		case string:
-			result.WriteString(fmt.Sprintf("\"%s\"", v))
+			// Use JSON encoding to properly escape newlines, quotes, backslashes,
+			// etc. - a naive %q-style Sprintf would emit raw newlines/quotes from
+			// multi-line YAML block scalars straight into the .ts file and produce
+			// invalid JS/TS syntax.
+			encoded, err := json.Marshal(v)
+			if err != nil {
+				result.WriteString(fmt.Sprintf("\"%s\"", v))
+			} else {
+				result.Write(encoded)
+			}
 		case int:
 			result.WriteString(fmt.Sprintf("%d", v))
 		case float64:
@@ -142,6 +191,7 @@ func TranslateResource(ctx TranslationResourceCatalog) {
 	if err := ReadYamlFile[TranslationResource](ctx.EntryPoint, &resource); err != nil {
 		log.Fatalln("Cannot determine the entry point file at", ctx.EntryPoint)
 	}
+	resource.Content = normalizeYamlContent(resource.Content)
 
 	// At least there should be english by default
 	if !Contains(ctx.Languages, "en") {
@@ -171,6 +221,7 @@ func TranslateResource(ctx TranslationResourceCatalog) {
 			if err := ReadYamlFile[TranslationResource](dist, &secondayLanguage); err != nil {
 				log.Fatalln("Cannot determine the resource file:", dist)
 			}
+			secondayLanguage.Content = normalizeYamlContent(secondayLanguage.Content)
 
 			addMissingKeys(&resource, &secondayLanguage)
 
@@ -195,6 +246,7 @@ func ReadResource(ctx *TranslationResourceCatalog, lang string, cwd string) *Tra
 	if err := ReadYamlFile[TranslationResource](dist, &resource); err != nil {
 		return nil
 	}
+	resource.Content = normalizeYamlContent(resource.Content)
 
 	return &resource
 }

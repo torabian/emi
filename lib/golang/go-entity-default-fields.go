@@ -20,14 +20,20 @@ import (
 //     indexes smaller and joins faster. See PrependEntityDefaultFields.
 //
 //   - uniqueId is the public identifier every API/CLI surface, and the reconcile-diff
-//     logic in emigorm, actually works with. It's a UUID, generated *natively by
-//     Postgres itself* (gen_random_uuid(), from the pgcrypto extension) via a column
-//     default, rather than in application code - one less thing to get wrong, and one
-//     less roundtrip. This targets Postgres specifically (the project's primary
-//     target); on another database the default clause is simply ignored, or errors if
-//     the equivalent function doesn't exist - the column itself (a plain unique
-//     string) still works everywhere, and the application can always still set it
-//     explicitly itself if the database default isn't available.
+//     logic in emigorm, actually works with. Its default value is a UUID, generated
+//     *natively by Postgres itself* (gen_random_uuid(), from the pgcrypto extension)
+//     via a column default, rather than in application code - one less thing to get
+//     wrong, and one less roundtrip. The column itself is a plain sized string
+//     (varchar), not a native uuid column: applications regularly need to assign their
+//     own non-UUID-shaped identifiers here (a fixed sentinel row's id, a slug, a value
+//     that doubles as a natural key elsewhere) and a native uuid column would reject
+//     every one of those with a type error - the whole point of uniqueId being a
+//     plain string default type is that gen_random_uuid() only supplies the *default*,
+//     it never constrains what a caller can put there instead. On a non-Postgres
+//     database the default clause is simply ignored, or errors if the equivalent
+//     function doesn't exist - the column itself still works everywhere, and the
+//     application can always still set it explicitly itself if the database default
+//     isn't available.
 var EntityDefaultFields = []*core.EmiField{
 	{
 		Name: "id",
@@ -42,7 +48,7 @@ var EntityDefaultFields = []*core.EmiField{
 		Name: "uniqueId",
 		Type: core.FieldTypeString,
 		Tags: map[string]string{
-			"gorm": "type:uuid;default:gen_random_uuid();unique",
+			"gorm": "type:varchar(100);default:gen_random_uuid();unique",
 		},
 	},
 }

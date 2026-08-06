@@ -429,7 +429,12 @@ func createCliContext(c *cli.Command, flags []core.FlagDef) (core.MicroGenContex
 	return ctx, nil
 }
 
-func EntryPoint() {
+// BuildCommands returns the full set of Emi CLI commands (dir, generate,
+// strings, compile, and every registered per-language text/file action).
+// It's exported so host applications (such as fireback) can embed the
+// entire Emi command surface under their own CLI tree instead of only
+// being able to run Emi as a standalone binary.
+func BuildCommands() []*cli.Command {
 	commands := []*cli.Command{
 		&DirCommand,
 		&GenerateCommand,
@@ -474,10 +479,14 @@ func EntryPoint() {
 	commands = append(commands,
 		cliCommandFromFileActions(swift.GetSwiftPublicActions().FileActions)...)
 
+	return commands
+}
+
+func EntryPoint() {
 	app := &cli.Command{
 		Name:     "Emi compiler",
 		Usage:    "Backend-for-Frontend with automatic SDK generation.",
-		Commands: commands,
+		Commands: BuildCommands(),
 	}
 
 	if err := app.Run(context.Background(), os.Args); err != nil {

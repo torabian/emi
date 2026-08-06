@@ -187,8 +187,11 @@ func Get{{ $item.FullClassName }}CliFlags(prefix string) []emigo.CliFlag {
 
 	f := GetCommonFlags(ctx)
 
-	// In cli generation, always the emigo is used, if there is any kind of fields.
-	if len(fields) > 0 {
+	// The generated Get{Name}CliFlags/Cast{Name}FromCli pair above always references
+	// emigo.CliFlag/emigo.CliCastable once cli generation is enabled, regardless of
+	// whether the type has any fields (an empty dto still gets both functions, just
+	// with empty bodies) - so the dependency must follow EnabledCli, not field count.
+	if EnabledCli {
 		j.CodeChunkDependensies = append(j.CodeChunkDependensies, core.CodeChunkDependency{
 			Location: f.Emigo,
 		})
