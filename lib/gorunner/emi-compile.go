@@ -100,6 +100,16 @@ var CompileCommand = cli.Command{
 				} else {
 					outdir = path.Join(path.Dir(c.String("path")), target.Output)
 				}
+
+				// Only ever applies when this target set its own Output (never to a
+				// directory it merely inherited from a previous target that left
+				// outdir unchanged), and only removes that directory itself - a
+				// sibling target writing somewhere else is never touched.
+				if target.Clean {
+					if err := os.RemoveAll(outdir); err != nil {
+						return fmt.Errorf("error cleaning output directory %v: %w", outdir, err)
+					}
+				}
 			}
 
 			for _, file := range files {

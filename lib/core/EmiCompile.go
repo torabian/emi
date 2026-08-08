@@ -14,6 +14,15 @@ type EmiCompile struct {
 	// Compiler tags
 	Tags []string `yaml:"tags,omitempty" json:"tags,omitempty" jsonschema:"description=Compiler tags"`
 
+	// When true, this target's own Output directory is deleted entirely right
+	// before its files are (re)written, so entities/actions/dtos removed from the
+	// definition since the last compile don't leave stale generated files behind.
+	// Only ever deletes Output itself - never anything a sibling target with a
+	// different (or unset) Output writes to. Only takes effect when Output is
+	// explicitly set on this target; a target that inherits its output directory
+	// from elsewhere is never cleaned implicitly.
+	Clean bool `yaml:"clean,omitempty" json:"clean,omitempty" jsonschema:"description=When true deletes this target's own Output directory before writing freshly generated content so stale files left over from removed entities or actions aren't kept around."`
+
 	// This section is commented at the moment. In airplane I have not enough mental capacity to implement
 	// this one.
 	// Custom selection of content while building the target, to include/exclude features such as actions and dtos

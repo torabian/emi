@@ -93,7 +93,7 @@ func cliCommandFromTextAction(a core.ActionText) cli.Command {
 			}
 
 			if err := os.WriteFile(ctx.Output, []byte(output), 0644); err != nil {
-				return fmt.Errorf("error on writing file to disk: %v, %v, %w", ctx.Output, err)
+				return fmt.Errorf("error on writing file to disk: %v, %w", ctx.Output, err)
 			}
 
 			return nil
