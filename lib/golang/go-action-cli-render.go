@@ -66,7 +66,7 @@ func {{ .realms.ActionName }}CliFlags() []cli.Flag {
 		},
 	}
 
-	{{ if .action.HasRequestFields }}
+	{{ if .realms.RequestClassName }}
 	flags = append(flags, emigo.CastEmiFlagToUrfave(Get{{ .realms.RequestClassName }}CliFlags(""))...)
 	{{ end }}
 	{{ if .realms.PathParameterCli }}
@@ -108,7 +108,7 @@ func {{ .realms.ActionName }}CliHandler(
 			CliCtx:      c,
 			QueryParams: url.Values{},
 			Headers:     emigo.ParseCliHeaders(c.StringSlice("header")),
-			{{ if .action.HasRequestFields }}
+			{{ if .realms.RequestClassName }}
 			Body: Cast{{ .realms.RequestClassName }}FromCli(c),
 			{{ end }}
 			{{ if .realms.PathParameterCli }}

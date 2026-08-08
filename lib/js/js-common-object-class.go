@@ -137,6 +137,44 @@ func CollectTargets(fields []*core.EmiField) []string {
 	return result
 }
 
+// entityTargetToCodeChunk resolves a relation field's `target: XEntity` (the
+// documented convention for referencing another entity by its Go/generic name - PascalCase
+// plus "Entity" suffix, e.g. `target: PassportEntity`) to an import of the sibling,
+// actually-generated `XDto` class, aliased back to the `XEntity` name the field (and
+// every other generated reference to it, since field.Target is used verbatim as both the
+// TS type and the runtime constructor class name elsewhere in this file) expects.
+//
+// The JS/TS entity compiler only ever emits Dto/OptionalDto/action files for an entity -
+// never a literal "XEntity.ts" - so importing `target` as a same-named sibling file (what
+// castDtoNameToCodeChunk does for e.g. action request/response Dto names, which really are
+// real sibling files) would always be a dangling import for entity relation targets. This
+// used to be worked around with hand-written `export { XDto as XEntity } from "./XDto"`
+// shim files sitting in the generated output directory - which then got deleted on every
+// `clean: true` regeneration, since nothing there marks them as hand-written. Resolving
+// the alias at generation time instead means no physical shim file is needed at all.
+func entityTargetToCodeChunk(target string) *core.CodeChunkCompiled {
+	if !strings.HasSuffix(target, "Entity") || target == "Entity" {
+		return castDtoNameToCodeChunk(target)
+	}
+
+	dtoName := strings.TrimSuffix(target, "Entity") + "Dto"
+	directory, dtoClassName := parseDtoPath(dtoName)
+
+	return &core.CodeChunkCompiled{
+		ActualScript: []byte(""),
+		Tokens: []core.GeneratedScriptToken{
+			{Name: TOKEN_OBJ_CLASS, Value: target},
+			{Name: TOKEN_ROOT_CLASS, Value: target},
+		},
+		CodeChunkDependensies: []core.CodeChunkDependency{
+			{
+				Objects:  []string{dtoClassName + " as " + target},
+				Location: directory,
+			},
+		},
+	}
+}
+
 func hasClassesAsChildren(fields []*core.EmiField) bool {
 	var result = false
 
@@ -214,7 +252,7 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 
 	collectTargets := CollectTargets(fields)
 	for _, item := range collectTargets {
-		m := castDtoNameToCodeChunk(item)
+		m := entityTargetToCodeChunk(item)
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, m.CodeChunkDependensies...)
 	}
 
