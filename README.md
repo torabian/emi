@@ -1,4 +1,4 @@
-# Emi - Backend-for-Frontend with automatic SDK generation.
+# Emi - Only SDK generation tool for API you need
 
 Live preview: https://torabian.github.io/emi/playground
 Documentation: https://torabian.github.io/emi
