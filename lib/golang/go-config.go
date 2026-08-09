@@ -8,10 +8,18 @@ import (
 	"github.com/torabian/emi/lib/core"
 )
 
+// GoConfigGenerate renders the module's `config:` block. It always produces the plain
+// Config struct, defaults, and env load/save helpers (no cli dependency, safe for wasm).
+// The urfave/cli-specific bindings (flags, cast-from-cli, interactive get/set commands)
+// are rendered separately by GoConfigGenerateCli and merged back into the same file
+// unless the "split-cli" tag is set, in which case they're returned as their own
+// `//go:build !wasm`-guarded chunk - same convention as
+// GoCommonStructGenerator/GoActionRender use for dtos/actions, so a wasm build of the
+// module never has to pull in urfave/cli just because a config block exists.
 func GoConfigGenerate(
 	configs []core.EmiConfig,
 	ctx core.MicroGenContext,
-) (*core.CodeChunkCompiled, error) {
+) ([]*core.CodeChunkCompiled, error) {
 
 	if len(configs) == 0 {
 		return nil, nil
@@ -53,15 +61,122 @@ func GoConfigGenerate(
 
 
 
-{{ if .fields }}
 type Config struct {
   {{ template "configFields" (arr .fields "") }}
 }
 
 
+// The config is usually populated by env vars on LoadConfiguration
+var config Config = Config{
+  {{ range .fields}}
+    {{ if .Default }}
+      {{ if or (eq .Type "string") (eq .Type "") }}
+        {{ upper .Name }}: "{{ .Default }}",
+      {{ else }}
+        {{ upper .Name }}: {{ .Default }},
+      {{ end }}
+    {{ end }}
+  {{ end }}
+}
+
+/**
+You can call this function on first line of your main function.
+This is different from fireback configuration (for now), you can
+define config: in module3 file, similar to fields in entities,
+and we generate the config struct and this function would read .env.local,
+.env.prod, etc - depending on the ENV=xxx env variable.
+**/
+func LoadConfiguration() Config {
+	emigo.HandleEnvVars(&config)
+	return config
+}
+
+func (x *Config) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return (string(str))
+	}
+	return ""
+}
+
+func (x *Config) Save(filepath string) error {
+	return emigo.SaveEnvFile(x, filepath)
+}
+`
+
+	tmpl = strings.ReplaceAll(tmpl, "$bt$", "`")
+
+	t := template.Must(template.New("config_generator").Funcs(core.CommonMap).Parse(tmpl))
+
+	f := GetCommonFlags(ctx)
+
+	res.CodeChunkDependensies = append(
+		res.CodeChunkDependensies,
+		[]core.CodeChunkDependency{
+			{
+				Location: "encoding/json",
+			},
+			{
+				Location: f.Emigo,
+			},
+		}...,
+	)
+
+	var buf bytes.Buffer
+	if err := t.Execute(&buf, core.H{
+		"fields": configs,
+	}); err != nil {
+		return nil, err
+	}
+
+	res.SuggestedFileName = "Configuration"
+	res.ActualScript = buf.Bytes()
+	res.SuggestedExtension = ".go"
+
+	files := []*core.CodeChunkCompiled{&res}
+
+	cliChunk, err := GoConfigGenerateCli(configs, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if cliChunk != nil {
+		if ctx.HasTag(SplitCli) {
+			files = append(files, cliChunk)
+		} else {
+			res.ActualScript = append(res.ActualScript, cliChunk.ActualScript...)
+			res.CodeChunkDependensies = append(res.CodeChunkDependensies, cliChunk.CodeChunkDependensies...)
+		}
+	}
+
+	return files, nil
+}
+
+// GoConfigGenerateCli renders the urfave/cli v3-specific half of the module's
+// `config:` block: flag definitions, cast-from-cli, and the interactive `get`/`set`
+// command tree that reads/writes ".env" through the package-level `config` var declared
+// by GoConfigGenerate. Split out so it can be emitted as its own file (guarded with
+// `//go:build !wasm` when the "split-cli" tag is set) instead of always dragging
+// urfave/cli into every build of the module, wasm included.
+func GoConfigGenerateCli(
+	configs []core.EmiConfig,
+	ctx core.MicroGenContext,
+) (*core.CodeChunkCompiled, error) {
+
+	if len(configs) == 0 {
+		return nil, nil
+	}
+
+	res := core.CodeChunkCompiled{}
+
+	tmpl := `
+{{ if .splitCli }}
+//go:build !wasm
+{{ end }}
+
 func GetConfigCliFlags() []cli.Flag {
 	return []cli.Flag{
-    {{ range .fields }} 
+    {{ range .fields }}
       {{ if or (eq .Type "string") (eq .Type "")}}
         &cli.StringFlag{
           Name:  "{{ .DashedName }}",
@@ -104,7 +219,7 @@ func GetConfigCliFlags() []cli.Flag {
 
 
 func CastConfigFromCli(config *Config, c emigo.CliCastable) {
-  {{ range .fields }} 
+  {{ range .fields }}
     if c.IsSet("{{ .DashedName }}") {
       {{ if or (eq .Type "string") (eq .Type "")}}
         config.{{ upper .Name }} = c.String("{{ .DashedName }}")
@@ -187,87 +302,39 @@ func GetConfigCli() []*cli.Command {
 	}
 
 }
-
-
-// The config is usually populated by env vars on LoadConfiguration
-var config Config = Config{
-  {{ range .fields}}
-    {{ if .Default }}
-      {{ if or (eq .Type "string") (eq .Type "") }}
-        {{ upper .Name }}: "{{ .Default }}",
-      {{ else }}
-        {{ upper .Name }}: {{ .Default }},
-      {{ end }}
-    {{ end }}
-  {{ end }}
-}
-
-/**
-You can call this function on first line of your main function.
-This is different from fireback configuration (for now), you can
-define config: in module3 file, similar to fields in entities,
-and we generate the config struct and this function would read .env.local,
-.env.prod, etc - depending on the ENV=xxx env variable.
-**/
-func LoadConfiguration() Config {
-	emigo.HandleEnvVars(&config)
-	return config
-}
-
-func (x *Config) Json() string {
-	if x != nil {
-		str, _ := json.MarshalIndent(x, "", "  ")
-		return (string(str))
-	}
-	return ""
-}
-
-func (x *Config) Save(filepath string) error {
-	return emigo.SaveEnvFile(x, filepath)
-}
-
-
-{{ end }}
 `
 
-	tmpl = strings.ReplaceAll(tmpl, "$bt$", "`")
-
-	t := template.Must(template.New("config_generator").Funcs(core.CommonMap).Parse(tmpl))
+	t := template.Must(template.New("config_generator_cli").Funcs(core.CommonMap).Parse(tmpl))
 
 	f := GetCommonFlags(ctx)
 
-	if len(configs) > 0 {
-		res.CodeChunkDependensies = append(
-			res.CodeChunkDependensies,
-			[]core.CodeChunkDependency{
-				{
-					Location: "encoding/json",
-				},
-				{
-					Location: "context",
-				},
-				{
-					Location: "fmt",
-				},
-				{
-					Location: "github.com/urfave/cli/v3",
-				},
-				{
-					Location: f.Emigo,
-				},
-			}...,
-		)
-
-	}
+	res.CodeChunkDependensies = append(
+		res.CodeChunkDependensies,
+		[]core.CodeChunkDependency{
+			{
+				Location: "context",
+			},
+			{
+				Location: "fmt",
+			},
+			{
+				Location: "github.com/urfave/cli/v3",
+			},
+			{
+				Location: f.Emigo,
+			},
+		}...,
+	)
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"fields": configs,
+		"fields":   configs,
+		"splitCli": ctx.HasTag(SplitCli),
 	}); err != nil {
 		return nil, err
 	}
 
-	res.SuggestedFileName = "Configuration"
+	res.SuggestedFileName = "ConfigurationCli"
 	res.ActualScript = buf.Bytes()
 	res.SuggestedExtension = ".go"
 

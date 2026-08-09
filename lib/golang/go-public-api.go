@@ -301,13 +301,13 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		})
 	}
 
-	output, err := GoConfigGenerate(module.Config, ctx)
+	configOutputs, err := GoConfigGenerate(module.Config, ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
-	if output != nil {
+	for _, output := range configOutputs {
 		files = append(files, core.VirtualFile{
 			Name:         output.SuggestedFileName,
 			Extension:    output.SuggestedExtension,
@@ -334,11 +334,48 @@ func AsFullDocument(x *core.CodeChunkCompiled, packageName string) string {
 		packageName = item.Value
 	}
 
+	// A "split" chunk (SplitCli/SplitGin/reactive-wasm, ...) emits its `//go:build` line
+	// as the first line of its own ActualScript, for readability at the template level.
+	// It has to be pulled out here rather than left in place: go/build only recognizes a
+	// build constraint that appears before the `package` clause, separated from it by a
+	// blank line - anywhere else (e.g. right after `package`, which is where it'd land
+	// if left inline below) it's just an inert comment, and the file compiles
+	// unconditionally in every GOOS/GOARCH/tag combination, silently defeating the
+	// whole point of splitting it out. (Verified empirically: `go build`/`go vet` both
+	// ignore a `//go:build` comment placed after the package clause.)
+	buildTag, script := extractLeadingBuildTag(string(x.ActualScript))
+
 	importsList := CombineGoImports(*x)
-	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + string(x.ActualScript)
+	var finalContent string = "package " + packageName + "\r\n" + importsList + "\r\n" + script
 
 	finalContent = FormatGoCode(string(core.EscapeLines([]byte(finalContent))))
+
+	if buildTag != "" {
+		// Prepended after EscapeLines/FormatGoCode, never before: EscapeLines strips
+		// every blank line it finds, which would merge the constraint straight into
+		// `package` and break the very rule we're fixing.
+		finalContent = buildTag + "\n\n" + finalContent
+	}
+
 	return finalContent
+}
+
+// extractLeadingBuildTag pulls a leading `//go:build ...` line off the front of a
+// generated chunk's script (tolerating leading blank lines/whitespace, since templates
+// emit it via `{{ if .SplitX }}\n//go:build !wasm\n{{ end }}`), returning it separately
+// from the remaining script. Returns ("", script) unchanged if there is none.
+func extractLeadingBuildTag(script string) (string, string) {
+	trimmed := strings.TrimLeft(script, "\r\n\t ")
+	if !strings.HasPrefix(trimmed, "//go:build") {
+		return "", script
+	}
+
+	nl := strings.IndexAny(trimmed, "\r\n")
+	if nl == -1 {
+		return trimmed, ""
+	}
+
+	return trimmed[:nl], trimmed[nl:]
 }
 func CombineGoImports(chunk core.CodeChunkCompiled) string {
 	statements := map[string]struct{}{}
