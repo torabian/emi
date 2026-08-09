@@ -78,9 +78,14 @@ func entityDtoRelationTarget(target string) string {
 	return strings.TrimSuffix(target, suffix) + "Dto"
 }
 
-// shallowCloneField copies a field (not its Tags - a clone destined for a synthesized
-// dto isn't tied to whatever persistence tags the source field carries) without
-// touching its own Fields slice, letting the caller decide whether/how to recurse.
+// shallowCloneField copies a field (dropping only its "gorm" tag - a clone destined for
+// a synthesized dto isn't tied to whatever persistence-specific tag the source field
+// carries, but every other tag, notably "validate", is exactly what a portable dto
+// needs: it's the struct gin/cli binds a Create/Update request body into, and what
+// fireback.CommonStructValidatorPointer's go-playground validator.Struct actually
+// enforces - stripping it wholesale silently disabled every entity's required/oneof/etc.
+// validation on its own Create/Update requests) without touching its own Fields slice,
+// letting the caller decide whether/how to recurse.
 //
 // one/one? and collection/collection? get two extra adjustments, regardless of caller:
 // target is rewritten via entityDtoRelationTarget, and the type is forced to its
@@ -92,7 +97,20 @@ func shallowCloneField(f *EmiField) *EmiField {
 		return nil
 	}
 	clone := *f
-	clone.Tags = nil
+
+	if len(f.Tags) > 0 {
+		tags := make(map[string]string, len(f.Tags))
+		for k, v := range f.Tags {
+			if k == "gorm" {
+				continue
+			}
+			tags[k] = v
+		}
+		if len(tags) == 0 {
+			tags = nil
+		}
+		clone.Tags = tags
+	}
 
 	switch f.Type {
 	case FieldTypeOne, FieldTypeOneNullable:

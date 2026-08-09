@@ -190,7 +190,7 @@ func (x goFieldVariable) CliCaptureStatement() string {
 	}
 
 	switch possibleType {
-	case core.FieldTypeString:
+	case core.FieldTypeString, core.FieldTypeEnum:
 		return wrapIfSet(fmt.Sprintf("c.String(\"%v\")", x.CliName))
 	case core.FieldTypeInt, core.FieldTypeInt32, core.FieldTypeInt64:
 		return wrapIfSet(fmt.Sprintf("%v(c.Int64(\"%v\"))", x.ComputedType, x.CliName))

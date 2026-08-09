@@ -21,12 +21,17 @@ func entityActionName(entity *Module3Entity, suffix string) string {
 	return entity.Name + suffix
 }
 
+// Returns only the affix for action name, so user doesn't have to type constantly.
+func entityActionCliName(entity *Module3Entity, word string) string {
+	return word
+}
+
 // entityActionCliShort is the action's CLI alias (EmiAction.CliShort -> cmd.Aliases,
 // see lib/golang/go-action-cli-render.go) - entity-prefixed (not just "c"/"u"/...) since
 // every entity's actions end up registered in the same flat, global CLI command list
 // (see lib/gorunner/gorunner.go), so a bare per-operation short code would collide
-// across entities. Still meaningfully shorter than the full kebab-case name (e.g.
-// "widget-c" vs "widget-create") for quicker/easier reading and typing at the CLI.
+// across entities. Still meaningfully shorter than the full CliName (e.g. "widget-c" vs
+// "widget-create") for quicker/easier typing at the CLI once it's already familiar.
 func entityActionCliShort(entity *Module3Entity, short string) string {
 	return entity.Name + "-" + short
 }
@@ -44,6 +49,7 @@ func buildEntityCreateAction(entity *Module3Entity) *EmiAction {
 	dtoClassName := BuildEntityDto(entity).GetClassName()
 	return &EmiAction{
 		Name:        entityActionName(entity, "Create"),
+		CliName:     entityActionCliName(entity, "create"),
 		CliShort:    entityActionCliShort(entity, "c"),
 		Description: "Creates a new \"" + entity.Name + "\" row.",
 		Method:      "post",
@@ -56,6 +62,7 @@ func buildEntityCreateAction(entity *Module3Entity) *EmiAction {
 func buildEntityUpdateAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "Update"),
+		CliName:     entityActionCliName(entity, "update"),
 		CliShort:    entityActionCliShort(entity, "u"),
 		Description: "Applies a partial update to a \"" + entity.Name + "\" row by uniqueId.",
 		Method:      "patch",
@@ -68,6 +75,7 @@ func buildEntityUpdateAction(entity *Module3Entity) *EmiAction {
 func buildEntityGetAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "Get"),
+		CliName:     entityActionCliName(entity, "get"),
 		CliShort:    entityActionCliShort(entity, "g"),
 		Description: "Looks up a single \"" + entity.Name + "\" row by uniqueId.",
 		Method:      "get",
@@ -98,6 +106,7 @@ func BuildEntityBrowseAction(entity *Module3Entity) *EmiAction {
 func buildEntityBrowseAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "Browse"),
+		CliName:     entityActionCliName(entity, "browse"),
 		CliShort:    entityActionCliShort(entity, "b"),
 		Description: "Returns \"" + entity.Name + "\" rows matching a filter, sorted/paged (see emigorm.ApplyQueryFilter/ApplyQueryScope).",
 		Method:      "get",
@@ -132,6 +141,7 @@ func buildEntityBrowseAction(entity *Module3Entity) *EmiAction {
 func buildEntityAwareDeletePreviewAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "AwareDeletePreview"),
+		CliName:     entityActionCliName(entity, "delete-preview"),
 		CliShort:    entityActionCliShort(entity, "dp"),
 		Description: "Reports what deleting the given \"" + entity.Name + "\" uniqueIds would affect, without deleting anything.",
 		Method:      "get",
@@ -155,6 +165,7 @@ func buildEntityAwareDeletePreviewAction(entity *Module3Entity) *EmiAction {
 func buildEntityAwareDeleteAction(entity *Module3Entity) *EmiAction {
 	return &EmiAction{
 		Name:        entityActionName(entity, "AwareDelete"),
+		CliName:     entityActionCliName(entity, "delete"),
 		CliShort:    entityActionCliShort(entity, "d"),
 		Description: "Deletes the given \"" + entity.Name + "\" uniqueIds, along with everything " + entityActionName(entity, "AwareDeletePreview") + " reports.",
 		Method:      "post",
