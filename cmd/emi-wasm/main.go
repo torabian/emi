@@ -7,14 +7,20 @@ import (
 	"fmt"
 	"syscall/js"
 
+	"github.com/torabian/emi/lib/c"
 	"github.com/torabian/emi/lib/core"
+	"github.com/torabian/emi/lib/csharp"
+	"github.com/torabian/emi/lib/dart"
 	"github.com/torabian/emi/lib/golang"
+	"github.com/torabian/emi/lib/java"
 	emijs "github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
 	"github.com/torabian/emi/lib/md"
 	"github.com/torabian/emi/lib/openapi"
+	"github.com/torabian/emi/lib/php"
 	"github.com/torabian/emi/lib/postman"
 	preprocessor "github.com/torabian/emi/lib/preproceesor"
+	"github.com/torabian/emi/lib/python"
 	"github.com/torabian/emi/lib/querypredict"
 	"github.com/torabian/emi/lib/swift"
 )
@@ -76,6 +82,54 @@ func main() {
 	}
 
 	for _, fileAction := range swift.GetSwiftPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range python.GetPythonPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range python.GetPythonPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range dart.GetDartPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range dart.GetDartPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range csharp.GetCSharpPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range csharp.GetCSharpPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range java.GetJavaPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range java.GetJavaPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range php.GetPhpPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range php.GetPhpPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, textAction := range c.GetCPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range c.GetCPublicActions().FileActions {
 		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
 	}
 
@@ -153,12 +207,24 @@ func getPublicActions(this js.Value, args []js.Value) any {
 	actionsGolang := golang.GetGolangPublicActions()
 	actionsSwift := swift.GetSwiftPublicActions()
 	actionsKotlin := kotlin.GetKotlinPublicActions()
+	actionsPython := python.GetPythonPublicActions()
+	actionsDart := dart.GetDartPublicActions()
+	actionsCSharp := csharp.GetCSharpPublicActions()
+	actionsJava := java.GetJavaPublicActions()
+	actionsPhp := php.GetPhpPublicActions()
+	actionsC := c.GetCPublicActions()
 
 	return publicAPIActionsToJS([]core.PublicAPIActions{
 		actionsJs,
 		actionsGolang,
 		actionsSwift,
 		actionsKotlin,
+		actionsPython,
+		actionsDart,
+		actionsCSharp,
+		actionsJava,
+		actionsPhp,
+		actionsC,
 	})
 }
 
