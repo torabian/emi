@@ -39,13 +39,25 @@ export default function TypescriptEditor({
       }}
       theme={theme}
       defaultLanguage={
-        file.Name.includes(".ts")
-          ? "typescript"
-          : file.Name.includes("json")
-            ? "json"
-            : file.Name.includes(".js")
-              ? "javascript"
-              : ""
+        file.Extension === ".py"
+          ? "python"
+          : file.Extension === ".dart"
+            ? "dart"
+            : file.Extension === ".cs"
+              ? "csharp"
+              : file.Extension === ".java"
+                ? "java"
+                : file.Extension === ".php"
+                  ? "php"
+                  : file.Extension === ".c" || file.Extension === ".h"
+                    ? "c"
+                    : file.Name.includes(".ts")
+                      ? "typescript"
+                      : file.Name.includes("json")
+                        ? "json"
+                        : file.Name.includes(".js")
+                          ? "javascript"
+                          : ""
       }
       defaultValue={value}
     />
@@ -74,7 +86,8 @@ export const registerVirtualFiles = (files: VirtualFile[]) => {
 
 // crude but works for now
 function guessLanguage(ext: string) {
-  switch (ext) {
+  // SuggestedExtension is always stored with its leading dot (".py", ".ts"...)
+  switch (ext.replace(/^\./, "")) {
     case "ts":
     case "tsx":
       return "typescript";
@@ -85,6 +98,21 @@ function guessLanguage(ext: string) {
     case "yaml":
     case "yml":
       return "yaml";
+    case "py":
+      return "python";
+    case "dart":
+      return "dart";
+    case "cs":
+      return "csharp";
+    case "java":
+      return "java";
+    case "php":
+      return "php";
+    case "c":
+    case "h":
+      return "c";
+    case "txt":
+      return "plaintext";
     default:
       return "plaintext";
   }

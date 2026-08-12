@@ -13,14 +13,20 @@ import (
 
 	emistrings "github.com/torabian/emi/lib/strings"
 
+	"github.com/torabian/emi/lib/c"
 	"github.com/torabian/emi/lib/core"
+	"github.com/torabian/emi/lib/csharp"
+	"github.com/torabian/emi/lib/dart"
 	"github.com/torabian/emi/lib/golang"
+	"github.com/torabian/emi/lib/java"
 	"github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
 	"github.com/torabian/emi/lib/md"
 	"github.com/torabian/emi/lib/openapi"
+	"github.com/torabian/emi/lib/php"
 	"github.com/torabian/emi/lib/postman"
 	preprocessor "github.com/torabian/emi/lib/preproceesor"
+	"github.com/torabian/emi/lib/python"
 	"github.com/torabian/emi/lib/querypredict"
 	"github.com/torabian/emi/lib/swift"
 	"github.com/urfave/cli/v3"
@@ -478,6 +484,36 @@ func BuildCommands() []*cli.Command {
 		cliCommandFromTextActions(swift.GetSwiftPublicActions().TextActions)...)
 	commands = append(commands,
 		cliCommandFromFileActions(swift.GetSwiftPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(python.GetPythonPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(python.GetPythonPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(dart.GetDartPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(dart.GetDartPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(csharp.GetCSharpPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(csharp.GetCSharpPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(java.GetJavaPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(java.GetJavaPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(php.GetPhpPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(php.GetPhpPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(c.GetCPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(c.GetCPublicActions().FileActions)...)
 
 	return commands
 }

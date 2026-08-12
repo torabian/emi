@@ -14,6 +14,12 @@ const options = [
   { value: "goGen", label: "Golang" },
   { value: "kotlinGen", label: "Kotlin" },
   { value: "jsGenModule", label: "JavaScript" },
+  { value: "pythonGenModule", label: "Python" },
+  { value: "dartGenModule", label: "Dart" },
+  { value: "csharpGenModule", label: "C#" },
+  { value: "javaGenModule", label: "Java" },
+  { value: "phpGenModule", label: "PHP" },
+  { value: "cGenModule", label: "C" },
   { value: "sqlQueryPredict", label: "QueryPredict(SQL)" },
   { value: "preprocessorGen", label: "Preprocessor" },
   { value: "postmanGen", label: "Postman" },
@@ -124,6 +130,26 @@ function App() {
             {assemblyFunction === "jsGenModule" ? (
               <FeatureSelector
                 options={["nestjs", "typescript", "react"]}
+                setSelected={(value) => setFeatures(value)}
+                selected={features}
+              />
+            ) : null}
+            {assemblyFunction === "pythonGenModule" ? (
+              <FeatureSelector
+                options={["async", "no-sdk"]}
+                setSelected={(value) => setFeatures(value)}
+                selected={features}
+              />
+            ) : null}
+            {[
+              "dartGenModule",
+              "csharpGenModule",
+              "javaGenModule",
+              "phpGenModule",
+              "cGenModule",
+            ].includes(assemblyFunction) ? (
+              <FeatureSelector
+                options={["no-sdk", "no-pkg"]}
                 setSelected={(value) => setFeatures(value)}
                 selected={features}
               />
