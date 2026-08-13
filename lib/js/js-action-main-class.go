@@ -30,6 +30,20 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 	}
 
 	className := realms.ActionName
+	// --tags no-class: the request/response dto files this action references
+	// never got a class body (see js-common-object.go) - resolve their names
+	// via TOKEN_TYPEDEF_NAME (the standalone type/typedef identifier) instead
+	// of TOKEN_OBJ_CLASS (which - by design, see js-tokens.go - still resolves
+	// to the same bare name a class would have had, so it's never actually a
+	// dangling reference on its own; it's just not useful to build a `new
+	// X(...)` off of anymore, which is exactly what fetchctx.NoClass tells
+	// getCreatorFnInfo/getCommonFetchArguments (js-static-fetch.go) not to do).
+	noClass := ctx.HasTag(NoClass)
+	requestResponseToken := TOKEN_OBJ_CLASS
+	if noClass {
+		requestResponseToken = TOKEN_TYPEDEF_NAME
+	}
+
 	fetchctx := fetchStaticFunctionContext{
 		DefaultUrlVariable:  fmt.Sprintf("%v.URL", className),
 		UrlCreatorFunction:  fmt.Sprintf("%v.NewUrl", className),
@@ -40,6 +54,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 		// By default, use the classic http call, which covers files, json, sse, etc...
 		IsClassicHttpCall: true,
 		ActionMethod:      action.GetMethod(),
+		NoClass:           noClass,
 	}
 
 	if action.MethodUpper() == EMI_METHOD_REACTIVE {
@@ -54,7 +69,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 	}
 
 	if realms.RequestClass != nil {
-		requestClassToken := findTokenByName(realms.RequestClass.Tokens, TOKEN_OBJ_CLASS)
+		requestClassToken := findTokenByName(realms.RequestClass.Tokens, requestResponseToken)
 		if requestClassToken != nil {
 			fetchctx.RequestClass = requestClassToken.Value
 		}
@@ -119,7 +134,7 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 	}
 
 	if realms.ResponseClass != nil {
-		responseClassToken := findTokenByName(realms.ResponseClass.Tokens, TOKEN_OBJ_CLASS)
+		responseClassToken := findTokenByName(realms.ResponseClass.Tokens, requestResponseToken)
 		if responseClassToken != nil {
 
 			// Not sure about this yet. Primitives also can be a class, right?
@@ -201,7 +216,15 @@ export class {{ .className }} { //
 
 	t := template.Must(template.New("qsclass").Funcs(core.CommonMap).Parse(tmpl))
 
+	// --tags no-definition: the raw JSON dump of the whole action (url, method,
+	// in/out shapes, ...) is handy for introspection/tooling, but it's also a
+	// full second copy of everything the class above already expresses through
+	// real code - skippable for a size-constrained target the same way
+	// --tags no-class skips the dto class body.
 	definition := action.GetDefinition()
+	if ctx.HasTag(NoDefinition) {
+		definition = ""
+	}
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{

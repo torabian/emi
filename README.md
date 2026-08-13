@@ -175,6 +175,19 @@ Capabilities:
   a real type already exists); opt out with `--tags no-jsdoc`.
 - A typed `fetch` layer over the browser fetch API that returns class instances, not
   raw JSON.
+- `--tags no-class` → skip the generated dto class body altogether (both dialects) and
+  keep only the type declaration above — smaller output for size-constrained targets.
+  The action `Fetch`/`Fetch$` methods stop instantiating anything too (no `new X(...)`)
+  and just hand back the parsed response typed as that same type — a real TS generic
+  parameter in TypeScript, a JSDoc `@returns` pointing at the typedef in plain JS.
+  Request/response bodies referenced by name (`in: dto: X`/`out: dto: X`) resolve to
+  the sibling dto's type name too, assuming it's compiled with the same tag. Not
+  generating any class at all is the whole point, so combining this with `--tags react`
+  (whose hooks are written against class instances) isn't supported.
+- `--tags no-definition` → drop each generated action class's `static Definition = {...}`
+  (a full JSON re-dump of the action's own url/method/in/out shape, handy for
+  introspection/tooling but redundant with the real code around it) — another
+  size-focused trim, same spirit as `--tags no-class`.
 - `--tags react` → TanStack Query `useQuery`/`useMutation` hooks, query-option builders,
   and reactive WebSocket/SSE hooks. Import location/version configurable
   (`--react-query react-query@v3`).

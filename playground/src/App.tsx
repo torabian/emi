@@ -130,7 +130,18 @@ function App() {
             ) : null}
             {assemblyFunction === "jsGenModule" ? (
               <FeatureSelector
-                options={["nestjs", "typescript", "react"]}
+                options={[
+                  "typescript",
+                  "react",
+                  "nestjs",
+                  "no-class",
+                  "no-jsdoc",
+                  "no-definition",
+                  "no-sdk",
+                  "no-package",
+                  "no-envelope",
+                  "include-ext",
+                ]}
                 setSelected={(value) => setFeatures(value)}
                 selected={features}
               />

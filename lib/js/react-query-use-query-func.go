@@ -109,10 +109,7 @@ export const {{ .className }}Query = (
 				Objects:  []string{"useState"},
 				Location: "react",
 			},
-			{
-				Objects:  []string{"type TypedResponse"},
-				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "fetchx"),
-			},
+
 			{
 				Objects:  []string{"useFetchxContext"},
 				Location: getSdkAwareLocation(ctx, INTERNAL_SDK_REACT_LOCATION, "useFetchx"),
@@ -124,6 +121,14 @@ export const {{ .className }}Query = (
 				Value: className,
 			},
 		},
+	}
+
+	isTypeScript := ctx.HasTag(Typescript)
+	if isTypeScript {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
+			Objects:  []string{"type TypedResponse"},
+			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "fetchx"),
+		})
 	}
 
 	res.CodeChunkDependensies = append(res.CodeChunkDependensies, extraDeps...)

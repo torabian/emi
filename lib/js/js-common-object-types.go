@@ -138,6 +138,15 @@ func TsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 			Value: renderedTypes[0].TypeName,
 		})
 
+		// The real, `Type`-suffixed identifier of the standalone `export type`
+		// declaration below - see TOKEN_TYPEDEF_NAME's own doc comment
+		// (js-tokens.go) for why this needs to be a separate token from
+		// TOKEN_OBJ_TYPE above (which intentionally stays the bare class name).
+		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{
+			Name:  TOKEN_TYPEDEF_NAME,
+			Value: core.ToUpper(tsctx.RootTypeName) + "Type",
+		})
+
 		renderedSubTypes = renderedTypes[0].SubTypes
 	}
 

@@ -132,12 +132,27 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
 
+	// --tags no-class: the class body (private fields, getters/setters, toJSON,
+	// clone/copyWith/from/with, ...) is real, useful runtime code most of the
+	// time, but it's also the majority of the bytes in every generated dto file -
+	// for a size-constrained target, the type declaration above (the `export
+	// type`/`@typedef` this function already generates, TS or JS alike) is often
+	// all a caller actually needs. tsClass is still computed in full above (so
+	// every token/dependency it contributes - TOKEN_ROOT_CLASS, TOKEN_OBJ_CLASS,
+	// complex/target imports, ... - stays exactly as it always has, and every
+	// other consumer of this chunk keeps working unmodified) - only its
+	// ActualScript is dropped from the final assembled file here.
+	tsClassForOutput := tsClass
+	if ctx.HasTag(NoClass) {
+		tsClassForOutput = nil
+	}
+
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"shouldExport": true,
 		"tsInterface":  tsTypes,
 		"jsdocTypes":   jsdocTypes,
-		"tsClass":      tsClass,
+		"tsClass":      tsClassForOutput,
 		"fields":       fields,
 	}); err != nil {
 		return nil, err

@@ -135,7 +135,15 @@ func JsDocCommonObjectGenerator(fields []*core.EmiField, jsdctx JsDocCommonObjec
 	rootTypeName := core.ToUpper(jsdctx.RootTypeName) + "Type"
 	renderedTypes := jsdocRenderTypes(fields, jsdctx.RootTypeName, rootTypeName)
 
-	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_OBJ_TYPE, Value: rootTypeName})
+	// TOKEN_OBJ_CLASS/TOKEN_OBJ_TYPE (the same string - see js-tokens.go) must
+	// keep resolving to the canonical/class-equivalent name here, exactly like
+	// TsCommonObjectGenerator's own (bare, un-suffixed) token does - callers
+	// like fetchctx.ResponseClass (js-action-main-class.go) use it to build a
+	// `new X(...)` call, which the `Type`-suffixed typedef name was never a
+	// valid identifier for. The real typedef name is only ever exposed via the
+	// dedicated TOKEN_TYPEDEF_NAME below.
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_OBJ_TYPE, Value: core.ToUpper(jsdctx.RootTypeName)})
+	res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_TYPEDEF_NAME, Value: rootTypeName})
 
 	var buf bytes.Buffer
 	if err := jsdocTypesTmpl.Execute(&buf, renderedTypes); err != nil {

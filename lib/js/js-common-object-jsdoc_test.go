@@ -7,6 +7,37 @@ import (
 	"github.com/torabian/emi/lib/core"
 )
 
+// TestJsDocCommonObjectGenerator_DoesNotHijackTheClassNameToken is a regression
+// test: TOKEN_OBJ_CLASS and TOKEN_OBJ_TYPE are the *same* string constant by
+// design (a TS class name doubles as its own type), and findTokenByName returns
+// the first match - so if this generator's own token (appended before the real
+// class token, see JsCommonObjectGenerator) ever carries the `Type`-suffixed
+// typedef name instead of the bare/canonical one, every downstream consumer of
+// TOKEN_OBJ_CLASS (most notably fetchctx.ResponseClass in
+// js-action-main-class.go, which builds a `new X(...)` instantiation) would
+// silently resolve to that nonexistent, typedef-only identifier instead of the
+// real class - a runtime ReferenceError in generated plain-JS action code, not
+// a compile-time error anywhere in this Go package.
+func TestJsDocCommonObjectGenerator_DoesNotHijackTheClassNameToken(t *testing.T) {
+	chunk, err := JsDocCommonObjectGenerator(
+		[]*core.EmiField{{Name: "title", Type: core.FieldTypeString}},
+		JsDocCommonObjectContext{RootTypeName: "WidgetDto"},
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	classToken := core.FindTokenByName(chunk.Tokens, TOKEN_OBJ_CLASS)
+	if classToken == nil || classToken.Value != "WidgetDto" {
+		t.Errorf("expected TOKEN_OBJ_CLASS to resolve to the bare class name \"WidgetDto\", got %+v", classToken)
+	}
+
+	typedefToken := core.FindTokenByName(chunk.Tokens, TOKEN_TYPEDEF_NAME)
+	if typedefToken == nil || typedefToken.Value != "WidgetDtoType" {
+		t.Errorf("expected TOKEN_TYPEDEF_NAME to resolve to \"WidgetDtoType\", got %+v", typedefToken)
+	}
+}
+
 // TestJsDocCommonObjectGenerator_PlainJsGetsTypedefs covers the whole point of
 // js-common-object-jsdoc.go: a plain (non-TypeScript) generated dto gets a real
 // `@typedef` describing its shape - required/nullable fields, primitives,
