@@ -10,3 +10,4 @@ const Nestjs core.CTag = "nestjs"
 const NoPackage core.CTag = "no-package"
 const NoEnvelope core.CTag = "no-envelope"
 const NoSdk core.CTag = "no-sdk"
+const NoJsDoc core.CTag = "no-jsdoc" // skip the JSDoc @typedef section on plain JS output (see js-common-object-jsdoc.go)

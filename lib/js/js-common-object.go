@@ -30,6 +30,7 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	res := &core.CodeChunkCompiled{}
 
 	var tsTypes *core.CodeChunkCompiled
+	var jsdocTypes *core.CodeChunkCompiled
 
 	if isTypeScript {
 		chunk, tsTypeError := TsCommonObjectGenerator(fields, ctx, TsCommonObjectContext{
@@ -43,6 +44,20 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 		res.Tokens = append(res.Tokens, chunk.Tokens...)
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, chunk.CodeChunkDependensies...)
 		tsTypes = chunk
+	} else if !ctx.HasTag(NoJsDoc) {
+		// Plain JS gets no static typing at all otherwise - see the doc comment
+		// on js-common-object-jsdoc.go for why this only runs outside TypeScript
+		// mode.
+		chunk, jsdocError := JsDocCommonObjectGenerator(fields, JsDocCommonObjectContext{
+			RootTypeName: jsctx.RootClassName,
+		})
+
+		if jsdocError != nil {
+			return nil, jsdocError
+		}
+
+		res.Tokens = append(res.Tokens, chunk.Tokens...)
+		jsdocTypes = chunk
 	}
 
 	tsClass, tsClassError := JsCommonObjectClassGenerator(
@@ -102,6 +117,10 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	}
 
 	const tmpl = `
+{{ if .jsdocTypes }}
+	{{ b2s .jsdocTypes.ActualScript }}
+{{ end }}
+
 {{ if .tsClass }}
 	{{ b2s .tsClass.ActualScript }}
 {{ end }}
@@ -117,6 +136,7 @@ func JsCommonObjectGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 	if err := t.Execute(&buf, core.H{
 		"shouldExport": true,
 		"tsInterface":  tsTypes,
+		"jsdocTypes":   jsdocTypes,
 		"tsClass":      tsClass,
 		"fields":       fields,
 	}); err != nil {

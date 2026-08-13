@@ -20,6 +20,7 @@ const options = [
   { value: "javaGenModule", label: "Java" },
   { value: "phpGenModule", label: "PHP" },
   { value: "cGenModule", label: "C" },
+  { value: "cppGenModule", label: "C++" },
   { value: "sqlQueryPredict", label: "QueryPredict(SQL)" },
   { value: "preprocessorGen", label: "Preprocessor" },
   { value: "postmanGen", label: "Postman" },
@@ -150,6 +151,13 @@ function App() {
             ].includes(assemblyFunction) ? (
               <FeatureSelector
                 options={["no-sdk", "no-pkg"]}
+                setSelected={(value) => setFeatures(value)}
+                selected={features}
+              />
+            ) : null}
+            {assemblyFunction === "cppGenModule" ? (
+              <FeatureSelector
+                options={["unreal", "no-sdk", "no-pkg"]}
                 setSelected={(value) => setFeatures(value)}
                 selected={features}
               />

@@ -9,6 +9,7 @@ import (
 
 	"github.com/torabian/emi/lib/c"
 	"github.com/torabian/emi/lib/core"
+	"github.com/torabian/emi/lib/cpp"
 	"github.com/torabian/emi/lib/csharp"
 	"github.com/torabian/emi/lib/dart"
 	"github.com/torabian/emi/lib/golang"
@@ -133,6 +134,14 @@ func main() {
 		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
 	}
 
+	for _, textAction := range cpp.GetCppPublicActions().TextActions {
+		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
+	}
+
+	for _, fileAction := range cpp.GetCppPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
 	select {}
 }
 
@@ -213,6 +222,7 @@ func getPublicActions(this js.Value, args []js.Value) any {
 	actionsJava := java.GetJavaPublicActions()
 	actionsPhp := php.GetPhpPublicActions()
 	actionsC := c.GetCPublicActions()
+	actionsCpp := cpp.GetCppPublicActions()
 
 	return publicAPIActionsToJS([]core.PublicAPIActions{
 		actionsJs,
@@ -225,6 +235,7 @@ func getPublicActions(this js.Value, args []js.Value) any {
 		actionsJava,
 		actionsPhp,
 		actionsC,
+		actionsCpp,
 	})
 }
 
