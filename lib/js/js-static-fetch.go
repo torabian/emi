@@ -45,6 +45,15 @@ type fetchStaticFunctionContext struct {
 	// or entity, or has fields. For text, html, or others, it does not require and makes no sense,
 	// therefor needs to be casted res.text() from fetch perspective
 	CastToJson bool
+
+	// --tags no-class (js-compiler-tags.go): RequestClass/ResponseClass above
+	// still carry a name here, but it's the standalone type/typedef name (see
+	// TOKEN_TYPEDEF_NAME, js-tokens.go) rather than a real class - there's
+	// nothing to `new` it into. getCreatorFnInfo/getCommonFetchArguments use
+	// this to skip instantiation entirely and just hand back the parsed
+	// response as-is, typed (TS generics / a JSDoc @returns) but never
+	// constructed.
+	NoClass bool
 }
 
 func GenerateTSParams(placeholders []string) string {
@@ -84,6 +93,12 @@ func getCreatorFnInfo(fetchctx fetchStaticFunctionContext, isTypescript bool) *C
 	isAmbigousCreator := false
 	// There is nothing to create instance, return early.
 	if fetchctx.ResponseClass == "" {
+		return nil
+	}
+	// --tags no-class: ResponseClass is a type/typedef name here, not a real
+	// class - there's nothing to construct at all (see the NoClass doc comment
+	// on fetchStaticFunctionContext above).
+	if fetchctx.NoClass {
 		return nil
 	}
 
@@ -167,16 +182,23 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 	if fetchctx.ResponseClass != "" {
 		// If there is no envelope, passing the class with constructor is enough
 		if fetchctx.ResponseEnvelopeClass == "" {
+			// --tags no-class: nothing to construct - creatorFn is never declared
+			// in scope at all in this mode (getCreatorFnInfo returns nil), so
+			// referencing it here (like the default identity-fallback ternary
+			// below does) would be a ReferenceError - hand the parsed response
+			// back completely untouched instead.
+			responseCls := "(item) => (creatorFn ? creatorFn(item) : item)"
+			if fetchctx.NoClass {
+				responseCls = "(item) => item"
+			}
 			claims = append(claims, core.JsFnArgument{
 				Key: "response.cls",
-				// Ts:  fetchctx.ResponseClass,
-				// Js:  fetchctx.ResponseClass,
-				Ts: "(item) => (creatorFn ? creatorFn(item) : item)",
-				Js: "(item) => (creatorFn ? creatorFn(item) : item)",
+				Ts:  responseCls,
+				Js:  responseCls,
 			})
 		} else {
 
-			statementTs := `(data) => { 
+			statementTs := `(data) => {
 					const resp = new %v<%v>();
 					if (creatorFn) {
 						resp.setCreator(creatorFn);
@@ -184,11 +206,25 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 					resp.inject(data);
 
 					return resp;
-			
+
 			}`
+			// --tags no-class: same reasoning as the non-envelope branch above -
+			// creatorFn is never in scope, so this can't reference it either.
+			// The envelope class itself is still constructed (it's a fixed SDK
+			// utility, not a generated dto class - out of this tag's scope), just
+			// never handed a creator to wrap its payload with.
+			if fetchctx.NoClass {
+				statementTs = `(data) => {
+						const resp = new %v<%v>();
+						resp.inject(data);
+
+						return resp;
+
+				}`
+			}
 			seqTs := fmt.Sprintf(statementTs, fetchctx.ResponseEnvelopeClass, fetchctx.ResponseClass)
 
-			statementJs := `(data) => { 
+			statementJs := `(data) => {
 					const resp = new %v();
 					if (creatorFn) {
 						resp.setCreator(creatorFn);
@@ -196,8 +232,17 @@ func getCommonFetchArguments(fetchctx fetchStaticFunctionContext) []core.JsFnArg
 					resp.inject(data);
 
 					return resp;
-			
+
 			}`
+			if fetchctx.NoClass {
+				statementJs = `(data) => {
+						const resp = new %v();
+						resp.inject(data);
+
+						return resp;
+
+				}`
+			}
 			seqJs := fmt.Sprintf(statementJs, fetchctx.ResponseEnvelopeClass)
 
 			claims = append(claims, core.JsFnArgument{
@@ -248,6 +293,9 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 		)
 	}
 
+	{{ if .jsdocReturnsComment }}
+	{{ .jsdocReturnsComment }}
+	{{ end }}
 	static Fetch = async (
 		{{ if .hasQueryParams }}
 			|@query.params|,
@@ -311,14 +359,29 @@ func FetchStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.MicroGenCon
 
 	creatorFn := getCreatorFnInfo(fetchctx, isTypeScript)
 
+	// --tags no-class, plain JS only: TypeScript mode already gets the response
+	// type for free via the |@fetch.generic| generic parameter above (which
+	// resolves to the same typedef name once fetchctx.ResponseClass is
+	// redirected to it - see JsActionFetchAndMetaData) - JS has no generics
+	// syntax, so this is the JSDoc equivalent, the only way that same
+	// information reaches a plain-JS caller's editor.
+	jsdocReturnsComment := ""
+	if !isTypeScript && fetchctx.NoClass && fetchctx.ResponseClass != "" {
+		jsdocReturnsComment = NewJsDoc("\t").
+			Add(fmt.Sprintf("Resolves with `{ response, done }` - `response.result` is typed as {@link %v}.", fetchctx.ResponseClass)).
+			Add("@returns {Promise<any>}").
+			String()
+	}
+
 	t := template.Must(template.New("fetchstatichelper").Funcs(core.CommonMap).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"claims":         claimsRendered,
-		"creatorFn":      creatorFn,
-		"fetchctx":       fetchctx,
-		"isTypeScript":   isTypeScript,
-		"hasQueryParams": len(queryParams) > 0,
+		"claims":              claimsRendered,
+		"creatorFn":           creatorFn,
+		"fetchctx":            fetchctx,
+		"isTypeScript":        isTypeScript,
+		"hasQueryParams":      len(queryParams) > 0,
+		"jsdocReturnsComment": jsdocReturnsComment,
 	}); err != nil {
 		return nil, err
 	}

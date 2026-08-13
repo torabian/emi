@@ -241,6 +241,18 @@ func castDtoNameToCodeChunk(dtoName string) *core.CodeChunkCompiled {
 		core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: dtoName},
 	)
 
+	// --tags no-class (js-tokens.go's TOKEN_TYPEDEF_NAME doc comment): best-
+	// effort mirror of the referenced dto's own standalone type name, assuming
+	// it follows the same "XDto" -> "XDtoType" convention every dto compiled by
+	// this same package uses (js-common-object-types.go/js-common-object-jsdoc.go).
+	typedefNames := make([]string, 0, len(names))
+	for _, name := range names {
+		typedefNames = append(typedefNames, strings.TrimSpace(name)+"Type")
+	}
+	chunk.Tokens = append(chunk.Tokens,
+		core.GeneratedScriptToken{Name: TOKEN_TYPEDEF_NAME, Value: strings.Join(typedefNames, "|")},
+	)
+
 	for _, name := range names {
 		directory, className := parseDtoPath(strings.TrimSpace(name))
 

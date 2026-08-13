@@ -2,6 +2,20 @@ import { MArray, MCollection, MOne } from './sdk/common/operators';
 import { User } from './User';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
+ * The base type definition for arrayFieldType
+ * @typedef {Object} AnonymouseType.ArrayFieldType
+ */
+/**
+ * The base type definition for anonymouse
+ * @typedef {Object} AnonymouseType
+ * @property {any[]} arrayField - array field, non-nullable
+ * @property {any} arrayNullableField - arrayNullable field, non-nullable
+ * @property {User[]} collectionField - collection field, non-nullable
+ * @property {User[]} [collectionNullableField] - collectionNullable field, non-nullable
+ * @property {User} oneField - one field, non-nullable
+ * @property {User} [oneNullableField] - oneNullable field, non-nullable
+ */
+/**
   * The base class definition for anonymouse
   **/
 export class Anonymouse {

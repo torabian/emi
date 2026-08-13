@@ -12,10 +12,14 @@ the same tool from the same source of truth.
 
 - **One definition, many targets.** Golang gets first-class treatment (it's both the
   primary backend target and one of the client targets). JavaScript/TypeScript is the
-  other special-focus target. Swift and Kotlin are supported as client/frontend targets,
-  with Swift ahead of Kotlin.
+  other special-focus target. Every other target — Swift, Kotlin, Python, Dart, C#,
+  Java, PHP, C, and C++ (Unreal Engine and portable/embedded) — is a client-only SDK
+  generator, with Swift and C++ the most complete of that group.
 - **Generated JS/TS can run on Node.js too**, but that's a side effect, not the goal —
-  JS/React/Kotlin/Swift are meant to be clients, not server implementations.
+  every non-Golang target is meant to be a client, never a server implementation. The
+  C and C++ targets take that furthest: no HTTP server helpers, no CLI, no entity/GORM
+  persistence are ever generated for them at all — a microcontroller or a game client
+  is never the thing implementing the API.
 - **Framework-light, not framework-free.** Golang output leans on `Gin` (HTTP) and
   `urfave/cli` (CLI); JS output leans on `qs` for query strings and optionally
   TanStack Query for React. All swappable/configurable, not hard requirements.
@@ -29,12 +33,13 @@ the same tool from the same source of truth.
    core.Emi.Preprocess()              (2) PREPROCESS  — lib/core/preprocess*.go
           │            resolves captures, synthesizes entity dtos/CRUD actions
           ▼
-   ┌────────┬────────┬────────┬───────────────┐
-   │  go     │  js/ts  │ swift  │ kotlin (WIP)  │   (3) COMPILE — pick a target
-   └────────┴────────┴────────┴───────────────┘
+   ┌──────┬──────┬───────┬────────┬────────┬──────┬────┬──────┬─────┬───┬─────┐
+   │  go   │ js/ts │ swift │ kotlin │ python │ dart │ c# │ java │ php │ c │ cpp │   (3) COMPILE — pick a target
+   └──────┴──────┴───────┴────────┴────────┴──────┴────┴──────┴─────┴───┴─────┘
           │
           ▼
-   *.go / *.ts / *.swift files        (4) OUTPUT — ready-to-use, type-matched code
+   *.go / *.ts / *.swift / *.py / *.dart / *.cs / *.java / *.php / *.h / *.hpp
+                                       (4) OUTPUT — ready-to-use, type-matched code
 ```
 
 1. **Define** — write one `.emi.yml` module (see [Emi syntax](#emi-syntax)).
@@ -42,7 +47,8 @@ the same tool from the same source of truth.
    into a fully resolved module, once, before any language-specific work happens. You
    can inspect this step's output directly via the `preprocessor` action.
 3. **Compile** — run the module through one or more target compilers (`go`, `js`,
-   `swift`, ...), each implementing the same `core.PublicAPIActions` contract.
+   `swift`, `kotlin`, `python`, `dart`, `csharp`, `java`, `php`, `c`, `cpp`, ...),
+   each implementing the same `core.PublicAPIActions` contract.
 4. **Output** — a set of virtual files written to disk (or returned over wasm), ready
    to drop into a Go server, a TS/React app, or a Swift client.
 
@@ -70,13 +76,37 @@ and it would install emi command globally.
 
 ## Feature map at a glance
 
-| Feature / Language | Golang | JavaScript | JavaScript (TS) | JavaScript (Node.js) | Kotlin | Swift | Notes                                 |
-| ------------------- | ------ | ---------- | ---------------- | --------------------- | ------ | ----- | -------------------------------------- |
-| DTO generation       | ✅     | ✅         | ✅               | ✅                    | ✅     | ✅    | Supported in all languages             |
-| HTTP actions         | ✅     | ✅         | ✅               | ✅                    | WIP    | WIP   | Works with HTTP client libraries       |
-| Reactive / WebSocket | ✅     | ✅         | ✅               | ✅                    | ❌     | ✅    | `method: reactive` actions             |
-| Command line         | ✅     | ❌         | ❌               | ❌                    | ❌     | ❌    | Only Golang has CLI support currently  |
-| Entity → CRUD + GORM | ✅     | —          | —                | —                     | —      | —     | Auto-synthesized during preprocessing  |
+The two special-focus targets (full server-and-client Go, and browser/Node JS/TS):
+
+| Feature / Language | Golang | JavaScript | JavaScript (TS) | JavaScript (Node.js) | Notes                                 |
+| ------------------- | ------ | ---------- | ---------------- | --------------------- | -------------------------------------- |
+| DTO generation       | ✅     | ✅         | ✅               | ✅                    | Supported in all languages             |
+| HTTP actions         | ✅     | ✅         | ✅               | ✅                    | Works with HTTP client libraries       |
+| Reactive / WebSocket | ✅     | ✅         | ✅               | ✅                    | `method: reactive` actions             |
+| Command line         | ✅     | ❌         | ❌               | ❌                    | Only Golang has CLI support currently  |
+| Entity → CRUD + GORM | ✅     | —          | —                | —                     | Auto-synthesized during preprocessing  |
+
+Every other target is client-only — no server, no CLI, no entity/GORM persistence is
+ever generated for any of them:
+
+| Feature / Language        | Swift | Kotlin | Python | Dart | C#  | Java | PHP | C   | C++ (generic) | C++ (Unreal) |
+| --------------------------- | ----- | ------ | ------ | ---- | --- | ---- | --- | --- | -------------- | ------------- |
+| DTO generation               | ✅    | ✅     | ✅     | ✅   | ✅  | ✅   | ✅  | ✅  | ✅              | ✅            |
+| Nested object/array/map      | ✅    | ✅     | ✅     | ✅   | ✅  | ✅   | ✅  | ✅  | ✅              | ✅            |
+| Nullability                  | ✅    | ✅     | ✅     | ✅   | ✅  | ✅   | ✅  | ⚠️¹ | ✅ (`std::optional`) | ✅ (paired `bool` flag)³ |
+| Complex/custom types          | WIP   | ✅     | ✅     | ✅   | ✅  | ✅   | ✅  | ✅  | ✅              | ✅            |
+| HTTP actions                  | WIP   | WIP    | ✅     | ✅   | ✅  | ✅   | ✅  | ✅  | ✅              | ✅            |
+| Reactive / WebSocket          | ✅    | ❌     | SSE²   | SSE² | SSE²| SSE² | SSE²| SSE²| ✅ (real WS)     | ✅ (real WS)  |
+
+¹ C has no nullable value types (int/float/bool/enum) without wrapping every scalar in
+a pointer — a deliberate, documented scope boundary (see `lib/c/c-type-resolver.go`);
+string/object/array/relation fields are still properly nullable.
+² These targets consume `method: reactive` endpoints as Server-Sent Events over a
+single blocking request — correct for a bounded stream, but events only surface once
+the connection closes, not as they arrive. Go, JS, Swift, and both C++ dialects use a
+real, incrementally-delivered WebSocket instead.
+³ Not `UPROPERTY`-reflected `TOptional<T>` (unsupported on UE4, version-gated on UE5)
+— see the Unreal dialect section below.
 
 Other cross-cutting features, independent of target language:
 
@@ -137,8 +167,27 @@ Capabilities:
 
 - Real TypeScript **classes** for DTOs (not just `interface`s) — type mismatches are
   caught at the class level, with full nullability/collection/object/array support.
+- Plain (non-TypeScript) output gets real intellisense too: every generated dto/action
+  body carries its own JSDoc `@typedef` section (nested object/array fields get their
+  own dot-namespaced typedef, e.g. `WidgetDtoType.AddressType`) describing the exact
+  same shape the `.ts` output's real `type` would — VS Code's JS language service reads
+  it the same way. Automatic whenever `--tags typescript` isn't set (skipped there —
+  a real type already exists); opt out with `--tags no-jsdoc`.
 - A typed `fetch` layer over the browser fetch API that returns class instances, not
   raw JSON.
+- `--tags no-class` → skip the generated dto class body altogether (both dialects) and
+  keep only the type declaration above — smaller output for size-constrained targets.
+  The action `Fetch`/`Fetch$` methods stop instantiating anything too (no `new X(...)`)
+  and just hand back the parsed response typed as that same type — a real TS generic
+  parameter in TypeScript, a JSDoc `@returns` pointing at the typedef in plain JS.
+  Request/response bodies referenced by name (`in: dto: X`/`out: dto: X`) resolve to
+  the sibling dto's type name too, assuming it's compiled with the same tag. Not
+  generating any class at all is the whole point, so combining this with `--tags react`
+  (whose hooks are written against class instances) isn't supported.
+- `--tags no-definition` → drop each generated action class's `static Definition = {...}`
+  (a full JSON re-dump of the action's own url/method/in/out shape, handy for
+  introspection/tooling but redundant with the real code around it) — another
+  size-focused trim, same spirit as `--tags no-class`.
 - `--tags react` → TanStack Query `useQuery`/`useMutation` hooks, query-option builders,
   and reactive WebSocket/SSE hooks. Import location/version configurable
   (`--react-query react-query@v3`).
@@ -198,6 +247,158 @@ Capabilities:
 - A generated client config file, shared across every action in the module.
 - Import handling respects Swift's whole-target compilation model: only real external
   modules (e.g. `Foundation`) get an `import`, never sibling generated types.
+
+## Python, Dart, C#, Java, PHP, C (`lib/python`, `lib/dart`, `lib/csharp`, `lib/java`, `lib/php`, `lib/c`)
+
+**What they're for:** typed client SDKs for their respective ecosystems. All six follow
+the exact same shape (`<lang>:dto`, `<lang>:headers`, `<lang>:action`, `<lang>:sdk`,
+`<lang>:module`, and a bare `<lang>` type-sniffing dispatcher — see `csharp-public-api.go`
+for the reference layout every one of them implements against `core.PublicAPIActions`),
+so picking one over another is purely "which ecosystem am I shipping a client for":
+
+| Target        | Serialization                          | HTTP transport                  | Reactive (`method: reactive`)      |
+| -------------- | ---------------------------------------- | ---------------------------------- | -------------------------------------- |
+| Python (`lib/python`) | generic reflection-based `to_dict`/`from_dict` runtime helper, over stdlib `dataclasses` | `httpx` (`--tags async` → `httpx.AsyncClient`) | SSE over one blocking/async request |
+| Dart (`lib/dart`)     | hand-generated `toJson`/`fromJson` per class | `package:http`                     | SSE over one blocking request       |
+| C# (`lib/csharp`)     | `System.Text.Json` (reflection — no hand-generated glue) | `System.Net.Http.HttpClient` | SSE via `IAsyncEnumerable<string>`  |
+| Java (`lib/java`)     | Jackson `ObjectMapper` (reflection — no hand-generated glue) | `java.net.http.HttpClient`  | SSE over one blocking request       |
+| PHP (`lib/php`)       | generic reflection-based `Hydrator::toArray`/`fromArray` runtime helper | `curl`         | SSE over one blocking request       |
+| C (`lib/c`)           | vendored `cJSON` (MIT) + hand-generated `_to_json`/`_from_json_into` per struct | `libcurl` (`fetchx.h`, header-only, `static inline`) | SSE over one blocking request |
+
+Shared capabilities across all six:
+
+- Strong nullable-aware types, nested object/array/map fields, `one`/`collection`
+  relations, and inline/`target:`-referenced enums — same as every other target (C is
+  the one documented exception: no nullable *value* types without a pointer, see
+  `lib/c/c-type-resolver.go`; string/object/array/relation fields are still nullable).
+- `complex:` fields resolve to a real imported type per-language (a Go/PHP namespace, a
+  Python/Dart import, a `#include`, ...) when declared in `complexes:` for that
+  compiler; otherwise fall back to a dynamic/untyped value.
+- `<lang>:sdk` writes just the embedded runtime (the http transport + streaming/SSE
+  helpers above) with no dto/action code, e.g. to vendor it once and regenerate dtos
+  separately.
+- `--tags no-sdk` / `--tags no-pkg` on `<lang>:module` skip embedding the runtime /
+  skip generating the package manifest (`requirements.txt`, `pubspec.yaml`, `.csproj`,
+  `pom.xml`, `composer.json`, or `README.md` for C) respectively.
+- No server, no CLI, no entity/GORM persistence is ever generated for any of them.
+
+## C++ (`lib/cpp`) — Unreal Engine and portable/embedded
+
+**What it's for:** "perfect" native C++ dtos, actions, and a real WebSocket client for
+`method: reactive` actions — for a game (Unreal Engine 4 or 5) or a microcontroller
+(ESP-IDF/Arduino) client, neither of which is ever a server.
+
+**Verification status**, since neither a full Unreal Engine install nor an
+Arduino/ESP-IDF toolchain is available in this repo's own CI: the generic dialect's
+dto/enum/action generation, and the full RFC 6455 handshake/framing in
+`EmiWebSocketX` (including the SHA-1 used for `Sec-WebSocket-Accept`), are verified by
+actually compiling — and, for the WebSocket handshake/send/receive path, actually
+*running* against a real local socket — with `clang++` (see `lib/cpp`'s test suite).
+`EmiHttpTransportArduino.hpp`/`EmiByteStreamArduino.hpp` (Arduino) and
+`EmiHttpTransportEspIdf.hpp` (ESP-IDF) are written against those SDKs' real,
+documented APIs but are **not** compile-verified anywhere in this repo — same for
+every Unreal-dialect file, which needs a real `.uproject` to build against Unreal
+Header Tool at all. Treat those as reviewed-but-unverified until exercised in a real
+project; issues/PRs against them are very welcome.
+
+### Why one compiler with two dialects, not two (or three) separate packages
+
+Unreal Engine C++ and "plain" embedded C++ (ESP-IDF, Arduino) look similar on the
+surface — both are "C++ for a client" — but they're really two different type systems
+wearing the same syntax: Unreal has its own reflected value types (`USTRUCT`/
+`UPROPERTY`, `FString`, `TArray`, `TMap`, `TOptional`) and (de)serializes through its
+own reflection (`FJsonObjectConverter`), while ESP-IDF and Arduino are both just
+**ordinary ISO C++17** — same STL, same compiler family (GCC/Clang), same "no engine
+underneath" — with the only real difference between *them* being which HTTP/socket
+library is available (`esp_http_client` vs. the Arduino `HTTPClient`/`WiFiClient`
+classes). So the type-system boundary is Unreal vs. everything-else, not
+Unreal vs. Arduino vs. ESP-IDF — splitting into three packages would mean three copies
+of the exact same field-tree traversal, path/query-param extraction, and action-realms
+logic (the bulk of what a compiler like this actually does) drifting out of sync over
+time, for a distinction (Arduino vs. ESP-IDF) that isn't a language difference at all.
+
+The decision: **one Go package, `lib/cpp`, with a `Dialect` (`--dialect unreal` /
+`--dialect generic`, default `generic`)** selected once per compile and threaded
+through every renderer — mirrors how `lib/js` already picks `--tags react`/`nextjs`
+without becoming three packages. Only type spelling, class declaration syntax, and the
+(de)serialization strategy branch on `Dialect` (see `cpp-type-resolver.go`,
+`cpp-field-plan-generic.go` vs. `cpp-field-plan-unreal.go`); everything else — field
+tree traversal, path/query params, action realms — is shared, single-implementation
+code. "Generic" is deliberately one dialect covering desktop/POSIX, ESP-IDF, *and*
+Arduino, not three, since none of them differ at the C++ language level — only in
+*which* `IEmiHttpTransport`/`IEmiByteStream` implementation gets linked in (a runtime
+seam, not a codegen one — see below).
+
+| Action           | What it generates                                                         |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `cpp:dto`         | A dto class/struct.                                                          |
+| `cpp:headers`     | A typed header class.                                                        |
+| `cpp:action`      | A complete action, standalone.                                               |
+| `cpp:sdk`         | Just the embedded runtime (dialect-dependent).                               |
+| `cpp` / `cpp:module` | The whole module: dtos, enums, actions, remotes, and shared runtime files. |
+
+### Generic dialect (`--dialect generic`, the default)
+
+Portable ISO C++17 — the same generated dto/action/enum headers build unmodified on
+desktop, ESP-IDF, and 32-bit Arduino cores (ESP32/ESP8266 and similar — needs a real
+C++17 STL, so this excludes classic 8-bit AVR boards like the Uno/Nano/Mega):
+
+- Every dto is a plain value-semantics class: default-constructible, copyable,
+  movable, with `cJSON* ToJson() const` / `static T FromJson(const cJSON*)` (vendored
+  `cJSON`, the same library `lib/c` uses) plus `Parse`/`Dump` string convenience
+  wrappers.
+- Full type coverage: `std::string`, `std::vector<T>` (array/`_list`/slice/
+  collection), `std::map<K, V>` (map), `std::unique_ptr<T>` (a `one`/`class` relation,
+  or a self-referencing/nullable nested object — an incomplete type can only ever be
+  held through indirection), `std::optional<T>` nullability for every scalar/string/
+  enum/collection, generated `enum class` with `ToString`/`FromString`, and
+  `emi::EmiJson` (an owning `cJSON` wrapper) as the dynamic fallback for `any`/an
+  unresolved `complex`/`map`.
+- HTTP actions go through an `IEmiHttpTransport` seam — generated code never depends on
+  a concrete transport directly, only the interface (`EmiHttpTransport.hpp`). Three
+  ready-made implementations ship in `cpp-include/generic/`:
+  `EmiHttpTransportCurl.hpp` (desktop/POSIX, the reference impl), `EmiHttpTransportEspIdf.hpp`
+  (`esp_http_client`), `EmiHttpTransportArduino.hpp` (Arduino's `HTTPClient` library) —
+  swapping platforms is a constructor argument, not a regenerate.
+- `method: reactive` actions get a typed `emi::EmiWebSocketX` factory — a minimal,
+  dependency-free RFC 6455 client (hand-rolled SHA-1/base64 for the handshake only,
+  see `EmiSha1Base64.hpp`) speaking over an `IEmiByteStream` (`EmiByteStreamPosix.hpp`
+  for desktop/ESP-IDF, `EmiByteStreamArduino.hpp` for Arduino) — a real, incrementally-
+  delivered WebSocket, not SSE-over-one-request like the six targets above. Documented
+  scope boundary: single-frame text/binary only, no fragmentation/permessage-deflate —
+  ample for the small JSON payloads a reactive action exchanges.
+- Every generated header and the full runtime are validated by actually invoking
+  `clang++ -fsyntax-only` against them in `lib/cpp`'s own test suite — not just
+  string-matched, unlike most of the other generators' Go-side tests.
+
+### Unreal dialect (`--dialect unreal`)
+
+Targets **UE4 and UE5 alike** — every reflection-facing construct used
+(`USTRUCT`/`UPROPERTY`/`UENUM`, `FHttpModule`, `IWebSocket`, `FJsonObjectConverter`)
+has been stable since UE4, and the compiler deliberately avoids the one common
+construct that *isn't* uniformly available (see nullability below):
+
+- Every dto is a `USTRUCT(BlueprintType)` with `UPROPERTY` fields — inspectable in the
+  editor and usable from Blueprint for free, named with Unreal's own `F`/`E` value-type
+  and enum prefixes. No hand-generated (de)serialization code at all: Unreal's own
+  reflection (`FJsonObjectConverter::UStructToJsonObjectString`/
+  `JsonObjectStringToUStruct<T>()`) does that job, the same reason `lib/csharp` never
+  hand-generates `ToJson`/`FromJson` either.
+- `FString`, `TArray`, `TMap` for strings/arrays/collections/maps. Nullability is a
+  paired value + `b<Field>IsSet` bool (both real `UPROPERTY`s) rather than a
+  `UPROPERTY`-reflected `TOptional<T>` — reflecting a bare `TOptional<T>` is a
+  comparatively recent, version-gated Unreal Header Tool feature (unsupported on UE4,
+  inconsistent across UE5 point releases before it), so this compiler never emits it
+  as a `UPROPERTY` at all; a `one`/`class` relation embeds the target `USTRUCT` **by
+  value** (the idiomatic Unreal shape, unlike the generic dialect's
+  `std::unique_ptr`) unless it's self-referencing, in which case it falls back to a
+  plain (non-`UPROPERTY`, documented) `TSharedPtr<T>`.
+- HTTP actions are async (a completion callback, the idiomatic Unreal shape for
+  anything I/O-bound) through `EmiHttpClient.h`, a thin wrapper around `FHttpModule`.
+- `method: reactive` actions get a typed `FEmiWebSocketX` factory wrapping Unreal's own
+  `IWebSocket` (`WebSockets` module) — real WebSocket, not SSE.
+- Requires `Json`, `JsonUtilities`, `HTTP`, `WebSockets` in your module's `Build.cs`
+  (spelled out in the generated README).
 
 ## Emi syntax
 

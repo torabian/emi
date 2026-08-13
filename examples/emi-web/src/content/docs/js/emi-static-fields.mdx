@@ -88,6 +88,23 @@ pass number as many as you want, and it would replace [:i] statements to have pr
 import { MArray } from "./sdk/common/operators";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
+ * The base type definition for dataType
+ * @typedef {Object} AnonymouseType.LoginHistoryType.DataType
+ * @property {string} ipAddress
+ */
+/**
+ * The base type definition for loginHistoryType
+ * @typedef {Object} AnonymouseType.LoginHistoryType
+ * @property {string} time
+ * @property {AnonymouseType.LoginHistoryType.DataType} data
+ */
+/**
+ * The base type definition for anonymouse
+ * @typedef {Object} AnonymouseType
+ * @property {string} firstName
+ * @property {AnonymouseType.LoginHistoryType[]} loginHistory
+ */
+/**
  * The base class definition for anonymouse
  **/
 export class Anonymouse {

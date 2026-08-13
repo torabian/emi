@@ -15,6 +15,7 @@ import (
 
 	"github.com/torabian/emi/lib/c"
 	"github.com/torabian/emi/lib/core"
+	"github.com/torabian/emi/lib/cpp"
 	"github.com/torabian/emi/lib/csharp"
 	"github.com/torabian/emi/lib/dart"
 	"github.com/torabian/emi/lib/golang"
@@ -514,6 +515,11 @@ func BuildCommands() []*cli.Command {
 		cliCommandFromTextActions(c.GetCPublicActions().TextActions)...)
 	commands = append(commands,
 		cliCommandFromFileActions(c.GetCPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromTextActions(cpp.GetCppPublicActions().TextActions)...)
+	commands = append(commands,
+		cliCommandFromFileActions(cpp.GetCppPublicActions().FileActions)...)
 
 	return commands
 }
