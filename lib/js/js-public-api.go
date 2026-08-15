@@ -80,6 +80,8 @@ func GetJsPublicActions() core.PublicAPIActions {
 
 	fileActions := []core.ActionFile{
 		JsPrimaryAction,
+		ReactFormFileAction,
+		ReactJsonSchemaFormFileAction,
 		{
 			BaseAction: core.BaseAction{
 				Name:             "js:sdk",
