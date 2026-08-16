@@ -21,6 +21,12 @@ type JsCommonObjectContext struct {
 
 	// List of allowed complexes type to be used on fields
 	RecognizedComplexes []RecognizedComplex
+
+	// Optional description carried onto the root of the generated `static
+	// JsonSchema = {...}` (see --tags json-schema, JsCommonObjectClassGenerator)
+	// - typically an EmiDto.Description or EmiAction.Description. Purely
+	// cosmetic; leaving it empty just omits JSON Schema's "description" key.
+	Description string
 }
 
 // This function can be used in different locations of the code generation,
