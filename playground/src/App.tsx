@@ -141,6 +141,7 @@ function App() {
                   "no-package",
                   "no-envelope",
                   "include-ext",
+                  "json-schema",
                 ]}
                 setSelected={(value) => setFeatures(value)}
                 selected={features}

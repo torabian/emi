@@ -140,6 +140,14 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		config.Dtos = &str
 	}
 
+	// --tags json-schema (opt-in, off by default) makes every generated dto
+	// class - module dto:, action/remote request/response, including entity-
+	// synthesized CRUD scaffolding - carry its JSON Schema as `static
+	// JsonSchema = {...}`, the same way action classes already carry `static
+	// Definition = {...}` (see JsCommonObjectClassGenerator in
+	// js-common-object-class.go, which is what every branch below eventually
+	// calls). No special-casing here: it's an unconditional property of that
+	// shared generator, driven purely by ctx.HasTag(JsonSchema).
 	var actionsRendered []*core.CodeChunkCompiled
 
 	for _, action := range module.Actions {
@@ -191,6 +199,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		actionRendered, err := JsCommonObjectGenerator(dto.Fields, ctx, JsCommonObjectContext{
 			RootClassName:       dto.GetClassName(),
 			RecognizedComplexes: complexes,
+			Description:         dto.Description,
 		})
 		if err != nil {
 			return nil, err

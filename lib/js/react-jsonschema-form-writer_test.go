@@ -9,12 +9,12 @@ import (
 )
 
 func TestReactJsonSchemaFormGenerator_KitchenSink(t *testing.T) {
-	files, err := ReactJsonSchemaFormGenerator(kitchenSinkDto(), DefaultRjsfToolset(), "")
+	files, err := ReactJsonSchemaFormGenerator(kitchenSinkDto())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(files) != 3 {
-		t.Fatalf("expected 3 files (schema, uiSchema, wrapper), got %d", len(files))
+	if len(files) != 2 {
+		t.Fatalf("expected 2 files (schema, wrapper), got %d", len(files))
 	}
 
 	byName := map[string]core.VirtualFile{}
@@ -26,13 +26,12 @@ func TestReactJsonSchemaFormGenerator_KitchenSink(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected ProfileDto.schema.json, got %+v", byName)
 	}
-	uiSchemaFile, ok := byName["ProfileDto.uiSchema.json"]
-	if !ok {
-		t.Fatalf("expected ProfileDto.uiSchema.json, got %+v", byName)
-	}
 	wrapperFile, ok := byName["ProfileDtoForm.tsx"]
 	if !ok {
 		t.Fatalf("expected ProfileDtoForm.tsx, got %+v", byName)
+	}
+	if _, ok := byName["ProfileDto.uiSchema.json"]; ok {
+		t.Fatalf("did not expect a uiSchema.json file to be generated, got %+v", byName)
 	}
 
 	// --- schema.json ---
@@ -55,61 +54,12 @@ func TestReactJsonSchemaFormGenerator_KitchenSink(t *testing.T) {
 		t.Errorf("expected nested array phones inlined as type array, got %v", props["phones"])
 	}
 
-	// --- uiSchema.json ---
-	var uiSchema map[string]any
-	if err := json.Unmarshal([]byte(uiSchemaFile.ActualScript), &uiSchema); err != nil {
-		t.Fatalf("uiSchema.json is not valid JSON: %v\n%s", err, uiSchemaFile.ActualScript)
-	}
-
-	order, _ := uiSchema["ui:order"].([]any)
-	if len(order) == 0 {
-		t.Fatalf("expected top-level ui:order, got %v", uiSchema)
-	}
-	if order[0] != "firstName" {
-		t.Errorf("expected ui:order to start with firstName (dto field order), got %v", order)
-	}
-
-	managerUi := uiSchema["manager"].(map[string]any)
-	if managerUi["ui:field"] != "emiRelationField" {
-		t.Errorf("expected manager ui:field emiRelationField, got %v", managerUi)
-	}
-	managerOpts := managerUi["ui:options"].(map[string]any)
-	if managerOpts["target"] != "employee" {
-		t.Errorf("expected manager ui:options.target employee, got %v", managerOpts)
-	}
-	if _, hasMultiple := managerOpts["multiple"]; hasMultiple {
-		t.Errorf("expected one-relation to not set multiple, got %v", managerOpts)
-	}
-
-	reportsUi := uiSchema["reports"].(map[string]any)
-	reportsOpts := reportsUi["ui:options"].(map[string]any)
-	if reportsOpts["target"] != "employee" || reportsOpts["module"] != "hr" || reportsOpts["multiple"] != true {
-		t.Errorf("expected reports ui:options {target: employee, module: hr, multiple: true}, got %v", reportsOpts)
-	}
-
-	// nested object group's ui:order lives under the field key directly
-	addressUi := uiSchema["address"].(map[string]any)
-	addressOrder, _ := addressUi["ui:order"].([]any)
-	if len(addressOrder) != 2 || addressOrder[0] != "street" {
-		t.Errorf("expected address ui:order [street, city], got %v", addressOrder)
-	}
-
-	// nested array group's ui:order lives under field.items
-	phonesUi := uiSchema["phones"].(map[string]any)
-	phonesItemsUi := phonesUi["items"].(map[string]any)
-	if _, ok := phonesItemsUi["ui:order"]; !ok {
-		t.Errorf("expected phones.items.ui:order, got %v", phonesUi)
-	}
-
 	// --- wrapper.tsx ---
 	wrapper := wrapperFile.ActualScript
 	checks := []string{
 		`import Form from "@rjsf/core";`,
-		`import { emiRelationField, emiJsonField } from "./rjsf-fields";`,
 		`import schema from "./ProfileDto.schema.json";`,
-		`import uiSchema from "./ProfileDto.uiSchema.json";`,
 		"export function ProfileDtoForm({ value, onChange }: ProfileDtoFormProps)",
-		"fields={{ emiRelationField, emiJsonField }}",
 		"export default ProfileDtoForm;",
 	}
 	for _, want := range checks {
@@ -117,21 +67,8 @@ func TestReactJsonSchemaFormGenerator_KitchenSink(t *testing.T) {
 			t.Errorf("expected wrapper to contain %q, got:\n%s", want, wrapper)
 		}
 	}
-}
-
-func TestReactJsonSchemaFormGenerator_CustomFieldsImport(t *testing.T) {
-	files, err := ReactJsonSchemaFormGenerator(kitchenSinkDto(), DefaultRjsfToolset(), "@ui/rjsf")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	var wrapper core.VirtualFile
-	for _, f := range files {
-		if f.Extension == ".tsx" {
-			wrapper = f
-		}
-	}
-	if !strings.Contains(wrapper.ActualScript, `from "@ui/rjsf";`) {
-		t.Errorf("expected overridden --rjsf-fields import, got:\n%s", wrapper.ActualScript)
+	if strings.Contains(wrapper, "uiSchema") {
+		t.Errorf("did not expect wrapper to reference a uiSchema, got:\n%s", wrapper)
 	}
 }
 
@@ -152,8 +89,8 @@ fields:
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(files) != 3 {
-		t.Fatalf("expected 3 files, got %d", len(files))
+	if len(files) != 2 {
+		t.Fatalf("expected 2 files, got %d", len(files))
 	}
 }
 
