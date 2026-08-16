@@ -4,11 +4,13 @@ package js
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
+	"github.com/torabian/emi/lib/formgen"
 )
 
 type jsRenderedDataClass struct {
@@ -260,6 +262,24 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 	if len(renderedClasses) > 0 {
 		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: renderedClasses[0].ClassName})
 		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_OBJ_CLASS, Value: renderedClasses[0].ClassName})
+
+		// --tags json-schema (opt-in, off by default): embed the dto's JSON Schema
+		// directly on its own class as `static JsonSchema = {...}`, the same way
+		// action classes already carry `static Definition = {...}` (see
+		// js-action-main-class.go) - one generated file per dto, no sibling
+		// .schema.json to keep in sync. Root class only: formgen.BuildJSONSchema
+		// already inlines nested object/array children into the same schema tree
+		// (properties/items), so a nested SubClass repeating it would just be a
+		// redundant, deeply-nested copy of the same document.
+		if ctx.HasTag(JsonSchema) {
+			schema := formgen.BuildJSONSchema(jsctx.RootClassName, jsctx.Description, fields)
+			schemaJSON, err := json.MarshalIndent(schema, "", "  ")
+			if err != nil {
+				return nil, fmt.Errorf("js: failed marshaling JsonSchema for %v: %w", jsctx.RootClassName, err)
+			}
+			renderedClasses[0].ClassStaticFunctions = append(renderedClasses[0].ClassStaticFunctions,
+				fmt.Sprintf("static JsonSchema = %s", schemaJSON))
+		}
 	}
 
 	var abstractFactoryClass string

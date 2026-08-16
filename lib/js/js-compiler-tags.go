@@ -13,6 +13,7 @@ const NoSdk core.CTag = "no-sdk"
 const NoJsDoc core.CTag = "no-jsdoc"           // skip the JSDoc @typedef section on plain JS output (see js-common-object-jsdoc.go)
 const NoClass core.CTag = "no-class"           // skip the generated dto class body (both JS and TS) - keep only the type declaration (see js-common-object.go)
 const NoDefinition core.CTag = "no-definition" // skip the `static Definition = {...}` JSON dump on every generated action class (see js-action-main-class.go)
+const JsonSchema core.CTag = "json-schema"     // opt-in: also generate {Dto}.schema.json/Form.tsx for module dtos and action request/response fields (see JsModuleFullVirtualFiles in js-module.go). Off by default.
 
 // CompilerTags lists every tag this package understands, for `emi tags` to
 // display. Keep in sync with the const list above.
@@ -27,4 +28,5 @@ var CompilerTags = []core.CompilerTagDoc{
 	{Tag: NoJsDoc, Description: "Skip the JSDoc @typedef section on plain JS output"},
 	{Tag: NoClass, Description: "Skip the generated DTO class body (both JS and TS) - keep only the type declaration"},
 	{Tag: NoDefinition, Description: "Skip the `static Definition = {...}` JSON dump on every generated action class"},
+	{Tag: JsonSchema, Description: "Injects the json schema into the code generated."},
 }

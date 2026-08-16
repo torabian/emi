@@ -71,6 +71,7 @@ func GetJsPublicActions() core.PublicAPIActions {
 						return JsCommonObjectGenerator(dto.Fields, ctx, JsCommonObjectContext{
 							RootClassName:       dto.GetClassName(),
 							RecognizedComplexes: []RecognizedComplex{},
+							Description:         dto.Description,
 						})
 					},
 				)
@@ -80,6 +81,8 @@ func GetJsPublicActions() core.PublicAPIActions {
 
 	fileActions := []core.ActionFile{
 		JsPrimaryAction,
+		ReactFormFileAction,
+		ReactJsonSchemaFormFileAction,
 		{
 			BaseAction: core.BaseAction{
 				Name:             "js:sdk",
@@ -93,8 +96,10 @@ func GetJsPublicActions() core.PublicAPIActions {
 		},
 		{
 			BaseAction: core.BaseAction{
-				Name:             "js:module",
-				Description:      "Compiles the entire javascript modules and writes them to disk",
+				Name: "js:module",
+				Description: "Compiles the entire javascript modules and writes them to disk. Pass --tags json-schema to also embed each " +
+					"generated dto/action-request/action-response class's JSON Schema as `static JsonSchema = {...}` (off by default; " +
+					"entity-synthesized CRUD scaffolding is always excluded).",
 				WasmFunctionName: "jsGenModule",
 				Flags: []core.FlagDef{
 					{
@@ -188,6 +193,7 @@ var JsPrimaryAction = core.ActionFile{
 			result, err := JsCommonObjectGenerator(emiDto.Fields, ctx, JsCommonObjectContext{
 				RootClassName:       emiDto.GetClassName(),
 				RecognizedComplexes: []RecognizedComplex{},
+				Description:         emiDto.Description,
 			})
 
 			if err != nil {
