@@ -518,12 +518,16 @@ func PrepareStruct(fields []*core.EmiField, ctx core.MicroGenContext, goctx GoCo
 		},
 	}
 
-	// Complexes are having a weird casting mechanism
-	if DetectIfComplexIsUsed(fields) {
-		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{
-			Location: "encoding",
-		})
-	}
+	// NOTE: the bare "encoding" package (for encoding.TextUnmarshaler) is *not*
+	// added here. Its only real usage is CliCaptureStatement's complex-field
+	// branch (go-common-fields.go), which lives exclusively in the CLI chunk
+	// built by GoCommonStructGeneratorCli. Adding it unconditionally to every
+	// PrepareStruct caller - including the main struct chunk, which never
+	// references encoding.TextUnmarshaler itself - is what let split-cli
+	// separate the import from its usage: the main file kept the (now unused)
+	// import while the split-off *Cli.go file, which actually needs it, was
+	// built from a discarded PrepareStruct() result and never got it. See
+	// GoCommonStructGeneratorCli for where this dependency is now added.
 
 	usedComplexes := CollectComplexClasses(fields)
 	for _, item := range usedComplexes {

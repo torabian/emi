@@ -195,6 +195,18 @@ func Get{{ $item.FullClassName }}CliFlags(prefix string) []emigo.CliFlag {
 		j.CodeChunkDependensies = append(j.CodeChunkDependensies, core.CodeChunkDependency{
 			Location: f.Emigo,
 		})
+
+		// CliCaptureStatement's complex-field branch (go-common-fields.go) emits
+		// an `any(&data.X).(encoding.TextUnmarshaler)` type assertion directly
+		// into this chunk's script, so the bare "encoding" import has to travel
+		// with it here - not with the main struct chunk, which never references
+		// encoding.TextUnmarshaler itself. See PrepareStruct in
+		// go-struct-generator-common.go for the fuller explanation.
+		if DetectIfComplexIsUsed(fields) {
+			j.CodeChunkDependensies = append(j.CodeChunkDependensies, core.CodeChunkDependency{
+				Location: "encoding",
+			})
+		}
 	}
 
 	j.ActualScript = []byte(result)
