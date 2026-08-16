@@ -406,7 +406,7 @@ var commonFlags []cli.Flag = []cli.Flag{
 	},
 	&cli.StringFlag{
 		Name:  "tags",
-		Usage: "A set of string flags separated by comma (,) to add or remove compile feature. Such as 'nestjs-headers-decorator'",
+		Usage: "A set of string flags separated by comma (,) to add or remove compile feature. Such as 'nestjs,typescript'. Run 'emi tags' to see every supported value and what it does.",
 	},
 }
 
@@ -447,6 +447,7 @@ func BuildCommands() []*cli.Command {
 		&GenerateCommand,
 		&StringsCommand,
 		&CompileCommand,
+		&TagsCommand,
 	}
 	commands = append(commands,
 		cliCommandFromTextActions(js.GetJsPublicActions().TextActions)...)
