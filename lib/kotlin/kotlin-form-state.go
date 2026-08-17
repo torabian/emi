@@ -167,14 +167,15 @@ func formStateConversion(field *core.EmiField, computedType, stateAccessor, dtoA
 	return toDto, fromDto
 }
 
-// formStateInitialValue is the mutableStateOf(...) seed for a fresh (no dto yet) form.
+// formStateInitialValue is the mutableStateOf(...) seed for a fresh (no dto yet) form -
+// always empty, for every kind. A nullable field's "" -> MaybeField(Maybe.Absent)
+// conversion (see formStateConversion) needs an untouched field to read as empty, not
+// some kind-specific placeholder ("false" for a nullable Boolean would itself parse as
+// a real, explicitly-chosen value - not "not set"); a non-nullable field's own
+// "?: <default>" fallback already produces the right zero value from an empty string
+// on its own, so there's nothing a kind-specific seed would add there either.
 func formStateInitialValue(field *core.EmiField) string {
-	switch formFieldKindOf(field) {
-	case formFieldKindBool:
-		return `mutableStateOf("false")`
-	default:
-		return `mutableStateOf("")`
-	}
+	return `mutableStateOf("")`
 }
 
 // KotlinFormStateGenerator renders a Compose-friendly <Dto>FormState class for a dto's

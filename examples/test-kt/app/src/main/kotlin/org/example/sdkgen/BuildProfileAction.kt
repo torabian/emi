@@ -48,14 +48,25 @@ object BuildProfileActionClient {
 	): BuildProfileActionResponse =
         withContext(Dispatchers.IO) {
             val meta = BuildProfileActionMeta()
-            var baseUrl = context?.baseUrl ?: ""
-            var url = buildUrl(baseUrl, meta.url, query)
+            // Falls back to the app-wide ClientContext.Default when this client's own
+            // .context hasn't been set - see ClientContext's doc comment (common.kt)
+            // and the "Client context & authentication" Kotlin doc page.
+            val effectiveContext = context ?: ClientContext.Default
+            var url = buildUrl(effectiveContext.baseUrl, meta.url, query)
             val body0 = body?.let { Json.encodeToString(it).toRequestBody(jsonType) }
+            // Merges defaultHeaders under the explicit headers argument, then runs
+            // ClientContext.onRequest if set (e.g. injecting a fresh auth token).
+            val resolved = effectiveContext.resolve(url, headers)
             val requestBuilder = Request.Builder()
-                .url(url)
-                .method(meta.method, body0)
+                .url(resolved.url)
+                // HTTP methods are conventionally sent uppercase (meta.method itself
+                // stays exactly as declared in the .emi.yml, e.g. "get"/"post", for
+                // backwards-compat with anything already reading it) - some servers
+                // are strict about it, and OkHttp itself special-cases request-body
+                // permission (HttpMethod.permitsRequestBody/...) on the uppercase form.
+                .method(meta.method.uppercase(), body0)
                 .addHeader("Accept", "application/json")
-            headers.forEach { (k, v) -> requestBuilder.addHeader(k, v) }
+            resolved.headers.forEach { (k, v) -> requestBuilder.addHeader(k, v) }
             client.newCall(requestBuilder.build()).execute().use { resp ->
                 val rawBody = resp.body?.string()
                 val parsedPayload: ProfileDto? = rawBody?.let {

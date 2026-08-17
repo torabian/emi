@@ -6,7 +6,10 @@ sidebar:
 
 The Kotlin compiler lets you generate type-safe clients and DTOs for Android and JVM projects out of the same Emi
 definitions used by every other target. As with the other compilers, the generated Kotlin stays in sync with your
-backend because it comes from one shared source of truth.
+backend because it comes from one shared source of truth. The generated code uses
+[`kotlinx.serialization`](https://github.com/Kotlin/kotlinx.serialization) for JSON and
+[OkHttp](https://square.github.io/okhttp/) for networking - both need to be on the consuming project's classpath,
+but nothing else does.
 
 ## Compiling a module
 
@@ -15,7 +18,9 @@ emi kotlin --path module.yaml --output ./src/main/kotlin/generated
 ```
 
 Without `--output`, the generated virtual files are printed (as JSON) to the terminal so you can inspect them before
-writing them to disk.
+writing them to disk. A single invocation compiles everything a module declares - `dtos:`, `entities:` (each becomes
+a dto plus a set of CRUD actions, see below) and `actions:` - into one flat directory of `.kt` files, plus a handful
+of shared runtime files (see [What gets generated](#what-gets-generated)).
 
 ## Sub commands
 
@@ -29,7 +34,7 @@ writing them to disk.
   <tbody>
     <tr>
       <td><code>emi kotlin</code></td>
-      <td>Compiles the entire Kotlin module (actions, DTOs, headers).</td>
+      <td>Compiles the entire Kotlin module (dtos, entities, actions, runtime files).</td>
     </tr>
     <tr>
       <td><code>emi kotlin:dto</code></td>
@@ -61,14 +66,246 @@ writing them to disk.
       <td>Directory the generated Kotlin files are written to. Omit it to print to stdout.</td>
     </tr>
     <tr>
+      <td><code>--pkg</code></td>
+      <td>
+        The Kotlin <code>package</code> every generated file is written under (e.g. <code>org.example.inventory</code>).
+        Defaults to <code>unknownpackage</code> when unset. Only matters once you compile more than one module into
+        the same project - see <a href="#referencing-other-dtos-and-entities-across-modules">Referencing other dtos
+        and entities across modules</a>.
+      </td>
+    </tr>
+    <tr>
       <td><code>--tags</code></td>
-      <td>Comma separated compile features to add or remove.</td>
+      <td>Comma separated compile features to add or remove - see <a href="#tags">Tags</a>.</td>
     </tr>
   </tbody>
 </table>
 
+## Tags
+
+<table>
+  <thead>
+    <tr>
+      <th>Tag</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>android-forms</code></td>
+      <td>
+        Also generates a Compose-friendly <code>&lt;Dto&gt;FormState</code> class alongside every dto - one
+        <code>mutableStateOf</code>-backed field per property, a per-field validation error slot, and
+        <code>toDto()</code>/<code>fromDto()</code> converters. Requires
+        <code>org.jetbrains.compose.runtime:runtime</code> on the classpath (a pure-JVM artifact - no Android Gradle
+        plugin or UI toolkit needed to compile it).
+      </td>
+    </tr>
+    <tr>
+      <td><code>no-sdk</code></td>
+      <td>
+        Skips writing the shared runtime files (<code>common.kt</code>, <code>gresponse.kt</code>,
+        <code>emiwebsocketx.kt</code>, ...) into this invocation's output directory. Use it on every module after the
+        first when compiling several modules into the same Gradle source set - they only need to exist once, and
+        would otherwise collide (same <code>emikot</code> package, same class names, declared more than once).
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+## What gets generated
+
+For each **dto**, one `<Dto>.kt` file with a `@Serializable data class`. For each **entity**, the same dto (plus an
+`<Entity>OptionalDto` used for partial updates) *and* a set of CRUD actions synthesized automatically - create,
+update, get, browse, aware-delete and an aware-delete preview - each as its own `<Entity><Operation>Action.kt` file,
+with no extra yaml needed. For each hand-declared **action**, one `<Action>.kt` file containing:
+
+- a `<Action>Meta` (name, url, method),
+- a `<Action>Response` wrapping `statusCode`/`headers`/`rawBody` plus a typed `payload`,
+- an `<Action>Client` object (or, for `method: reactive`, a `<Action>Socket`/`<Action>` pair - see
+  [Reactive (WebSocket) actions](#reactive-websocket-actions)) whose `compute()`/`Create()` actually serializes the
+  typed request and deserializes the typed response - not a stub.
+
+Every one of those files leans on a small shared runtime, generated once per compile (unless `--tags no-sdk` skips
+it) into package `emikot`:
+
+- **`MaybeField<T>`/`Maybe<T>`** - how every nullable field is represented (see [Data types](#data-types) below).
+- **`ClientContext`** - base URL, default headers and a request interceptor, settable once app-wide via
+  `ClientContext.Default`. See the [Client context & authentication](/emi/kotlin/kotlin-client-context) page.
+- **`AuthState`** - a small "who is currently signed in" package, wired into `ClientContext` the same way. Also
+  covered on the [Client context & authentication](/emi/kotlin/kotlin-client-context) page.
+- **`GResponse<T>`/`GResponseData<T>`/`GResponseError`** - the Google JSON Style Guide envelope every entity action
+  wraps its response in by default (an explicit `out: { envelope: GResponse }` opts a hand-declared action into it
+  too).
+- **`EmiWebSocketX<Send, Receive>`** - the typed WebSocket wrapper backing every `method: reactive` action.
+
+## Data types
+
+Every emi field type resolves to a real Kotlin type - a field typed `T?` in emi (e.g. `string?`, `one?`, `map?`)
+always becomes `MaybeField<T>` on the Kotlin side, a three-state wrapper (`Maybe.Absent` / `Maybe.Null` /
+`Maybe.Value(v)`) that distinguishes "not provided" from "explicitly set to null" from "has a value" -
+`MaybeField(Maybe.Absent)` round-trips as the key being omitted from the JSON entirely.
+
+| Emi type | Kotlin type (non-nullable) | Kotlin type (nullable, `T?`) |
+|---|---|---|
+| `string` | `String` | `MaybeField<String>` |
+| `bool` | `Boolean` | `MaybeField<Boolean>` |
+| `int`, `int32` | `Int` | `MaybeField<Int>` |
+| `int64` | `Long` | `MaybeField<Long>` |
+| `float32` | `Float` | `MaybeField<Float>` |
+| `float64` | `Double` | `MaybeField<Double>` |
+| `enum` | `String` | `MaybeField<String>` |
+| `slice` (`primitive: string`) | `List<String>` | `MaybeField<List<String>>` |
+| `array` (nested fields) | `List<<Parent><Field>>` (a generated nested class) | `MaybeField<List<...>>` |
+| `object` (nested fields) | `<Parent><Field>` (a generated nested class) | `MaybeField<<Parent><Field>>` |
+| `map` (`mapKeyOf`/`mapPairOf`) | `Map<String, String>` | `MaybeField<Map<String, String>>` |
+| `one`, `collection` (`target:`) | `<Target>` / `List<<Target>>` | `MaybeField<<Target>>` / `MaybeField<List<<Target>>>` |
+| `complex` (`complex:`) | the referenced class, see [Complex types](#complex-types) | *(no nullable form)* |
+| `any` | `Any` (serialized via `emikot.AnySerializer`, not `@Contextual`) | *(no nullable form)* |
+
+## Complex types
+
+A `type: complex` field references a hand-written Kotlin class the compiler never generates, only imports - for a
+value type that needs real logic (money, a date, anything you don't want re-modeled as plain fields). Declare it
+once in the module's `complexes:` list with `compiler: kotlin` and a fully-qualified `location` (the import path,
+including the class name itself):
+
+```yaml
+complexes:
+  - compiler: kotlin
+    name: Money
+    location: org.example.money.Money
+
+dtos:
+  - name: product
+    fields:
+      - name: price
+        type: complex
+        complex: Money
+```
+
+`price` renders as `val price: Money` with `import org.example.money.Money` - `Money` itself is plain, hand-written
+Kotlin you own:
+
+```kotlin
+package org.example.money
+
+@Serializable
+data class Money(
+    @SerialName("currency") val currency: String = "USD",
+    @SerialName("minorUnits") val minorUnits: Long = 0,
+)
+```
+
+## Referencing other dtos and entities across modules
+
+A `one`/`collection` field's `target:` can point at a dto/entity declared in a *different* module, compiled with its
+own `--pkg`, by adding `module: <that module's --pkg value>`:
+
+```yaml
+# inventory.emi.yml, compiled with --pkg org.example.inventory
+entities:
+  - name: product
+    fields:
+      - name: invoiceLines
+        type: collection?
+        target: InvoiceLineEntity
+        module: org.example.billing   # billing.emi.yml's own --pkg
+
+# billing.emi.yml, compiled with --pkg org.example.billing
+entities:
+  - name: invoiceLine
+    fields:
+      - name: product
+        type: one
+        target: ProductEntity
+        module: org.example.inventory # inventory.emi.yml's own --pkg
+```
+
+Each module is still compiled with its own `emi kotlin` invocation (`--tags no-sdk` on every one after the first,
+since the shared `emikot` runtime only needs to exist once - see [Tags](#tags)); the two output directories just need
+to land in the same Gradle source set so both packages are on the same compilation's classpath. `module:` must match
+the referenced module's own `--pkg` exactly - that's how the compiler knows to emit
+`import org.example.billing.InvoiceLineDto` instead of assuming it's a same-package sibling class.
+
+A `target:` with no `module:` is resolved as a plain same-package reference and needs no import at all - this is the
+common case (most relations point at another dto/entity in the same module).
+
+## Reactive (WebSocket) actions
+
+`method: reactive` generates a typed WebSocket client instead of an HTTP one:
+
+```yaml
+actions:
+  - name: subscribeProductUpdates
+    method: reactive
+    url: /product/subscribe/:productId string
+    in:
+      fields:
+        - name: ping
+          type: string
+    out:
+      fields:
+        - name: title
+          type: string
+        - name: status
+          type: string
+```
+
+generates a `SubscribeProductUpdatesActionSocket` typealias (`EmiWebSocketX<SubscribeProductUpdatesActionReq,
+SubscribeProductUpdatesActionRes>`) and a `SubscribeProductUpdatesAction` object whose `Create(...)` builds an
+*unconnected* socket - derive the `ws(s)://` URL from `ClientContext`'s `baseUrl` (swapping the scheme), apply path
+params/query, then hand back a socket you call `.connect()` on:
+
+```kotlin
+val socket = SubscribeProductUpdatesAction.Create(
+    path = SubscribeProductUpdatesActionPathParameter(productId = "product-1"),
+)
+socket.onMessage = { msg -> println("${msg.title}: ${msg.status}") }
+socket.connect()
+socket.send(SubscribeProductUpdatesActionReq(ping = "hello"))
+```
+
 ## Example
 
-For the `postsModule` from the [OpenAPI](/emi/exports/openapi) page, `emi kotlin` generates a
-`GetSinglePostAction.kt` for the action plus a shared `common.kt` containing the reusable building blocks (headers,
-helpers) referenced by the actions.
+`examples/test-kt` in this repository is a full, working, tested Gradle project built entirely from `.emi.yml`
+files - two cross-referencing modules (`inventory.emi.yml`/`billing.emi.yml`, exercising every data type, entities,
+complex types, cross-module references, `--tags android-forms` and a reactive action), plus a Kotlin test suite that
+calls the generated code for real (including HTTP and WebSocket requests against a local `MockWebServer`). Run
+`make build && make test` in that directory to generate, compile and test it end to end.
+
+For a single generated file, an entity's `create` action (`emi kotlin` on an entity named `category` with one
+`name: string` field) looks like this:
+
+```kotlin
+package org.example.inventory
+
+data class CategoryCreateActionMeta(
+    val name: String = "CategoryCreateAction",
+    val url: String = "/category",
+    val method: String = "post"
+)
+
+data class CategoryCreateActionResponse(
+    val statusCode: Int = 200,
+    val headers: Map<String, String> = emptyMap(),
+    val rawBody: String? = null,
+    val payload: GResponse<CategoryDto>? = null
+)
+
+object CategoryCreateActionClient {
+    public var context: ClientContext? = null
+
+    suspend fun compute(
+        query: Map<String, String> = emptyMap(),
+        headers: Map<String, String> = emptyMap(),
+        body: CategoryDto? = null,
+    ): CategoryCreateActionResponse {
+        // serializes `body`, sends it, decodes the response into GResponse<CategoryDto> - see
+        // ClientContext.Default and the Client context & authentication page for how baseUrl/headers are resolved.
+    }
+}
+```
+
+Each action carries its own metadata (name, URL, method) and a strongly typed request/response, so calling code
+never has to hardcode routes or guess the response shape.

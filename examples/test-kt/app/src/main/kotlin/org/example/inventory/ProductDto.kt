@@ -33,7 +33,7 @@ data class ProductDto (
 		@SerialName("galleryOpt")  val galleryOpt: MaybeField<List<ProductDtoGalleryOpt>> ,
 		@SerialName("specs")  val specs:  ProductDtoSpecs ,
 		@SerialName("price")  val price: Money ,
-		@SerialName("misc")  @Contextual  val misc: Any ,
+		@SerialName("misc")  @Serializable(with = emikot.AnySerializer::class)  val misc: Any ,
 		@SerialName("category")  val category: MaybeField<CategoryDto>  = MaybeField(Maybe.Absent),
 		@SerialName("invoiceLines")  val invoiceLines: MaybeField<List<InvoiceLineDto>>  = MaybeField(Maybe.Absent),
 )

@@ -49,11 +49,53 @@ object MaybeFieldSerializer : KSerializer<MaybeField<Any?>> {
     }
 }
 
-// Common configuration for the API calls, such as baseurl
+/**
+ * A single HTTP/WebSocket request's url + headers, right before it's sent - the shape
+ * ClientContext.onRequest is handed, and expected to return (possibly transformed).
+ */
+data class ClientRequestSpec(
+    val url: String,
+    val headers: Map<String, String>,
+)
+
+/**
+ * Per-client (or, via ClientContext.Default, app-wide) request configuration for every
+ * generated <Action>Client/reactive action object - the same role FetchxContext/
+ * FetchxProvider play for the JS/TS SDK (see lib/js/ts-sdk/common/fetchx.ts): a base
+ * URL prefix, headers merged into every request, and an `onRequest` interceptor hook
+ * for anything more dynamic (a fresh auth token per request, request signing,
+ * logging) - see the "Client context & authentication" Kotlin doc page and
+ * examples/test-kt for a full worked example wiring this up with AuthState.
+ *
+ * Every generated action reads `context ?: ClientContext.Default` (see
+ * kotlin-action-render.go/kotlin-action-reactive-render.go), so setting
+ * `ClientContext.Default` once (e.g. at app startup) is enough for every action to
+ * pick it up - assigning a client's own `.context` only when that one call needs to
+ * deviate from the app-wide default.
+ */
 data class ClientContext(
     val baseUrl: String = "",
-    val defaultHeaders: Map<String, String> = emptyMap()
-)
+    val defaultHeaders: Map<String, String> = emptyMap(),
+    val onRequest: ((ClientRequestSpec) -> ClientRequestSpec)? = null,
+) {
+    companion object {
+        /**
+         * The app-wide fallback every generated <Action>Client/reactive action object
+         * uses when its own `context` var is left null.
+         */
+        var Default: ClientContext = ClientContext()
+    }
+
+    /**
+     * Merges `headers` (the compute()/Create() call's own explicit headers argument)
+     * over defaultHeaders - explicit call-site headers win on conflict, matching
+     * FetchxContext.apply()'s merge order - then runs `onRequest` if set.
+     */
+    fun resolve(url: String, headers: Map<String, String>): ClientRequestSpec {
+        val spec = ClientRequestSpec(url, defaultHeaders + headers)
+        return onRequest?.invoke(spec) ?: spec
+    }
+}
 
 
 // 2️⃣ Field wrapper with serializer

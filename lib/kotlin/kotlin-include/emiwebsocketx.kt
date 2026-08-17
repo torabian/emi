@@ -25,6 +25,10 @@ class EmiWebSocketX<Send : Any, Receive : Any>(
     private val url: String,
     private val sendSerializer: KSerializer<Send>,
     private val receiveSerializer: KSerializer<Receive>,
+    // Resolved through ClientContext.resolve() by the generated `<Action>.Create(...)`
+    // factory (defaultHeaders merged in, then onRequest if set) - sent as the
+    // WebSocket handshake's HTTP headers, same as a classic action's request headers.
+    private val headers: Map<String, String> = emptyMap(),
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private var socket: WebSocket? = null
@@ -36,7 +40,9 @@ class EmiWebSocketX<Send : Any, Receive : Any>(
     // Opens the connection. Safe to call at most once per instance - build a new one
     // via the generated `<Action>.Create(...)` factory to reconnect.
     fun connect(): EmiWebSocketX<Send, Receive> {
-        val request = Request.Builder().url(url).build()
+        val requestBuilder = Request.Builder().url(url)
+        headers.forEach { (k, v) -> requestBuilder.addHeader(k, v) }
+        val request = requestBuilder.build()
         socket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onMessage(webSocket: WebSocket, text: String) {
                 try {

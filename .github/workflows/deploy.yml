@@ -28,6 +28,12 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
       - name: Install deps
         run: cd playground && npm i -f
 
@@ -55,7 +61,9 @@ jobs:
 
       - name: The the virtual ecosystem
         run: cd ./examples/virtual-eco-system && make build
-      
+
+      - name: Kotlin compiler example (test-kt) - generate, build and run its Kotlin test suite
+        run: cd ./examples/test-kt && make build && make test
 
       - name: Compile the web veresion (docs, and only after running tests because they create document)
         run: cd ./examples/emi-web && npm i -f && npm run build

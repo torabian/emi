@@ -1,0 +1,215 @@
+---
+title: "Client Context & Authentication"
+sidebar:
+  order: 2
+---
+
+Every generated Kotlin action (`<Action>Client.compute()` for a classic HTTP action, `<Action>.Create()` for a
+`method: reactive` WebSocket action) sends its request through a `ClientContext` - the Kotlin equivalent of the
+JS/TS SDK's `FetchxContext`/`FetchxProvider` (see `lib/js/ts-sdk/common/fetchx.ts` and
+`lib/js/ts-sdk/react/useFetchx.ts`). This page covers the two things most apps need from it: prefixing every
+request's URL, and adding headers (e.g. an auth token) to every request before it's sent - plus `AuthState`, a
+small package for tracking who's currently signed in, built to plug straight into it.
+
+Both live in `common.kt`/`authstate.kt`, generated into the `emikot` package alongside every module's dtos and
+actions - no extra dependency or setup beyond compiling your `.emi.yml` with `emi kotlin`.
+
+## `ClientContext`
+
+```kotlin
+data class ClientContext(
+    val baseUrl: String = "",
+    val defaultHeaders: Map<String, String> = emptyMap(),
+    val onRequest: ((ClientRequestSpec) -> ClientRequestSpec)? = null,
+) {
+    companion object {
+        var Default: ClientContext = ClientContext()
+    }
+}
+```
+
+- **`baseUrl`** - prefixed onto every action's relative path (`/product/:uniqueId` etc.), same role as
+  `FetchxContext.baseUrl` on the JS side.
+- **`defaultHeaders`** - merged into every request's headers, with the `headers` argument passed to a given
+  `compute()`/`Create()` call winning on conflict.
+- **`onRequest`** - an interceptor, called after `defaultHeaders` is merged in, that can rewrite the final URL
+  and/or headers for anything more dynamic than a static map (a freshly-signed request, per-call logging, etc.).
+
+### Setting it once, app-wide
+
+Every generated `<Action>Client`/reactive action object has its own `context: ClientContext?` var, but reads
+`context ?: ClientContext.Default` - so instead of assigning `.context` on every single generated client, set
+`ClientContext.Default` once, typically at app startup:
+
+```kotlin
+ClientContext.Default = ClientContext(
+    baseUrl = "https://api.example.com",
+    defaultHeaders = mapOf("X-App-Version" to BuildConfig.VERSION_NAME),
+)
+
+// every generated action now prefixes https://api.example.com and sends X-App-Version,
+// with no further setup:
+val response = ProductGetActionClient.compute(path = ProductGetActionPathParameter(uniqueId = "p-1"))
+```
+
+A single call still needs a *different* context than the app-wide default - a different environment, an
+unauthenticated endpoint, etc. - by assigning that one client's own `.context` directly:
+
+```kotlin
+ProductGetActionClient.context = ClientContext(baseUrl = "https://staging.example.com")
+```
+
+### Per-request headers via `onRequest`
+
+`defaultHeaders` covers a static header map; `onRequest` covers anything computed per request:
+
+```kotlin
+ClientContext.Default = ClientContext(
+    baseUrl = "https://api.example.com",
+    onRequest = { spec ->
+        spec.copy(headers = spec.headers + ("X-Request-Id" to java.util.UUID.randomUUID().toString()))
+    },
+)
+```
+
+`onRequest` also applies to `method: reactive` actions - `<Action>.Create()` runs the exact same
+`ClientContext.resolve(url, headers)` before opening the WebSocket, and the resolved headers are sent as the
+handshake's HTTP headers.
+
+## `AuthState` - who's connected
+
+`AuthState` is a small, app-wide "current session" package - the Kotlin counterpart to fireback's own
+`ui/packages/auth-client` (`AuthenticationProvider`/`useAuthentication`) for React. It owns *holding* and
+*persisting* a session, and deriving the headers a session implies - it doesn't perform sign-in itself; call
+`AuthState.setSession(...)` with whatever your own sign-in flow (an emi action, a WebView, etc.) returns.
+
+```kotlin
+data class AuthenticationSession(
+    val token: String,
+    val user: AuthenticationUser? = null,
+    val workspaces: List<AuthenticationWorkspace> = emptyList(),
+    val capabilities: List<String> = emptyList(),
+)
+```
+
+### Checking who's connected
+
+```kotlin
+if (AuthState.isAuthenticated) {
+    val user = AuthState.session.value?.user
+    // show "Signed in as ${user?.name}"
+}
+
+// Compose:
+val session by AuthState.session.collectAsState()
+if (session == null) {
+    SignInScreen()
+} else {
+    HomeScreen(user = session!!.user)
+}
+```
+
+`AuthState.session` and `AuthState.selectedWorkspace` are `StateFlow`, so both Compose (`.collectAsState()`) and
+plain coroutine code can observe sign-in/sign-out as it happens.
+
+### Signing in, signing out
+
+```kotlin
+// after your own sign-in flow resolves a token/user/workspaces:
+AuthState.setSession(
+    AuthenticationSession(
+        token = "Bearer eyJhbGc...",
+        user = AuthenticationUser(uniqueId = "user-1", name = "Ada Lovelace"),
+        workspaces = listOf(AuthenticationWorkspace(workspaceId = "ws-1", name = "Acme Inc")),
+    ),
+)
+
+AuthState.signOut()
+```
+
+### Wiring it into every request
+
+`AuthState.headers()` returns `{ "Authorization": ..., "workspace-id": ..., "role-id": ... }` (fields with no
+value - e.g. no workspace selected yet - are simply omitted) - exactly the shape `ClientContext.defaultHeaders`
+expects, so every generated action automatically carries the current session:
+
+```kotlin
+fun applyAuthToClientContext() {
+    ClientContext.Default = ClientContext.Default.copy(defaultHeaders = AuthState.headers())
+}
+
+// call once after configuring ClientContext.Default's baseUrl, and again any time the
+// session changes:
+applyAuthToClientContext()
+AuthState.setSession(session)
+applyAuthToClientContext()
+```
+
+Or, for headers that must always reflect the *current* session even if you forget to re-apply them after every
+`setSession` call, use `onRequest` instead - it runs fresh on every single request:
+
+```kotlin
+ClientContext.Default = ClientContext(
+    baseUrl = "https://api.example.com",
+    onRequest = { spec -> spec.copy(headers = spec.headers + AuthState.headers()) },
+)
+```
+
+### Persisting the session across restarts
+
+By default `AuthState` uses `InMemoryAuthStateStorage` - nothing survives a process restart, which is enough for
+tests and short-lived processes. A real Android app supplies its own `AuthStateStorage`, typically backed by
+`EncryptedSharedPreferences` (a bearer token is sensitive - prefer an encrypted store over plain
+`SharedPreferences`):
+
+```kotlin
+class EncryptedPrefsAuthStorage(context: Context) : AuthStateStorage {
+    private val json = Json { encodeDefaults = true }
+    private val prefs = EncryptedSharedPreferences.create(
+        context, "auth", masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+    )
+
+    override fun loadSession(): AuthenticationSession? =
+        prefs.getString("session", null)?.let { json.decodeFromString(it) }
+
+    override fun saveSession(session: AuthenticationSession?) {
+        prefs.edit {
+            if (session == null) remove("session") else putString("session", json.encodeToString(session))
+        }
+    }
+
+    override fun loadSelectedWorkspace(): AuthenticationWorkspace? =
+        prefs.getString("workspace", null)?.let { json.decodeFromString(it) }
+
+    override fun saveSelectedWorkspace(workspace: AuthenticationWorkspace?) {
+        prefs.edit {
+            if (workspace == null) remove("workspace") else putString("workspace", json.encodeToString(workspace))
+        }
+    }
+}
+
+// once, at app startup, before anything reads AuthState.session/isAuthenticated:
+AuthState.configure(EncryptedPrefsAuthStorage(applicationContext))
+```
+
+### Re-validating a session
+
+`AuthState.checkValidity` re-checks the current session via a caller-supplied check (e.g. a call to a
+whoami/verify action) - it clears the session if the check explicitly says it's invalid, but a thrown exception
+(a network blip) leaves the session as-is:
+
+```kotlin
+val stillValid = AuthState.checkValidity { session ->
+    val res = WhoamiActionClient.compute(headers = mapOf("Authorization" to session.token))
+    res.payload?.data?.item?.let { session.copy(user = it) } // refreshed, or null if the call says invalid
+}
+```
+
+## See it working end to end
+
+`examples/test-kt`'s `ProductActionHttpTest.kt` exercises all of the above against a real local server (OkHttp's
+`MockWebServer`, not a mock of the Kotlin code itself): `ClientContext.Default` applying without setting
+`.context` per action, `defaultHeaders` and `onRequest` both reaching the wire, and a full sign-in ->
+`AuthState.headers()` -> `ClientContext.Default` -> real `Authorization` header round trip.

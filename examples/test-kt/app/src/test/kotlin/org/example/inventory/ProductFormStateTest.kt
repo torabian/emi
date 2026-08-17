@@ -1,5 +1,8 @@
 package org.example.inventory
 
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -91,7 +94,7 @@ class ProductFormStateTest {
     // decode first (see the class doc on emikot.toDisplayString).
     @Test
     fun `fromDto seeds state from a JSON-decoded dto`() {
-        val json = kotlinx.serialization.json.Json { encodeDefaults = true }
+        val json = Json { encodeDefaults = true }
         val original = sampleProduct()
         val decoded = json.decodeFromString<ProductDto>(json.encodeToString(original))
 
