@@ -9,13 +9,14 @@ import (
 )
 
 // GoConfigGenerate renders the module's `config:` block. It always produces the plain
-// Config struct, defaults, and env load/save helpers (no cli dependency, safe for wasm).
-// The urfave/cli-specific bindings (flags, cast-from-cli, interactive get/set commands)
-// are rendered separately by GoConfigGenerateCli and merged back into the same file
-// unless the "split-cli" tag is set, in which case they're returned as their own
-// `//go:build !wasm`-guarded chunk - same convention as
+// Config struct, defaults, and Json() (no cli or emigo dependency, safe for wasm). The
+// env load/save helpers (LoadConfiguration/Save) both go through emigo - which is itself
+// `//go:build !wasm` - so they're rendered by GoConfigGenerateCli alongside the
+// urfave/cli-specific bindings (flags, cast-from-cli, interactive get/set commands) and
+// merged back into this same file unless the "split-cli" tag is set, in which case
+// they're returned as their own `//go:build !wasm`-guarded chunk - same convention as
 // GoCommonStructGenerator/GoActionRender use for dtos/actions, so a wasm build of the
-// module never has to pull in urfave/cli just because a config block exists.
+// module never has to pull in urfave/cli or emigo just because a config block exists.
 func GoConfigGenerate(
 	configs []core.EmiConfig,
 	ctx core.MicroGenContext,
@@ -79,18 +80,6 @@ var config Config = Config{
   {{ end }}
 }
 
-/**
-You can call this function on first line of your main function.
-This is different from fireback configuration (for now), you can
-define config: in module3 file, similar to fields in entities,
-and we generate the config struct and this function would read .env.local,
-.env.prod, etc - depending on the ENV=xxx env variable.
-**/
-func LoadConfiguration() Config {
-	emigo.HandleEnvVars(&config)
-	return config
-}
-
 func (x *Config) Json() string {
 	if x != nil {
 		str, _ := json.MarshalIndent(x, "", "  ")
@@ -98,26 +87,17 @@ func (x *Config) Json() string {
 	}
 	return ""
 }
-
-func (x *Config) Save(filepath string) error {
-	return emigo.SaveEnvFile(x, filepath)
-}
 `
 
 	tmpl = strings.ReplaceAll(tmpl, "$bt$", "`")
 
 	t := template.Must(template.New("config_generator").Funcs(core.CommonMap).Parse(tmpl))
 
-	f := GetCommonFlags(ctx)
-
 	res.CodeChunkDependensies = append(
 		res.CodeChunkDependensies,
 		[]core.CodeChunkDependency{
 			{
 				Location: "encoding/json",
-			},
-			{
-				Location: f.Emigo,
 			},
 		}...,
 	)
@@ -173,6 +153,22 @@ func GoConfigGenerateCli(
 {{ if .splitCli }}
 //go:build !wasm
 {{ end }}
+
+/**
+You can call this function on first line of your main function.
+This is different from fireback configuration (for now), you can
+define config: in module3 file, similar to fields in entities,
+and we generate the config struct and this function would read .env.local,
+.env.prod, etc - depending on the ENV=xxx env variable.
+**/
+func LoadConfiguration() Config {
+	emigo.HandleEnvVars(&config)
+	return config
+}
+
+func (x *Config) Save(filepath string) error {
+	return emigo.SaveEnvFile(x, filepath)
+}
 
 func GetConfigCliFlags() []cli.Flag {
 	return []cli.Flag{
