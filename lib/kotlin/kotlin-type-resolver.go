@@ -2,6 +2,7 @@ package kotlin
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/torabian/emi/lib/core"
 )
@@ -21,32 +22,66 @@ func extractPrimitive(field *core.EmiField) string {
 		return "Float"
 	case "bool", "bool?":
 		return "Boolean"
+	// enum is a plain string on the wire, same as Go (go-common-fields.go) and JS
+	// (js-common-fields.go) already treat it - there's no real Kotlin `enum class`
+	// generated, so "enum"/"enum?" resolve exactly like "string"/"string?".
+	case "enum", "enum?":
+		return "String"
 	default:
 		return ""
 	}
 }
 
-func kotlinDataStructureType(field *core.EmiField) string {
+// kotlinPrimitiveMapType maps a map's mapKeyOf/mapPairOf primitive name (see
+// EmiField.MapKeyOf/MapPairOf) to its Kotlin type. Unknown/unset -> String, matching
+// extractPrimitive's own default posture rather than failing closed.
+func kotlinPrimitiveMapType(primitive string) string {
+	switch primitive {
+	case "int":
+		return "Int"
+	case "any":
+		return "Any"
+	case "string", "":
+		return "String"
+	default:
+		return "String"
+	}
+}
 
-	// Now let's check data structure types.
-	switch field.Type {
-	case core.FieldTypeOne:
-		if field.Module != "" {
-			return field.Module + field.Target
+// kotlinDataStructureType resolves every "structured" (non-primitive) field type to its
+// Kotlin type. field.Type is normalized by trimming a trailing "?" first, so a nullable
+// field (e.g. "one?", "map?") resolves identically to its non-nullable twin - nullability
+// itself is applied separately by goComputedField's MaybeField<...> wrap, based on
+// core.IsNullable. Before this fix the switch only ever matched the non-nullable
+// constant, so "one?"/"collection?"/"map?"/... all silently fell through to "Any".
+func kotlinDataStructureType(field *core.EmiField) string {
+	baseType := core.FieldType(strings.TrimSuffix(string(field.Type), "?"))
+
+	switch baseType {
+	case core.FieldTypeOne, core.FieldTypeCollection:
+		// Bare class name in both cases: same-package (module unset) references need
+		// no import at all (see CombineJavaImport), and cross-module (module set)
+		// references get a real `import <module>.<Target>` line generated alongside -
+		// see kotlinCollectTargetDeps - so the type itself never needs qualifying.
+		if baseType == core.FieldTypeCollection {
+			return fmt.Sprintf("List<%s>", field.Target)
 		}
 		return field.Target
 	case core.FieldTypeArray:
 		return field.PublicName()
-	case core.FieldTypeCollection:
-		if field.Module != "" {
-			return field.Module + field.Target
-		}
-		return fmt.Sprintf("List<%s>", field.Target)
 	case core.FieldTypeSlice:
 		return fmt.Sprintf("List<%v>", core.ToUpper(field.Primitive))
-
 	case core.FieldTypeObject:
 		return field.PublicName()
+	case core.FieldTypeMap:
+		keyType := kotlinPrimitiveMapType(field.MapKeyOf)
+		valueType := kotlinPrimitiveMapType(field.MapPairOf)
+		if field.Target != "" {
+			valueType = field.Target
+		}
+		return fmt.Sprintf("Map<%s, %s>", keyType, valueType)
+	case core.FieldTypeComplex:
+		return strings.ReplaceAll(field.Complex, "+", "")
 	default:
 		return ""
 	}

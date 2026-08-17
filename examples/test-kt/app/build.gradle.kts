@@ -17,6 +17,11 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+
+    // org.jetbrains.compose.runtime pulls in androidx.collection/androidx.annotation
+    // transitively (see the "--tags android-forms" Compose runtime dependency below) -
+    // those only publish to Google's Maven repo, not Maven Central.
+    google()
 }
 
 dependencies {
@@ -29,12 +34,24 @@ dependencies {
     // --- JSON (for serializing/deserializing data) ---
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
+    // --- Compose runtime (mutableStateOf/MutableState) for the --tags android-forms
+    // generated <Dto>FormState classes (see lib/kotlin/kotlin-form-state.go). This is
+    // the plain snapshot-state artifact, published for JVM/desktop use with no Android
+    // Gradle plugin or UI toolkit needed - a real Android app only needs this same
+    // artifact (it already gets it transitively via androidx.compose.runtime, since
+    // that's the same published API).
+    implementation("org.jetbrains.compose.runtime:runtime:1.7.1")
 
     // Use the Kotlin JUnit 5 integration.
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 
     // Use the JUnit 5 integration.
     testImplementation(libs.junit.jupiter.engine)
+
+    // Real HTTP/WebSocket server for the generated action-client tests (see
+    // examples/test-kt/app/src/test/kotlin) - same okhttp version family as the main
+    // runtime dependency above.
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 

@@ -1,0 +1,125 @@
+name: inventory
+description: |
+  Inventory module - exercises the full non-Go-only emi field-type catalog (see
+  lib/core/EmiFieldType.go's GetEmiFieldTypeCatalog) for the Kotlin compiler, both
+  nullable and non-nullable variants, plus a same-module one/collection pair
+  (product <-> category) and a cross-module collection field into the billing module
+  (see billing.emi.yml, compiled separately with --pkg org.example.billing) - product
+  is also compiled with --tags android-forms (see the Makefile) so its
+  ProductFormState is available to test.
+
+complexes:
+  - compiler: kotlin
+    name: Money
+    location: org.example.money.Money
+
+entities:
+  - name: category
+    fields:
+      - name: name
+        type: string
+
+  - name: product
+    fields:
+      - name: title
+        type: string
+      - name: sku
+        type: string?
+      - name: active
+        type: bool
+      - name: featured
+        type: bool?
+      - name: viewCount
+        type: int
+      - name: viewCountOpt
+        type: int?
+      - name: smallCount
+        type: int32
+      - name: smallCountOpt
+        type: int32?
+      - name: bigCount
+        type: int64
+      - name: bigCountOpt
+        type: int64?
+      - name: ratio32
+        type: float32
+      - name: ratio32Opt
+        type: float32?
+      - name: ratio64
+        type: float64
+      - name: ratio64Opt
+        type: float64?
+      - name: status
+        type: enum
+        of:
+          - k: active
+          - k: discontinued
+      - name: statusOpt
+        type: enum?
+        of:
+          - k: active
+          - k: discontinued
+      - name: tags
+        type: slice
+        primitive: string
+      - name: tagsOpt
+        type: slice?
+        primitive: string
+      - name: labelsMeta
+        type: map
+        mapKeyOf: string
+        mapPairOf: string
+      - name: labelsMetaOpt
+        type: map?
+        mapKeyOf: string
+        mapPairOf: string
+      - name: gallery
+        type: array
+        fields:
+          - name: url
+            type: string
+      - name: galleryOpt
+        type: array?
+        fields:
+          - name: url
+            type: string
+      - name: specs
+        type: object
+        fields:
+          - name: weightGrams
+            type: int
+      - name: price
+        type: complex
+        complex: Money
+      - name: misc
+        type: any
+
+      # same-module one/collection pair, mirrors examples/emi-entity/entity.emi.yml's
+      # entity1/entity2 - no `module:`, so it's a plain same-package reference.
+      - name: category
+        type: one?
+        target: CategoryEntity
+
+      # cross-module collection - target lives in billing.emi.yml, compiled separately
+      # with --pkg org.example.billing (must match this `module:` value exactly - see
+      # kotlinCollectTargetDeps in lib/kotlin/kotlin-class-generator.go).
+      - name: invoiceLines
+        type: collection?
+        target: InvoiceLineEntity
+        module: org.example.billing
+
+actions:
+  - name: subscribeProductUpdates
+    description: Streams product title/status changes for a given product over a WebSocket.
+    method: reactive
+    url: /product/subscribe/:productId string
+    in:
+      fields:
+        - name: ping
+          type: string
+    out:
+      fields:
+        - name: title
+          type: string
+        - name: status
+          type: string
