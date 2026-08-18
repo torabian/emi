@@ -111,9 +111,18 @@ func KotlinSafeDefaultValue(field *core.EmiField) string {
 	switch field.Type {
 	case "array", "slice", "collection":
 		return "emptyList()"
-	case "object?":
+	case "map":
+		return "emptyMap()"
+	case "bool":
+		return "false"
+	// Every nullable structured field (one?/collection?/map?/object?/enum?) computes
+	// to a MaybeField<...> wrapper (see goComputedField/kotlinDataStructureType) - all
+	// of them default the same way "object?" already did, so a caller doesn't have to
+	// spell out every optional relation/map/enum field by hand, matching the ergonomics
+	// nullable scalars already get.
+	case "object?", "one?", "collection?", "map?", "enum?":
 		return "MaybeField(Maybe.Absent)"
-	case "string", "text":
+	case "string", "text", "enum":
 		return `""`
 	case "float", "float32": //"float?", "float32?", "float64?":
 		return "0.0f"

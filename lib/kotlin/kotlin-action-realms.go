@@ -19,6 +19,17 @@ type actionRealms struct {
 	QueryStringClass     *core.CodeChunkCompiled
 	RequestHeadersClass  *core.CodeChunkCompiled
 	ResponseHeadersClass *core.CodeChunkCompiled
+
+	// RequestTypeName/ResponseTypeName are the bare Kotlin class names backing
+	// RequestClass/ResponseClass (read off their TOKEN_OBJ_CLASS token - see
+	// castDtoNameToCodeChunk/KotlinCommonStructGenerator), "" when the action has no
+	// in/out shape. EnvelopeClass is action.GetResponseEnvelopeClass() (e.g.
+	// "GResponse", see lib/core/preprocess-entity-actions.go) - both are resolved once
+	// here so kotlin-action-render.go and kotlin-action-reactive-render.go don't each
+	// re-derive them.
+	RequestTypeName  string
+	ResponseTypeName string
+	EnvelopeClass    string
 }
 
 func GetActionRealms(
@@ -110,6 +121,25 @@ func GetActionRealms(
 		realms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
 		// For the java/kotlin it's not needed?
 		// deps = append(deps, realms.ResponseClass.CodeChunkDependensies...)
+	}
+
+	if realms.RequestClass != nil {
+		if token := core.FindTokenByName(realms.RequestClass.Tokens, TOKEN_OBJ_CLASS); token != nil {
+			realms.RequestTypeName = token.Value
+		}
+	}
+	if realms.ResponseClass != nil {
+		if token := core.FindTokenByName(realms.ResponseClass.Tokens, TOKEN_OBJ_CLASS); token != nil {
+			realms.ResponseTypeName = token.Value
+		}
+	}
+
+	realms.EnvelopeClass = action.GetResponseEnvelopeClass()
+	if realms.EnvelopeClass != "" {
+		// Every envelope class this compiler ships (currently just GResponse - see
+		// lib/kotlin/kotlin-include/gresponse.kt) lives in the same emikot runtime
+		// package as MaybeField/Maybe/EmiWebSocketX.
+		deps = append(deps, core.CodeChunkDependency{Location: "emikot." + realms.EnvelopeClass})
 	}
 
 	return realms, deps, nil

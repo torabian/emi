@@ -9,13 +9,20 @@ import (
 )
 
 // GoConfigGenerate renders the module's `config:` block. It always produces the plain
-// Config struct, defaults, and env load/save helpers (no cli dependency, safe for wasm).
-// The urfave/cli-specific bindings (flags, cast-from-cli, interactive get/set commands)
-// are rendered separately by GoConfigGenerateCli and merged back into the same file
-// unless the "split-cli" tag is set, in which case they're returned as their own
-// `//go:build !wasm`-guarded chunk - same convention as
-// GoCommonStructGenerator/GoActionRender use for dtos/actions, so a wasm build of the
-// module never has to pull in urfave/cli just because a config block exists.
+// Config struct, defaults, Json(), and LoadConfiguration() - emigo.HandleEnvVars (which
+// LoadConfiguration calls) has both a `!wasm` implementation (Config.go: .env file
+// loading via godotenv, then envconfig) and a `wasm` one (ConfigWasm.go: envconfig
+// only, reading whatever env vars the host page already set via os.Setenv) so
+// LoadConfiguration itself needs no build tag and works the same way a module's
+// wasm and non-wasm builds both need to read config - see fireback's
+// cmd/fireback-wasm/main.go for how the host page seeds those env vars before
+// boot. The rest of the CLI-only surface (Save, flags, cast-from-cli, interactive
+// get/set commands) needs urfave/cli and/or real file I/O, so that's still rendered
+// by GoConfigGenerateCli and merged back into this same file unless the "split-cli"
+// tag is set, in which case it's returned as its own `//go:build !wasm`-guarded
+// chunk - same convention as GoCommonStructGenerator/GoActionRender use for
+// dtos/actions, so a wasm build of the module never has to pull in urfave/cli just
+// because a config block exists.
 func GoConfigGenerate(
 	configs []core.EmiConfig,
 	ctx core.MicroGenContext,
@@ -79,18 +86,6 @@ var config Config = Config{
   {{ end }}
 }
 
-/**
-You can call this function on first line of your main function.
-This is different from fireback configuration (for now), you can
-define config: in module3 file, similar to fields in entities,
-and we generate the config struct and this function would read .env.local,
-.env.prod, etc - depending on the ENV=xxx env variable.
-**/
-func LoadConfiguration() Config {
-	emigo.HandleEnvVars(&config)
-	return config
-}
-
 func (x *Config) Json() string {
 	if x != nil {
 		str, _ := json.MarshalIndent(x, "", "  ")
@@ -99,8 +94,19 @@ func (x *Config) Json() string {
 	return ""
 }
 
-func (x *Config) Save(filepath string) error {
-	return emigo.SaveEnvFile(x, filepath)
+/**
+You can call this function on first line of your main function.
+This is different from fireback configuration (for now), you can
+define config: in module3 file, similar to fields in entities,
+and we generate the config struct and this function would read .env.local,
+.env.prod, etc - depending on the ENV=xxx env variable (or, under a wasm
+build, whatever env vars the host page already set via os.Setenv before
+this ran - see emigo.HandleEnvVars's own doc comments in Config.go/
+ConfigWasm.go for the two implementations this dispatches to).
+**/
+func LoadConfiguration() Config {
+	emigo.HandleEnvVars(&config)
+	return config
 }
 `
 
@@ -153,11 +159,13 @@ func (x *Config) Save(filepath string) error {
 }
 
 // GoConfigGenerateCli renders the urfave/cli v3-specific half of the module's
-// `config:` block: flag definitions, cast-from-cli, and the interactive `get`/`set`
-// command tree that reads/writes ".env" through the package-level `config` var declared
-// by GoConfigGenerate. Split out so it can be emitted as its own file (guarded with
-// `//go:build !wasm` when the "split-cli" tag is set) instead of always dragging
-// urfave/cli into every build of the module, wasm included.
+// `config:` block: Save (writes ".env"), flag definitions, cast-from-cli, and the
+// interactive `get`/`set` command tree - all operating on the package-level `config`
+// var declared by GoConfigGenerate, which also renders LoadConfiguration() itself
+// (see that function's own doc comment for why it moved there). Split out so it can
+// be emitted as its own file (guarded with `//go:build !wasm` when the "split-cli"
+// tag is set) instead of always dragging urfave/cli and real file I/O into every
+// build of the module, wasm included.
 func GoConfigGenerateCli(
 	configs []core.EmiConfig,
 	ctx core.MicroGenContext,
@@ -173,6 +181,10 @@ func GoConfigGenerateCli(
 {{ if .splitCli }}
 //go:build !wasm
 {{ end }}
+
+func (x *Config) Save(filepath string) error {
+	return emigo.SaveEnvFile(x, filepath)
+}
 
 func GetConfigCliFlags() []cli.Flag {
 	return []cli.Flag{

@@ -41,7 +41,12 @@ func (x fieldVariable) Compile() string {
 
 	otherFlags := ""
 	if x.ComputedType == "Any" {
-		otherFlags += " @Contextual "
+		// AnySerializer (kotlin-include/anyserializer.kt) instead of a bare
+		// @Contextual: @Contextual alone would require every caller to register a
+		// SerializersModule for Any before they can even decode/encode this dto at
+		// all, for which there's no one meaningful serializer to register - see
+		// AnySerializer's own doc comment.
+		otherFlags += " @Serializable(with = emikot.AnySerializer::class) "
 	}
 
 	defaultStatement := ""

@@ -82,7 +82,13 @@ var KotlinPrimaryAction = core.ActionFile{
 		Name:             "kotlin",
 		Description:      "Compiles kotlin module",
 		WasmFunctionName: "kotlinGen",
-		Flags:            []core.FlagDef{},
+		Flags: []core.FlagDef{
+			{
+				Name:  "pkg",
+				Usage: "Kotlin package every generated file is written under (e.g. org.example.inventory). Defaults to 'unknownpackage' when unset. Another module's field can cross-reference a dto/entity generated with a different --pkg via 'module: <that pkg>' on a one/collection field - see kotlinCollectTargetDeps.",
+				Type:  core.FlagString,
+			},
+		},
 	},
 	Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 		type_, err := core.DetectEmiStringContentType(ctx.Content)
@@ -105,18 +111,22 @@ var KotlinPrimaryAction = core.ActionFile{
 	},
 }
 
-// Finds the ts/js compatible types.
+// DiscoverComplexes finds every module-level `complexes:` entry meant for the kotlin
+// compiler (compiler: kotlin), mirroring lib/golang/go-public-api.go's own
+// DiscoverComplexes. Location is expected to be the fully-qualified Kotlin import path
+// including the class itself (e.g. "org.example.money.Money") - see
+// CollectComplexClasses/findComplexLocation in kotlin-class-generator.go for how it's
+// consumed.
 func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
 	items := []RecognizedComplex{}
-	// for _, complex := range module.Complexes {
-	// It's not implemeneted yet in kotlin version
-	// if complex.Compiler == "go" {
-	// 	items = append(items, RecognizedComplex{
-	// 		Symbol:         complex.Name,
-	// 		ImportLocation: complex.Location,
-	// 	})
-	// }
-	// }
+	for _, complex := range module.Complexes {
+		if complex.Compiler == "kotlin" {
+			items = append(items, RecognizedComplex{
+				Symbol:         complex.Name,
+				ImportLocation: complex.Location,
+			})
+		}
+	}
 
 	return items
 }
@@ -133,6 +143,11 @@ func (x GoModuleGenerationFlags) GetDtos() []string {
 // which is necessary to run entire modules
 func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error) {
 	globalPacakges := []string{"qs", "@types/qs"}
+
+	pkgName := ctx.Flags["pkg"]
+	if pkgName == "" {
+		pkgName = "unknownpackage"
+	}
 
 	complexes := DiscoverComplexes(module)
 	files := []core.VirtualFile{}
@@ -158,6 +173,20 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 			return nil, err
 		}
 		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
+
+		// --tags android-forms: also emit a Compose-friendly <Dto>FormState alongside
+		// the dto itself - see kotlin-form-state.go.
+		if ctx.HasTag(AndroidForms) {
+			formState, err := KotlinFormStateGenerator(dto.Fields, dto.GetClassName(), complexes)
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, core.VirtualFile{
+				Name:         formState.SuggestedFileName,
+				Extension:    formState.SuggestedExtension,
+				ActualScript: AsFullDocument(formState, pkgName),
+			})
+		}
 	}
 
 	// internalUsage := []string{}
@@ -175,7 +204,7 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 		files = append(files, core.VirtualFile{
 			Name:         dtoItem.SuggestedFileName,
 			Extension:    dtoItem.SuggestedExtension,
-			ActualScript: AsFullDocument(dtoItem, "unknownpackage"),
+			ActualScript: AsFullDocument(dtoItem, pkgName),
 		})
 	}
 
@@ -192,12 +221,16 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 		files = append(files, core.VirtualFile{
 			Name:         output.SuggestedFileName,
 			Extension:    output.SuggestedExtension,
-			ActualScript: AsFullDocument(output, "unknownpackage"),
+			ActualScript: AsFullDocument(output, pkgName),
 		})
 	}
 
-	// Append the sdk include files
-	files = append(files, core.GenMoveIncludeDir(&KotlinInclude.KotlinInclude)...)
+	// Append the sdk include files - skippable via --tags no-sdk when another `emi
+	// kotlin` invocation into the same compilation unit already provides them (see
+	// CompilerTags in kotlin-compiler-tags.go).
+	if !ctx.HasTag(NoSdk) {
+		files = append(files, core.GenMoveIncludeDir(&KotlinInclude.KotlinInclude)...)
+	}
 
 	return files, nil
 }
@@ -214,13 +247,23 @@ func CombineJavaImport(chunk core.CodeChunkCompiled) string {
 	statements := map[string]struct{}{}
 
 	for _, dep := range chunk.CodeChunkDependensies {
-		statement := ""
 		if len(dep.Objects) > 0 {
-			statement = fmt.Sprintf(`%v "%v" //x`, dep.Objects[0], dep.Location)
-		} else {
-			statement = dep.Location
+			// Objects-carrying dependencies come from same-module dto/entity "target:"
+			// relations (kotlinCollectTargetDeps in kotlin-class-generator.go, when
+			// field.Module is unset). Every generated dto/action/entity class for a
+			// single `emi kotlin` invocation lands in the same flat output directory
+			// and the same Kotlin package (see AsFullDocument/--pkg), so sibling
+			// classes never need an import - Kotlin resolves same-package references
+			// on its own. (A cross-module reference, field.Module set, is instead a
+			// plain Location-only dependency below, since it needs a real import into
+			// a different package - see kotlinCollectTargetDeps.) There used to be an
+			// unconditional `import <ClassName> "<location>" //x` here, but that's
+			// Go's aliased-import syntax, not valid Kotlin, and broke compilation as
+			// soon as a dto/entity actually referenced another one (e.g. `type: one`
+			// / `type: collection` fields) - see examples/test-kt.
+			continue
 		}
-		statements[statement] = struct{}{}
+		statements[dep.Location] = struct{}{}
 	}
 
 	var sorted []string

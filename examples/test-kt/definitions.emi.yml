@@ -1,0 +1,81 @@
+name: testKt
+description: |
+  Sample module exercising dtos, entities and actions together, compiled to
+  Kotlin, used as a smoke test that the generated code actually builds.
+
+dtos:
+  - name: address
+    fields:
+      - name: street
+        type: string
+      - name: city
+        type: string
+      - name: postcode
+        type: string?
+
+  - name: profile
+    fields:
+      - name: displayName
+        type: string
+      - name: bio
+        type: string?
+      - name: address
+        type: object
+        fields:
+          - name: street
+            type: string
+          - name: city
+            type: string
+      - name: tags
+        type: slice
+        primitive: string
+      - name: score
+        type: float64
+      - name: level
+        type: enum
+        of:
+          - k: beginner
+          - k: intermediate
+          - k: advanced
+
+entities:
+  - name: team
+    fields:
+      - name: title
+        type: string
+
+  - name: member
+    fields:
+      - name: fullName
+        type: string
+      - name: email
+        type: string?
+      - name: active
+        type: bool
+      - name: score
+        type: int32
+      - name: team
+        type: one?
+        target: TeamEntity
+      - name: badges
+        type: array
+        fields:
+          - name: label
+            type: string
+
+actions:
+  - name: buildProfile
+    description: Builds a profile dto from a display name and a bio.
+    method: post
+    url: /profile/build
+    in:
+      dto: ProfileDto
+    out:
+      dto: ProfileDto
+
+  - name: lookupAddress
+    description: Looks an address up by postcode.
+    method: get
+    url: /address/:postcode string
+    out:
+      dto: AddressDto

@@ -2,6 +2,7 @@ package kotlin
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"text/template"
 
@@ -17,6 +18,10 @@ func KotlinActionRender(
 		return nil, nil
 	}
 
+	if action.GetMethod() == "reactive" {
+		return KotlinActionRenderReactive(action, ctx, complexes)
+	}
+
 	realms, deps, err := GetActionRealms(action, ctx, complexes)
 	if err != nil {
 		return nil, err
@@ -29,6 +34,17 @@ func KotlinActionRender(
 				Value: realms.ActionName,
 			},
 		},
+	}
+
+	// responseType is the type compute() actually decodes the response body into:
+	// the bare response class, wrapped in the envelope class (e.g.
+	// "GResponse<ProductDto>") when the action declares one (action.Out.Envelope,
+	// e.g. every entity Create/Update/Get - see preprocess-entity-actions.go). "" when
+	// the action has no response shape at all, in which case payload stays untyped
+	// (Any?) exactly like before this template was rewritten.
+	responseType := realms.ResponseTypeName
+	if realms.EnvelopeClass != "" && responseType != "" {
+		responseType = fmt.Sprintf("%v<%v>", realms.EnvelopeClass, responseType)
 	}
 
 	const tmpl = `/**
@@ -47,7 +63,8 @@ data class {{ .realms.ActionName }}Meta(
 data class {{ .realms.ActionName }}Response(
     val statusCode: Int = 200,
     val headers: Map<String, String> = emptyMap(),
-    val payload: Any? = null
+    val rawBody: String? = null,
+    val payload: {{ if .responseType }}{{ .responseType }}?{{ else }}Any?{{ end }} = null
 )
 
 
@@ -77,39 +94,65 @@ object {{ .realms.ActionName }}Client {
     }
 
 
+    // compute() actually serializes {{ if .requestType }}the typed {{ .requestType }} body{{ else }}no body (this action has none){{ end }}
+    // via kotlinx.serialization before sending, and decodes the raw response body
+    // {{ if .responseType }}into {{ .responseType }}{{ else }}(left untyped - this action has no response shape){{ end }} once the call returns -
+    // both ends are real, not stubbed.
     suspend fun compute(
 		{{ if .realms.PathParameter }}
 		path: {{ .realms.ActionName}}PathParameter,
 		{{ end }}
 		query: Map<String, String> = emptyMap(),
-		headers: Map<String, String> = emptyMap(),
-		body: String? = null
+		headers: Map<String, String> = emptyMap()
+		{{ if .requestType }}, body: {{ .requestType }}? = null{{ end }}
 	): {{ .realms.ActionName }}Response =
         withContext(Dispatchers.IO) {
             val meta = {{ .realms.ActionName }}Meta()
 
-            var baseUrl = context?.baseUrl ?: ""
-            var url = buildUrl(baseUrl, meta.url, query)
+            // Falls back to the app-wide ClientContext.Default when this client's own
+            // .context hasn't been set - see ClientContext's doc comment (common.kt)
+            // and the "Client context & authentication" Kotlin doc page.
+            val effectiveContext = context ?: ClientContext.Default
+            var url = buildUrl(effectiveContext.baseUrl, meta.url, query)
 
 			{{ if .realms.PathParameter }}
             	url = {{ .realms.ActionName }}PathParameterApply(path, url)
 			{{ end }}
 
-            println(  url)
+            {{ if .requestType }}
+            val body0 = body?.let { Json.encodeToString(it).toRequestBody(jsonType) }
+            {{ else }}
+            val body0: RequestBody? = null
+            {{ end }}
 
-            val body0 = body?.toRequestBody(jsonType)
+            // Merges defaultHeaders under the explicit headers argument, then runs
+            // ClientContext.onRequest if set (e.g. injecting a fresh auth token).
+            val resolved = effectiveContext.resolve(url, headers)
 
-            val request = Request.Builder()
-                .url(url)
-                .method(meta.method, body0)
+            val requestBuilder = Request.Builder()
+                .url(resolved.url)
+                // HTTP methods are conventionally sent uppercase (meta.method itself
+                // stays exactly as declared in the .emi.yml, e.g. "get"/"post", for
+                // backwards-compat with anything already reading it) - some servers
+                // are strict about it, and OkHttp itself special-cases request-body
+                // permission (HttpMethod.permitsRequestBody/...) on the uppercase form.
+                .method(meta.method.uppercase(), body0)
                 .addHeader("Accept", "application/json")
-                .build()
+            resolved.headers.forEach { (k, v) -> requestBuilder.addHeader(k, v) }
 
-            client.newCall(request).execute().use { resp ->
+            client.newCall(requestBuilder.build()).execute().use { resp ->
+                val rawBody = resp.body?.string()
+                {{ if .responseType }}
+                val parsedPayload: {{ .responseType }}? = rawBody?.let {
+                    if (it.isEmpty()) null else Json.decodeFromString<{{ .responseType }}>(it)
+                }
+                {{ end }}
+
                 {{ .realms.ActionName }}Response(
                     statusCode = resp.code,
-                    // body = resp.body?.string().orEmpty(),
-                    headers = resp.headers.toMap()
+                    headers = resp.headers.toMap(),
+                    rawBody = rawBody,
+                    payload = {{ if .responseType }}parsedPayload{{ else }}null{{ end }}
                 )
             }
         }
@@ -130,9 +173,11 @@ object {{ .realms.ActionName }}Client {
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"action":  action,
-		"safeUrl": core.RemoveTypeAnnotations(action.GetUrl()),
-		"realms":  realms,
+		"action":       action,
+		"safeUrl":      core.RemoveTypeAnnotations(action.GetUrl()),
+		"realms":       realms,
+		"requestType":  realms.RequestTypeName,
+		"responseType": responseType,
 	}); err != nil {
 		return nil, err
 	}

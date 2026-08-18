@@ -1,0 +1,28 @@
+name: billing
+description: |
+  Billing module - the other half of the cross-module reference pair with
+  inventory.emi.yml (compiled separately with --pkg org.example.inventory):
+  invoiceLine.product is a `type: one` (non-nullable, unlike inventory's `collection?`
+  back-reference) pointing at inventory's ProductEntity via `module:
+  org.example.inventory`.
+
+complexes:
+  - compiler: kotlin
+    name: Money
+    location: org.example.money.Money
+
+entities:
+  - name: invoiceLine
+    fields:
+      - name: description
+        type: string
+      - name: quantity
+        type: int
+      - name: unitPrice
+        type: complex
+        complex: Money
+
+      - name: product
+        type: one
+        target: ProductEntity
+        module: org.example.inventory
