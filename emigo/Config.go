@@ -1,7 +1,11 @@
 //go:build !wasm
 
-// This feature is not enabled, when it's built for wasm, and makes no sense
-// in such scenarios
+// Everything in this file needs either a real filesystem (.env files,
+// SaveEnvFile) or a real terminal (promptui's interactive prompts), neither
+// of which exist in a browser sandbox, so it's excluded from wasm builds.
+// HandleEnvVars itself still exists under wasm - see ConfigWasm.go - it's
+// just this file's !wasm version (adds .env/.env.<ENV> file loading via
+// godotenv on top of the same envconfig.MustProcess call).
 
 package emigo
 

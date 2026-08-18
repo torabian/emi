@@ -242,6 +242,20 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		// to find. The update dto is a plain, portable dto by this point though (see
 		// the generic per-dto loop above), so it gets its own {Entity}EntityUpdateDto.go
 		// like any other dto instead of being folded in here.
+		//
+		// entityRendered.CliHelpers is the one exception: when the "split-cli" tag is
+		// set, GoCommonStructGenerator (via GoEntityRender) already rendered it as its
+		// own chunk whose script leads with a `//go:build !wasm` line (see
+		// GoCommonStructGeneratorCli). Folding that chunk into combined here (behind
+		// MainClass's own script) doesn't just leave the tag inert - go/format (called
+		// by AsFullDocument's FormatGoCode) hoists *any* `//go:build` comment it finds
+		// anywhere in a file to the very top, regardless of where it originally sat
+		// (verified empirically with `gofmt` directly). So a merged combined file would
+		// end up with `//go:build !wasm` gating the *entire* entity - struct,
+		// CreateFn/UpdateFn/GetFn/BrowseFn/AwareDelete, all of it - instead of just the
+		// CLI helpers it was meant for. It has to be emitted as its own VirtualFile
+		// instead, exactly like the generic per-dto loop above does for
+		// actionRendered.CliHelpers.
 		combined := &core.CodeChunkCompiled{
 			SuggestedFileName:  entityRendered.MainClass.SuggestedFileName,
 			SuggestedExtension: entityRendered.MainClass.SuggestedExtension,
@@ -255,7 +269,6 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		}
 
 		appendChunk(entityRendered.MainClass)
-		appendChunk(entityRendered.CliHelpers)
 		appendChunk(actionsRendered)
 
 		files = append(files, core.VirtualFile{
@@ -263,6 +276,14 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 			Extension:    combined.SuggestedExtension,
 			ActualScript: AsFullDocument(combined, f.PackageName),
 		})
+
+		if entityRendered.CliHelpers != nil {
+			files = append(files, core.VirtualFile{
+				Name:         entityRendered.CliHelpers.SuggestedFileName,
+				Extension:    entityRendered.CliHelpers.SuggestedExtension,
+				ActualScript: AsFullDocument(entityRendered.CliHelpers, f.PackageName),
+			})
+		}
 	}
 
 	for _, action := range module.Actions {
