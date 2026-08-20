@@ -12,8 +12,12 @@ import (
 
 // registerQueryOperators adds the custom operators emi's Browse filter understands on
 // top of jsonlogic2sql's own built-ins (==, !=, >, <, and, or, in, ...). "contains" -
-// substring match via LIKE - mirrors fireback's own JsonQueryTools.go exactly, since
-// json-logic has no native substring operator.
+// substring match via ILIKE - mirrors fireback's own JsonQueryTools.go exactly, since
+// json-logic has no native substring operator. ILIKE (rather than LIKE) is
+// Postgres-specific, but that's fine here - ApplyQueryFilter below always builds its
+// transpiler with DialectPostgreSQL, so this operator never runs against another
+// dialect. Case-insensitive on purpose: a column-header/search-box "contains" filter
+// (the only caller of this operator) is expected to match regardless of case.
 func registerQueryOperators(tr *jsonlogic2sql.Transpiler) {
 	tr.RegisterOperatorFunc("contains", func(op string, args []interface{}) (string, error) {
 		if len(args) != 2 {
@@ -22,7 +26,7 @@ func registerQueryOperators(tr *jsonlogic2sql.Transpiler) {
 		column, _ := args[0].(string)
 		value, _ := args[1].(string)
 		value = strings.Trim(value, `"'`)
-		return fmt.Sprintf("%s LIKE '%%%s%%'", column, value), nil
+		return fmt.Sprintf("%s ILIKE '%%%s%%'", column, value), nil
 	})
 }
 

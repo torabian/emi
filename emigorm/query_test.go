@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func TestRegisterQueryOperators_ContainsTranspilesToLike(t *testing.T) {
+func TestRegisterQueryOperators_ContainsTranspilesToCaseInsensitiveLike(t *testing.T) {
 	tr, err := jsonlogic2sql.NewTranspiler(jsonlogic2sql.DialectPostgreSQL)
 	if err != nil {
 		t.Fatalf("NewTranspiler error: %v", err)
@@ -19,8 +19,8 @@ func TestRegisterQueryOperators_ContainsTranspilesToLike(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TranspileCondition error: %v", err)
 	}
-	if !strings.Contains(sql, "LIKE") || !strings.Contains(sql, "%hello%") {
-		t.Fatalf("expected a LIKE %%hello%% clause, got %q", sql)
+	if !strings.Contains(sql, "ILIKE") || !strings.Contains(sql, "%hello%") {
+		t.Fatalf("expected an ILIKE %%hello%% clause, got %q", sql)
 	}
 }
 
