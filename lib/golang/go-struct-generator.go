@@ -107,6 +107,10 @@ func GoCommonStructGeneratorCli(fields []*core.EmiField, ctx core.MicroGenContex
 	v := PrepareStruct(fields, ctx, goctx)
 
 	const tmpl = `
+{{ if .SplitCli }}
+//go:build !wasm
+{{ end }}
+
 {{ define "printClass" }}
 
 {{ $item := index . 0 }}
