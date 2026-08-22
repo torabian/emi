@@ -22,6 +22,10 @@ func GoActionCliRender(
 ) (*core.CodeChunkCompiled, error) {
 
 	const tmpl = `
+{{ if .realms.SplitCli }}
+//go:build !wasm
+{{ end }}
+
 {{ if .realms.PathParameterCli }}
 	{{ b2s .realms.PathParameterCli.ActualScript }}
 {{ end }}

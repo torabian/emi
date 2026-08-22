@@ -27,13 +27,13 @@ func entityActionCliName(entity *Module3Entity, word string) string {
 }
 
 // entityActionCliShort is the action's CLI alias (EmiAction.CliShort -> cmd.Aliases,
-// see lib/golang/go-action-cli-render.go) - entity-prefixed (not just "c"/"u"/...) since
-// every entity's actions end up registered in the same flat, global CLI command list
-// (see lib/gorunner/gorunner.go), so a bare per-operation short code would collide
-// across entities. Still meaningfully shorter than the full CliName (e.g. "widget-c" vs
-// "widget-create") for quicker/easier typing at the CLI once it's already familiar.
+// see lib/golang/go-action-cli-render.go) - just the bare per-operation short code
+// ("c"/"u"/"g"/"b"/"d"/"dp"), matching CliName ("create"/"update"/...). Entity actions
+// are registered as subcommands nested under their own entity's CLI node (e.g. "msg
+// email provider create"/"c"), not in one flat/global command list, so there's no
+// cross-entity collision to guard against by prefixing with entity.Name here.
 func entityActionCliShort(entity *Module3Entity, short string) string {
-	return entity.Name + "-" + short
+	return short
 }
 
 // entityActionResponseEnvelope is the envelope every entity action's Out uses -
