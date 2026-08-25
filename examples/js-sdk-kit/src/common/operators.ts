@@ -43,7 +43,7 @@ export class MOne<T, S = unknown> {
   static select<T = unknown>(selector: any) {
     const one = new MOne<T>();
     one.selector = selector;
-    one.operation = "replace";
+    one.operation = "select";
 
     return one;
   }
@@ -51,7 +51,7 @@ export class MOne<T, S = unknown> {
   toJSON() {
     // When its explicit replace, it means that we need to pass a selector, so reader will
     // be able to replace it via internal mechanism
-    if (this.operation === "replace") {
+    if (this.operation === "select") {
       return {
         __operation: this.operation,
         __selector: this.selector,
