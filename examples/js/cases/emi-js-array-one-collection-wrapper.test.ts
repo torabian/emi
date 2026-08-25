@@ -163,7 +163,9 @@ describe("Data types with wrappers, one, collection, array need to work as inten
       expect(instance.arrayField).toBeInstanceOf(MArray);
       expect(instance.arrayField.isReplace()).toBe(true);
       expect(instance.arrayField.len()).toBe(2);
-      expect(instance.arrayField.get()[0]).toBeInstanceOf(Anonymouse.ArrayField);
+      expect(instance.arrayField.get()[0]).toBeInstanceOf(
+        Anonymouse.ArrayField,
+      );
 
       // collection -> MCollection of the target entity (User)
       expect(instance.collectionField).toBeInstanceOf(MCollection);
@@ -271,7 +273,7 @@ describe("Data types with wrappers, one, collection, array need to work as inten
       // A selector serialises to the explicit replace form rather than content.
       expect(JSON.parse(JSON.stringify(selector))).toEqual({
         __operation: "replace",
-        selector: { id: 42 },
+        __selector: { id: 42 },
       });
     });
 

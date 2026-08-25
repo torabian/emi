@@ -54,7 +54,7 @@ export class MOne<T, S = unknown> {
     if (this.operation === "replace") {
       return {
         __operation: this.operation,
-        selector: this.selector,
+        __selector: this.selector,
       };
     }
 
