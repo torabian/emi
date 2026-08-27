@@ -94,6 +94,13 @@
         "templates": {
           "$ref": "#/definitions/EmiTemplate",
           "description": "Reusable shape definitions (dtos"
+        },
+        "permissions": {
+          "items": {
+            "$ref": "#/definitions/EmiPermission"
+          },
+          "type": "array",
+          "description": "Tree of access control permissions this module contributes. Compiled into a usable Permissions constant/tree per target language."
         }
       },
       "additionalProperties": false,
@@ -637,6 +644,45 @@
       "required": [
         "name"
       ]
+    },
+    "EmiPermission": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Programmatic identifier of this permission used to name the generated constant/variable (e.g. Name: 'name' generates NamePermission)."
+        },
+        "title": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Human readable label of the permission"
+        },
+        "description": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Explains what granting this permission allows"
+        },
+        "key": {
+          "type": "string",
+          "description": "Short identifier of this permission"
+        },
+        "fullKey": {
+          "type": "string",
+          "description": "Fully qualified dot separated identifier. If left empty it is computed as the parent FullKey plus this Key while the module is preprocessed."
+        },
+        "children": {
+          "items": {
+            "$ref": "#/definitions/EmiPermission"
+          },
+          "type": "array",
+          "description": "Permissions nested under this one"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "EmiQueryField": {
       "properties": {

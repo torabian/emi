@@ -225,6 +225,19 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 		})
 	}
 
+	permissionsOutput, err := KotlinPermissionsGenerate(module.Permissions, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if permissionsOutput != nil {
+		files = append(files, core.VirtualFile{
+			Name:         permissionsOutput.SuggestedFileName,
+			Extension:    permissionsOutput.SuggestedExtension,
+			ActualScript: AsFullDocument(permissionsOutput, pkgName),
+		})
+	}
+
 	// Append the sdk include files - skippable via --tags no-sdk when another `emi
 	// kotlin` invocation into the same compilation unit already provides them (see
 	// CompilerTags in kotlin-compiler-tags.go).

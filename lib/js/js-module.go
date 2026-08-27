@@ -177,6 +177,19 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		})
 	}
 
+	if len(module.Permissions) > 0 {
+		permissionsRendered, err := JsStandalonePermissions(module.Permissions, ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		files = append(files, core.VirtualFile{
+			Name:         permissionsRendered.SuggestedFileName,
+			Extension:    permissionsRendered.SuggestedExtension,
+			ActualScript: AsFullDocument(permissionsRendered, ctx),
+		})
+	}
+
 	for _, remote := range module.Remotes {
 		if config.Remotes != nil && len(*config.Remotes) > 0 && !slices.Contains(config.GetRemotes(), remote.Name) {
 			continue
