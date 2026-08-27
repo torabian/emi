@@ -50,6 +50,12 @@ type Emi struct {
 	// that are NOT compiled into output files. They exist only to be referenced
 	// by other parts of the module — most notably as capture sources.
 	Templates *EmiTemplate `yaml:"templates,omitempty" json:"templates,omitempty" jsonschema:"description=Reusable shape definitions (dtos, actions) that are not compiled. Available as capture sources."`
+
+	// Permissions define the tree of access control permissions this module contributes.
+	// Each node's FullKey is resolved during preprocessing to parent.FullKey + "." + Key
+	// when not set explicitly, then compiled into a usable Permissions constant/tree by
+	// each target backend (see lib/golang and lib/js).
+	Permissions []*EmiPermission `yaml:"permissions,omitempty" json:"permissions,omitempty" jsonschema:"description=Tree of access control permissions this module contributes. Compiled into a usable Permissions constant/tree per target language."`
 }
 
 func (x *Emi) ActionsAsList() []string {

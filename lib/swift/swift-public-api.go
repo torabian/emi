@@ -195,6 +195,19 @@ func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtual
 		})
 	}
 
+	permissionsOutput, err := SwiftPermissionsGenerate(module.Permissions, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if permissionsOutput != nil {
+		files = append(files, core.VirtualFile{
+			Name:         permissionsOutput.SuggestedFileName,
+			Extension:    permissionsOutput.SuggestedExtension,
+			ActualScript: AsFullDocument(permissionsOutput, "unknownpackage"),
+		})
+	}
+
 	files = append(files, SwiftAnyCodableFile())
 	files = append(files, SwiftClientConfigFile())
 	files = append(files, SwiftWebSocketRuntimeFile())

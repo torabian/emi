@@ -65,6 +65,11 @@ func (m *Emi) Preprocess() error {
 		v.Captures = nil
 	}
 
+	ResolvePermissionFullKeys(m.Permissions, "")
+	if err := ValidatePermissionIdentifiers(m.Permissions); err != nil {
+		return err
+	}
+
 	return runPreprocessHooks(m, globalPreprocessHooks)
 }
 
