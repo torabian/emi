@@ -1,0 +1,118 @@
+---
+title: "Permissions"
+sidebar:
+  order: 20
+---
+
+A module can declare a `permissions:` tree — a nested set of access control
+permissions the module contributes. Each permission has a `key` (its slug in the
+generated identifier) and a `name` (a programmatic identifier the compiler uses to
+name the generated Swift enum for it, e.g. `name: managePosts` generates
+`enum ManagePostsPermission`). The identifier itself is either set explicitly via
+`fullKey:` or computed by the compiler as `{parent.fullKey}.{key}` while the module
+is preprocessed. If `key` is left empty too, it's normalized from `name` (e.g.
+`name: managePosts` with no `key` becomes `key: managePosts`).
+
+```yaml
+name: blog
+permissions:
+  - key: post
+    name: managePosts
+    title:
+      en: Manage posts
+    description:
+      en: Permissions related to blog posts
+    children:
+      - key: create
+        name: createPost
+        title:
+          en: Create post
+      - key: publish
+        name: publishPost
+        title:
+          en: Publish post
+```
+
+`post` gets no explicit `fullKey`, so the compiler derives one: `post`. Its children
+inherit that as their prefix, becoming `post.create` and `post.publish`. Because
+`post` groups children *and* left its key for the compiler to derive, its generated
+key gets a trailing `.*` — `post.*` — signaling it covers itself and everything below
+it. A `fullKey` set explicitly is always used as-is, even on a node with children,
+since the author chose that exact string on purpose.
+
+Compiling this produces `Permissions.swift`:
+
+- one exported `enum` namespace **per root permission** — not a single enum
+  wrapping the whole forest, and no separate flat constant per node either — so
+  Xcode can autocomplete straight down it, e.g.
+  `ManagePostsPermission.CreatePost.key`. A node with children is a nested Swift
+  `enum` with no cases (Swift's idiomatic uninstantiable namespace): its own
+  `key`/`name`/`title`/`description` sit directly on it as `static let`s, alongside
+  one nested enum/let per child (named by the child's own identifier, PascalCase).
+  A node with no children collapses to a plain `let` (or, nested inside an enum,
+  `static let`) holding a `Permission` instance directly. The self attributes are
+  always lowercase while every child is always PascalCase, so the two can never
+  collide — there's no case-collision escape hatch to reach for, unlike a language
+  that flattens both into the same casing convention. The root's own name is always
+  PascalCase with a trailing `Permission` (e.g. `managePosts` →
+  `ManagePostsPermission`), so it reads unambiguously as a permission and can't
+  collide with an unrelated single-letter root.
+- alongside each root, a `<Name>PermissionList: [Permission]`: that root permission
+  and every one of its descendants, flattened into its own array, by referencing
+  each node's own `permission` static let rather than re-declaring separate
+  literals, so it can never drift out of sync with it. One list per root, not a
+  single list combining every root — a module with several unrelated permission
+  groups shouldn't force every caller to filter one combined list back down to the
+  group it actually cares about.
+
+The `Permission` struct itself only holds a single node's own attributes — no
+`children` property — since the tree structure lives in the nested enums above,
+not in the data instances; it exists purely as the common type every node's
+`permission` let and every `<Name>PermissionList` entry share.
+
+```swift
+struct Permission: Codable {
+	let key: String
+	let name: String
+	let title: [String: String]?
+	let description: [String: String]?
+}
+
+// ManagePostsPermission mirrors the "managePosts" permission node (and everything nested under it),
+// so it can be navigated directly, e.g. ManagePostsPermission.key.
+enum ManagePostsPermission {
+	static let key: String = "post.*"
+	static let name: String = "managePosts"
+	static let title: [String: String]? = ["en": "Manage posts"]
+	static let description: [String: String]? = ["en": "Permissions related to blog posts"]
+	static let permission: Permission = Permission(key: key, name: name, title: title, description: description)
+
+	static let CreatePost: Permission = Permission(
+		key: "post.create",
+		name: "createPost",
+		title: ["en": "Create post"],
+		description: nil
+	)
+
+	static let PublishPost: Permission = Permission(
+		key: "post.publish",
+		name: "publishPost",
+		title: ["en": "Publish post"],
+		description: nil
+	)
+}
+
+// ManagePostsPermissionList flattens ManagePostsPermission (and everything nested under it) into a single array,
+// for anything that wants to walk them all at once (seeding an ACL table,
+// rendering a permissions picker, ...).
+let ManagePostsPermissionList: [Permission] = [
+	ManagePostsPermission.permission,
+	ManagePostsPermission.CreatePost,
+	ManagePostsPermission.PublishPost,
+]
+```
+
+A module with a second, unrelated root permission (e.g. `viewReports`, with no
+children) gets its own separate `let ViewReportsPermission: Permission` and its own
+separate `ViewReportsPermissionList` right alongside it — not folded into
+`ManagePostsPermissionList`.

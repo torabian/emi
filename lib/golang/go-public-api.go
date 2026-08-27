@@ -336,6 +336,19 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		})
 	}
 
+	permissionsOutput, err := GoPermissionsGenerate(module.Permissions, ctx, f.Emigo)
+	if err != nil {
+		return nil, err
+	}
+
+	if permissionsOutput != nil {
+		files = append(files, core.VirtualFile{
+			Name:         permissionsOutput.SuggestedFileName,
+			Extension:    permissionsOutput.SuggestedExtension,
+			ActualScript: AsFullDocument(permissionsOutput, f.PackageName),
+		})
+	}
+
 	return files, nil
 }
 

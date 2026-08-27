@@ -1,0 +1,131 @@
+---
+title: "Permissions"
+sidebar:
+  order: 20
+---
+
+A module can declare a `permissions:` tree — a nested set of access control
+permissions the module contributes. Each permission has a `key` (its slug in the
+generated identifier) and a `name` (a programmatic identifier the compiler uses to
+name the generated const for it, e.g. `name: managePosts` generates
+`ManagePostsPermission`). The identifier itself is either set explicitly via
+`fullKey:` or computed by the compiler as `{parent.fullKey}.{key}` while the module
+is preprocessed. If `key` is left empty too, it's
+normalized from `name` (e.g. `name: managePosts` with no `key` becomes `key:
+managePosts`).
+
+```yaml
+name: blog
+permissions:
+  - key: post
+    name: managePosts
+    title:
+      en: Manage posts
+    description:
+      en: Permissions related to blog posts
+    children:
+      - key: create
+        name: createPost
+        title:
+          en: Create post
+      - key: publish
+        name: publishPost
+        title:
+          en: Publish post
+```
+
+`post` gets no explicit `fullKey`, so the compiler derives one: `post`. Its children
+inherit that as their prefix, becoming `post.create` and `post.publish`. Because
+`post` groups children *and* left its key for the compiler to derive, its generated
+key gets a trailing `.*` — `post.*` — signaling it covers itself and everything below
+it. A `fullKey` set explicitly is always used as-is, even on a node with children,
+since the author chose that exact string on purpose.
+
+Compiling this (with `--tags typescript`) produces a standalone `Permissions.ts`
+with one exported const **per root permission** — not a single const wrapping the
+whole forest: each root's own `key`/`name`/`title`/`description` sit directly
+alongside one property per child (named by the child's own identifier), all
+flattened onto the same object, so you can navigate
+`ManagePostsPermission.createPost.key` with full editor autocomplete. Each literal
+is asserted `as const`, so TypeScript infers its whole shape straight from it — no
+separate type has to be hand-maintained in step with the tree. A root's own const
+name is always PascalCase with a trailing `Permission` (e.g. `name: managePosts` →
+`ManagePostsPermission`, `name: a` → `APermission`) — never the bare, lowercase
+child-style name — so a root reads unambiguously as a permission at a glance and two
+unrelated single-letter roots can't collide.
+
+Alongside each root const, a `<Name>PermissionList` const flattens that same root
+(and everything nested under it) into its own array — built by referencing the root
+const's own paths (e.g. `ManagePostsPermission.createPost`), not by re-declaring
+separate literals, so it can never drift out of sync with it (mirrors the
+`<Name>List` vars the Go compiler generates next to each root var). One list per
+root, not a single list combining every root — a module with several unrelated
+permission groups shouldn't force every caller to filter one combined list back down
+to the group it actually cares about. This is the only flattened form generated —
+there's no separate flat constant per node, since one would just be the same string
+reachable a second, disconnected way (and would collide whenever two unrelated roots
+happen to nest a child with the same name).
+
+```ts
+export const ManagePostsPermission = {
+  key: "post.*",
+  name: "managePosts",
+  title: { en: "Manage posts" },
+  description: { en: "Permissions related to blog posts" },
+  createPost: {
+    key: "post.create",
+    name: "createPost",
+    title: { en: "Create post" },
+  },
+  publishPost: {
+    key: "post.publish",
+    name: "publishPost",
+    title: { en: "Publish post" },
+  },
+} as const;
+
+export const ManagePostsPermissionList = [
+  ManagePostsPermission,
+  ManagePostsPermission.createPost,
+  ManagePostsPermission.publishPost,
+] as const;
+```
+
+A module with a second, unrelated root permission gets its own separate const right
+alongside it, e.g. `export const ViewReportsPermission = { key: "report", ... } as
+const;`, plus its own separate `ViewReportsPermissionList` — not folded into
+`ManagePostsPermissionList`.
+
+If a child's own identifier happens to collide with one of the reserved attribute
+names (`key`, `name`, `title`, `description` — e.g. a child literally named
+`key`), that attribute on the *parent* is emitted with a trailing `_` instead
+(`key_`) so nothing gets silently overwritten.
+
+Without `--tags typescript`, the same file is emitted as plain `Permissions.js`:
+`as const` is omitted, and each root const is wrapped in `Object.freeze(...)`
+instead, as a runtime guard against the tree being mutated after the fact.
+
+```js
+export const ManagePostsPermission = Object.freeze({
+  key: "post.*",
+  name: "managePosts",
+  title: { en: "Manage posts" },
+  description: { en: "Permissions related to blog posts" },
+  createPost: {
+    key: "post.create",
+    name: "createPost",
+    title: { en: "Create post" },
+  },
+  publishPost: {
+    key: "post.publish",
+    name: "publishPost",
+    title: { en: "Publish post" },
+  },
+});
+
+export const ManagePostsPermissionList = Object.freeze([
+  ManagePostsPermission,
+  ManagePostsPermission.createPost,
+  ManagePostsPermission.publishPost,
+]);
+```
