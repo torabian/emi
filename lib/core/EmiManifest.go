@@ -15,7 +15,7 @@ type EmiManifest struct {
 
 	// Types represents the list of supported runtime or build targets.
 	// Allowed values: go-client, go-gin, go-cli, go-wasm.
-	Types []string `json:"types,omitempty" yaml:"types,omitempty" jsonschema:"title=Types,description=List of supported types,enum=go-clientenum=go-cli,enum=go-gin,enum=go-wasm,uniqueItems=true"`
+	Types []string `json:"types,omitempty" yaml:"types,omitempty" jsonschema:"title=Types,description=List of supported types,enum=go-client,enum=go-cli,enum=go-gin,enum=go-wasm,uniqueItems=true"`
 
 	// Includes defines the list of actions or patterns to include.
 	// Supports wildcard matching.

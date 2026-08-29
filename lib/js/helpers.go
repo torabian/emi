@@ -204,7 +204,7 @@ func commonJsModuleFileCompiler(
 	callback func(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFile, error),
 ) ([]core.VirtualFile, error) {
 
-	action, err := core.StringToEmi(ctx.Content)
+	action, err := core.StringToEmiWithPath(ctx.Content, ctx.Path)
 	if err != nil {
 		return nil, err
 	}

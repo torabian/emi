@@ -110,7 +110,7 @@ var GoPrimaryAction = core.ActionFile{
 		}
 
 		if type_ == "module" {
-			emiModule, err := core.StringToEmi(ctx.Content)
+			emiModule, err := core.StringToEmiWithPath(ctx.Content, ctx.Path)
 			if err != nil {
 				return nil, err
 			}
@@ -333,6 +333,19 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 			Name:         output.SuggestedFileName,
 			Extension:    output.SuggestedExtension,
 			ActualScript: AsFullDocument(output, f.PackageName),
+		})
+	}
+
+	permissionsOutput, err := GoPermissionsGenerate(module.Permissions, ctx, f.Emigo)
+	if err != nil {
+		return nil, err
+	}
+
+	if permissionsOutput != nil {
+		files = append(files, core.VirtualFile{
+			Name:         permissionsOutput.SuggestedFileName,
+			Extension:    permissionsOutput.SuggestedExtension,
+			ActualScript: AsFullDocument(permissionsOutput, f.PackageName),
 		})
 	}
 

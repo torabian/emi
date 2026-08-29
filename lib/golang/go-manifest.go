@@ -66,9 +66,9 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 	return []*cli.Command{
 		{{ range .actions }}
 		{{ if .IsReactive }}
-		{{$.location}} {{ .ActionName }}CliReactiveHandler({{$.location}} {{ .ActionName }}),
+		{{$.location}} {{ .ActionName }}CliReactiveHandler({{ .ActionName }}),
 		{{ else }}
-		{{$.location}} {{ .ActionName }}CliHandler({{$.location}} {{ .ActionName }}),
+		{{$.location}} {{ .ActionName }}CliHandler( {{ .ActionName }}),
 		{{ end }}
 		{{ end }}
 	}

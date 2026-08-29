@@ -18,6 +18,20 @@ import (
 // transpiler with DialectPostgreSQL, so this operator never runs against another
 // dialect. Case-insensitive on purpose: a column-header/search-box "contains" filter
 // (the only caller of this operator) is expected to match regardless of case.
+//
+// The generic mechanism for "the column's actual data type doesn't behave like plain
+// text": cast the column to ::text before ILIKE-ing it, rather than assuming every
+// filterable column is already a string. Without it, `name ILIKE '%...%'` against a
+// `complex: TString` field (stored as a jsonb column - see complexes.TString's own
+// GormDataType()) fails outright at the database ("operator does not exist: jsonb ~~*
+// unknown") - and the same is true of any other non-text column a "contains" filter
+// might be pointed at (int, bool, date, ...). ::text works uniformly across every
+// Postgres type (a plain text/varchar column's ::text cast is a no-op), so this one
+// cast covers every such column generically instead of needing this operator (or its
+// caller) to know each field's specific emi/Go type. For a jsonb TString column
+// specifically, casting renders its whole `{"en": "...", "fa": "..."}` object to text,
+// so the substring match runs across every language's value at once (and, incidentally,
+// the locale keys too - an acceptable false-positive rate for a free-text search box).
 func registerQueryOperators(tr *jsonlogic2sql.Transpiler) {
 	tr.RegisterOperatorFunc("contains", func(op string, args []interface{}) (string, error) {
 		if len(args) != 2 {
@@ -25,8 +39,15 @@ func registerQueryOperators(tr *jsonlogic2sql.Transpiler) {
 		}
 		column, _ := args[0].(string)
 		value, _ := args[1].(string)
+		// jsonlogic2sql has already quoted *and* escaped this as a SQL string
+		// literal by this point (see its Parser.primitiveToSQL: `'` doubled,
+		// then wrapped in `'...'`) - Trim only strips that outer quote pair
+		// back off, it does not undo the escaping of any `'` still inside the
+		// value. Escaping it again here would double it up (`''` -> `''''`),
+		// corrupting the query - so this value is already safe to re-embed
+		// as-is inside the new `'%...%'` literal below.
 		value = strings.Trim(value, `"'`)
-		return fmt.Sprintf("%s ILIKE '%%%s%%'", column, value), nil
+		return fmt.Sprintf("%s::text ILIKE '%%%s%%'", column, value), nil
 	})
 }
 
@@ -76,10 +97,22 @@ func ApplyQueryScope(tx *gorm.DB, scope string, scopeArgs ...interface{}) *gorm.
 	return tx.Where(scope, scopeArgs...)
 }
 
-// ApplyQuerySort applies sort (if non-empty) via Order() - e.g. "created_at desc".
+// ApplyQuerySort applies sort via Order() - e.g. "created_at desc".
+//
+// Cursor-based paging (ApplyQueryCursor/BuildQueryCursor below) is
+// unconditionally keyed on the row's internal auto-increment id ("id > n"),
+// which is only a correct way to resume a query if rows actually come back
+// in ascending id order. Without an explicit ORDER BY, a database is free to
+// return rows in whatever order it finds convenient - not necessarily id
+// order - and BuildQueryCursor would then encode whatever id happened to be
+// *last* in that arbitrary page, silently skipping or repeating rows once
+// ApplyQueryCursor resumes from it. Defaulting to "id asc" whenever the
+// caller hasn't chosen a sort column keeps keyset pagination correct
+// regardless of physical row order, without touching an explicit
+// caller-provided sort.
 func ApplyQuerySort(tx *gorm.DB, sort string) *gorm.DB {
 	if sort == "" {
-		return tx
+		return tx.Order("id asc")
 	}
 	return tx.Order(sort)
 }

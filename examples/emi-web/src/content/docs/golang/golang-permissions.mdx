@@ -1,0 +1,132 @@
+---
+title: "Permissions"
+sidebar:
+  order: 20
+---
+
+A module can declare a `permissions:` tree — a nested set of access control
+permissions the module contributes. Each permission has a `key` (its slug in the
+generated identifier) and a `name` (a programmatic identifier the compiler uses to
+name the generated Go var for it, e.g. `name: managePosts` generates `var
+ManagePostsPermission`). The identifier itself is either set explicitly via
+`fullKey:` or computed by the compiler as `{parent.fullKey}.{key}` while the module
+is preprocessed. If `key` is left empty too, it's normalized from `name` (e.g.
+`name: managePosts` with no `key` becomes `key: managePosts`).
+
+```yaml
+name: blog
+permissions:
+  - key: post
+    name: managePosts
+    title:
+      en: Manage posts
+    description:
+      en: Permissions related to blog posts
+    children:
+      - key: create
+        name: createPost
+        title:
+          en: Create post
+      - key: publish
+        name: publishPost
+        title:
+          en: Publish post
+```
+
+`post` gets no explicit `fullKey`, so the compiler derives one: `post`. Its children
+inherit that as their prefix, becoming `post.create` and `post.publish`. Because
+`post` groups children *and* left its key for the compiler to derive, its generated
+key gets a trailing `.*` — `post.*` — signaling it covers itself and everything below
+it. A `fullKey` set explicitly is always used as-is, even on a node with children,
+since the author chose that exact string on purpose.
+
+Compiling this produces `Permissions.go`:
+
+- one exported var **per root permission** — not a single var wrapping the whole
+  forest, and no separate flat constant per node either (unlike the JS/Kotlin/Swift
+  compilers) since one would just be the same string under a second, disconnected
+  name to keep in sync. Each var is a fully typed, nested struct: every node embeds
+  `emigo.Permission` (so its own `Key` is promoted) and has one field per child, so
+  your editor can autocomplete straight down it with no map lookup and no risk of a
+  typo'd key only failing at runtime, e.g. `ManagePostsPermission.CreatePost.Key`. A
+  root with no children collapses to a plain `emigo.Permission` value. A root var's
+  own name is always PascalCase with a trailing `Permission` (e.g. `managePosts` →
+  `ManagePostsPermission`) — never the bare name a nested child field gets — so a
+  root reads unambiguously as a permission at a glance and two unrelated
+  single-letter roots can't collide.
+- alongside each root var, a `<Name>PermissionList` var: that root permission and
+  every one of its descendants, flattened into its own `[]emigo.Permission` (e.g.
+  `ManagePostsPermissionList` next to `ManagePostsPermission`), built by referencing
+  the root var's own fields (e.g. `ManagePostsPermission.CreatePost`) rather than
+  re-declaring separate literals, so it can never drift out of sync with it. One
+  list per root, not a single list combining every root — a module with several
+  unrelated permission groups shouldn't force every caller to filter one combined
+  list back down to the group it actually cares about.
+
+The `Permission` type itself is `emigo.Permission` — it lives once in the shared
+`emigo` runtime instead of being redefined at the top of every generated
+`Permissions.go`.
+
+Each node's own `emigo.Permission{...}` value is rendered with `Key`/`Name`/`Title`/
+`Description` each on their own line rather than one long comma-separated line: with
+`Title`/`Description` often multi-entry maps, one line per node would get
+unreadably long fast, and gofmt only aligns a composite literal's fields onto
+separate lines when the source already breaks it that way — it won't reflow a
+long single-line literal into one for you.
+
+```go
+package blog
+
+import "github.com/torabian/emi/emigo"
+
+/**
+* Permission keys generated from the module's permissions tree.
+ */
+// ManagePostsPermission mirrors the "managePosts" permission node (and everything nested under it),
+// so it can be navigated directly, e.g. ManagePostsPermission.Key.
+var ManagePostsPermission = struct {
+	emigo.Permission
+	CreatePost  emigo.Permission
+	PublishPost emigo.Permission
+}{
+	Permission: emigo.Permission{
+		Key:         "post.*",
+		Name:        "managePosts",
+		Title:       map[string]string{"en": "Manage posts"},
+		Description: map[string]string{"en": "Permissions related to blog posts"},
+	},
+	CreatePost: emigo.Permission{
+		Key:         "post.create",
+		Name:        "createPost",
+		Title:       map[string]string{"en": "Create post"},
+		Description: nil,
+	},
+	PublishPost: emigo.Permission{
+		Key:         "post.publish",
+		Name:        "publishPost",
+		Title:       map[string]string{"en": "Publish post"},
+		Description: nil,
+	},
+}
+
+// ManagePostsPermissionList flattens ManagePostsPermission (and everything nested under it) into a single slice,
+// for anything that wants to walk them all at once (seeding an ACL table,
+// rendering a permissions picker, ...).
+var ManagePostsPermissionList = []emigo.Permission{
+	ManagePostsPermission.Permission,
+	ManagePostsPermission.CreatePost,
+	ManagePostsPermission.PublishPost,
+}
+```
+
+A module with a second, unrelated root permission (e.g. `viewReports`, with no
+children) gets its own separate `ViewReportsPermission` var and its own separate
+`ViewReportsPermissionList` right alongside it — not folded into
+`ManagePostsPermissionList`.
+
+If a child's own field name happens to collide with the name a branch node's self
+value would otherwise be embedded under (`Permission` — e.g. a child literally
+named `permission`), that branch's self value is instead given the explicit field
+name `Permission_` so nothing gets silently overwritten, and that root's `List`
+references it under that same name (e.g. `WorkspacesPermission.Permission_` inside
+`WorkspacesPermissionList`).

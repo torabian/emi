@@ -50,6 +50,19 @@ type Emi struct {
 	// that are NOT compiled into output files. They exist only to be referenced
 	// by other parts of the module — most notably as capture sources.
 	Templates *EmiTemplate `yaml:"templates,omitempty" json:"templates,omitempty" jsonschema:"description=Reusable shape definitions (dtos, actions) that are not compiled. Available as capture sources."`
+
+	// Permissions define the tree of access control permissions this module contributes.
+	// Each node's FullKey is resolved during preprocessing to parent.FullKey + "." + Key
+	// when not set explicitly, then compiled into a usable Permissions constant/tree by
+	// each target backend (see lib/golang and lib/js).
+	Permissions []*EmiPermission `yaml:"permissions,omitempty" json:"permissions,omitempty" jsonschema:"description=Tree of access control permissions this module contributes. Compiled into a usable Permissions constant/tree per target language."`
+
+	// SourcePath is the absolute path of the yaml file this module was read from, if
+	// known (set by ReadEmiFromFile/StringToEmiWithPath - the plain content-only
+	// loaders leave it empty). It is not part of the module's own definition, so it's
+	// never (un)marshalled - it only exists to let preprocessing resolve relative
+	// paths (e.g. EmiComplex.Include) against the file that declared them.
+	SourcePath string `yaml:"-" json:"-"`
 }
 
 func (x *Emi) ActionsAsList() []string {

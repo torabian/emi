@@ -155,6 +155,81 @@ func TestBuildJSONSchema_PropertyOrderIsStable(t *testing.T) {
 	}
 }
 
+// TestBuildSchemaLocales_FlatKeysAndNesting checks the flat
+// `<path>_title`/`<path>_description` key scheme SchemaLocales' doc comment
+// describes, including one level of WidgetObjectGroup nesting.
+func TestBuildSchemaLocales_FlatKeysAndNesting(t *testing.T) {
+	fields := []*core.EmiField{
+		{Name: "fullName", Type: core.FieldTypeString, Description: "Given name"},
+		{Name: "age", Type: core.FieldTypeIntNullable},
+		{Name: "address", Type: core.FieldTypeObjectNullable, Fields: []*core.EmiField{
+			{Name: "city", Type: core.FieldTypeString, Description: "City name"},
+		}},
+	}
+
+	locales := BuildSchemaLocales("Customer", "A customer", fields)
+
+	raw, err := json.Marshal(locales)
+	if err != nil {
+		t.Fatalf("unexpected marshal error: %v", err)
+	}
+
+	var generic map[string]map[string]string
+	if err := json.Unmarshal(raw, &generic); err != nil {
+		t.Fatalf("unexpected unmarshal error: %v", err)
+	}
+
+	defaultBucket, ok := generic["default"]
+	if !ok {
+		t.Fatalf("expected a \"default\" bucket, got %v", generic)
+	}
+
+	want := map[string]string{
+		"fullName_title":           "Full Name",
+		"fullName_description":     "Given name",
+		"age_title":                "Age",
+		"address_title":            "Address",
+		"address_city_title":       "City",
+		"address_city_description": "City name",
+	}
+	for k, v := range want {
+		if defaultBucket[k] != v {
+			t.Errorf("expected %q = %q, got %q", k, v, defaultBucket[k])
+		}
+	}
+
+	// age has no Description, so no age_description entry should be emitted.
+	if _, ok := defaultBucket["age_description"]; ok {
+		t.Errorf("expected no age_description entry for a field with no description, got %q", defaultBucket["age_description"])
+	}
+}
+
+// TestBuildSchemaLocales_KeyOrderIsStable mirrors
+// TestBuildJSONSchema_PropertyOrderIsStable: entries must serialize in dto
+// field order, not map/alphabetical order.
+func TestBuildSchemaLocales_KeyOrderIsStable(t *testing.T) {
+	fields := []*core.EmiField{
+		{Name: "zebra", Type: core.FieldTypeString},
+		{Name: "apple", Type: core.FieldTypeString},
+		{Name: "mango", Type: core.FieldTypeString},
+	}
+
+	locales := BuildSchemaLocales("Order", "", fields)
+	raw, err := json.Marshal(locales)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	out := string(raw)
+
+	zebraIdx := strings.Index(out, `"zebra_title"`)
+	appleIdx := strings.Index(out, `"apple_title"`)
+	mangoIdx := strings.Index(out, `"mango_title"`)
+
+	if !(zebraIdx < appleIdx && appleIdx < mangoIdx) {
+		t.Errorf("expected entries in dto field order zebra,apple,mango, got:\n%s", out)
+	}
+}
+
 // TestAllCatalogFieldTypesProduceValidSchema mirrors
 // TestAllCatalogFieldTypesResolve in widget_test.go, but at the JSON Schema
 // layer: every field type must marshal to *some* schema without panicking or

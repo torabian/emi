@@ -34,7 +34,7 @@ func GetPostmanPublicActions() core.PublicAPIActions {
 				}
 
 				if type_ == "module" {
-					emiModule, err := core.StringToEmi(ctx.Content)
+					emiModule, err := core.StringToEmiWithPath(ctx.Content, ctx.Path)
 					if err != nil {
 						return nil, err
 					}

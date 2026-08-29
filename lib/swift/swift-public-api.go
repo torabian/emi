@@ -88,7 +88,7 @@ var SwiftPrimaryAction = core.ActionFile{
 		}
 
 		if type_ == "module" {
-			emiModule, err := core.StringToEmi(ctx.Content)
+			emiModule, err := core.StringToEmiWithPath(ctx.Content, ctx.Path)
 			if err != nil {
 				return nil, err
 			}
@@ -192,6 +192,19 @@ func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtual
 			Name:         output.SuggestedFileName,
 			Extension:    output.SuggestedExtension,
 			ActualScript: AsFullDocument(output, "unknownpackage"),
+		})
+	}
+
+	permissionsOutput, err := SwiftPermissionsGenerate(module.Permissions, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if permissionsOutput != nil {
+		files = append(files, core.VirtualFile{
+			Name:         permissionsOutput.SuggestedFileName,
+			Extension:    permissionsOutput.SuggestedExtension,
+			ActualScript: AsFullDocument(permissionsOutput, "unknownpackage"),
 		})
 	}
 
