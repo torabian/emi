@@ -304,6 +304,10 @@
             "ts"
           ],
           "description": "Different compilers can import the definition from different locations"
+        },
+        "include": {
+          "type": "string",
+          "description": "Relative or absolute path to another emi yaml file whose 'complexes' list should be included here in place of this entry. Resolved recursively; circular includes are rejected."
         }
       },
       "additionalProperties": false,
@@ -608,6 +612,8 @@
           "items": {
             "type": "string",
             "enum": [
+              "go-client",
+              "go-cli",
               "go-gin",
               "go-wasm"
             ]

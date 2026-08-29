@@ -156,6 +156,112 @@ func BuildJSONSchema(title, description string, fields []*core.EmiField) *JSONSc
 	return schema
 }
 
+// SchemaLocaleEntry is one flat-keyed label in a SchemaLocaleBucket.
+type SchemaLocaleEntry struct {
+	Key   string
+	Value string
+}
+
+// SchemaLocaleBucket is one locale's flat key -> label map for a dto's
+// schema (e.g. "default", or a translated "fa"). Kept as an ordered slice
+// (not a map), same reasoning as SchemaProperty: deterministic byte-for-byte
+// regeneration instead of Go's random map iteration order reshuffling keys
+// on every run.
+type SchemaLocaleBucket struct {
+	Entries []SchemaLocaleEntry
+}
+
+func (b *SchemaLocaleBucket) MarshalJSON() ([]byte, error) {
+	if b == nil {
+		return []byte("null"), nil
+	}
+	var buf bytes.Buffer
+	buf.WriteByte('{')
+	for i, e := range b.Entries {
+		if i > 0 {
+			buf.WriteByte(',')
+		}
+		keyBytes, _ := json.Marshal(e.Key)
+		buf.Write(keyBytes)
+		buf.WriteByte(':')
+		valueBytes, err := json.Marshal(e.Value)
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(valueBytes)
+	}
+	buf.WriteByte('}')
+	return buf.Bytes(), nil
+}
+
+// SchemaLocales is emitted alongside a dto's JsonSchema (--tags json-schema,
+// see lib/js/js-common-object-class.go) as `static SchemaLocales = {...}`.
+//
+// Rather than baking a field's title/description straight into JsonSchema's
+// own `title`/`description` as fixed, English-only text - the only option
+// available today, and the reason a schema-driven form has no way to
+// localize its own labels - every property's label instead lives here,
+// flat-keyed by `<path_joined_by_underscore>_title` / `..._description`
+// (e.g. "name_title", "primaryAddress_city_title" for a nested field), under
+// a "default" bucket holding the source-language (English) values. A
+// consuming app overlays `SchemaLocales[locale] ?? SchemaLocales.Default`
+// onto JsonSchema's properties at render time (regenerating the same flat
+// keys from the schema itself), and adds further locale buckets the same
+// way `default` was built - by hand, or via another translation tool -
+// without ever touching the generated JsonSchema/SchemaLocales files
+// themselves, which get fully overwritten on every regen like everything
+// else `--tags json-schema` emits.
+//
+// JsonSchema's own `title`/`description` are left exactly as they were
+// (still literal English) so a schema-only consumer with no locale-overlay
+// logic keeps working unmodified - SchemaLocales.Default is a mirror of the
+// exact same text, not a replacement for it.
+type SchemaLocales struct {
+	Default *SchemaLocaleBucket
+}
+
+func (s *SchemaLocales) MarshalJSON() ([]byte, error) {
+	if s == nil {
+		return []byte("null"), nil
+	}
+	return json.Marshal(map[string]*SchemaLocaleBucket{"default": s.Default})
+}
+
+// BuildSchemaLocales walks a dto's fields the same way BuildJSONSchema does,
+// producing the "default" (source-language) locale bucket described on
+// SchemaLocales. title/description should be the same values passed to the
+// paired BuildJSONSchema call.
+func BuildSchemaLocales(title, description string, fields []*core.EmiField) *SchemaLocales {
+	plan := BuildFormPlan(title, fields)
+	bucket := &SchemaLocaleBucket{}
+	collectSchemaLocaleEntries(plan.Fields, "", bucket)
+	return &SchemaLocales{Default: bucket}
+}
+
+func collectSchemaLocaleEntries(fields []*FieldPlan, pathPrefix string, bucket *SchemaLocaleBucket) {
+	for _, f := range fields {
+		key := f.Name
+		if pathPrefix != "" {
+			key = pathPrefix + "_" + f.Name
+		}
+
+		bucket.Entries = append(bucket.Entries, SchemaLocaleEntry{
+			Key:   key + "_title",
+			Value: HumanizeLabel(f.Name),
+		})
+		if f.Field != nil && f.Field.Description != "" {
+			bucket.Entries = append(bucket.Entries, SchemaLocaleEntry{
+				Key:   key + "_description",
+				Value: f.Field.Description,
+			})
+		}
+
+		if f.Widget == WidgetObjectGroup || f.Widget == WidgetArrayGroup {
+			collectSchemaLocaleEntries(f.Children, key, bucket)
+		}
+	}
+}
+
 func objectSchema(fields []*FieldPlan) *JSONSchema {
 	s := &JSONSchema{Type: "object"}
 	for _, f := range fields {

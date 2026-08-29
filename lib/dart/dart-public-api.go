@@ -101,7 +101,7 @@ func GetDartPublicActions() core.PublicAPIActions {
 				},
 			},
 			Run: func(ctx core.MicroGenContext) ([]core.VirtualFile, error) {
-				emiModule, err := core.StringToEmi(ctx.Content)
+				emiModule, err := core.StringToEmiWithPath(ctx.Content, ctx.Path)
 				if err != nil {
 					return nil, err
 				}
@@ -130,7 +130,7 @@ var DartPrimaryAction = core.ActionFile{
 		}
 
 		if type_ == "module" {
-			emiModule, err := core.StringToEmi(ctx.Content)
+			emiModule, err := core.StringToEmiWithPath(ctx.Content, ctx.Path)
 			if err != nil {
 				return nil, err
 			}

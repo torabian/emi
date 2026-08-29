@@ -432,6 +432,7 @@ func createCliContext(c *cli.Command, flags []core.FlagDef) (core.MicroGenContex
 
 	ctx.Flags = m
 	ctx.Content = string(content)
+	ctx.Path = c.String("path")
 
 	return ctx, nil
 }

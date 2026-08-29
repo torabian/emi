@@ -35,7 +35,7 @@ var CompileCommand = cli.Command{
 			return err
 		}
 
-		m, err := core.ReadEmiFromString(ctx.Content)
+		m, err := core.ReadEmiFromStringWithPath(ctx.Content, ctx.Path)
 		if err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ var CompileCommand = cli.Command{
 			// see lib/core/preprocess*.go), as plain yaml. Useful for inspecting what
 			// every other compiler actually sees once preprocessing has run.
 			if target.Compiler == "preprocessor" {
-				preprocessed, err := core.ReadEmiFromString(ctx.Content)
+				preprocessed, err := core.ReadEmiFromStringWithPath(ctx.Content, ctx.Path)
 				if err != nil {
 					return err
 				}

@@ -279,6 +279,20 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 			}
 			renderedClasses[0].ClassStaticFunctions = append(renderedClasses[0].ClassStaticFunctions,
 				fmt.Sprintf("static JsonSchema = %s", schemaJSON))
+
+			// static SchemaLocales = {...} - see formgen.SchemaLocales' own doc
+			// comment: JsonSchema's title/description stay English-only/literal
+			// (unchanged above) for a consumer with no locale overlay; this is
+			// what a locale-aware consumer overlays onto them instead, one
+			// locale bucket at a time, starting from "default" (the same
+			// source-language text JsonSchema already carries, just flat-keyed).
+			locales := formgen.BuildSchemaLocales(jsctx.RootClassName, jsctx.Description, fields)
+			localesJSON, err := json.MarshalIndent(locales, "", "  ")
+			if err != nil {
+				return nil, fmt.Errorf("js: failed marshaling SchemaLocales for %v: %w", jsctx.RootClassName, err)
+			}
+			renderedClasses[0].ClassStaticFunctions = append(renderedClasses[0].ClassStaticFunctions,
+				fmt.Sprintf("static SchemaLocales = %s", localesJSON))
 		}
 	}
 
