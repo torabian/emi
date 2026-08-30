@@ -37,7 +37,9 @@ func {{ .realms.ActionName }}Raw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 
 // {{ .realms.ActionName }}Handler returns the HTTP method, route URL, and a typed Gin handler for the {{ .realms.ActionName }} action.
 // Developers implement their business logic as a function that receives a typed request object
-// and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
+// and returns either an *ActionResponse or nil. Body binding (JSON/YAML/XML/form), headers,
+// errors, and the success response are all handled by emigo - see BindGinRequestBody,
+// RenderGinError and RenderGinResult in github.com/torabian/emi/emigo.
 func {{ .realms.ActionName }}Handler(
 	handler func(c {{ .realms.ActionName }}Request) (*{{ .realms.ActionName }}Response, error),
 ) (method, url string, h gin.HandlerFunc) {
@@ -45,8 +47,8 @@ func {{ .realms.ActionName }}Handler(
 	return meta.Method, meta.URL, func(m *gin.Context) {
 		{{ if .realms.RequestClassName }}
 		var body {{ .realms.RequestClassName }}
-		if err := m.ShouldBindJSON(&body); err != nil {
-			m.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON: " + err.Error()})
+		if err := emigo.BindGinRequestBody(m, &body); err != nil {
+			emigo.RenderGinError(m, err)
 			return
 		}
 		{{ end }}
@@ -66,72 +68,9 @@ func {{ .realms.ActionName }}Handler(
 			GinCtx: m,
 		}
 
-
 		resp, err := handler(req)
 		if err != nil {
-			// Some deeper call inside handler (e.g. a security/authorization check
-			// that rejects the request before the handler's own business logic ever
-			// runs) may have already written and aborted the response itself - gin
-			// tracks that on the ResponseWriter regardless of who did the writing.
-			// Rendering the bubbled-up error on top of that would append a second,
-			// invalid JSON body after the first.
-			if m.Writer.Written() {
-				return
-			}
-
-			status := http.StatusInternalServerError
-
-			// If the error knows how to render itself for a given language (e.g.
-			// fireback.IError, whose ferror.Error.ToPublicJSON resolves its
-			// {"$": ..., "en": ..., "fa": ...} message map down to one string), let it -
-			// picking the language the same way the rest of the app resolves it: the
-			// "acceptLanguage" query param first, else the Accept-Language header, else
-			// "en".
-			if converter, ok := err.(interface {
-				ToPublicJSON(lang string) ([]byte, int32)
-			}); ok {
-				lang := m.Query("acceptLanguage")
-				if lang == "" {
-					lang = m.GetHeader("Accept-Language")
-					if i := strings.IndexAny(lang, ",;-"); i >= 0 {
-						lang = lang[:i]
-					}
-					lang = strings.ToLower(strings.TrimSpace(lang))
-				}
-				if lang == "" {
-					lang = "en"
-				}
-				body, code := converter.ToPublicJSON(lang)
-				if code != 0 {
-					status = int(code)
-				}
-				// Nest the resolved object under "error" (rather than writing it as the
-				// bare response body) so every error shape - this one, the generic
-				// forwarded-JSON one below, and the plain-string one - answers with the
-				// same {"error": ...} envelope. json.RawMessage keeps body embedded as
-				// real JSON instead of being re-escaped into a string.
-				m.JSON(status, gin.H{"error": json.RawMessage(body)})
-				return
-			}
-
-			// Otherwise, other action errors may still stringify themselves as an
-			// indented JSON object via their Error() method. If that's what we got,
-			// forward it nested under "error" as real JSON (optionally honoring its own
-			// "httpCode" field for the response status) instead of re-escaping it into a
-			// string, which is what plain errors still get.
-			msg := err.Error()
-			trimmed := strings.TrimSpace(msg)
-			if strings.HasPrefix(trimmed, "{") && json.Valid([]byte(trimmed)) {
-				var probe struct {
-					HttpCode int32 ` + "`json:\"httpCode\"`" + `
-				}
-				if uErr := json.Unmarshal([]byte(trimmed), &probe); uErr == nil && probe.HttpCode != 0 {
-					status = int(probe.HttpCode)
-				}
-				m.JSON(status, gin.H{"error": json.RawMessage(trimmed)})
-				return
-			}
-			m.JSON(status, gin.H{"error": msg})
+			emigo.RenderGinError(m, err)
 			return
 		}
 
@@ -140,22 +79,7 @@ func {{ .realms.ActionName }}Handler(
 			return
 		}
 
-		// Apply headers
-		for k, v := range resp.Headers {
-			m.Header(k, v)
-		}
-
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-
-		if resp.Payload != nil {
-			m.JSON(status, resp.Payload)
-		} else {
-			m.Status(status)
-		}
+		emigo.RenderGinResult(m, resp)
 	}
 }
 
@@ -198,11 +122,9 @@ func {{ .realms.ActionName }}QueryFromGin(c *gin.Context) {{ .realms.ActionName 
 	}
 
 	deps := []core.CodeChunkDependency{
-		{Location: "net/http"},
 		{Location: "reflect"},
-		{Location: "strings"},
-		{Location: "encoding/json"},
 		{Location: "github.com/gin-gonic/gin"},
+		{Location: "github.com/torabian/emi/emigo"},
 	}
 
 	return &core.CodeChunkCompiled{

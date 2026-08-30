@@ -11,9 +11,10 @@ import (
 // handler plus a convenience wrapper that registers the route on a standard
 // *http.ServeMux using Go 1.22+ method-aware pattern syntax (e.g. "POST /").
 //
-// Unlike the gin transport this carries no external dependency, so it also
-// compiles under GOOS=js/wasm. The same typed handler runs on a real net/http
-// server AND inside wasm via httptest.ResponseRecorder.
+// Unlike the gin transport this carries no external (non-stdlib) dependency
+// beyond emigo itself - whose HttpBinding.go is wasm-safe by the same rule -
+// so it also compiles under GOOS=js/wasm. The same typed handler runs on a
+// real net/http server AND inside wasm via httptest.ResponseRecorder.
 //
 // The caller decides whether to append this to the main action file or emit it
 // as its own file (controlled by the "split-http" tag).
@@ -27,8 +28,9 @@ func GoActionHttpRender(
 // {{ .realms.ActionName }}HttpHandler returns the HTTP method, the ServeMux pattern, and a
 // typed net/http handler for the {{ .realms.ActionName }} action. Developers implement
 // their business logic as a function that receives a typed request object and
-// returns either an *{{ .realms.ActionName }}Response or nil. JSON marshalling, headers,
-// status codes, and errors are handled automatically.
+// returns either an *{{ .realms.ActionName }}Response or nil. Body binding, headers, status
+// codes, and errors are all handled by emigo - see BindHttpRequestBody, RenderHttpError
+// and RenderHttpResult in github.com/torabian/emi/emigo.
 func {{ .realms.ActionName }}HttpHandler(
 	handler func(c {{ .realms.ActionName }}Request) (*{{ .realms.ActionName }}Response, error),
 ) (method, pattern string, h http.HandlerFunc) {
@@ -36,16 +38,9 @@ func {{ .realms.ActionName }}HttpHandler(
 	return meta.Method, meta.URL, func(w http.ResponseWriter, r *http.Request) {
 		{{ if .realms.RequestClassName }}
 		var body {{ .realms.RequestClassName }}
-		if r.Body != nil {
-			defer r.Body.Close()
-			if data, _ := io.ReadAll(r.Body); len(data) > 0 {
-				if err := json.Unmarshal(data, &body); err != nil {
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(map[string]string{"error": "invalid JSON: " + err.Error()})
-					return
-				}
-			}
+		if err := emigo.BindHttpRequestBody(r, &body); err != nil {
+			emigo.RenderHttpError(w, r, err)
+			return
 		}
 		{{ end }}
 
@@ -68,73 +63,7 @@ func {{ .realms.ActionName }}HttpHandler(
 
 		resp, err := handler(req)
 		if err != nil {
-			status := http.StatusInternalServerError
-			w.Header().Set("Content-Type", "application/json")
-
-			// If the error knows how to render itself for a given language (e.g.
-			// fireback.IError, whose ferror.Error.ToPublicJSON resolves its
-			// {"$": ..., "en": ..., "fa": ...} message map down to one string), let it -
-			// picking the language the same way the rest of the app resolves it: the
-			// "acceptLanguage" query param first, else the Accept-Language header, else
-			// "en".
-			if converter, ok := err.(interface {
-				ToPublicJSON(lang string) ([]byte, int32)
-			}); ok {
-				lang := r.URL.Query().Get("acceptLanguage")
-				if lang == "" {
-					lang = r.Header.Get("Accept-Language")
-					if i := strings.IndexAny(lang, ",;-"); i >= 0 {
-						lang = lang[:i]
-					}
-					lang = strings.ToLower(strings.TrimSpace(lang))
-				}
-				if lang == "" {
-					lang = "en"
-				}
-				body, code := converter.ToPublicJSON(lang)
-				if code != 0 {
-					status = int(code)
-				}
-				// Nest the resolved object under "error" (rather than writing it as the
-				// bare response body) so every error shape - this one, the generic
-				// forwarded-JSON one below, and the plain-string one - answers with the
-				// same {"error": ...} envelope. json.RawMessage keeps body embedded as
-				// real JSON instead of being re-escaped into a string.
-				wrapped, wErr := json.Marshal(map[string]json.RawMessage{"error": json.RawMessage(body)})
-				w.WriteHeader(status)
-				if wErr == nil {
-					w.Write(wrapped)
-				} else {
-					w.Write(body)
-				}
-				return
-			}
-
-			// Otherwise, other action errors may still stringify themselves as an
-			// indented JSON object via their Error() method. If that's what we got,
-			// forward it nested under "error" as real JSON (optionally honoring its own
-			// "httpCode" field for the response status) instead of re-escaping it into a
-			// string, which is what plain errors still get.
-			msg := err.Error()
-			trimmed := strings.TrimSpace(msg)
-			if strings.HasPrefix(trimmed, "{") && json.Valid([]byte(trimmed)) {
-				var probe struct {
-					HttpCode int32 ` + "`json:\"httpCode\"`" + `
-				}
-				if uErr := json.Unmarshal([]byte(trimmed), &probe); uErr == nil && probe.HttpCode != 0 {
-					status = int(probe.HttpCode)
-				}
-				wrapped, wErr := json.Marshal(map[string]json.RawMessage{"error": json.RawMessage(trimmed)})
-				w.WriteHeader(status)
-				if wErr == nil {
-					w.Write(wrapped)
-				} else {
-					w.Write([]byte(trimmed))
-				}
-				return
-			}
-			w.WriteHeader(status)
-			json.NewEncoder(w).Encode(map[string]string{"error": msg})
+			emigo.RenderHttpError(w, r, err)
 			return
 		}
 
@@ -144,26 +73,7 @@ func {{ .realms.ActionName }}HttpHandler(
 			return
 		}
 
-		// Apply headers
-		for k, v := range resp.Headers {
-			w.Header().Set(k, v)
-		}
-
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-
-		if resp.Payload != nil {
-			if w.Header().Get("Content-Type") == "" {
-				w.Header().Set("Content-Type", "application/json")
-			}
-			w.WriteHeader(status)
-			json.NewEncoder(w).Encode(resp.Payload)
-		} else {
-			w.WriteHeader(status)
-		}
+		emigo.RenderHttpResult(w, resp)
 	}
 }
 
@@ -192,9 +102,7 @@ func {{ .realms.ActionName }}Http(
 
 	deps := []core.CodeChunkDependency{
 		{Location: "net/http"},
-		{Location: "encoding/json"},
-		{Location: "strings"},
-		{Location: "io"},
+		{Location: "github.com/torabian/emi/emigo"},
 	}
 
 	return &core.CodeChunkCompiled{
