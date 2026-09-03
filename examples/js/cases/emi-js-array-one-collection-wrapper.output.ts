@@ -205,7 +205,7 @@ setOneField (value: MOne<User> |  InstanceType<typeof User>) {
   * oneNullable field, non-nullable
   * @type {User}
   **/
- #oneNullableField ? : MOne<User>  | null  =  undefined
+ #oneNullableField ? : MOne<User> | null | undefined  =  undefined
 		/**
   * oneNullable field, non-nullable
   * @returns {User}
@@ -215,7 +215,20 @@ get oneNullableField () { return this.#oneNullableField }
   * oneNullable field, non-nullable
   * @type {User}
   **/
-set oneNullableField (value: MOne<User> |  InstanceType<typeof User> | null | undefined) {
+set oneNullableField (value: MOne<User> | null | undefined |  InstanceType<typeof User> | null | undefined) {
+		// For a nullable relation, a literal null is a deliberate "clear"
+		// signal and has to stay null - not fall through to the else branch
+		// below and become MOne.of(new User(null)) (the
+		// constructor tolerates a null/undefined argument by returning an
+		// empty-but-non-null instance), which serializes as an empty object
+		// instead of null. The backend tells "explicitly cleared" apart from
+		// "field left untouched" (an absent key) only by seeing a real null
+		// on the wire, the same way every other nullable field here (array?,
+		// collection?) already short-circuits on null/undefined above.
+		if (value === null || value === undefined) {
+			this.#oneNullableField = value;
+			return
+		}
 		// For objects, the sub type needs to always be instance of the sub class.
 		if (value instanceof MOne) {
 			this.#oneNullableField = value
@@ -225,7 +238,7 @@ set oneNullableField (value: MOne<User> |  InstanceType<typeof User> | null | un
 			this.#oneNullableField = MOne.of(new User(value))
 		}
 }
-setOneNullableField (value: MOne<User> |  InstanceType<typeof User> | null | undefined) {
+setOneNullableField (value: MOne<User> | null | undefined |  InstanceType<typeof User> | null | undefined) {
 	this.oneNullableField = value
 	return this
 }
