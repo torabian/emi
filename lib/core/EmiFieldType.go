@@ -65,7 +65,25 @@ const (
 	// Non-nullable fields, which doesn't matter will go here.
 	FieldTypeAny     FieldType = "any"
 	FieldTypeComplex FieldType = "complex"
+
+	// FieldTypeComplexNullable ("complex?") exists only so the JS/TS generator can
+	// tell "always instantiate the complex class" (complex) apart from "behaves like
+	// every other nullable field - undefined/null allowed on the setter and the
+	// definition" (complex?). A complex value has no wire-level nullability of its
+	// own (see core.nullableFieldType's doc comment - it's returned unchanged for
+	// FieldTypeComplex), so every non-JS backend treats complex? exactly like
+	// complex: same generated code either way. See IsComplexFieldType.
+	FieldTypeComplexNullable FieldType = "complex?"
 )
+
+// IsComplexFieldType reports whether t is the complex field type or its
+// JS-nullable variant complex?. Every generator except lib/js treats the two
+// identically (complex has no nullability of its own outside JS), so callers that
+// only care "is this a complex field" should use this instead of comparing directly
+// against FieldTypeComplex.
+func IsComplexFieldType(t FieldType) bool {
+	return t == FieldTypeComplex || t == FieldTypeComplexNullable
+}
 
 // Expose some information about available types in the codebase.
 type FieldSupportCatalog struct {

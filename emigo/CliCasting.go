@@ -41,44 +41,58 @@ type CliFlag struct {
 }
 
 // When on cli it's passed as array, then we need to get it this way.
+//
+// Bug fix: these six all used to unmarshal straight into the wrapper's own .Items/.Item
+// field (e.g. &result.Items) instead of the wrapper itself (&result) - bypassing each
+// type's own UnmarshalJSON (Array/ArrayNullable/Collection/CollectionNullable/One/
+// OneNullable all define one - see e.g. OneNullable.UnmarshalJSON in OneNullable.go),
+// which is what actually recognizes the tagged {"__operation":"select","__selector":
+// ...} / {"__operation":"append","items":[...]} form and sets isSet=true. A bare JSON
+// array/object (no __operation) still happened to populate Items/Item correctly by
+// coincidence (same field name/shape), but isSet stayed false regardless - so
+// IsSet() on any one/one?/array/array?/collection/collection? field ever supplied via
+// CLI always reported false, and the "select an existing row by uniqueId" form (the
+// only form one/one? create/update handlers actually accept - see
+// WalletConfigEntityUpdateFn and friends) could never be expressed over the CLI at
+// all. Unmarshalling into &result instead fixes both.
 func CapturePossibleArray[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) Array[T] {
 	var result Array[T]
-	json.Unmarshal([]byte(c.String(fieldName)), &result.Items)
+	json.Unmarshal([]byte(c.String(fieldName)), &result)
 
 	return result
 }
 
 func CapturePossibleArrayNullable[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) ArrayNullable[T] {
 	var result ArrayNullable[T]
-	json.Unmarshal([]byte(c.String(fieldName)), &result.Items)
+	json.Unmarshal([]byte(c.String(fieldName)), &result)
 
 	return result
 }
 
 func CapturePossibleCollection[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) Collection[T] {
 	var result Collection[T]
-	json.Unmarshal([]byte(c.String(fieldName)), &result.Items)
+	json.Unmarshal([]byte(c.String(fieldName)), &result)
 
 	return result
 }
 
 func CapturePossibleCollectionNullable[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) CollectionNullable[T] {
 	var result CollectionNullable[T]
-	json.Unmarshal([]byte(c.String(fieldName)), &result.Items)
+	json.Unmarshal([]byte(c.String(fieldName)), &result)
 
 	return result
 }
 
 func CapturePossibleOne[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) One[T] {
 	var result One[T]
-	json.Unmarshal([]byte(c.String(fieldName)), &result.Item)
+	json.Unmarshal([]byte(c.String(fieldName)), &result)
 
 	return result
 }
 
 func CapturePossibleOneNullable[T any](generator func(c CliCastable) T, fieldName string, c CliCastable) OneNullable[T] {
 	var result OneNullable[T]
-	json.Unmarshal([]byte(c.String(fieldName)), &result.Item)
+	json.Unmarshal([]byte(c.String(fieldName)), &result)
 
 	return result
 }
@@ -101,7 +115,28 @@ func CastEmiFlagToUrfave(flags []CliFlag) []cli.Flag {
 			usage = f.Usage
 		}
 
+		isNullable := strings.HasSuffix(f.Type, "?")
 		fieldType := strings.TrimSuffix(f.Type, "?")
+
+		if isNullable {
+			// Nullable scalar fields (int64?, float64?, bool?, ...) are cast by the
+			// generated Cast*FromCli code via emigo.ParseNullable(c.String(name), ...) -
+			// see lib/golang/go-common-fields.go's CliCaptureStatement, which uses
+			// c.String() unconditionally for every nullable field so it can recognize the
+			// "null" sentinel (clear this field back to unset) uniformly regardless of T,
+			// and otherwise defers the actual string->T parsing to ParseNullable's
+			// CastPrimitive[T] call.
+			//
+			// That only works if the flag itself is a cli.StringFlag: urfave v3's
+			// Command.String() type-asserts the flag's stored value to string, which
+			// always fails - returning "" - for an Int64Flag/Float64Flag/BoolFlag. Without
+			// this branch, a nullable scalar field would fall through to the typed cases
+			// below, and ParseNullable would silently see "" and never set the field, even
+			// though IsSet() correctly reports the flag was passed (a real bug this
+			// comment is here to prevent reintroducing).
+			out = append(out, &cli.StringFlag{Name: f.Name, Usage: usage, Required: f.Required})
+			continue
+		}
 
 		switch fieldType {
 		case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":

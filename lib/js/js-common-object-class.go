@@ -86,7 +86,25 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 	return []jsRenderedDataClass{currentClass}
 }
 
-// Only finds the complex classes, those have + prefix or affix
+// Finds every complex class referenced by fields (e.g. "TString", "XDate")
+// so the caller can import each one - see JsCommonObjectClassGenerator's own
+// usedComplexes loop, which is the only caller.
+//
+// Bug fix: this used to only collect field.Complex when it contained a
+// literal "+" (`strings.Contains(field.Complex, "+")`) - a convention no
+// actual .emi.yml in either this repo or any consumer project's modules
+// ever uses (a plain `complex: TString` field, the normal and only way
+// every complex type is actually declared, has no "+" in it at all). So a
+// complex field's generated class property was always correctly *typed* as
+// e.g. `TString` (js-data-types.go's ComputedFieldType reads field.Complex
+// directly, unaffected by this function), but the corresponding `import {
+// TString } from "..."` was silently never added - every generated dto
+// using a complex type failed to type-check (`Cannot find name 'TString'`)
+// even though nothing about it looked wrong at a glance, since JS runtimes
+// erase type annotations and never noticed the missing import either.
+// strings.ReplaceAll below still strips a "+" if one somehow is present, so
+// that hypothetical old convention keeps working exactly as before for
+// anyone who was actually relying on it - this just stops requiring it.
 func CollectComplexClasses(fields []*core.EmiField) []string {
 	var result []string
 
@@ -97,7 +115,7 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 				continue
 			}
 
-			if strings.Contains(field.Complex, "+") {
+			if field.Complex != "" {
 				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
 			}
 			if len(field.Fields) > 0 {
@@ -126,7 +144,21 @@ func CollectTargets(fields []*core.EmiField) []string {
 
 			isSelf, _ := getSelfReferencingField(field, "")
 			if field.Target != "" && !isSelf {
-				result = append(result, field.Target)
+				// A genuinely cross-module target (field.JsProvider set - see
+				// its own doc comment in EmiField.go) is passed through as
+				// its full import path (including the target's own class
+				// name), not the bare target name - entityTargetToCodeChunk/
+				// castDtoNameToCodeChunk below already split "path/ClassName"
+				// into a real import for exactly this shape (see
+				// parseDtoPath), so no other change is needed to make it
+				// resolve correctly instead of assuming a same-directory
+				// sibling file ("./<Target>", only ever true for a
+				// same-module reference).
+				if field.JsProvider != "" {
+					result = append(result, field.JsProvider)
+				} else {
+					result = append(result, field.Target)
+				}
 			}
 
 			if len(field.Fields) > 0 {
@@ -537,6 +569,19 @@ func tsFieldTypeOnNestedClasses(field *core.EmiField, parentChain string) string
 		isSelf, value := getSelfReferencingField(field, parentChain)
 		if isSelf {
 			target = value
+		}
+
+		// FieldTypeOneNullable needs "| null | undefined" the same way
+		// FieldTypeArrayNullable/FieldTypeObjectNullable already get it below -
+		// without it, the generated setter's own null-handling branch (see
+		// js-setter-function.go's "one?" case) assigns a value TypeScript
+		// doesn't consider valid for the field's declared type. (The private
+		// field declaration's own "| null" - see jsFieldVariable.Compile in
+		// js-common-fields.go - is deduped against this by that function
+		// checking whether ComputedType already mentions "null" before
+		// adding its own, so this doesn't end up doubled there.)
+		if field.Type == core.FieldTypeOneNullable {
+			return "MOne<" + target + "> | null | undefined"
 		}
 
 		return "MOne<" + target + ">"

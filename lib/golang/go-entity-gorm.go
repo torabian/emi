@@ -212,7 +212,25 @@ func applyEntityGormTags(entity *core.Module3Entity, childStructPrefix string, f
 			}
 
 			if !hasOverride {
-				field.Tags["gorm"] = "foreignKey:" + core.ToUpper(idField) + ";references:Id"
+				tag := "foreignKey:" + core.ToUpper(idField) + ";references:Id"
+				if field.Type == core.FieldTypeClassNullable {
+					// one? (unlike required one) is routinely left unset at Create
+					// time - the {field}Id sibling above is a plain int64, so an unset
+					// one? defaults to Go's int64 zero value, which gorm inserts
+					// literally as 0 rather than as SQL NULL (there is no `?`-typed,
+					// nullable equivalent for this hidden sibling - see hiddenSibling
+					// above, always FieldTypeInt64). A real DB-level FK constraint then
+					// rejects that initial zero-value insert outright, since no row
+					// ever has id 0 - and it's usually populated later via a plain
+					// {field}Id integer Update anyway (e.g. a payment attempt's
+					// walletTransaction, set only once the attempt succeeds), not at
+					// Create time. So a nullable one? gets no DB-level FK constraint;
+					// referential integrity for it is an application-level concern,
+					// same as everywhere else this repo already relies on that instead
+					// of the database enforcing it.
+					tag += ";constraint:-"
+				}
+				field.Tags["gorm"] = tag
 			}
 
 		case core.FieldTypeMap, core.FieldTypeSlice, core.FieldTypeAny:

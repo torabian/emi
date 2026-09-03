@@ -106,6 +106,30 @@ func {{ .ActionName }}QueryFromCli(c *cli.Command) {{ .ActionName }}Query {
 		emigo.InflatePossibleSlice(raw, &data.{{ .FieldName }})
 		values.Set("{{ .Name }}", raw)
 	}
+	{{ else if or (eq .Type "string?") (eq .Type "text?") (eq .Type "html?") (eq .Type "enum?") }}
+	if c.IsSet("{{ .CliKey }}") {
+		raw := c.String("{{ .CliKey }}")
+		data.{{ .FieldName }} = emigo.NullableOf(raw)
+		values.Set("{{ .Name }}", raw)
+	}
+	{{ else if eq .Type "bool?" }}
+	if c.IsSet("{{ .CliKey }}") {
+		v := c.Bool("{{ .CliKey }}")
+		data.{{ .FieldName }} = emigo.NullableOf(v)
+		values.Set("{{ .Name }}", strconv.FormatBool(v))
+	}
+	{{ else if or (eq .Type "int?") (eq .Type "int8?") (eq .Type "int16?") (eq .Type "int32?") (eq .Type "int64?") (eq .Type "uint?") (eq .Type "uint8?") (eq .Type "uint16?") (eq .Type "uint32?") (eq .Type "uint64?") }}
+	if c.IsSet("{{ .CliKey }}") {
+		v := c.Int64("{{ .CliKey }}")
+		data.{{ .FieldName }} = emigo.NullableOf({{ trimQuestion .Type }}(v))
+		values.Set("{{ .Name }}", strconv.FormatInt(v, 10))
+	}
+	{{ else if or (eq .Type "float32?") (eq .Type "float64?") }}
+	if c.IsSet("{{ .CliKey }}") {
+		v := c.Float64("{{ .CliKey }}")
+		data.{{ .FieldName }} = emigo.NullableOf({{ trimQuestion .Type }}(v))
+		values.Set("{{ .Name }}", strconv.FormatFloat(v, 'f', -1, 64))
+	}
 	{{ else }}
 	if c.IsSet("{{ .CliKey }}") {
 		raw := c.String("{{ .CliKey }}")
@@ -120,7 +144,9 @@ func {{ .ActionName }}QueryFromCli(c *cli.Command) {{ .ActionName }}Query {
 }
 `
 
-	t := template.Must(template.New("queryParamsCli").Funcs(core.CommonMap).Parse(tmpl))
+	t := template.Must(template.New("queryParamsCli").Funcs(core.CommonMap).Funcs(template.FuncMap{
+		"trimQuestion": func(t string) string { return strings.TrimSuffix(t, "?") },
+	}).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, map[string]any{
 		"ActionName": actionName,
@@ -154,7 +180,11 @@ func usesJSONFallback(fields []goQueryCliField) bool {
 	for _, f := range fields {
 		switch f.Type {
 		case "string", "bool", "int", "int8", "int16", "int32", "int64",
-			"float32", "float64", "slice":
+			"float32", "float64", "slice",
+			"string?", "text?", "html?", "enum?", "bool?",
+			"int?", "int8?", "int16?", "int32?", "int64?",
+			"uint?", "uint8?", "uint16?", "uint32?", "uint64?",
+			"float32?", "float64?":
 			continue
 		default:
 			return true
@@ -168,7 +198,10 @@ func usesJSONFallback(fields []goQueryCliField) bool {
 func usesStrconv(fields []goQueryCliField) bool {
 	for _, f := range fields {
 		switch f.Type {
-		case "bool", "int", "int8", "int16", "int32", "int64", "float32", "float64":
+		case "bool", "int", "int8", "int16", "int32", "int64", "float32", "float64",
+			"bool?", "int?", "int8?", "int16?", "int32?", "int64?",
+			"uint?", "uint8?", "uint16?", "uint32?", "uint64?",
+			"float32?", "float64?":
 			return true
 		}
 	}

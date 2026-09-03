@@ -1,5 +1,3 @@
-//go:build !wasm
-
 package emigo
 
 import (
@@ -17,10 +15,37 @@ import (
 /**
 * Request-body binding and response rendering for gin, generic enough that
 * any emi-generated action handler can share it instead of reimplementing
-* JSON/YAML/XML/form dispatch and error rendering per action. Excluded from
-* wasm builds because it imports gin, which doesn't compile there - the
-* wasm/http1.1-free transport is emi's net/http renderer (see HttpBinding.go),
-* which BindGinRequestBody's format helpers are shared with.
+* JSON/YAML/XML/form dispatch and error rendering per action.
+*
+* Bug fix: this file used to carry a `//go:build !wasm` tag, on the
+* assumption that gin doesn't compile under GOOS=js/GOARCH=wasm. It does
+* (confirmed directly: `GOOS=js GOARCH=wasm go build github.com/gin-gonic/gin`
+* succeeds) - what a wasm build actually can't do is *run* a gin.Engine
+* (no real net.Listen inside a browser sandbox), which is a separate,
+* runtime-only concern nothing here triggers. The tag's real effect wasn't
+* excluding gin from wasm builds at all: every emi-generated `*ActionGin.go`
+* file (one per action, in the same package as its wasm-safe
+* `*ActionHttpHandler` net/http counterpart - see HttpBinding.go) has no
+* build tag of its own, so removing this file's `!wasm` tag was the only
+* way those packages - and the real net/http handlers living alongside the
+* Gin ones - could compile for wasm at all. Before this fix, `GOOS=js
+* GOARCH=wasm go build ./cmd/fireback-wasm` failed outright with `undefined:
+* emigo.RenderGinError` (and friends) the moment it touched any package
+* with generated actions in it (modules/abac/defs, .../interfacetools/defs,
+* .../messaging/defs, ...) - which is every module cmd/fireback-wasm/main.go
+* imports, so nothing past `go build` itself ever ran; the ui/wasm-demo app
+* had no fireback.wasm to fetch at all. The Gin-only symbols (RenderGinError,
+* RenderGinResult, BindGinRequestBody, ...) below just need to exist so
+* those packages build; nothing under wasm ever actually constructs a
+* *gin.Context or calls them - cmd/fireback-wasm/main.go's own hand-written
+* JSON stand-ins (mock /whoami, mock /passports/available-methods, ...) are
+* a separate, still-open piece of work (those real actions still need a
+* wasm-safe session/auth story before they can replace the stand-ins), not
+* something this fix does on its own.
+*
+* The wasm/http1.1-free transport a wasm build's handlers actually run
+* through is emi's net/http renderer (see HttpBinding.go), which
+* BindGinRequestBody's format helpers are shared with.
 *
 * This package cannot depend on any specific application's error catalog
 * (fireback's ferror, or anyone else's), so binding failures come back as the

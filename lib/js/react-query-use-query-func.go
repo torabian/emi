@@ -62,11 +62,26 @@ export const {{ .className }}Query = (
 			 	{{ if .hookOptions.HasPathParameters }}
 				options.params,
 				{{ end }}
-				
+
 				options?.qs
 			)
 		],
 		queryFn: fn,
+		{{ if .hookOptions.HasPathParameters }}
+		// Bug fix: a "new"/create screen has no uniqueId (or other path param) yet -
+		// every *EntityManager.tsx across this app builds this action's own
+		// getSingleHook unconditionally (React's rules of hooks - a hook can never be
+		// called conditionally), which used to mean this fired for real, every time,
+		// against a URL with a literal "undefined" in place of the missing param (e.g.
+		// GET /treasury/undefined) - a wasted request and, in a route path built with
+		// this before uniqueId resolves, a genuinely wrong one. Defaulting enabled to
+		// false whenever any path parameter is missing/empty fixes this the same way
+		// for every generated get-by-id hook at once - options.enabled below still
+		// wins if a caller explicitly opts back in.
+		enabled: !Object.values(options.params || {}).some(
+			(v) => v === undefined || v === null || v === "",
+		),
+		{{ end }}
 		...(options || {}),
 	});
 

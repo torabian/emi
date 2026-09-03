@@ -71,13 +71,30 @@ set {{ .ctx.Name }} (|@arg.value|) {
 	{{ else if and (eq .ctx.Type "bool")}}
 		this.#{{.ctx.Name}} = Boolean(value);
 
+ 	{{ else if and .ctx.ComplexClass (eq .ctx.Type "complex?") }}
+		// For a nullable complex field, an explicit undefined/null is a
+		// deliberate value and has to pass through untouched - same as every
+		// other nullable field's setter (array?, one?, object?, ...) above.
+		// Anything else always becomes a real instance, exactly like a
+		// non-nullable "complex" field does.
+		if (value === null || value === undefined) {
+			this.#{{.ctx.Name}} = value;
+
+			return
+		}
+	 	if (value instanceof {{ .ctx.ComplexClass }}) {
+			this.#{{.ctx.Name}} = value
+		} else {
+		 	this.#{{.ctx.Name}} = new {{ .ctx.ComplexClass }}(value)
+		}
+
  	{{ else if .ctx.ComplexClass }}
 	 	if (value instanceof {{ .ctx.ComplexClass }}) {
 			this.#{{.ctx.Name}} = value
 		} else {
 		 	this.#{{.ctx.Name}} = new {{ .ctx.ComplexClass }}(value)
 		}
-	
+
 	{{ else if and (eq .ctx.Type "bool?")}}
 	 	const correctType = value === true || value === false || value === undefined || value === null
 		this.#{{.ctx.Name}} = correctType ? value : Boolean(value);
@@ -189,6 +206,22 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		);
 
 	{{ else if or (eq .ctx.Type "one") (eq .ctx.Type "one?")}}
+		{{ if eq .ctx.Type "one?" }}
+		// For a nullable relation, a literal null is a deliberate "clear"
+		// signal and has to stay null - not fall through to the else branch
+		// below and become MOne.of(new {{.ctx.ConstructorClass}}(null)) (the
+		// constructor tolerates a null/undefined argument by returning an
+		// empty-but-non-null instance), which serializes as an empty object
+		// instead of null. The backend tells "explicitly cleared" apart from
+		// "field left untouched" (an absent key) only by seeing a real null
+		// on the wire, the same way every other nullable field here (array?,
+		// collection?) already short-circuits on null/undefined above.
+		if (value === null || value === undefined) {
+			this.#{{.ctx.Name}} = value;
+
+			return
+		}
+		{{ end }}
 		// For objects, the sub type needs to always be instance of the sub class.
 		if (value instanceof MOne) {
 			this.#{{.ctx.Name}} = value

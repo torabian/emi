@@ -124,7 +124,14 @@ func (x jsFieldVariable) Compile(isTypeScript bool) string {
 
 		sequence = append(sequence, ": "+x.ComputedType)
 
-		if x.IsNullable {
+		// Bug fix: this used to unconditionally append " | null" for every
+		// nullable field, even when ComputedType already spells out its own
+		// "| null | undefined" (FieldTypeArrayNullable/ObjectNullable/
+		// OneNullable all do, in js-common-object-class.go) - producing a
+		// harmless-but-wrong doubled union like
+		// "MOne<X> | null | undefined | null". Skip the generic append
+		// whenever ComputedType already mentions "null" itself.
+		if x.IsNullable && !strings.Contains(x.ComputedType, "null") {
 			sequence = append(sequence, " | null")
 		}
 	}
@@ -191,12 +198,35 @@ func jsRenderField(
 	}
 
 	if field.Complex != "" {
+		// complex? is the one place lib/js treats a complex field differently from
+		// every other backend: it keeps the nullable suffix (rather than always
+		// forcing "complex", as e.g. lib/golang's own goRenderField does) so the
+		// setter template below (see js-setter-function.go) can dispatch to its
+		// "complex?" branch and allow undefined/null through, exactly like every
+		// other nullable field. A non-nullable "complex" field still always
+		// instantiates.
 		privateFieldToken.Type = "complex"
-
-		// This means type is complex, can be instantiated.
-		if strings.Contains(field.Complex, "+") {
-			privateFieldToken.ComplexClass = strings.ReplaceAll(field.Complex, "+", "")
+		if isFieldNullable {
+			privateFieldToken.Type = "complex?"
 		}
+
+		// Bug fix: this used to only set ComplexClass (which makes the
+		// generated setter - see js-setter-function.go's `.ctx.ComplexClass`
+		// branch - actually construct `new X(value)`/keep an existing `X`
+		// instance, instead of assigning the raw value straight through) when
+		// field.Complex contained a literal "+" - the same now-removed
+		// convention CollectComplexClasses used to gate the import on (see
+		// its own doc comment). A plain `complex: TString` field (the normal,
+		// only way any complex type is actually declared) never got a real
+		// instance: `title` off the wire is JSON, not run through
+		// `new TString(...)`, so it's a plain `{locale: value}` object with
+		// none of TString's own methods (toString() included) - which is
+		// exactly why generic display code elsewhere needs its own
+		// locale-fallback lookup (getTStringValue) rather than being able to
+		// rely on the value stringifying itself. Always constructing the real
+		// class now - the same as "+TString" already did - fixes that at the
+		// source instead of requiring every caller to special-case it.
+		privateFieldToken.ComplexClass = strings.ReplaceAll(field.Complex, "+", "")
 	}
 
 	// + needs to be cleaned.
