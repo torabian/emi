@@ -1,5 +1,3 @@
-//go:build !wasm
-
 package defs
 
 import (
@@ -11,7 +9,6 @@ import (
 
 // ChatActionCliFlags returns the query-parameter flags the
 // ChatAction action can bind from urfave v3.
-//
 func ChatActionCliFlags() []cli.Flag {
 	flags := []cli.Flag{}
 	return flags

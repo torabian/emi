@@ -73,7 +73,7 @@ func {{ .realms.ActionName }}HttpHandler(
 			return
 		}
 
-		emigo.RenderHttpResult(w, resp)
+		emigo.RenderHttpResult(w, r, resp)
 	}
 }
 

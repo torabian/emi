@@ -122,6 +122,23 @@ const (
 	bindContentTypeXML        bindContentType = "xml"
 )
 
+// ginRenderEnvelope writes status/envelope in whatever format the request's
+// Accept header names (see detectAcceptFormat: JSON, YAML, TOML, or CSV),
+// aborting the gin context either way. Used by RenderGinError so its
+// {"error": ...} envelope honors the same content negotiation as a
+// successful RenderGinResult payload.
+func ginRenderEnvelope(c *gin.Context, status int, envelope map[string]any) {
+	format := detectAcceptFormat(c.GetHeader("Accept"))
+	body, err := marshalResponse(format, envelope)
+	if err != nil {
+		// The requested format's marshaler rejected this envelope - fall
+		// back to JSON rather than dropping the response.
+		c.JSON(status, envelope)
+		return
+	}
+	c.Data(status, format.contentType(), body)
+}
+
 func detectGinContentType(c *gin.Context) bindContentType {
 	contentType := c.GetHeader("Content-Type")
 
@@ -130,7 +147,8 @@ func detectGinContentType(c *gin.Context) bindContentType {
 		return bindContentTypeURLEncoded
 	case strings.HasPrefix(contentType, "multipart/form-data"):
 		return bindContentTypeFormData
-	case strings.HasPrefix(contentType, "application/yaml"), strings.HasPrefix(contentType, "application/x-yaml"), strings.HasPrefix(contentType, "text/yaml"):
+	case strings.HasPrefix(contentType, "application/yaml"), strings.HasPrefix(contentType, "application/x-yaml"), strings.HasPrefix(contentType, "text/yaml"),
+		strings.HasPrefix(contentType, "yaml"), strings.HasPrefix(contentType, "yml"):
 		return bindContentTypeYAML
 	case strings.HasPrefix(contentType, "application/xml"), strings.HasPrefix(contentType, "text/xml"):
 		return bindContentTypeXML
@@ -277,10 +295,16 @@ func RenderGinError(c *gin.Context, err error) {
 		// Nest the resolved object under "error" (rather than writing it as
 		// the bare response body) so every error shape - this one, the
 		// generic forwarded-JSON one below, and the plain-string one -
-		// answers with the same {"error": ...} envelope. json.RawMessage
-		// keeps body embedded as real JSON instead of being re-escaped into
-		// a string.
-		c.JSON(status, gin.H{"error": json.RawMessage(body)})
+		// answers with the same {"error": ...} envelope. Decoding body back
+		// into a generic value (rather than keeping it as json.RawMessage)
+		// lets ginRenderEnvelope re-encode it as YAML when that's what the
+		// client asked for, instead of dumping raw JSON bytes as a
+		// base64-ish YAML string.
+		var decoded any
+		if err := json.Unmarshal(body, &decoded); err != nil {
+			decoded = json.RawMessage(body)
+		}
+		ginRenderEnvelope(c, status, map[string]any{"error": decoded})
 		return
 	}
 
@@ -298,15 +322,21 @@ func RenderGinError(c *gin.Context, err error) {
 		if uErr := json.Unmarshal([]byte(trimmed), &probe); uErr == nil && probe.HttpCode != 0 {
 			status = int(probe.HttpCode)
 		}
-		c.JSON(status, gin.H{"error": json.RawMessage(trimmed)})
+		var decoded any
+		if err := json.Unmarshal([]byte(trimmed), &decoded); err != nil {
+			decoded = trimmed
+		}
+		ginRenderEnvelope(c, status, map[string]any{"error": decoded})
 		return
 	}
-	c.JSON(status, gin.H{"error": msg})
+	ginRenderEnvelope(c, status, map[string]any{"error": msg})
 }
 
 // RenderGinResult writes a successful action response: headers, then status
-// (defaulting to 200) and JSON payload, or a bare status when there's no
-// payload. Every emi-generated {{Action}}Response already satisfies
+// (defaulting to 200) and payload, or a bare status when there's no
+// payload. The payload is rendered in whatever format the request's Accept
+// header names (see detectAcceptFormat: JSON, YAML, TOML, or CSV), JSON by
+// default. Every emi-generated {{Action}}Response already satisfies
 // EmiActionResult.
 func RenderGinResult(c *gin.Context, resp EmiActionResult) {
 	for k, v := range resp.GetRespHeaders() {
@@ -318,9 +348,20 @@ func RenderGinResult(c *gin.Context, resp EmiActionResult) {
 		status = http.StatusOK
 	}
 
-	if payload := resp.GetPayload(); payload != nil {
-		c.JSON(status, payload)
-	} else {
+	payload := resp.GetPayload()
+	if payload == nil {
 		c.Status(status)
+		return
 	}
+
+	format := detectAcceptFormat(c.GetHeader("Accept"))
+	body, err := marshalResponse(format, payload)
+	if err != nil {
+		// The requested format's marshaler rejected this payload (e.g. a
+		// TOML/CSV shape it can't represent) - fall back to JSON rather
+		// than dropping the response.
+		c.JSON(status, payload)
+		return
+	}
+	c.Data(status, format.contentType(), body)
 }
