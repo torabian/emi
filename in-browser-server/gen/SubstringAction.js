@@ -70,6 +70,13 @@ export class SubstringAction {
   };
 }
 /**
+ * The base type definition for substringActionReq
+ * @typedef {Object} SubstringActionReqType
+ * @property {string} input - The string you want to do substring
+ * @property {number} start - Start position
+ * @property {number} end - End position
+ */
+/**
  * The base class definition for substringActionReq
  **/
 export class SubstringActionReq {
@@ -240,6 +247,11 @@ export class SubstringActionReq {
     return new SubstringActionReq(this.toJSON());
   }
 }
+/**
+ * The base type definition for substringActionRes
+ * @typedef {Object} SubstringActionResType
+ * @property {string} result
+ */
 /**
  * The base class definition for substringActionRes
  **/

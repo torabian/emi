@@ -83,6 +83,13 @@ export class CreateUserAction {
   };
 }
 /**
+ * The base type definition for createUserActionReq
+ * @typedef {Object} CreateUserActionReqType
+ * @property {string} firstName - User's first name
+ * @property {string} lastName - User's last name
+ * @property {string} birthDate - User's birth date, ISO format YYYY-MM-DD
+ */
+/**
  * The base class definition for createUserActionReq
  **/
 export class CreateUserActionReq {
@@ -245,6 +252,14 @@ export class CreateUserActionReq {
     return new CreateUserActionReq(this.toJSON());
   }
 }
+/**
+ * The base type definition for createUserActionRes
+ * @typedef {Object} CreateUserActionResType
+ * @property {number} id
+ * @property {string} firstName
+ * @property {string} lastName
+ * @property {string} birthDate
+ */
 /**
  * The base class definition for createUserActionRes
  **/
