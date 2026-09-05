@@ -79,8 +79,7 @@ export class NullableResponseActionDto {
   #father?:
     | InstanceType<typeof NullableResponseActionDto.Father>
     | null
-    | undefined
-    | null = undefined;
+    | undefined = undefined;
   /**
    * Father name is not essential for some goverment papers.
    * @returns {NullableResponseActionDto.Father}
@@ -152,7 +151,7 @@ export class NullableResponseActionDto {
    * Second uncle is optional
    * @type {UncleDto}
    **/
-  #secondUncle?: MOne<UncleDto> | null = undefined;
+  #secondUncle?: MOne<UncleDto> | null | undefined = undefined;
   /**
    * Second uncle is optional
    * @returns {UncleDto}
@@ -165,8 +164,27 @@ export class NullableResponseActionDto {
    * @type {UncleDto}
    **/
   set secondUncle(
-    value: MOne<UncleDto> | InstanceType<typeof UncleDto> | null | undefined,
+    value:
+      | MOne<UncleDto>
+      | null
+      | undefined
+      | InstanceType<typeof UncleDto>
+      | null
+      | undefined,
   ) {
+    // For a nullable relation, a literal null is a deliberate "clear"
+    // signal and has to stay null - not fall through to the else branch
+    // below and become MOne.of(new UncleDto(null)) (the
+    // constructor tolerates a null/undefined argument by returning an
+    // empty-but-non-null instance), which serializes as an empty object
+    // instead of null. The backend tells "explicitly cleared" apart from
+    // "field left untouched" (an absent key) only by seeing a real null
+    // on the wire, the same way every other nullable field here (array?,
+    // collection?) already short-circuits on null/undefined above.
+    if (value === null || value === undefined) {
+      this.#secondUncle = value === null ? null : undefined;
+      return;
+    }
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof MOne) {
       this.#secondUncle = value;
@@ -177,7 +195,13 @@ export class NullableResponseActionDto {
     }
   }
   setSecondUncle(
-    value: MOne<UncleDto> | InstanceType<typeof UncleDto> | null | undefined,
+    value:
+      | MOne<UncleDto>
+      | null
+      | undefined
+      | InstanceType<typeof UncleDto>
+      | null
+      | undefined,
   ) {
     this.secondUncle = value;
     return this;

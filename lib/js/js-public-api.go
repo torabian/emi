@@ -60,6 +60,12 @@ func GetJsPublicActions() core.PublicAPIActions {
 				Name:             "js:dto:class",
 				Description:      "Generates a dto class based on the dto signature, (name, fields)",
 				WasmFunctionName: "jsGenDtoClass",
+				Flags: []core.FlagDef{
+					{
+						Name:  "js-sdk-location",
+						Usage: "Changes the default ./sdk folder, when generating js/ts files referencing it - see JsPrimaryAction's own copy of this flag.",
+					},
+				},
 			},
 			Run: func(ctx core.MicroGenContext) (string, error) {
 				return commonJsDtoStringCompiler(ctx,

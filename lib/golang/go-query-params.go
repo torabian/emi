@@ -53,6 +53,10 @@ func GoActionQueryParams(action core.EmiRpcAction, ctx core.MicroGenContext) (*c
 			{{ upper .Name }} {{ .Type }} ` + "`json:\"{{ .Name }}\"`" + `
 		{{ end }}
 
+		{{ if or (eq .Type "string?") (eq .Type "text?") (eq .Type "html?") (eq .Type "enum?") (eq .Type "float64?") (eq .Type "float32?") (eq .Type "bool?") (eq .Type "int?") (eq .Type "int8?") (eq .Type "int16?") (eq .Type "int32?") (eq .Type "int64?") (eq .Type "uint?") (eq .Type "uint8?") (eq .Type "uint16?") (eq .Type "uint32?") (eq .Type "uint64?") }}
+			{{ upper .Name }} {{ nullablePrimitive .Type }} ` + "`json:\"{{ .Name }}\"`" + `
+		{{ end }}
+
 		{{ if (eq .Type "object") }}
 			{{ upper .Name }} struct {
 				{{ template "printthem" .Fields }}
@@ -132,7 +136,9 @@ func (q *{{ .goqctx.ActionName }}Query) SetMapped(m map[string]interface{}) {
 	EnabledCli := !ctx.HasTag(SkipCli)
 	EnabledGin := !ctx.HasTag(SkipGin)
 
-	t := template.Must(template.New("queryParams").Funcs(core.CommonMap).Parse(tmpl))
+	t := template.Must(template.New("queryParams").Funcs(core.CommonMap).Funcs(template.FuncMap{
+		"nullablePrimitive": func(t core.FieldType) string { return goPrimitiveDetect(string(t)) },
+	}).Parse(tmpl))
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, map[string]any{
 		"ClassName":  className,

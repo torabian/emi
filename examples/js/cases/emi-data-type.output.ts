@@ -49,7 +49,7 @@ setStringFieldWithValue (value: string) {
   * nullable string
   * @type {string}
   **/
- #nullablestringField ? : string  | null  =  undefined
+ #nullablestringField ? : string  | null | undefined  =  undefined
 		/**
   * nullable string
   * @returns {string}
@@ -71,7 +71,7 @@ setNullablestringField (value: string | null | undefined) {
   * nullable string with default
   * @type {string}
   **/
- #nullablestringFieldWithValue ? : string  | null  =  "defaultstring"
+ #nullablestringFieldWithValue ? : string  | null | undefined  =  "defaultstring"
 		/**
   * nullable string with default
   * @returns {string}
@@ -135,7 +135,7 @@ setBoolFieldWithValue (value: boolean) {
   * nullable bool
   * @type {boolean}
   **/
- #nullableboolField ? : boolean  | null  =  undefined
+ #nullableboolField ? : boolean  | null | undefined  =  undefined
 		/**
   * nullable bool
   * @returns {boolean}
@@ -157,7 +157,7 @@ setNullableboolField (value: boolean | null | undefined) {
   * nullable bool with default
   * @type {boolean}
   **/
- #nullableboolFieldWithValue ? : boolean  | null  =  true
+ #nullableboolFieldWithValue ? : boolean  | null | undefined  =  true
 		/**
   * nullable bool with default
   * @returns {boolean}
@@ -229,7 +229,7 @@ setIntFieldWithValue (value: number) {
   * nullable int
   * @type {number}
   **/
- #nullableIntField ? : number  | null  =  undefined
+ #nullableIntField ? : number  | null | undefined  =  undefined
 		/**
   * nullable int
   * @returns {number}
@@ -254,7 +254,7 @@ setNullableIntField (value: number | null | undefined) {
   * nullable int with default
   * @type {number}
   **/
- #nullableIntFieldWithValue ? : number  | null  =  7
+ #nullableIntFieldWithValue ? : number  | null | undefined  =  7
 		/**
   * nullable int with default
   * @returns {number}
@@ -329,7 +329,7 @@ setInt32FieldWithValue (value: number) {
   * nullable int32
   * @type {number}
   **/
- #nullableInt32Field ? : number  | null  =  undefined
+ #nullableInt32Field ? : number  | null | undefined  =  undefined
 		/**
   * nullable int32
   * @returns {number}
@@ -354,7 +354,7 @@ setNullableInt32Field (value: number | null | undefined) {
   * nullable int32 with default
   * @type {number}
   **/
- #nullableInt32FieldWithValue ? : number  | null  =  200
+ #nullableInt32FieldWithValue ? : number  | null | undefined  =  200
 		/**
   * nullable int32 with default
   * @returns {number}
@@ -404,7 +404,7 @@ setInt64Field (value: number) {
   * int64 with default
   * @type {number}
   **/
- #int64FieldWithValue ? : number  | null  =  123
+ #int64FieldWithValue ? : number  | null | undefined  =  123
 		/**
   * int64 with default
   * @returns {number}
@@ -429,7 +429,7 @@ setInt64FieldWithValue (value: number | null | undefined) {
   * nullable int64
   * @type {number}
   **/
- #nullableInt64Field ? : number  | null  =  undefined
+ #nullableInt64Field ? : number  | null | undefined  =  undefined
 		/**
   * nullable int64
   * @returns {number}
@@ -454,7 +454,7 @@ setNullableInt64Field (value: number | null | undefined) {
   * nullable int64 with default
   * @type {number}
   **/
- #nullableInt64FieldWithValue ? : number  | null  =  456
+ #nullableInt64FieldWithValue ? : number  | null | undefined  =  456
 		/**
   * nullable int64 with default
   * @returns {number}
@@ -521,7 +521,7 @@ setFloat32FieldWithValue (value: number) {
   * nullable float32
   * @type {number}
   **/
- #nullableFloat32Field ? : number  | null  =  undefined
+ #nullableFloat32Field ? : number  | null | undefined  =  undefined
 		/**
   * nullable float32
   * @returns {number}
@@ -546,7 +546,7 @@ setNullableFloat32Field (value: number | null | undefined) {
   * nullable float32 with default
   * @type {number}
   **/
- #nullableFloat32FieldWithValue ? : number  | null  =  4.56
+ #nullableFloat32FieldWithValue ? : number  | null | undefined  =  4.56
 		/**
   * nullable float32 with default
   * @returns {number}
@@ -613,7 +613,7 @@ setFloat64FieldWithValue (value: number) {
   * nullable float64
   * @type {number}
   **/
- #nullableFloat64Field ? : number  | null  =  undefined
+ #nullableFloat64Field ? : number  | null | undefined  =  undefined
 		/**
   * nullable float64
   * @returns {number}
@@ -638,7 +638,7 @@ setNullableFloat64Field (value: number | null | undefined) {
   * nullable float64 with default
   * @type {number}
   **/
- #nullableFloat64FieldWithValue ? : number  | null  =  0.12
+ #nullableFloat64FieldWithValue ? : number  | null | undefined  =  0.12
 		/**
   * nullable float64 with default
   * @returns {number}

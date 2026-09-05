@@ -17,7 +17,7 @@ type EmiField struct {
 	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description about the field for developers and generated documents."`
 
 	// Type of the field based on Emi types.
-	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=array,enum=_list,enum=map?,enum=map,enum=slice,enum=one,enum=class,enum=collection,enum=object,enum=enum,enum=string,enum=bool,enum=int,enum=int32,enum=int64,enum=float32,enum=float64,enum=array?,enum=_list?,enum=slice?,enum=one?,enum=class?,enum=collection?,enum=object?,enum=enum?,enum=string?,enum=bool?,enum=int?,enum=int32?,enum=int64?,enum=float32?,enum=float64?,enum=any,enum=complex,description=Type of the field based on Emi types."`
+	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=array,enum=_list,enum=map?,enum=map,enum=slice,enum=one,enum=class,enum=collection,enum=object,enum=enum,enum=string,enum=bool,enum=int,enum=int32,enum=int64,enum=float32,enum=float64,enum=array?,enum=_list?,enum=slice?,enum=one?,enum=class?,enum=collection?,enum=object?,enum=enum?,enum=string?,enum=bool?,enum=int?,enum=int32?,enum=int64?,enum=float32?,enum=float64?,enum=any,enum=complex,enum=complex?,description=Type of the field based on Emi types."`
 
 	// In case of type map this is the map key type, can be a primitive.
 	MapKeyOf string `yaml:"mapKeyOf,omitempty" json:"mapKeyOf,omitempty" jsonschema:"enum=string,enum=int,enum=any,description=In case of type map this is the map key type, can be a primitive."`
@@ -42,6 +42,21 @@ type EmiField struct {
 
 	// You can set an alias for the provider so the import will be done using that name instead of auto detection. Useful ingolang implementation.
 	ProviderAlias string `yaml:"providerAlias,omitempty" json:"providerAlias,omitempty" jsonschema:"description=You can set an alias for the provider so the import will be done using that name instead of auto detection. Useful ingolang implementation."`
+
+	// JsProvider is Provider's JS/TS counterpart, for one/one?/collection/
+	// collection? fields whose target lives in another module's own js
+	// output directory. Go has real cross-package imports (Provider is a Go
+	// import path), but the js/ts compiler has no equivalent notion of
+	// "another module's output location" to resolve target/module against -
+	// left unset, it assumes the target is a sibling file in the current
+	// dto's own output directory ("./<Target>"), which is only ever true for
+	// a same-module reference. Set this to the full import path *including
+	// the target's own class name* (e.g.
+	// "@/modules/musicalwork/musicalWork/sdk/MusicalWorkDto" - the same
+	// path/alias convention this project's own hand-written TS already
+	// imports it by) for a genuinely cross-module target, and the generated
+	// class imports it from there instead of assuming a local copy exists.
+	JsProvider string `yaml:"jsProvider,omitempty" json:"jsProvider,omitempty" jsonschema:"description=Full JS/TS import path (including the target's own class name) for a one/one?/collection/collection? field whose target lives in another module's js output directory - see Provider's own doc comment for the Go equivalent this fills the gap for."`
 
 	// List of enum values in case of enum type for the field. Check EmiEnumInline for more details how to define them.
 	OfType []*EmiEnumInline `yaml:"of,omitempty" json:"of,omitempty" jsonschema:"description=List of enum values in case of enum type for the field. Check EmiEnumInline for more d"`

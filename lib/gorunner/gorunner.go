@@ -449,6 +449,7 @@ func BuildCommands() []*cli.Command {
 		&StringsCommand,
 		&CompileCommand,
 		&TagsCommand,
+		&DiffEmiYamlCommand,
 	}
 	commands = append(commands,
 		cliCommandFromTextActions(js.GetJsPublicActions().TextActions)...)

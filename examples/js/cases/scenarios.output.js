@@ -151,7 +151,7 @@ get collectionNullableField () { return this.#collectionNullableField }
 set collectionNullableField (value) {
 		// For nullable collection, we allow explicit undefined or null values
 		if (value === null || value === undefined) {
-			this.#collectionNullableField = value;
+			this.#collectionNullableField = value === null ? null : undefined;
 			return
 		}
 		// When the passed value is already an array, we check if we need to
@@ -229,6 +229,19 @@ get oneNullableField () { return this.#oneNullableField }
   * @type {User}
   **/
 set oneNullableField (value) {
+		// For a nullable relation, a literal null is a deliberate "clear"
+		// signal and has to stay null - not fall through to the else branch
+		// below and become MOne.of(new User(null)) (the
+		// constructor tolerates a null/undefined argument by returning an
+		// empty-but-non-null instance), which serializes as an empty object
+		// instead of null. The backend tells "explicitly cleared" apart from
+		// "field left untouched" (an absent key) only by seeing a real null
+		// on the wire, the same way every other nullable field here (array?,
+		// collection?) already short-circuits on null/undefined above.
+		if (value === null || value === undefined) {
+			this.#oneNullableField = value === null ? null : undefined;
+			return
+		}
 		// For objects, the sub type needs to always be instance of the sub class.
 		if (value instanceof MOne) {
 			this.#oneNullableField = value

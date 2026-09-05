@@ -168,7 +168,7 @@ export class AutoInitClassDto {
          *
          * @type {string}
          **/
-        #phone?: string | null = undefined;
+        #phone?: string | null | undefined = undefined;
         /**
          *
          * @returns {string}

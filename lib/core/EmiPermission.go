@@ -42,6 +42,12 @@ type EmiPermission struct {
 	// consumed by EffectiveKey's wildcard-suffix decision. Unexported: internal
 	// bookkeeping, not part of the module schema.
 	autoFullKey bool
+
+	// autoKey records whether Key was left empty in yaml and normalized from Name
+	// (true), as opposed to set explicitly (false). Set by ResolvePermissionFullKeys,
+	// consumed by EffectiveKey's wildcard-suffix decision for leaf permissions.
+	// Unexported: internal bookkeeping, not part of the module schema.
+	autoKey bool
 }
 
 // ResolvePermissionFullKeys walks a permission tree in place and fills in FullKey for
@@ -63,6 +69,7 @@ func ResolvePermissionFullKeys(permissions []*EmiPermission, parentFullKey strin
 
 		if p.Key == "" && p.Name != "" {
 			p.Key = ToLower(p.Name)
+			p.autoKey = true
 		}
 
 		if p.FullKey == "" {
@@ -123,11 +130,14 @@ func ValidatePermissionIdentifiers(permissions []*EmiPermission) error {
 }
 
 // EffectiveKey returns the single identifier generated code exposes for this
-// permission: FullKey normally, or FullKey with a trailing ".*" when this node
-// groups children and its FullKey was left for the compiler to derive - signaling
-// that the key covers this permission and everything below it. A FullKey set
-// explicitly in yaml is always used as-is, even on a node with children, since the
-// author chose that exact string on purpose.
+// permission: FullKey normally, or FullKey with a trailing ".*" when its FullKey
+// was left for the compiler to derive (rather than set explicitly in yaml) and
+// either it groups children - signaling that the key covers this permission and
+// everything below it - or it's a leaf whose Key was itself left for the compiler
+// to infer from Name, since there's then no author-chosen exact string to honor
+// and a bare inferred key is easy to mistake for the whole subtree. A FullKey set
+// explicitly in yaml is always used as-is, whether or not the node has children,
+// since the author chose that exact string on purpose.
 //
 // core.ResolvePermissionFullKeys must have already run (Emi.Preprocess does this for
 // every StringToEmi/StringToEmiForAction caller) so FullKey is populated.
@@ -135,7 +145,7 @@ func (p *EmiPermission) EffectiveKey() string {
 	if p == nil {
 		return ""
 	}
-	if p.autoFullKey && len(p.Children) > 0 {
+	if p.autoFullKey && (len(p.Children) > 0 || p.autoKey) {
 		return p.FullKey + ".*"
 	}
 	return p.FullKey

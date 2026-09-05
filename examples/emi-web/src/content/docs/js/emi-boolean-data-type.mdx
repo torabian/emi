@@ -220,7 +220,7 @@ export class MyBoolClassDto {
    *
    * @type {boolean}
    **/
-  #nullableBoolWithDefault?: boolean | null = true;
+  #nullableBoolWithDefault?: boolean | null | undefined = true;
   /**
    *
    * @returns {boolean}
@@ -248,7 +248,7 @@ export class MyBoolClassDto {
    *
    * @type {boolean}
    **/
-  #nullableBoolWithoutDefault?: boolean | null = undefined;
+  #nullableBoolWithoutDefault?: boolean | null | undefined = undefined;
   /**
    *
    * @returns {boolean}

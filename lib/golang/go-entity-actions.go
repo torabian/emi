@@ -107,6 +107,12 @@ func walkCreateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 
 		case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
 			rowField := entityRowFieldName(field)
+			// Same cross-module qualification as the FieldTypeOne/OneNullable case
+			// below - a self@-referencing target has no module to qualify with.
+			createCollectionTarget := field.Target
+			if field.Module != "" {
+				createCollectionTarget = field.Module + "." + createCollectionTarget
+			}
 			fmt.Fprintf(afterCreate, `
 	if %[1]s.IsSet() {
 		items := make([]*%[3]s, len(%[1]s.Items))
@@ -117,7 +123,7 @@ func walkCreateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			return err
 		}
 	}
-`, accessPath, rowField, field.Target)
+`, accessPath, rowField, createCollectionTarget)
 
 		case core.FieldTypeObject:
 			walkCreateFields(field.Fields, accessPath+".", structPrefix+goName, oneResolve, afterCreate)
@@ -248,6 +254,16 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			// doesn't exist. Only "select" (link to an existing row by uniqueId) is
 			// supported; anything else fails loudly rather than silently dropping data.
 			idField := entityIdFieldName(field)
+			// Cross-module target (field.Module set) needs qualifying the same way
+			// the entity struct's own belongs-to field type does (see
+			// go-struct-generator-common.go's FieldTypeClass/ClassNullable case) -
+			// otherwise this ReconcileOne generic instantiation resolves (if at all)
+			// to a same-named type in the current package rather than the target
+			// entity's real, gorm-mapped one in its own module.
+			resolveTarget := field.Target
+			if field.Module != "" {
+				resolveTarget = field.Module + "." + resolveTarget
+			}
 			fmt.Fprintf(oneResolve, `
 	if %[1]s.IsSet() {
 		if %[1]s.Operation != "select" {
@@ -263,7 +279,7 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 		}
 		changes["%[2]s"] = resolvedId
 	}
-`, accessPath, idField, field.Target, field.Name)
+`, accessPath, idField, resolveTarget, field.Name)
 
 		case core.FieldTypeArray, core.FieldTypeArrayNullable, core.FieldTypeList, core.FieldTypeListNullable:
 			// field.Type here is entity.Fields' own type - which ApplyEntityGormTags
@@ -281,14 +297,50 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			// field the preprocessor prepends to every array item - set means "this is
 			// an existing row, patch it", matching how the entity's own child rows
 			// work (see emigorm.ReconcileHasMany).
+			//
+			// A one/one? sub-field can't be part of that direct copy: src.{Sub} is the
+			// update dto's own emigo.One[TargetDto]/OneNullable[TargetDto] (see the
+			// FieldTypeOne/FieldTypeOneNullable case's own comment above, verbatim
+			// applicable one level down), while the child entity struct's field is a
+			// real *TargetEntity gorm pointer - the two are never assignable, so it has
+			// to go through the same emigorm.ReconcileOne resolve-to-{field}Id dance the
+			// top-level case uses, just run per-item inside the loop below instead of
+			// once up front.
 			childStruct := structPrefix + goName
 			var copyFields strings.Builder
+			var subOneResolve strings.Builder
 			fmt.Fprintf(&copyFields, "\t\t\t\tUniqueId: src.UniqueId.OrDefault(\"\"),\n")
 			for _, sub := range field.Fields {
 				if sub == nil {
 					continue
 				}
 				subGoName := core.ToUpper(sub.Name)
+				if sub.Type == core.FieldTypeOne || sub.Type == core.FieldTypeOneNullable {
+					subIdField := entityIdFieldName(sub)
+					// Same cross-module qualification as the top-level
+					// FieldTypeOne/FieldTypeOneNullable case above.
+					subResolveTarget := sub.Target
+					if sub.Module != "" {
+						subResolveTarget = sub.Module + "." + subResolveTarget
+					}
+					fmt.Fprintf(&subOneResolve, `
+			if src.%[1]s.IsSet() {
+				if src.%[1]s.Operation != "select" {
+					return fmt.Errorf("%[4]s.%[5]s: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %%q", src.%[1]s.Operation)
+				}
+				var selectorId string
+				if s, ok := src.%[1]s.Selector.(string); ok {
+					selectorId = s
+				}
+				resolvedId, err := emigorm.ReconcileOne[%[3]s](tx, src.%[1]s.Operation, selectorId, nil)
+				if err != nil {
+					return err
+				}
+				item.%[2]s = resolvedId
+			}
+`, subGoName, subIdField, subResolveTarget, field.Name, sub.Name)
+					continue
+				}
 				fmt.Fprintf(&copyFields, "\t\t\t\t%[1]s: src.%[1]s,\n", subGoName)
 			}
 			fmt.Fprintf(afterUpdate, `
@@ -296,14 +348,15 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 		items := make([]*%[2]s, len(%[1]s.Items))
 		for i := range %[1]s.Items {
 			src := %[1]s.Items[i]
-			items[i] = &%[2]s{
+			item := &%[2]s{
 %[3]s			}
+%[4]s			items[i] = item
 		}
 		if err := emigorm.ReconcileHasMany(tx, "linker_id", entity.Id, %[1]s.Operation, items); err != nil {
 			return err
 		}
 	}
-`, accessPath, childStruct, copyFields.String())
+`, accessPath, childStruct, copyFields.String(), subOneResolve.String())
 
 		case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
 			// input.{Field}.Items are Entity1OptionalDto's own portable dto values for
@@ -317,6 +370,12 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			// what actually gets reconciled; an item with no uniqueId fails loudly
 			// rather than silently dropping data.
 			rowField := entityRowFieldName(field)
+			// Same cross-module qualification as the FieldTypeOne/OneNullable case
+			// above (and its own Create-side counterpart above).
+			updateCollectionTarget := field.Target
+			if field.Module != "" {
+				updateCollectionTarget = field.Module + "." + updateCollectionTarget
+			}
 			fmt.Fprintf(afterUpdate, `
 	if %[1]s.IsSet() {
 		items := make([]*%[3]s, len(%[1]s.Items))
@@ -335,9 +394,9 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			return err
 		}
 	}
-`, accessPath, rowField, field.Target, field.Name)
+`, accessPath, rowField, updateCollectionTarget, field.Name)
 
-		case core.FieldTypeComplex:
+		case core.FieldTypeComplex, core.FieldTypeComplexNullable:
 			// complex has no portable "?" counterpart (see
 			// lib/core/preprocess-entities.go), so it's carried over unchanged - a
 			// plain value, same as on the entity itself. There's no way to say

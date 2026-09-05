@@ -259,7 +259,14 @@ func goRenderField(
 	}
 
 	if field.GetComplex() != "" {
+		// complex? exists only for lib/js's benefit (undefined/null allowed on the
+		// setter and definition, same as every other nullable field there) - Go has
+		// no nullable counterpart of its own for complex (see
+		// core.nullableFieldType's doc comment), so complex? collapses to the exact
+		// same "complex" here that a plain complex field already gets: same Type,
+		// same (non-nullable) IsNullable, same generated code either way.
 		privateFieldToken.Type = "complex"
+		privateFieldToken.IsNullable = false
 
 		// This means type is complex, can be instantiated.
 		if strings.Contains(field.GetComplex(), "+") {
@@ -272,8 +279,12 @@ func goRenderField(
 	privateField := privateFieldToken.Compile()
 
 	return goRenderedField{
-		Name:                field.GetName(),
-		Type:                string(field.GetType()),
+		Name: field.GetName(),
+		// privateFieldToken.Type, not field.GetType(): a complex? field must render
+		// with the same "complex" Type string as a plain complex field everywhere
+		// downstream (e.g. the generated CLI flag's Type), matching the
+		// normalization already applied above.
+		Type:                privateFieldToken.Type,
 		PrivateField:        privateField,
 		Description:         field.GetDescription(),
 		CliCaptureStatement: privateFieldToken.CliCaptureStatement(),

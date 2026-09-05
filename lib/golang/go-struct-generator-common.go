@@ -114,7 +114,7 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 				continue
 			}
 
-			if field.Complex != "" && field.Type == core.FieldTypeComplex {
+			if field.Complex != "" && core.IsComplexFieldType(field.Type) {
 				result = append(result, strings.ReplaceAll(field.Complex, "+", ""))
 			}
 			if len(field.Fields) > 0 {
@@ -138,7 +138,7 @@ func DetectIfComplexIsUsed(fields []*core.EmiField) bool {
 				continue
 			}
 
-			if field.Complex != "" && field.Type == core.FieldTypeComplex {
+			if field.Complex != "" && core.IsComplexFieldType(field.Type) {
 				result = true
 			}
 
@@ -433,7 +433,7 @@ func goFieldTypeOnNestedClasses(
 	}
 	prefix := core.ToUpper(parentChain) + core.ToUpper(field.GetName())
 	switch field.GetType() {
-	case core.FieldTypeComplex:
+	case core.FieldTypeComplex, core.FieldTypeComplexNullable:
 
 		globalDef := findComplexGlobalDefinition(field.GetComplex(), goctx)
 		if globalDef != nil && globalDef.Namespace != "" {
@@ -468,10 +468,20 @@ func goFieldTypeOnNestedClasses(
 		if field.GetTarget() == "" {
 			return "interface{}"
 		}
-		if field.GetType() == core.FieldTypeListNullable {
-			return fmt.Sprintf("[]%v", field.GetTarget())
+		// Cross-module target (field.GetModule() set) needs the same
+		// field.GetModule()+"."+target qualification the FieldTypeOne/OneNullable
+		// case above already applies to its dto-side rendering - otherwise the
+		// bare target name resolves (if at all) to a same-named type in the
+		// current package rather than the intended one in another module, or
+		// fails to compile outright when no such type exists locally.
+		target := field.GetTarget()
+		if field.GetModule() != "" {
+			target = field.GetModule() + "." + target
 		}
-		return fmt.Sprintf("[]*%v", field.GetTarget())
+		if field.GetType() == core.FieldTypeListNullable {
+			return fmt.Sprintf("[]%v", target)
+		}
+		return fmt.Sprintf("[]*%v", target)
 	case core.FieldTypeClass, core.FieldTypeClassNullable:
 		// Golang-only, deliberately not wrapped in emigo.One/OneNullable: a plain
 		// struct/pointer is exactly the shape gorm's own reflection-based schema
@@ -491,10 +501,18 @@ func goFieldTypeOnNestedClasses(
 		if field.GetTarget() == "" {
 			return "interface{}"
 		}
-		if field.GetType() == core.FieldTypeClassNullable {
-			return field.GetTarget()
+		// Same cross-module qualification as the _list/_list? case above (and as
+		// FieldTypeOne/OneNullable's own dto-side rendering already does) - a
+		// class/class? field converted from one/one? by ApplyEntityGormTags must
+		// still resolve to the other module's type, not a same-named local one.
+		target := field.GetTarget()
+		if field.GetModule() != "" {
+			target = field.GetModule() + "." + target
 		}
-		return fmt.Sprintf("*%v", field.GetTarget())
+		if field.GetType() == core.FieldTypeClassNullable {
+			return target
+		}
+		return fmt.Sprintf("*%v", target)
 	case core.FieldTypeObjectNullable:
 		return fmt.Sprintf("emigo.Nullable[%v]", prefix)
 	default:

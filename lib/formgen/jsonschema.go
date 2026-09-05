@@ -149,10 +149,74 @@ func (s *JSONSchema) MarshalJSON() ([]byte, error) {
 // BuildJSONSchema converts a dto's fields into a root `type: object` schema.
 // title/description are typically the dto's class name and EmiDto.Description.
 func BuildJSONSchema(title, description string, fields []*core.EmiField) *JSONSchema {
+	return buildJSONSchema(title, description, fields, nil)
+}
+
+// BuildJSONSchemaWithTranslationKeys is BuildJSONSchema's sibling for a
+// caller that wants every human-facing string - title, description, and
+// (unlike BuildSchemaLocales below) enum option labels too - replaced with a
+// stable translation *key* instead of literal text; see
+// lib/js/js-common-object-class.go's `--tags json-schema` embedding
+// (`static JsonSchema`/`static DefaultTranslations`), the current caller.
+//
+// This shares the exact same field-plan tree walk BuildJSONSchema uses (see
+// buildJSONSchema below, and objectSchema/fieldSchema/enumSchema's now-shared
+// `translations` parameter) - it is not a second, parallel schema builder
+// that could drift from the first, and nothing here parses an already-built
+// schema back apart to retrofit keys onto it: the schema is built with keys
+// already in place, in one pass, the same way BuildJSONSchema builds one
+// with literal text already in place, in one pass.
+//
+// Returned alongside the schema: a DefaultTranslations bucket mapping each
+// key back to the literal text BuildJSONSchema would have put in the schema
+// directly (the root schema's own title/description use the two reserved
+// keys "$title"/"$description" - "$"-prefixed so they can never collide with
+// a field, since no dto field name can itself start with "$"). Key naming
+// mirrors real JSON Schema navigation from the field itself, `_`-joined
+// (matching BuildSchemaLocales' own convention below) - "_properties_<child>"
+// into a nested object, "_items_properties_<child>" into an array item's own
+// field, "_enum_<value>" per enum option - so the key for any string in the
+// schema can be reconstructed just by reading the schema's own shape. Every
+// segment is snake_cased (core.ToSnakeCase) even though the dto's own field
+// names are camelCase - a camelCase `fullName` becomes key segment
+// "full_name" (so the full key reads "full_name_title", not
+// "fullName_title") - only the *key*, never the real JSON property name
+// SchemaProperty.Key/JSONSchema.Required carry, which stays exactly as the
+// dto wrote it, matched verbatim against real form data.
+func BuildJSONSchemaWithTranslationKeys(
+	title, description string,
+	fields []*core.EmiField,
+) (*JSONSchema, *SchemaLocaleBucket) {
+	translations := &SchemaLocaleBucket{}
+	schema := buildJSONSchema(title, description, fields, translations)
+	return schema, translations
+}
+
+// buildJSONSchema is the one field-plan tree walk both BuildJSONSchema and
+// BuildJSONSchemaWithTranslationKeys go through. translations == nil is
+// BuildJSONSchema's own "plain literal text" behavior, unchanged; a non-nil
+// bucket switches every title/description/enum-option string to a key and
+// records its text into that bucket instead - see objectSchema/fieldSchema/
+// enumSchema, which all thread the same `translations` parameter down.
+func buildJSONSchema(title, description string, fields []*core.EmiField, translations *SchemaLocaleBucket) *JSONSchema {
+	if translations != nil {
+		translations.Entries = append(translations.Entries,
+			SchemaLocaleEntry{Key: "$title", Value: title},
+			SchemaLocaleEntry{Key: "$description", Value: description},
+		)
+	}
+
 	plan := BuildFormPlan(title, fields)
-	schema := objectSchema(plan.Fields)
-	schema.Title = title
-	schema.Description = description
+	schema := objectSchema(plan.Fields, "", translations)
+
+	if translations == nil {
+		schema.Title = title
+		schema.Description = description
+	} else {
+		schema.Title = "$title"
+		schema.Description = "$description"
+	}
+
 	return schema
 }
 
@@ -262,10 +326,28 @@ func collectSchemaLocaleEntries(fields []*FieldPlan, pathPrefix string, bucket *
 	}
 }
 
-func objectSchema(fields []*FieldPlan) *JSONSchema {
+// objectSchema/fieldSchema/enumSchema all take `pathPrefix`/`translations`
+// purely so a single tree walk can serve both BuildJSONSchema (translations
+// == nil, pathPrefix unused) and BuildJSONSchemaWithTranslationKeys
+// (translations != nil - see buildJSONSchema, its only two callers).
+func objectSchema(fields []*FieldPlan, pathPrefix string, translations *SchemaLocaleBucket) *JSONSchema {
 	s := &JSONSchema{Type: "object"}
 	for _, f := range fields {
-		s.Properties = append(s.Properties, SchemaProperty{Key: f.Name, Schema: fieldSchema(f)})
+		// The translation key's own path segment is snake_cased
+		// ("fullName" -> "full_name") even though the actual JSON property
+		// name below (SchemaProperty.Key/s.Required, matched verbatim
+		// against real form data) stays exactly as the dto wrote it -
+		// translation keys read as one snake_case identifier end to end
+		// this way ("full_name_title") instead of camelCase field names
+		// jammed against snake_case "_title"/"_description"/"_enum_"
+		// suffixes ("fullName_title").
+		keySegment := core.ToSnakeCase(f.Name)
+		key := keySegment
+		if pathPrefix != "" {
+			key = pathPrefix + "_" + keySegment
+		}
+
+		s.Properties = append(s.Properties, SchemaProperty{Key: f.Name, Schema: fieldSchema(f, key, translations)})
 		if !f.Nullable {
 			s.Required = append(s.Required, f.Name)
 		}
@@ -273,7 +355,7 @@ func objectSchema(fields []*FieldPlan) *JSONSchema {
 	return s
 }
 
-func fieldSchema(f *FieldPlan) *JSONSchema {
+func fieldSchema(f *FieldPlan, key string, translations *SchemaLocaleBucket) *JSONSchema {
 	var s *JSONSchema
 
 	switch f.Widget {
@@ -284,15 +366,15 @@ func fieldSchema(f *FieldPlan) *JSONSchema {
 	case WidgetCheckbox:
 		s = &JSONSchema{Type: "boolean"}
 	case WidgetSelect:
-		s = enumSchema(f)
+		s = enumSchema(f, key, translations)
 	case WidgetPrimitiveList:
 		s = &JSONSchema{Type: "array", Items: primitiveSchema(f.Primitive)}
 	case WidgetMap:
 		s = &JSONSchema{Type: "object", AdditionalProperties: primitiveSchema(f.MapPairOf)}
 	case WidgetObjectGroup:
-		s = objectSchema(f.Children)
+		s = objectSchema(f.Children, key+"_properties", translations)
 	case WidgetArrayGroup:
-		s = &JSONSchema{Type: "array", Items: objectSchema(f.Children)}
+		s = &JSONSchema{Type: "array", Items: objectSchema(f.Children, key+"_items_properties", translations)}
 	case WidgetOneRelation:
 		// Left unconstrained on purpose - see the JSONSchema doc comment.
 		s = &JSONSchema{}
@@ -302,10 +384,25 @@ func fieldSchema(f *FieldPlan) *JSONSchema {
 		s = &JSONSchema{}
 	}
 
-	s.Title = HumanizeLabel(f.Name)
-	if f.Field != nil {
-		s.Description = f.Field.Description
+	label := HumanizeLabel(f.Name)
+	if translations == nil {
+		s.Title = label
+	} else {
+		titleKey := key + "_title"
+		s.Title = titleKey
+		translations.Entries = append(translations.Entries, SchemaLocaleEntry{Key: titleKey, Value: label})
 	}
+
+	if f.Field != nil && f.Field.Description != "" {
+		if translations == nil {
+			s.Description = f.Field.Description
+		} else {
+			descriptionKey := key + "_description"
+			s.Description = descriptionKey
+			translations.Entries = append(translations.Entries, SchemaLocaleEntry{Key: descriptionKey, Value: f.Field.Description})
+		}
+	}
+
 	return s
 }
 
@@ -331,10 +428,17 @@ func primitiveSchema(primitive string) *JSONSchema {
 	}
 }
 
-func enumSchema(f *FieldPlan) *JSONSchema {
+func enumSchema(f *FieldPlan, key string, translations *SchemaLocaleBucket) *JSONSchema {
 	s := &JSONSchema{Type: "string"}
 	for _, o := range f.EnumOptions {
-		s.OneOf = append(s.OneOf, JSONSchemaConst{Const: o.Value, Title: o.Label})
+		if translations == nil {
+			s.OneOf = append(s.OneOf, JSONSchemaConst{Const: o.Value, Title: o.Label})
+			continue
+		}
+
+		optionKey := key + "_enum_" + core.ToSnakeCase(o.Value)
+		s.OneOf = append(s.OneOf, JSONSchemaConst{Const: o.Value, Title: optionKey})
+		translations.Entries = append(translations.Entries, SchemaLocaleEntry{Key: optionKey, Value: o.Label})
 	}
 	return s
 }
