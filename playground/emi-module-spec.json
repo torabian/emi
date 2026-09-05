@@ -456,7 +456,8 @@
             "float32?",
             "float64?",
             "any",
-            "complex"
+            "complex",
+            "complex?"
           ],
           "description": "Type of the field based on Emi types."
         },
@@ -512,6 +513,10 @@
         "providerAlias": {
           "type": "string",
           "description": "You can set an alias for the provider so the import will be done using that name instead of auto detection. Useful ingolang implementation."
+        },
+        "jsProvider": {
+          "type": "string",
+          "description": "Full JS/TS import path (including the target's own class name) for a one/one?/collection/collection? field whose target lives in another module's js output directory - see Provider's own doc comment for the Go equivalent this fills the gap for."
         },
         "of": {
           "items": {
