@@ -216,7 +216,7 @@ export class MyIntClassDto {
    *
    * @type {number}
    **/
-  #nullableIntWithDefault?: number | null = 7;
+  #nullableIntWithDefault?: number | null | undefined = 7;
   /**
    *
    * @returns {number}
@@ -244,7 +244,7 @@ export class MyIntClassDto {
    *
    * @type {number}
    **/
-  #nullableIntWithoutDefault?: number | null = undefined;
+  #nullableIntWithoutDefault?: number | null | undefined = undefined;
   /**
    *
    * @returns {number}

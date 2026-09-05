@@ -122,7 +122,7 @@ export class MyArrayClassDto {
      *
      * @type {string}
      **/
-    #phone?: string | null = undefined;
+    #phone?: string | null | undefined = undefined;
     /**
      *
      * @returns {string}
@@ -467,7 +467,7 @@ export class MyArrayClassDto {
      *
      * @type {string}
      **/
-    #phone?: string | null = undefined;
+    #phone?: string | null | undefined = undefined;
     /**
      *
      * @returns {string}
@@ -747,7 +747,7 @@ export class MyArrayClassDto {
   ) {
     // For nullable array, we allow explicit undefined or null values
     if (value === null || value === undefined) {
-      this.#nullableTags = value;
+      this.#nullableTags = value === null ? null : undefined;
       return;
     }
     // When the passed value is already an array, we check if we need to

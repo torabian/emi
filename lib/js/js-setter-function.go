@@ -78,7 +78,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		// Anything else always becomes a real instance, exactly like a
 		// non-nullable "complex" field does.
 		if (value === null || value === undefined) {
-			this.#{{.ctx.Name}} = value;
+			this.#{{.ctx.Name}} = value === null ? null : undefined;
 
 			return
 		}
@@ -105,7 +105,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		{{ if or (eq .ctx.Type "array?") }}
 		// For nullable array, we allow explicit undefined or null values
 		if (value === null || value === undefined) {
-			this.#{{.ctx.Name}} = value;
+			this.#{{.ctx.Name}} = value === null ? null : undefined;
 
 			return
 		}
@@ -157,7 +157,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		{{ if or (eq .ctx.Type "collection?") }}
 		// For nullable collection, we allow explicit undefined or null values
 		if (value === null || value === undefined) {
-			this.#{{.ctx.Name}} = value;
+			this.#{{.ctx.Name}} = value === null ? null : undefined;
 
 			return
 		}
@@ -217,7 +217,7 @@ set {{ .ctx.Name }} (|@arg.value|) {
 		// on the wire, the same way every other nullable field here (array?,
 		// collection?) already short-circuits on null/undefined above.
 		if (value === null || value === undefined) {
-			this.#{{.ctx.Name}} = value;
+			this.#{{.ctx.Name}} = value === null ? null : undefined;
 
 			return
 		}

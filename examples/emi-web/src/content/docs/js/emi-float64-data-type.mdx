@@ -208,7 +208,7 @@ export class MyFloatClassDto {
    *
    * @type {number}
    **/
-  #nullableFloatWithDefault?: number | null = 1.23;
+  #nullableFloatWithDefault?: number | null | undefined = 1.23;
   /**
    *
    * @returns {number}
@@ -236,7 +236,7 @@ export class MyFloatClassDto {
    *
    * @type {number}
    **/
-  #nullableFloatWithoutDefault?: number | null = undefined;
+  #nullableFloatWithoutDefault?: number | null | undefined = undefined;
   /**
    *
    * @returns {number}

@@ -78,8 +78,15 @@ export const {{ .className }}Query = (
 		// false whenever any path parameter is missing/empty fixes this the same way
 		// for every generated get-by-id hook at once - options.enabled below still
 		// wins if a caller explicitly opts back in.
+		//
+		// Also checks the *string* "undefined"/"null", not just the real values -
+		// a caller building params off something already coerced to text before
+		// this hook ever sees it (e.g. a router param read via a JS template
+		// literal, or String(value) upstream) hands this a param that's
+		// technically a non-empty string, but is exactly the same "nothing to
+		// fetch yet" case as the real undefined/null it stringified from.
 		enabled: !Object.values(options.params || {}).some(
-			(v) => v === undefined || v === null || v === "",
+			(v) => v === undefined || v === null || v === "" || v === "undefined" || v === "null",
 		),
 		{{ end }}
 		...(options || {}),

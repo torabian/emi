@@ -216,7 +216,7 @@ export class MyStringClassDto {
    *
    * @type {string}
    **/
-  #nullableStringWithDefault?: string | null = "With default value";
+  #nullableStringWithDefault?: string | null | undefined = "With default value";
   /**
    *
    * @returns {string}
@@ -241,7 +241,7 @@ export class MyStringClassDto {
    *
    * @type {string}
    **/
-  #nullableWithoutDefault?: string | null = undefined;
+  #nullableWithoutDefault?: string | null | undefined = undefined;
   /**
    *
    * @returns {string}

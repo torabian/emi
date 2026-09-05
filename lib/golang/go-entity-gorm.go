@@ -148,10 +148,21 @@ func applyEntityGormTags(entity *core.Module3Entity, childStructPrefix string, f
 				field.Tags["gorm"] = "-"
 			}
 
+			// Cross-module target (field.GetModule() set) needs the same
+			// module-qualification the CollectionNullable[T] wrapper field
+			// itself already gets (see FieldTypeCollection/CollectionNullable
+			// rendering in go-struct-generator-common.go) - otherwise this
+			// hidden sibling's "[]*Target" refers to a same-package type that
+			// doesn't exist when Target actually lives in another package.
+			rowTarget := field.Target
+			if field.GetModule() != "" {
+				rowTarget = field.GetModule() + "." + rowTarget
+			}
+
 			extra = append(extra, hiddenSibling(
 				field.Name+"Row",
 				core.FieldTypeComplex,
-				"[]*"+field.Target,
+				"[]*"+rowTarget,
 				"many2many:"+entity.Name+"_"+field.Name+";foreignKey:Id;references:Id",
 			))
 

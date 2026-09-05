@@ -130,10 +130,24 @@ func CollectComplexClasses(fields []*core.EmiField) []string {
 
 var SELF_FIELD = "self@"
 
+// EntityTargetRef is one `target:` reference CollectTargets found - the
+// short name (`field.Target`, e.g. "WalletEntity") always used as the
+// generated alias/type name everywhere else in this file, kept separate from
+// JsProvider (e.g. "@fireback/wallet/sdk/WalletEntity", empty for a
+// same-module reference) so entityTargetToCodeChunk never has to guess which
+// one a single collapsed string was - see its own doc comment for the bug
+// that produced (`import { WalletDto as @fireback/wallet/sdk/WalletEntity }`,
+// the full import path used as the alias) before Target/JsProvider were
+// tracked separately here.
+type EntityTargetRef struct {
+	Target     string
+	JsProvider string
+}
+
 // when developer says target: AnotherEntity or target: AnotherDto, we need
 // to import that. Here we search through the definition tree and extract them all
-func CollectTargets(fields []*core.EmiField) []string {
-	var result []string
+func CollectTargets(fields []*core.EmiField) []EntityTargetRef {
+	var result []EntityTargetRef
 
 	var walk func(f []*core.EmiField)
 	walk = func(f []*core.EmiField) {
@@ -144,21 +158,7 @@ func CollectTargets(fields []*core.EmiField) []string {
 
 			isSelf, _ := getSelfReferencingField(field, "")
 			if field.Target != "" && !isSelf {
-				// A genuinely cross-module target (field.JsProvider set - see
-				// its own doc comment in EmiField.go) is passed through as
-				// its full import path (including the target's own class
-				// name), not the bare target name - entityTargetToCodeChunk/
-				// castDtoNameToCodeChunk below already split "path/ClassName"
-				// into a real import for exactly this shape (see
-				// parseDtoPath), so no other change is needed to make it
-				// resolve correctly instead of assuming a same-directory
-				// sibling file ("./<Target>", only ever true for a
-				// same-module reference).
-				if field.JsProvider != "" {
-					result = append(result, field.JsProvider)
-				} else {
-					result = append(result, field.Target)
-				}
+				result = append(result, EntityTargetRef{Target: field.Target, JsProvider: field.JsProvider})
 			}
 
 			if len(field.Fields) > 0 {
@@ -186,12 +186,22 @@ func CollectTargets(fields []*core.EmiField) []string {
 // shim files sitting in the generated output directory - which then got deleted on every
 // `clean: true` regeneration, since nothing there marks them as hand-written. Resolving
 // the alias at generation time instead means no physical shim file is needed at all.
-func entityTargetToCodeChunk(target string) *core.CodeChunkCompiled {
+//
+// jsProvider (EmiField.JsProvider - empty for a same-module/same-output-directory
+// reference) only ever changes *where* the sibling XDto is imported *from* - the
+// alias importers see (`target`, e.g. "WalletEntity") is always the field's own
+// short target name, never jsProvider's full path, even when jsProvider is set.
+func entityTargetToCodeChunk(target string, jsProvider string) *core.CodeChunkCompiled {
 	if !strings.HasSuffix(target, "Entity") || target == "Entity" {
 		return castDtoNameToCodeChunk(target)
 	}
 
-	dtoName := strings.TrimSuffix(target, "Entity") + "Dto"
+	source := target
+	if jsProvider != "" {
+		source = jsProvider
+	}
+
+	dtoName := strings.TrimSuffix(source, "Entity") + "Dto"
 	directory, dtoClassName := parseDtoPath(dtoName)
 
 	return &core.CodeChunkCompiled{
@@ -286,9 +296,11 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 
 	collectTargets := CollectTargets(fields)
 	for _, item := range collectTargets {
-		m := entityTargetToCodeChunk(item)
+		m := entityTargetToCodeChunk(item.Target, item.JsProvider)
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, m.CodeChunkDependensies...)
 	}
+
+	var translationTypeDeclaration string
 
 	renderedClasses := jsRenderDataClasses(fields, jsctx.RootClassName, jsctx.RootClassName, "", true, ctx, jsctx)
 	if len(renderedClasses) > 0 {
@@ -299,12 +311,24 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 		// directly on its own class as `static JsonSchema = {...}`, the same way
 		// action classes already carry `static Definition = {...}` (see
 		// js-action-main-class.go) - one generated file per dto, no sibling
-		// .schema.json to keep in sync. Root class only: formgen.BuildJSONSchema
-		// already inlines nested object/array children into the same schema tree
-		// (properties/items), so a nested SubClass repeating it would just be a
-		// redundant, deeply-nested copy of the same document.
+		// .schema.json to keep in sync. Root class only:
+		// formgen.BuildJSONSchemaWithTranslationKeys already inlines nested
+		// object/array children into the same schema tree (properties/items), so
+		// a nested SubClass repeating it would just be a redundant, deeply-nested
+		// copy of the same document.
+		//
+		// JsonSchema's own title/description/enum-option strings are translation
+		// *keys* here (see formgen.BuildJSONSchemaWithTranslationKeys' own doc
+		// comment for the exact naming), not literal text - `static
+		// DefaultTranslations` right below resolves every one of them back to
+		// the dto's own source-language text. A locale-aware consumer overlays
+		// its own translated object (typed `{ClassName}Translations` - see
+		// translationTypeDeclaration below, generated once TypeScript is
+		// requested - so a translation missing a key is a compile error, not a
+		// blank label discovered at runtime) instead of DefaultTranslations, and
+		// walks the schema resolving each key through whichever one is active.
 		if ctx.HasTag(JsonSchema) {
-			schema := formgen.BuildJSONSchema(jsctx.RootClassName, jsctx.Description, fields)
+			schema, translations := formgen.BuildJSONSchemaWithTranslationKeys(jsctx.RootClassName, jsctx.Description, fields)
 			schemaJSON, err := json.MarshalIndent(schema, "", "  ")
 			if err != nil {
 				return nil, fmt.Errorf("js: failed marshaling JsonSchema for %v: %w", jsctx.RootClassName, err)
@@ -312,19 +336,28 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 			renderedClasses[0].ClassStaticFunctions = append(renderedClasses[0].ClassStaticFunctions,
 				fmt.Sprintf("static JsonSchema = %s", schemaJSON))
 
-			// static SchemaLocales = {...} - see formgen.SchemaLocales' own doc
-			// comment: JsonSchema's title/description stay English-only/literal
-			// (unchanged above) for a consumer with no locale overlay; this is
-			// what a locale-aware consumer overlays onto them instead, one
-			// locale bucket at a time, starting from "default" (the same
-			// source-language text JsonSchema already carries, just flat-keyed).
-			locales := formgen.BuildSchemaLocales(jsctx.RootClassName, jsctx.Description, fields)
-			localesJSON, err := json.MarshalIndent(locales, "", "  ")
+			translationsJSON, err := json.MarshalIndent(translations, "", "  ")
 			if err != nil {
-				return nil, fmt.Errorf("js: failed marshaling SchemaLocales for %v: %w", jsctx.RootClassName, err)
+				return nil, fmt.Errorf("js: failed marshaling DefaultTranslations for %v: %w", jsctx.RootClassName, err)
+			}
+			defaultTranslationsSuffix := ""
+			if isTypeScript {
+				// `as const` keeps every key/value a literal string type instead of
+				// widening to `string`, which is what makes `keyof typeof
+				// {ClassName}.DefaultTranslations` in translationTypeDeclaration
+				// below an exact union of the real keys instead of just `string`.
+				defaultTranslationsSuffix = " as const"
 			}
 			renderedClasses[0].ClassStaticFunctions = append(renderedClasses[0].ClassStaticFunctions,
-				fmt.Sprintf("static SchemaLocales = %s", localesJSON))
+				fmt.Sprintf("static DefaultTranslations = %s%s", translationsJSON, defaultTranslationsSuffix))
+
+			if isTypeScript {
+				className := core.ToUpper(jsctx.RootClassName)
+				translationTypeDeclaration = fmt.Sprintf(
+					"export type %sTranslationKey = keyof typeof %s.DefaultTranslations;\nexport type %sTranslations = Record<%sTranslationKey, string>;",
+					className, className, className, className,
+				)
+			}
 		}
 	}
 
@@ -497,15 +530,20 @@ export abstract class %vFactory {
 	{{ .abstractFactoryClass }}
 {{ end }}
 
+{{ if .translationTypeDeclaration }}
+	{{ .translationTypeDeclaration }}
+{{ end }}
+
 `
 
 	t := template.Must(template.New("action").Funcs(core.CommonMap).Parse(tmpl))
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"isTypeScript":         isTypeScript,
-		"renderedClasses":      renderedClasses,
-		"abstractFactoryClass": abstractFactoryClass,
+		"isTypeScript":               isTypeScript,
+		"renderedClasses":            renderedClasses,
+		"abstractFactoryClass":       abstractFactoryClass,
+		"translationTypeDeclaration": translationTypeDeclaration,
 	}); err != nil {
 		return nil, err
 	}

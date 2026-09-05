@@ -131,8 +131,20 @@ func (x jsFieldVariable) Compile(isTypeScript bool) string {
 		// harmless-but-wrong doubled union like
 		// "MOne<X> | null | undefined | null". Skip the generic append
 		// whenever ComputedType already mentions "null" itself.
+		//
+		// " | null | undefined", not just " | null": a field's `?` optional
+		// modifier only implies "| undefined" for *reading* it - under
+		// `exactOptionalPropertyTypes` (a real, not uncommon strict-mode
+		// flag) it does not extend to assignment, so a field declared only
+		// "T | null" rejects the literal `undefined` its own setter
+		// legitimately assigns on the "explicitly cleared" branch every
+		// nullable one/collection field has (see js-setter-function.go) -
+		// "Type 'undefined' is not assignable to type 'MCollection<X> |
+		// null'." A field whose ComputedType is missing "null" was always
+		// missing "undefined" too, for the exact same reason; this one
+		// generic append was the only place that still needed telling.
 		if x.IsNullable && !strings.Contains(x.ComputedType, "null") {
-			sequence = append(sequence, " | null")
+			sequence = append(sequence, " | null | undefined")
 		}
 	}
 

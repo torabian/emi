@@ -182,7 +182,7 @@ export class NullableResponseActionDto {
     // on the wire, the same way every other nullable field here (array?,
     // collection?) already short-circuits on null/undefined above.
     if (value === null || value === undefined) {
-      this.#secondUncle = value;
+      this.#secondUncle = value === null ? null : undefined;
       return;
     }
     // For objects, the sub type needs to always be instance of the sub class.

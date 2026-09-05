@@ -151,7 +151,7 @@ get collectionNullableField () { return this.#collectionNullableField }
 set collectionNullableField (value) {
 		// For nullable collection, we allow explicit undefined or null values
 		if (value === null || value === undefined) {
-			this.#collectionNullableField = value;
+			this.#collectionNullableField = value === null ? null : undefined;
 			return
 		}
 		// When the passed value is already an array, we check if we need to
@@ -239,7 +239,7 @@ set oneNullableField (value) {
 		// on the wire, the same way every other nullable field here (array?,
 		// collection?) already short-circuits on null/undefined above.
 		if (value === null || value === undefined) {
-			this.#oneNullableField = value;
+			this.#oneNullableField = value === null ? null : undefined;
 			return
 		}
 		// For objects, the sub type needs to always be instance of the sub class.
