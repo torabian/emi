@@ -61,6 +61,11 @@ export class DeleteUserAction {
   };
 }
 /**
+ * The base type definition for deleteUserActionReq
+ * @typedef {Object} DeleteUserActionReqType
+ * @property {number} id - Id of the user to delete
+ */
+/**
  * The base class definition for deleteUserActionReq
  **/
 export class DeleteUserActionReq {
@@ -171,6 +176,11 @@ export class DeleteUserActionReq {
     return new DeleteUserActionReq(this.toJSON());
   }
 }
+/**
+ * The base type definition for deleteUserActionRes
+ * @typedef {Object} DeleteUserActionResType
+ * @property {boolean} deleted
+ */
 /**
  * The base class definition for deleteUserActionRes
  **/
