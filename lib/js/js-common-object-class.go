@@ -191,9 +191,40 @@ func CollectTargets(fields []*core.EmiField) []EntityTargetRef {
 // reference) only ever changes *where* the sibling XDto is imported *from* - the
 // alias importers see (`target`, e.g. "WalletEntity") is always the field's own
 // short target name, never jsProvider's full path, even when jsProvider is set.
+//
+// target isn't always Entity-shaped: a dto field can also reference another dto
+// directly by its own Dto-suffixed name (e.g. `target: MusicalWorkDto`, no
+// Entity/Dto suffix swap needed since it already *is* the Dto's class name). That
+// shape used to fall straight through to castDtoNameToCodeChunk below, which has
+// no notion of jsProvider at all and always assumes a same-directory sibling file
+// - so a cross-module Dto-shaped target silently ignored jsProvider and produced a
+// dangling "./XDto" import. Handled explicitly first so jsProvider is honored for
+// both shapes.
 func entityTargetToCodeChunk(target string, jsProvider string) *core.CodeChunkCompiled {
 	if !strings.HasSuffix(target, "Entity") || target == "Entity" {
-		return castDtoNameToCodeChunk(target)
+		if jsProvider == "" {
+			return castDtoNameToCodeChunk(target)
+		}
+
+		directory, dtoClassName := parseDtoPath(jsProvider)
+		objectRef := dtoClassName
+		if dtoClassName != target {
+			objectRef = dtoClassName + " as " + target
+		}
+
+		return &core.CodeChunkCompiled{
+			ActualScript: []byte(""),
+			Tokens: []core.GeneratedScriptToken{
+				{Name: TOKEN_OBJ_CLASS, Value: target},
+				{Name: TOKEN_ROOT_CLASS, Value: target},
+			},
+			CodeChunkDependensies: []core.CodeChunkDependency{
+				{
+					Objects:  []string{objectRef},
+					Location: directory,
+				},
+			},
+		}
 	}
 
 	source := target
