@@ -72,6 +72,19 @@ export class ListUsersAction {
   };
 }
 /**
+ * The base type definition for usersType
+ * @typedef {Object} ListUsersActionResType.UsersType
+ * @property {number} id
+ * @property {string} firstName
+ * @property {string} lastName
+ * @property {string} birthDate
+ */
+/**
+ * The base type definition for listUsersActionRes
+ * @typedef {Object} ListUsersActionResType
+ * @property {ListUsersActionResType.UsersType[]} users
+ */
+/**
  * The base class definition for listUsersActionRes
  **/
 export class ListUsersActionRes {

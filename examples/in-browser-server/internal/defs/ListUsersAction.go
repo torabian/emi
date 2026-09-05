@@ -215,8 +215,9 @@ func (x ListUsersActionRequest) GetCliCtx() interface{} {
 // ListUsersActionHttpHandler returns the HTTP method, the ServeMux pattern, and a
 // typed net/http handler for the ListUsersAction action. Developers implement
 // their business logic as a function that receives a typed request object and
-// returns either an *ListUsersActionResponse or nil. JSON marshalling, headers,
-// status codes, and errors are handled automatically.
+// returns either an *ListUsersActionResponse or nil. Body binding, headers, status
+// codes, and errors are all handled by emigo - see BindHttpRequestBody, RenderHttpError
+// and RenderHttpResult in github.com/torabian/emi/emigo.
 func ListUsersActionHttpHandler(
 	handler func(c ListUsersActionRequest) (*ListUsersActionResponse, error),
 ) (method, pattern string, h http.HandlerFunc) {
@@ -231,9 +232,7 @@ func ListUsersActionHttpHandler(
 		}
 		resp, err := handler(req)
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			emigo.RenderHttpError(w, r, err)
 			return
 		}
 		// If the handler returned nil (and no error), the response was handled
@@ -241,24 +240,7 @@ func ListUsersActionHttpHandler(
 		if resp == nil {
 			return
 		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			w.Header().Set(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			if w.Header().Get("Content-Type") == "" {
-				w.Header().Set("Content-Type", "application/json")
-			}
-			w.WriteHeader(status)
-			json.NewEncoder(w).Encode(resp.Payload)
-		} else {
-			w.WriteHeader(status)
-		}
+		emigo.RenderHttpResult(w, r, resp)
 	}
 }
 

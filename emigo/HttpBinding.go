@@ -39,13 +39,36 @@ func BindHttpRequestBody(r *http.Request, body any) error {
 	return BindJsonBytes(data, body)
 }
 
-// RenderHttpError writes err to w as JSON. See RenderGinError for the shared
+// writeHttpEnvelope writes status/envelope to w in the format the request's
+// Accept header names (see detectAcceptFormat), falling back to JSON if
+// that format's marshaler rejects envelope (all defined formats accept a
+// map[string]any today, but this keeps a response going out either way).
+func writeHttpEnvelope(w http.ResponseWriter, accept string, status int, envelope map[string]any) {
+	format := detectAcceptFormat(accept)
+	body, err := marshalResponse(format, envelope)
+	if err != nil {
+		format = responseFormatJSON
+		body, err = marshalResponse(format, envelope)
+		if err != nil {
+			// json.Marshal on a map[string]any is not expected to fail;
+			// this is the last-resort path if it somehow does.
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+	w.Header().Set("Content-Type", format.contentType())
+	w.WriteHeader(status)
+	w.Write(body)
+}
+
+// RenderHttpError writes err to w in the format the request's Accept header
+// names (see detectAcceptFormat). See RenderGinError for the shared
 // rendering rules (ToPublicJSON, JSON-string forwarding, plain fallback);
 // this is the same logic against http.ResponseWriter/*http.Request instead
 // of *gin.Context.
 func RenderHttpError(w http.ResponseWriter, r *http.Request, err error) {
 	status := http.StatusInternalServerError
-	w.Header().Set("Content-Type", "application/json")
+	accept := r.Header.Get("Accept")
 
 	if converter, ok := err.(interface {
 		ToPublicJSON(lang string) ([]byte, int32)
@@ -65,13 +88,15 @@ func RenderHttpError(w http.ResponseWriter, r *http.Request, err error) {
 		if code != 0 {
 			status = int(code)
 		}
-		wrapped, wErr := json.Marshal(map[string]json.RawMessage{"error": json.RawMessage(body)})
-		w.WriteHeader(status)
-		if wErr == nil {
-			w.Write(wrapped)
-		} else {
-			w.Write(body)
+		// Decode body back into a generic value (rather than keeping it as
+		// json.RawMessage) so writeHttpEnvelope can re-encode it as YAML
+		// when that's what the client asked for, instead of dumping raw
+		// JSON bytes as a base64-ish YAML string.
+		var decoded any
+		if err := json.Unmarshal(body, &decoded); err != nil {
+			decoded = json.RawMessage(body)
 		}
+		writeHttpEnvelope(w, accept, status, map[string]any{"error": decoded})
 		return
 	}
 
@@ -84,24 +109,23 @@ func RenderHttpError(w http.ResponseWriter, r *http.Request, err error) {
 		if uErr := json.Unmarshal([]byte(trimmed), &probe); uErr == nil && probe.HttpCode != 0 {
 			status = int(probe.HttpCode)
 		}
-		wrapped, wErr := json.Marshal(map[string]json.RawMessage{"error": json.RawMessage(trimmed)})
-		w.WriteHeader(status)
-		if wErr == nil {
-			w.Write(wrapped)
-		} else {
-			w.Write([]byte(trimmed))
+		var decoded any
+		if err := json.Unmarshal([]byte(trimmed), &decoded); err != nil {
+			decoded = trimmed
 		}
+		writeHttpEnvelope(w, accept, status, map[string]any{"error": decoded})
 		return
 	}
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]string{"error": msg})
+	writeHttpEnvelope(w, accept, status, map[string]any{"error": msg})
 }
 
 // RenderHttpResult writes a successful action response: headers, then status
-// (defaulting to 200) and JSON payload, or a bare status when there's no
-// payload. Every emi-generated {{Action}}Response already satisfies
+// (defaulting to 200) and payload, or a bare status when there's no payload.
+// The payload is rendered in whatever format the request's Accept header
+// names (see detectAcceptFormat: JSON, YAML, TOML, or CSV), JSON by
+// default. Every emi-generated {{Action}}Response already satisfies
 // EmiActionResult.
-func RenderHttpResult(w http.ResponseWriter, resp EmiActionResult) {
+func RenderHttpResult(w http.ResponseWriter, r *http.Request, resp EmiActionResult) {
 	for k, v := range resp.GetRespHeaders() {
 		w.Header().Set(k, v)
 	}
@@ -111,13 +135,28 @@ func RenderHttpResult(w http.ResponseWriter, resp EmiActionResult) {
 		status = http.StatusOK
 	}
 
-	if payload := resp.GetPayload(); payload != nil {
-		if w.Header().Get("Content-Type") == "" {
-			w.Header().Set("Content-Type", "application/json")
-		}
+	payload := resp.GetPayload()
+	if payload == nil {
 		w.WriteHeader(status)
-		json.NewEncoder(w).Encode(payload)
-	} else {
-		w.WriteHeader(status)
+		return
 	}
+
+	format := detectAcceptFormat(r.Header.Get("Accept"))
+	body, err := marshalResponse(format, payload)
+	if err != nil {
+		// The requested format's marshaler rejected this payload (e.g. a
+		// TOML/CSV shape it can't represent) - fall back to JSON rather
+		// than dropping the response.
+		format = responseFormatJSON
+		body, err = json.Marshal(payload)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+	if w.Header().Get("Content-Type") == "" {
+		w.Header().Set("Content-Type", format.contentType())
+	}
+	w.WriteHeader(status)
+	w.Write(body)
 }

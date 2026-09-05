@@ -4,13 +4,12 @@ package defs
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"github.com/torabian/emi/emigo"
 	"reflect"
 )
 
 // ListUsersActionRaw registers a raw Gin route for the ListUsersAction action.
 // This gives the developer full control over middleware, handlers, and response handling.
-//
 func ListUsersActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 	meta := ListUsersActionMeta()
 	r.Handle(meta.Method, meta.URL, handlers...)
@@ -18,7 +17,9 @@ func ListUsersActionRaw(r *gin.Engine, handlers ...gin.HandlerFunc) {
 
 // ListUsersActionHandler returns the HTTP method, route URL, and a typed Gin handler for the ListUsersAction action.
 // Developers implement their business logic as a function that receives a typed request object
-// and returns either an *ActionResponse or nil. JSON marshalling, headers, and errors are handled automatically.
+// and returns either an *ActionResponse or nil. Body binding (JSON/YAML/XML/form), headers,
+// errors, and the success response are all handled by emigo - see BindGinRequestBody,
+// RenderGinError and RenderGinResult in github.com/torabian/emi/emigo.
 func ListUsersActionHandler(
 	handler func(c ListUsersActionRequest) (*ListUsersActionResponse, error),
 ) (method, url string, h gin.HandlerFunc) {
@@ -33,27 +34,14 @@ func ListUsersActionHandler(
 		}
 		resp, err := handler(req)
 		if err != nil {
-			m.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			emigo.RenderGinError(m, err)
 			return
 		}
 		// If the handler returned nil (and no error), it means the response was handled manually.
 		if resp == nil {
 			return
 		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			m.Header(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			m.JSON(status, resp.Payload)
-		} else {
-			m.Status(status)
-		}
+		emigo.RenderGinResult(m, resp)
 	}
 }
 
