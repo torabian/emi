@@ -34,7 +34,20 @@ go install github.com/torabian/emi/cmd/emi@latest
 Save this as `user.emi.yml`:
 
 ```yaml
+complexes:
+  - name: Money
+    compiler: go
+    location: github.com/torabian/emi/examples/fullstack/sdk/complexes
+    namespace: complexes
+
 dtos:
+  - name: address
+    fields:
+      - name: city
+        type: string
+      - name: zip
+        type: string?
+
   - name: user
     fields:
       - name: id
@@ -43,13 +56,32 @@ dtos:
         type: string
       - name: age
         type: int?
+      - name: tags
+        type: slice
+        primitive: string
+      - name: addresses
+        type: collection
+        target: AddressDto
+      - name: balance
+        type: complex
+        complex: Money
 ```
 
 `dtos` is a list of data-transfer object definitions — each one gets its own generated
-class/struct, one per target language. `fields` are plain, typed properties: `type` is
-the field's base type (`string`, `int`, `bool`, `object`, `array`, ...), and a trailing
-`?` (as in `int?`) marks it nullable, which every compiler renders the idiomatic way for
-that language (`*int` in Go, `int?` in Swift/C#, `Optional[int]` in Python, and so on).
+class/struct, one per target language. `fields` are plain, typed properties, and a
+trailing `?` (as in `int?`, `string?`, `collection?`) marks any field nullable, which
+every compiler renders the idiomatic way for that language (`*int` in Go, `int?` in
+Swift/C#, `Optional[int]` in Python, ...). A few field shapes worth knowing:
+
+- **Scalars** — `string`, `int`, `bool`, `float`, ...
+- **`slice`** — a homogeneous list of a `primitive` scalar (here, `tags: []string`).
+- **`array`** — a fixed-shape list where each item is itself an inline object (declared
+  with its own nested `fields`).
+- **`collection` / `one`** — a relation to another dto/entity via `target:` (`collection`
+  is many, `one` is a single reference) — `addresses` here becomes `[]AddressDto` (or
+  the equivalent per language).
+- **`complex`** — an escape hatch to a hand-written type declared under `complexes:`,
+  imported from a real language-native location instead of generated.
 
 **3. Compile it to multiple languages**
 
