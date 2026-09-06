@@ -9,6 +9,18 @@ in a single yaml file, and Emi compiles that one definition into working, type-s
 for multiple languages, so the backend and every client SDK are always generated from
 the same source of truth and never drift out of sync with each other.
 
+It's a good fit whenever one API needs to reach several runtimes and you don't want the
+DTOs to drift: a Go/Gin backend paired with a TypeScript web app, a mobile app (Swift/
+Kotlin), and a desktop or CLI client from the same definition; a game (Unreal Engine) or
+an embedded device (ESP-IDF/Arduino) talking to that same backend over real WebSockets;
+or an internal service whose contract needs to be shared, unambiguously, across a
+polyglot team without hand-syncing types in every language by hand. It also fits
+projects that need to publish an **SDK** for their API in several languages at once, or
+need a **CLI** generated straight from the same action definitions the HTTP API already
+exposes — both come out of the same yaml, with no separate spec to maintain.
+
+<img src="./emi-languages.png" style="max-width: 600px" />
+
 Beyond basic DTO/action generation, Emi's goal is to cover the topics that usually get
 bolted on by hand afterwards: **reactive programming** (real WebSocket/SSE actions,
 typed on both ends), **nullability** (nullable-aware types across every target),
@@ -16,8 +28,6 @@ typed on both ends), **nullability** (nullable-aware types across every target),
 **translations** (string-resource generation across languages), a first-class **CLI**
 (Golang actions double as `urfave/cli` commands for free), and **WASM** (the same
 compiler runs in the browser, no server round trip).
-
-<img src="./emi-languages.png" style="max-width: 600px" />
 
 ## Quick start
 
@@ -102,39 +112,39 @@ with `emi compile --path user.emi.yml`.
 A `.emi.yml` module is just a grouping of top-level blocks — this is the "table of
 contents" every compiler (Go, JS, Swift, ...) walks:
 
-| Block       | What it's for                                                                 |
-| ----------- | ------------------------------------------------------------------------------ |
-| `namespace` | Where the module lives in the app tree (PHP-style), used as the client export path. |
-| `dtos`      | Plain data-transfer objects — shared shapes for request/response bodies.       |
-| `entities`  | Database-backed structs; fields become Go struct fields and DB columns, and feed auto-synthesized CRUD actions. |
-| `complexes` | Custom data types that don't fit the built-in field types.                     |
-| `actions`   | Controller-like units of behavior (HTTP and/or CLI), with typed `in`/`out` bodies. |
-| `remotes`   | Typed definitions of external HTTP services the module calls.                  |
-| `config`    | Typed server config, good for casting `.env` values.                           |
+| Block       | What it's for                                                                                                     |
+| ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| `namespace` | Where the module lives in the app tree (PHP-style), used as the client export path.                               |
+| `dtos`      | Plain data-transfer objects — shared shapes for request/response bodies.                                          |
+| `entities`  | Database-backed structs; fields become Go struct fields and DB columns, and feed auto-synthesized CRUD actions.   |
+| `complexes` | Custom data types that don't fit the built-in field types.                                                        |
+| `actions`   | Controller-like units of behavior (HTTP and/or CLI), with typed `in`/`out` bodies.                                |
+| `remotes`   | Typed definitions of external HTTP services the module calls.                                                     |
+| `config`    | Typed server config, good for casting `.env` values.                                                              |
 | `manifests` | Bundles of actions (include/exclude patterns) shippable as one unit (`go-client`, `go-gin`, `go-cli`, `go-wasm`). |
-| `vsqls`     | Hand-written SQL paired with a generated typed parameter struct.               |
-| `targets`   | Self-contained compiler targets bundled with the module, for one-shot `emi compile`. |
-| `templates` | Reusable dto/action shapes, never compiled on their own — only referenced (e.g. via `captures`). |
+| `vsqls`     | Hand-written SQL paired with a generated typed parameter struct.                                                  |
+| `targets`   | Self-contained compiler targets bundled with the module, for one-shot `emi compile`.                              |
+| `templates` | Reusable dto/action shapes, never compiled on their own — only referenced (e.g. via `captures`).                  |
 
 Full schema: https://github.com/torabian/emi/blob/main/playground/public/emi-module-spec.json
 (works with the Red Hat YAML extension in VS Code for autocomplete/validation).
 
 ## Language targets & features
 
-| Target                      | What you get                                                                 |
-| ---------------------------- | ----------------------------------------------------------------------------- |
-| **Golang**                  | Full server + client: DTOs, `Gin` HTTP handlers, `urfave/cli` CLI, GORM entities, reactive/WebSocket support. The only target that generates a server. |
+| Target                      | What you get                                                                                                                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Golang**                  | Full server + client: DTOs, `Gin` HTTP handlers, `urfave/cli` CLI, GORM entities, reactive/WebSocket support. The only target that generates a server.                                      |
 | **JavaScript / TypeScript** | Typed client SDK (vanilla or React + TanStack Query hooks), typed `fetch` layer, JSDoc typedefs for plain JS, reactive WebSocket/SSE hooks, NestJS decorators. Runs in the browser or Node. |
-| **Swift**                   | `Codable` DTO structs, typed header structs, typed WebSocket client for reactive actions. HTTP actions are WIP. |
-| **Kotlin**                  | Typed DTO/action client code. Reactive/WebSocket not yet supported. |
-| **Python**                  | `dataclasses`-based DTOs, `httpx` HTTP client (sync or async), SSE for reactive actions. |
-| **Dart**                    | DTO classes with hand-generated `toJson`/`fromJson`, `package:http` client, SSE for reactive actions. |
-| **C#**                      | `System.Text.Json`-based DTOs, `HttpClient` transport, SSE via `IAsyncEnumerable<string>`. |
-| **Java**                    | Jackson-based DTOs, `java.net.http.HttpClient` transport, SSE for reactive actions. |
-| **PHP**                     | Reflection-based DTO hydration, `curl` HTTP transport, SSE for reactive actions. |
-| **C**                       | Vendored `cJSON` (de)serialization, `libcurl` transport. No nullable value types without pointers (documented scope limit). |
-| **C++ (generic)**           | Portable ISO C++17 DTOs/actions for desktop, ESP-IDF, and Arduino; `IEmiHttpTransport` seam; real RFC 6455 WebSocket client for reactive actions. |
-| **C++ (Unreal Engine)**     | `USTRUCT`/`UPROPERTY` DTOs usable from Blueprint, Unreal's own JSON reflection, async HTTP via `FHttpModule`, real WebSocket via `IWebSocket`. |
+| **Swift**                   | `Codable` DTO structs, typed header structs, typed WebSocket client for reactive actions. HTTP actions are WIP.                                                                             |
+| **Kotlin**                  | Typed DTO/action client code. Reactive/WebSocket not yet supported.                                                                                                                         |
+| **Python**                  | `dataclasses`-based DTOs, `httpx` HTTP client (sync or async), SSE for reactive actions.                                                                                                    |
+| **Dart**                    | DTO classes with hand-generated `toJson`/`fromJson`, `package:http` client, SSE for reactive actions.                                                                                       |
+| **C#**                      | `System.Text.Json`-based DTOs, `HttpClient` transport, SSE via `IAsyncEnumerable<string>`.                                                                                                  |
+| **Java**                    | Jackson-based DTOs, `java.net.http.HttpClient` transport, SSE for reactive actions.                                                                                                         |
+| **PHP**                     | Reflection-based DTO hydration, `curl` HTTP transport, SSE for reactive actions.                                                                                                            |
+| **C**                       | Vendored `cJSON` (de)serialization, `libcurl` transport. No nullable value types without pointers (documented scope limit).                                                                 |
+| **C++ (generic)**           | Portable ISO C++17 DTOs/actions for desktop, ESP-IDF, and Arduino; `IEmiHttpTransport` seam; real RFC 6455 WebSocket client for reactive actions.                                           |
+| **C++ (Unreal Engine)**     | `USTRUCT`/`UPROPERTY` DTOs usable from Blueprint, Unreal's own JSON reflection, async HTTP via `FHttpModule`, real WebSocket via `IWebSocket`.                                              |
 
 Every target except Golang is client-only — no server, no CLI, and no entity/GORM
 persistence is ever generated for them. Shared across all targets: nullable-aware
