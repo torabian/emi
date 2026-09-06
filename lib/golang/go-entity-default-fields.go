@@ -20,20 +20,21 @@ import (
 //     indexes smaller and joins faster. See PrependEntityDefaultFields.
 //
 //   - uniqueId is the public identifier every API/CLI surface, and the reconcile-diff
-//     logic in emigorm, actually works with. Its default value is a UUID, generated
-//     *natively by Postgres itself* (gen_random_uuid(), from the pgcrypto extension)
-//     via a column default, rather than in application code - one less thing to get
-//     wrong, and one less roundtrip. The column itself is a plain sized string
-//     (varchar), not a native uuid column: applications regularly need to assign their
-//     own non-UUID-shaped identifiers here (a fixed sentinel row's id, a slug, a value
-//     that doubles as a natural key elsewhere) and a native uuid column would reject
-//     every one of those with a type error - the whole point of uniqueId being a
-//     plain string default type is that gen_random_uuid() only supplies the *default*,
-//     it never constrains what a caller can put there instead. On a non-Postgres
-//     database the default clause is simply ignored, or errors if the equivalent
-//     function doesn't exist - the column itself still works everywhere, and the
-//     application can always still set it explicitly itself if the database default
-//     isn't available.
+//     logic in emigorm, actually works with. Its default value is a UUID, but it's
+//     assigned in application code (a generated BeforeCreate gorm hook - see
+//     entityIdentityStructNames/renderBeforeCreateHooks in go-entity-gorm.go, and
+//     emigo.NewUUIDv4) rather than via a DB-level column default: an earlier version of
+//     this relied on Postgres's own gen_random_uuid() as the column default, but sqlite
+//     and MySQL have no equivalent, so AutoMigrate either errored or silently produced
+//     empty uniqueIds on those dialects - there was no dialect-portable way to express
+//     it as SQL. A gorm hook works identically everywhere, and needs no DB function at
+//     all. The column itself is a plain sized string (varchar), not a native uuid
+//     column: applications regularly need to assign their own non-UUID-shaped
+//     identifiers here (a fixed sentinel row's id, a slug, a value that doubles as a
+//     natural key elsewhere) and a native uuid column would reject every one of those
+//     with a type error - the hook only assigns a UUID when the caller hasn't already
+//     set uniqueId itself (see renderBeforeCreateHooks), so that's still fully
+//     supported.
 var EntityDefaultFields = []*core.EmiField{
 	{
 		Name: "id",
@@ -48,7 +49,7 @@ var EntityDefaultFields = []*core.EmiField{
 		Name: "uniqueId",
 		Type: core.FieldTypeString,
 		Tags: map[string]string{
-			"gorm": "type:varchar(100);default:gen_random_uuid();unique",
+			"gorm": "type:varchar(100);unique",
 		},
 	},
 }
