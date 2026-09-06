@@ -65,6 +65,28 @@ writes matching, type-safe code to its own output folder. You can also list ever
 target once, under `targets:`, in the yaml itself and compile them all in one shot
 with `emi compile --path user.emi.yml`.
 
+## Emi YAML at a glance
+
+A `.emi.yml` module is just a grouping of top-level blocks — this is the "table of
+contents" every compiler (Go, JS, Swift, ...) walks:
+
+| Block       | What it's for                                                                 |
+| ----------- | ------------------------------------------------------------------------------ |
+| `namespace` | Where the module lives in the app tree (PHP-style), used as the client export path. |
+| `dtos`      | Plain data-transfer objects — shared shapes for request/response bodies.       |
+| `entities`  | Database-backed structs; fields become Go struct fields and DB columns, and feed auto-synthesized CRUD actions. |
+| `complexes` | Custom data types that don't fit the built-in field types.                     |
+| `actions`   | Controller-like units of behavior (HTTP and/or CLI), with typed `in`/`out` bodies. |
+| `remotes`   | Typed definitions of external HTTP services the module calls.                  |
+| `config`    | Typed server config, good for casting `.env` values.                           |
+| `manifests` | Bundles of actions (include/exclude patterns) shippable as one unit (`go-client`, `go-gin`, `go-cli`, `go-wasm`). |
+| `vsqls`     | Hand-written SQL paired with a generated typed parameter struct.               |
+| `targets`   | Self-contained compiler targets bundled with the module, for one-shot `emi compile`. |
+| `templates` | Reusable dto/action shapes, never compiled on their own — only referenced (e.g. via `captures`). |
+
+Full schema: https://github.com/torabian/emi/blob/main/playground/public/emi-module-spec.json
+(works with the Red Hat YAML extension in VS Code for autocomplete/validation).
+
 ## Language targets & features
 
 | Target                      | What you get                                                                 |
