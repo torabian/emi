@@ -71,8 +71,23 @@ import (
 //
 // A "gorm" tag the developer already set on a field (tags: { gorm: ... }) always wins
 // and is left untouched.
-func ApplyEntityGormTags(entity *core.Module3Entity) {
-	entity.Fields = append(entity.Fields, applyEntityGormTags(entity, entity.GetClassName(), entity.Fields)...)
+//
+// The returned []string lists every generated struct name that owns its own id/
+// uniqueId pair - the entity itself, plus one entry per array/array? child struct (see
+// the FieldTypeArray/FieldTypeArrayNullable case below, which is the only place besides
+// PrependEntityDefaultFields that adds a uniqueId field to a struct). GoEntityRender
+// uses it to render a BeforeCreate hook on each of those structs, so uniqueId gets
+// assigned in Go rather than via a DB column default - see go-entity-default-fields.go's
+// doc comment for why. object/object? and one/one? children never appear here: object
+// fields are embedded directly into their parent's own row (no id/uniqueId of their
+// own), and a one/one? target is some *other* entity, which gets its own hook from its
+// own GoEntityRender call, not from this one.
+func ApplyEntityGormTags(entity *core.Module3Entity) []string {
+	identityStructs := []string{entity.GetClassName()}
+	var extraFields []*core.EmiField
+	extraFields, identityStructs = applyEntityGormTags(entity, entity.GetClassName(), entity.Fields, identityStructs)
+	entity.Fields = append(entity.Fields, extraFields...)
+	return identityStructs
 }
 
 // hiddenSibling builds a synthetic field that only exists for gorm's benefit: it never
@@ -95,7 +110,7 @@ func hiddenSibling(name string, fieldType core.FieldType, complex string, gormTa
 // named with (matching GoCommonStructGenerator's nested-struct naming exactly): the
 // entity's class name at the top level, or {parentPrefix}{ParentFieldName} once
 // recursed into an object/object? field.
-func applyEntityGormTags(entity *core.Module3Entity, childStructPrefix string, fields []*core.EmiField) []*core.EmiField {
+func applyEntityGormTags(entity *core.Module3Entity, childStructPrefix string, fields []*core.EmiField, identityStructs []string) ([]*core.EmiField, []string) {
 	var extra []*core.EmiField
 
 	for _, field := range fields {
@@ -124,6 +139,7 @@ func applyEntityGormTags(entity *core.Module3Entity, childStructPrefix string, f
 			// so Create/Update's own request bodies keep the portable,
 			// Operation-wrapped array/array? shape they still need.
 			childStruct := childStructPrefix + core.ToUpper(field.Name)
+			identityStructs = append(identityStructs, childStruct)
 
 			field.Fields = append(field.Fields, cloneEntityDefaultFields()...)
 			field.Fields = append(field.Fields, &core.EmiField{
@@ -252,9 +268,11 @@ func applyEntityGormTags(entity *core.Module3Entity, childStructPrefix string, f
 
 		if len(field.Fields) > 0 {
 			newPrefix := childStructPrefix + core.ToUpper(field.Name)
-			field.Fields = append(field.Fields, applyEntityGormTags(entity, newPrefix, field.Fields)...)
+			var nestedExtra []*core.EmiField
+			nestedExtra, identityStructs = applyEntityGormTags(entity, newPrefix, field.Fields, identityStructs)
+			field.Fields = append(field.Fields, nestedExtra...)
 		}
 	}
 
-	return extra
+	return extra, identityStructs
 }
