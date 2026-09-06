@@ -45,6 +45,12 @@ dtos:
         type: int?
 ```
 
+`dtos` is a list of data-transfer object definitions — each one gets its own generated
+class/struct, one per target language. `fields` are plain, typed properties: `type` is
+the field's base type (`string`, `int`, `bool`, `object`, `array`, ...), and a trailing
+`?` (as in `int?`) marks it nullable, which every compiler renders the idiomatic way for
+that language (`*int` in Go, `int?` in Swift/C#, `Optional[int]` in Python, and so on).
+
 **3. Compile it to multiple languages**
 
 ```bash
