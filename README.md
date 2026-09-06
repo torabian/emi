@@ -17,6 +17,8 @@ Good fit for:
   over real WebSockets.
 - Publishing a multi-language **SDK** for your API.
 - Generating a **CLI** straight from the same action definitions the HTTP API exposes.
+- Node.js **microservices**, including **NestJS** — the same generated JS/TS client that
+  ships to the browser runs equally well server-side, so one client codegen covers both.
 - Running codegen in-browser via **WASM** — no server round trip, same compiler as the CLI.
 - Keeping a shared API contract in sync across a polyglot team without hand-syncing
   types.
