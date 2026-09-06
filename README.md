@@ -56,7 +56,7 @@ Everything is available both as a native CLI binary and as a **wasm build**, so 
 exact same compiler runs in the browser (see the live playground) with no server round
 trip — codegen only, no runtime dependency on wasm afterwards.
 
-<img src="./emi-flowchart.png" style="max-width: 600px" />
+<img src="./emi-languages.png" style="max-width: 600px" />
 
 ## Installation
 
@@ -78,25 +78,25 @@ and it would install emi command globally.
 
 The two special-focus targets (full server-and-client Go, and browser/Node JS/TS):
 
-| Feature / Language | Golang | JavaScript | JavaScript (TS) | JavaScript (Node.js) | Notes                                 |
-| ------------------- | ------ | ---------- | ---------------- | --------------------- | -------------------------------------- |
-| DTO generation       | ✅     | ✅         | ✅               | ✅                    | Supported in all languages             |
-| HTTP actions         | ✅     | ✅         | ✅               | ✅                    | Works with HTTP client libraries       |
-| Reactive / WebSocket | ✅     | ✅         | ✅               | ✅                    | `method: reactive` actions             |
-| Command line         | ✅     | ❌         | ❌               | ❌                    | Only Golang has CLI support currently  |
-| Entity → CRUD + GORM | ✅     | —          | —                | —                     | Auto-synthesized during preprocessing  |
+| Feature / Language   | Golang | JavaScript | JavaScript (TS) | JavaScript (Node.js) | Notes                                 |
+| -------------------- | ------ | ---------- | --------------- | -------------------- | ------------------------------------- |
+| DTO generation       | ✅     | ✅         | ✅              | ✅                   | Supported in all languages            |
+| HTTP actions         | ✅     | ✅         | ✅              | ✅                   | Works with HTTP client libraries      |
+| Reactive / WebSocket | ✅     | ✅         | ✅              | ✅                   | `method: reactive` actions            |
+| Command line         | ✅     | ❌         | ❌              | ❌                   | Only Golang has CLI support currently |
+| Entity → CRUD + GORM | ✅     | —          | —               | —                    | Auto-synthesized during preprocessing |
 
 Every other target is client-only — no server, no CLI, no entity/GORM persistence is
 ever generated for any of them:
 
-| Feature / Language        | Swift | Kotlin | Python | Dart | C#  | Java | PHP | C   | C++ (generic) | C++ (Unreal) |
-| --------------------------- | ----- | ------ | ------ | ---- | --- | ---- | --- | --- | -------------- | ------------- |
-| DTO generation               | ✅    | ✅     | ✅     | ✅   | ✅  | ✅   | ✅  | ✅  | ✅              | ✅            |
-| Nested object/array/map      | ✅    | ✅     | ✅     | ✅   | ✅  | ✅   | ✅  | ✅  | ✅              | ✅            |
-| Nullability                  | ✅    | ✅     | ✅     | ✅   | ✅  | ✅   | ✅  | ⚠️¹ | ✅ (`std::optional`) | ✅ (paired `bool` flag)³ |
-| Complex/custom types          | WIP   | ✅     | ✅     | ✅   | ✅  | ✅   | ✅  | ✅  | ✅              | ✅            |
-| HTTP actions                  | WIP   | WIP    | ✅     | ✅   | ✅  | ✅   | ✅  | ✅  | ✅              | ✅            |
-| Reactive / WebSocket          | ✅    | ❌     | SSE²   | SSE² | SSE²| SSE² | SSE²| SSE²| ✅ (real WS)     | ✅ (real WS)  |
+| Feature / Language      | Swift | Kotlin | Python | Dart | C#   | Java | PHP  | C    | C++ (generic)        | C++ (Unreal)             |
+| ----------------------- | ----- | ------ | ------ | ---- | ---- | ---- | ---- | ---- | -------------------- | ------------------------ |
+| DTO generation          | ✅    | ✅     | ✅     | ✅   | ✅   | ✅   | ✅   | ✅   | ✅                   | ✅                       |
+| Nested object/array/map | ✅    | ✅     | ✅     | ✅   | ✅   | ✅   | ✅   | ✅   | ✅                   | ✅                       |
+| Nullability             | ✅    | ✅     | ✅     | ✅   | ✅   | ✅   | ✅   | ⚠️¹  | ✅ (`std::optional`) | ✅ (paired `bool` flag)³ |
+| Complex/custom types    | WIP   | ✅     | ✅     | ✅   | ✅   | ✅   | ✅   | ✅   | ✅                   | ✅                       |
+| HTTP actions            | WIP   | WIP    | ✅     | ✅   | ✅   | ✅   | ✅   | ✅   | ✅                   | ✅                       |
+| Reactive / WebSocket    | ✅    | ❌     | SSE²   | SSE² | SSE² | SSE² | SSE² | SSE² | ✅ (real WS)         | ✅ (real WS)             |
 
 ¹ C has no nullable value types (int/float/bool/enum) without wrapping every scalar in
 a pointer — a deliberate, documented scope boundary (see `lib/c/c-type-resolver.go`);
@@ -123,45 +123,45 @@ Every `.emi` yaml module compiles down to one Golang struct, `core.Emi` — the 
 compiler (js, go, swift, ...) walks. It's just a grouping of the pieces below; think of
 it as the "table of contents" of a module:
 
-| Block        | What it is                                                                                   |
-| ------------ | --------------------------------------------------------------------------------------------- |
-| `namespace`  | Where the module lives in the app tree (PHP-style), used as the client export path.           |
-| `dtos`       | Plain data-transfer objects — shared shapes for request/response bodies.                      |
-| `entities`   | Database-backed structs. Fields become both Go struct fields and DB columns; feed into the preprocessor's CRUD/dto synthesis. |
-| `complexes`  | Custom data types that don't fit the built-in field types.                                    |
-| `actions`    | Controller-like units of behaviour (HTTP and/or CLI), with typed `in`/`out` bodies.            |
-| `remotes`    | Typed definitions of external HTTP services the module calls.                                 |
-| `config`     | Typed server config, good for casting `.env` values.                                          |
-| `manifests`  | Bundles of actions (include/exclude patterns) shippable as one unit (`go-client`, `go-gin`, `go-cli`, `go-wasm`). |
-| `vsqls`      | Hand-written SQL paired with a generated typed parameter struct.                              |
-| `targets`    | Self-contained compiler targets bundled with the module.                                      |
-| `templates`  | Reusable dto/action shapes that are never compiled by themselves — only referenced (e.g. as a `captures` source). |
+| Block       | What it is                                                                                                                    |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `namespace` | Where the module lives in the app tree (PHP-style), used as the client export path.                                           |
+| `dtos`      | Plain data-transfer objects — shared shapes for request/response bodies.                                                      |
+| `entities`  | Database-backed structs. Fields become both Go struct fields and DB columns; feed into the preprocessor's CRUD/dto synthesis. |
+| `complexes` | Custom data types that don't fit the built-in field types.                                                                    |
+| `actions`   | Controller-like units of behaviour (HTTP and/or CLI), with typed `in`/`out` bodies.                                           |
+| `remotes`   | Typed definitions of external HTTP services the module calls.                                                                 |
+| `config`    | Typed server config, good for casting `.env` values.                                                                          |
+| `manifests` | Bundles of actions (include/exclude patterns) shippable as one unit (`go-client`, `go-gin`, `go-cli`, `go-wasm`).             |
+| `vsqls`     | Hand-written SQL paired with a generated typed parameter struct.                                                              |
+| `targets`   | Self-contained compiler targets bundled with the module.                                                                      |
+| `templates` | Reusable dto/action shapes that are never compiled by themselves — only referenced (e.g. as a `captures` source).             |
 
 ## Preprocessor (`lib/preproceesor`, `lib/core/preprocess*.go`)
 
 **What it's for:** expand derived/shorthand definitions into a fully resolved module
-*before* any language compiler runs, so every generator sees the same, complete
+_before_ any language compiler runs, so every generator sees the same, complete
 picture. Idempotent (safe to run twice). Runnable standalone via the `preprocessor`
 action if you want to see exactly what a compiler will see.
 
-| Capability            | What it does                                                                                                     |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| **Captures**           | Build a vsql's params, or a dto/action's fields, by pulling from another dto, a `templates` dto, or an existing action's `in`/`out` body — instead of redeclaring them. Supports `include`/`exclude` and the `self.fields` token to splice in the owner's own inline fields at a specific spot. |
-| **Entity → optional dto** | Every entity gets an auto-generated `{Entity}OptionalDto` with every field's nullable counterpart (for partial updates/filters). |
-| **Entity → update dto**   | A plain update dto synthesized from the entity's fields.                                                       |
+| Capability                | What it does                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Captures**              | Build a vsql's params, or a dto/action's fields, by pulling from another dto, a `templates` dto, or an existing action's `in`/`out` body — instead of redeclaring them. Supports `include`/`exclude` and the `self.fields` token to splice in the owner's own inline fields at a specific spot.                                                                                            |
+| **Entity → optional dto** | Every entity gets an auto-generated `{Entity}OptionalDto` with every field's nullable counterpart (for partial updates/filters).                                                                                                                                                                                                                                                           |
+| **Entity → update dto**   | A plain update dto synthesized from the entity's fields.                                                                                                                                                                                                                                                                                                                                   |
 | **Entity → CRUD actions** | Create / Update / Get / Browse / AwareDelete `EmiAction`s, wired to the entity's generated types and appended to `module.Actions` — they flow through the exact same HTTP/CLI/envelope codegen as hand-written actions. A hand-declared action with the same name always wins, so this is a convenience default, not a hard rule (the generated stub still needs a real Go function body). |
 
 ## JavaScript / TypeScript (`lib/js`)
 
 **What it's for:** typed client SDKs — vanilla JS/TS, or React + TanStack Query.
 
-| Action                                        | What it generates                                                        |
-| ---------------------------------------------- | -------------------------------------------------------------------------- |
-| `js:fields` / `js:dto:class`                   | A class from raw fields, or from a dto definition.                        |
-| `js:action`                                    | A complete action (request builder, types), standalone.                   |
-| `js:headers`                                   | A typed header class.                                                     |
-| `js:sdk`                                       | Just the shared JS/TS SDK runtime folder.                                 |
-| `js` / `js:module`                             | The whole module, as a set of files ready to write to disk.               |
+| Action                       | What it generates                                           |
+| ---------------------------- | ----------------------------------------------------------- |
+| `js:fields` / `js:dto:class` | A class from raw fields, or from a dto definition.          |
+| `js:action`                  | A complete action (request builder, types), standalone.     |
+| `js:headers`                 | A typed header class.                                       |
+| `js:sdk`                     | Just the shared JS/TS SDK runtime folder.                   |
+| `js` / `js:module`           | The whole module, as a set of files ready to write to disk. |
 
 Capabilities:
 
@@ -201,13 +201,13 @@ Capabilities:
 
 ## Golang (`lib/golang`)
 
-**What it's for:** the primary backend target — full server *and* client from the same
+**What it's for:** the primary backend target — full server _and_ client from the same
 definition.
 
-| Action              | What it generates                                                                 |
-| -------------------- | ------------------------------------------------------------------------------------ |
-| `go:dto`             | A single dto struct, client + server side.                                          |
-| `go`                 | The whole module: dtos, entities, actions, vsqls, manifests, config.                |
+| Action   | What it generates                                                    |
+| -------- | -------------------------------------------------------------------- |
+| `go:dto` | A single dto struct, client + server side.                           |
+| `go`     | The whole module: dtos, entities, actions, vsqls, manifests, config. |
 
 Capabilities:
 
@@ -231,11 +231,11 @@ Capabilities:
 **What it's for:** typed iOS/macOS (and other Swift) clients. Newer than Go/JS — HTTP
 actions and complex-type discovery are still WIP; contributions welcome.
 
-| Action           | What it generates                                                         |
-| ----------------- | ----------------------------------------------------------------------------- |
-| `swift:dto`       | A dto struct.                                                                 |
-| `swift:headers`   | A header struct.                                                              |
-| `swift`           | The whole module: dtos, actions, and shared runtime files.                    |
+| Action          | What it generates                                          |
+| --------------- | ---------------------------------------------------------- |
+| `swift:dto`     | A dto struct.                                              |
+| `swift:headers` | A header struct.                                           |
+| `swift`         | The whole module: dtos, actions, and shared runtime files. |
 
 Capabilities:
 
@@ -256,20 +256,20 @@ the exact same shape (`<lang>:dto`, `<lang>:headers`, `<lang>:action`, `<lang>:s
 for the reference layout every one of them implements against `core.PublicAPIActions`),
 so picking one over another is purely "which ecosystem am I shipping a client for":
 
-| Target        | Serialization                          | HTTP transport                  | Reactive (`method: reactive`)      |
-| -------------- | ---------------------------------------- | ---------------------------------- | -------------------------------------- |
-| Python (`lib/python`) | generic reflection-based `to_dict`/`from_dict` runtime helper, over stdlib `dataclasses` | `httpx` (`--tags async` → `httpx.AsyncClient`) | SSE over one blocking/async request |
-| Dart (`lib/dart`)     | hand-generated `toJson`/`fromJson` per class | `package:http`                     | SSE over one blocking request       |
-| C# (`lib/csharp`)     | `System.Text.Json` (reflection — no hand-generated glue) | `System.Net.Http.HttpClient` | SSE via `IAsyncEnumerable<string>`  |
-| Java (`lib/java`)     | Jackson `ObjectMapper` (reflection — no hand-generated glue) | `java.net.http.HttpClient`  | SSE over one blocking request       |
-| PHP (`lib/php`)       | generic reflection-based `Hydrator::toArray`/`fromArray` runtime helper | `curl`         | SSE over one blocking request       |
-| C (`lib/c`)           | vendored `cJSON` (MIT) + hand-generated `_to_json`/`_from_json_into` per struct | `libcurl` (`fetchx.h`, header-only, `static inline`) | SSE over one blocking request |
+| Target                | Serialization                                                                            | HTTP transport                                       | Reactive (`method: reactive`)       |
+| --------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------- |
+| Python (`lib/python`) | generic reflection-based `to_dict`/`from_dict` runtime helper, over stdlib `dataclasses` | `httpx` (`--tags async` → `httpx.AsyncClient`)       | SSE over one blocking/async request |
+| Dart (`lib/dart`)     | hand-generated `toJson`/`fromJson` per class                                             | `package:http`                                       | SSE over one blocking request       |
+| C# (`lib/csharp`)     | `System.Text.Json` (reflection — no hand-generated glue)                                 | `System.Net.Http.HttpClient`                         | SSE via `IAsyncEnumerable<string>`  |
+| Java (`lib/java`)     | Jackson `ObjectMapper` (reflection — no hand-generated glue)                             | `java.net.http.HttpClient`                           | SSE over one blocking request       |
+| PHP (`lib/php`)       | generic reflection-based `Hydrator::toArray`/`fromArray` runtime helper                  | `curl`                                               | SSE over one blocking request       |
+| C (`lib/c`)           | vendored `cJSON` (MIT) + hand-generated `_to_json`/`_from_json_into` per struct          | `libcurl` (`fetchx.h`, header-only, `static inline`) | SSE over one blocking request       |
 
 Shared capabilities across all six:
 
 - Strong nullable-aware types, nested object/array/map fields, `one`/`collection`
   relations, and inline/`target:`-referenced enums — same as every other target (C is
-  the one documented exception: no nullable *value* types without a pointer, see
+  the one documented exception: no nullable _value_ types without a pointer, see
   `lib/c/c-type-resolver.go`; string/object/array/relation fields are still nullable).
 - `complex:` fields resolve to a real imported type per-language (a Go/PHP namespace, a
   Python/Dart import, a `#include`, ...) when declared in `complexes:` for that
@@ -293,7 +293,7 @@ Arduino/ESP-IDF toolchain is available in this repo's own CI: the generic dialec
 dto/enum/action generation, and the full RFC 6455 handshake/framing in
 `EmiWebSocketX` (including the SHA-1 used for `Sec-WebSocket-Accept`), are verified by
 actually compiling — and, for the WebSocket handshake/send/receive path, actually
-*running* against a real local socket — with `clang++` (see `lib/cpp`'s test suite).
+_running_ against a real local socket — with `clang++` (see `lib/cpp`'s test suite).
 `EmiHttpTransportArduino.hpp`/`EmiByteStreamArduino.hpp` (Arduino) and
 `EmiHttpTransportEspIdf.hpp` (ESP-IDF) are written against those SDKs' real,
 documented APIs but are **not** compile-verified anywhere in this repo — same for
@@ -309,7 +309,7 @@ wearing the same syntax: Unreal has its own reflected value types (`USTRUCT`/
 `UPROPERTY`, `FString`, `TArray`, `TMap`, `TOptional`) and (de)serializes through its
 own reflection (`FJsonObjectConverter`), while ESP-IDF and Arduino are both just
 **ordinary ISO C++17** — same STL, same compiler family (GCC/Clang), same "no engine
-underneath" — with the only real difference between *them* being which HTTP/socket
+underneath" — with the only real difference between _them_ being which HTTP/socket
 library is available (`esp_http_client` vs. the Arduino `HTTPClient`/`WiFiClient`
 classes). So the type-system boundary is Unreal vs. everything-else, not
 Unreal vs. Arduino vs. ESP-IDF — splitting into three packages would mean three copies
@@ -324,17 +324,17 @@ without becoming three packages. Only type spelling, class declaration syntax, a
 (de)serialization strategy branch on `Dialect` (see `cpp-type-resolver.go`,
 `cpp-field-plan-generic.go` vs. `cpp-field-plan-unreal.go`); everything else — field
 tree traversal, path/query params, action realms — is shared, single-implementation
-code. "Generic" is deliberately one dialect covering desktop/POSIX, ESP-IDF, *and*
+code. "Generic" is deliberately one dialect covering desktop/POSIX, ESP-IDF, _and_
 Arduino, not three, since none of them differ at the C++ language level — only in
-*which* `IEmiHttpTransport`/`IEmiByteStream` implementation gets linked in (a runtime
+_which_ `IEmiHttpTransport`/`IEmiByteStream` implementation gets linked in (a runtime
 seam, not a codegen one — see below).
 
-| Action           | What it generates                                                         |
-| ----------------- | ----------------------------------------------------------------------------- |
-| `cpp:dto`         | A dto class/struct.                                                          |
-| `cpp:headers`     | A typed header class.                                                        |
-| `cpp:action`      | A complete action, standalone.                                               |
-| `cpp:sdk`         | Just the embedded runtime (dialect-dependent).                               |
+| Action               | What it generates                                                          |
+| -------------------- | -------------------------------------------------------------------------- |
+| `cpp:dto`            | A dto class/struct.                                                        |
+| `cpp:headers`        | A typed header class.                                                      |
+| `cpp:action`         | A complete action, standalone.                                             |
+| `cpp:sdk`            | Just the embedded runtime (dialect-dependent).                             |
 | `cpp` / `cpp:module` | The whole module: dtos, enums, actions, remotes, and shared runtime files. |
 
 ### Generic dialect (`--dialect generic`, the default)
@@ -376,7 +376,7 @@ C++17 STL, so this excludes classic 8-bit AVR boards like the Uno/Nano/Mega):
 Targets **UE4 and UE5 alike** — every reflection-facing construct used
 (`USTRUCT`/`UPROPERTY`/`UENUM`, `FHttpModule`, `IWebSocket`, `FJsonObjectConverter`)
 has been stable since UE4, and the compiler deliberately avoids the one common
-construct that *isn't* uniformly available (see nullability below):
+construct that _isn't_ uniformly available (see nullability below):
 
 - Every dto is a `USTRUCT(BlueprintType)` with `UPROPERTY` fields — inspectable in the
   editor and usable from Blueprint for free, named with Unreal's own `F`/`E` value-type
