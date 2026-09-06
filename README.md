@@ -9,15 +9,17 @@ in a single yaml file, and Emi compiles that one definition into working, type-s
 for multiple languages, so the backend and every client SDK are always generated from
 the same source of truth and never drift out of sync with each other.
 
-It's a good fit whenever one API needs to reach several runtimes and you don't want the
-DTOs to drift: a Go/Gin backend paired with a TypeScript web app, a mobile app (Swift/
-Kotlin), and a desktop or CLI client from the same definition; a game (Unreal Engine) or
-an embedded device (ESP-IDF/Arduino) talking to that same backend over real WebSockets;
-or an internal service whose contract needs to be shared, unambiguously, across a
-polyglot team without hand-syncing types in every language by hand. It also fits
-projects that need to publish an **SDK** for their API in several languages at once, or
-need a **CLI** generated straight from the same action definitions the HTTP API already
-exposes — both come out of the same yaml, with no separate spec to maintain.
+Good fit for:
+
+- A Go/Gin backend paired with a TypeScript web app, mobile (Swift/Kotlin), and desktop
+  clients from one definition.
+- A game (Unreal Engine) or embedded device (ESP-IDF/Arduino) talking to that backend
+  over real WebSockets.
+- Publishing a multi-language **SDK** for your API.
+- Generating a **CLI** straight from the same action definitions the HTTP API exposes.
+- Running codegen in-browser via **WASM** — no server round trip, same compiler as the CLI.
+- Keeping a shared API contract in sync across a polyglot team without hand-syncing
+  types.
 
 <img src="./emi-languages.png" style="max-width: 600px" />
 
