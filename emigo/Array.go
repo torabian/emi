@@ -28,6 +28,12 @@ import (
 //     {"__operation": "append", "items": [{"key": "x", "value": "y"}]}
 //     → Array{Operation: "append", Items: [...], isSet: true}
 //
+// A fourth operation, "delete", is also accepted on the wire (only the tagged form -
+// there's no bare-array shorthand for it, unlike replace): each entry in items is
+// matched against an existing row by its uniqueId alone (every other field on it is
+// ignored) and removed; every row not named is left untouched. See
+// emigorm.ReconcileHasMany for how a persistence layer actually applies it.
+//
 // The vsql renderer treats Array as opted-out via [Array.SQLValue]
 // so unset fields disappear from generated column lists, and set fields are
 // JSON-encoded as a jsonb literal when they actually land in a column slot.
@@ -49,6 +55,14 @@ func ArrayReplace[T any](items []T) Array[T] {
 // and the new items are added (or upserted) alongside them.
 func ArrayAppend[T any](items []T) Array[T] {
 	return Array[T]{Operation: "append", Items: items, isSet: true}
+}
+
+// ArrayDelete builds a "delete" patch — each item is matched against an existing row
+// by its uniqueId alone (every other field on it is ignored) and removed; every row not
+// named is left untouched. A minimal item carrying just a uniqueId is enough, e.g.
+// ArrayDelete([]T{{UniqueId: emigo.NullableOf("c1")}}).
+func ArrayDelete[T any](items []T) Array[T] {
+	return Array[T]{Operation: "delete", Items: items, isSet: true}
 }
 
 // IsSet reports whether the Array was explicitly populated (via a

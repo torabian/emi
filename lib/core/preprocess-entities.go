@@ -125,13 +125,19 @@ func shallowCloneField(f *EmiField) *EmiField {
 }
 
 // deepCloneEntityField is BuildEntityDto's per-field clone step - like shallowCloneField,
-// but recurses into object/object? containers at any depth, so a one/one?/collection/
-// collection? field nested inside one (e.g. nestedContainer.nestedInner.nestedOwner - see
-// nested_relations_test.go) still gets shallowCloneField's relation-target/nullability
-// adjustment, not just a top-level field. array/array? items are left exactly as
-// shallowCloneField already leaves them (see cloneEntityOptionalField's array case,
-// which behaves the same way) - a relation target nested inside an array item isn't part
-// of this fix.
+// but recurses into object/object? *and* array/array? containers at any depth, so a
+// one/one?/collection/collection? field nested inside either (e.g.
+// nestedContainer.nestedInner.nestedOwner - see nested_relations_test.go - or a relation
+// declared inside an array item's own fields) still gets shallowCloneField's
+// relation-target/nullability adjustment, not just a top-level field. This used to only
+// recurse into object/object? - a relation nested inside an array item kept its target
+// as the source entity's own persisted struct name (e.g. "SkillEntity") instead of being
+// rewritten to that entity's portable dto ("SkillDto") the way BuildEntityDto promises
+// for every other field, which compiled (both names are valid Go identifiers) but
+// produced a Dto whose field type silently didn't match its own OptionalDto's
+// counterpart for the same relation (cloneEntityOptionalField's array case already
+// converts it correctly) - see ProjectEntity's own "descriptions[].skills" field in
+// ../../../resume module for the report that caught this.
 func deepCloneEntityField(field *EmiField) *EmiField {
 	if field == nil {
 		return nil
@@ -139,7 +145,8 @@ func deepCloneEntityField(field *EmiField) *EmiField {
 
 	clone := shallowCloneField(field)
 
-	if field.Type == FieldTypeObject || field.Type == FieldTypeObjectNullable {
+	if field.Type == FieldTypeObject || field.Type == FieldTypeObjectNullable ||
+		field.Type == FieldTypeArray || field.Type == FieldTypeArrayNullable {
 		nested := make([]*EmiField, 0, len(field.Fields))
 		for _, f := range field.Fields {
 			nested = append(nested, deepCloneEntityField(f))
@@ -189,6 +196,27 @@ func cloneEntityOptionalField(field *EmiField) *EmiField {
 		nested := make([]*EmiField, 0, len(field.Fields)+1)
 		nested = append(nested, &EmiField{Name: "uniqueId", Type: FieldTypeStringNullable})
 		for _, f := range field.Fields {
+			if f != nil && (f.Type == FieldTypeArray || f.Type == FieldTypeArrayNullable) {
+				// Recurse (rather than shallowCloneField, used for every other
+				// sub-field type below) so an array/array? declared *inside*
+				// another array's own fields - array-inside-array, at any depth -
+				// gets the exact same Operation-wrapped, uniqueId-prepended
+				// treatment this level just got for itself, instead of staying a
+				// plain required "array" (which go-struct-generator-common.go's
+				// goType renders as a bare embedded struct, not emigo.Array[T] -
+				// no way for an Update payload to say replace/append/delete on it
+				// at all). One/collection sub-fields never had this problem:
+				// shallowCloneField already rewrites their target/nullability
+				// regardless of recursion - only a *plain scalar* sub-field must
+				// NOT go through cloneEntityOptionalField's own nullable-wrapping
+				// here (item2: string stays plain string, matching the entity
+				// child struct's own plain string field the generated
+				// buildArrayItemFields copy assigns it into directly - wrapping it
+				// in Nullable[string] here would make that direct assignment a
+				// compile error).
+				nested = append(nested, cloneEntityOptionalField(f))
+				continue
+			}
 			nested = append(nested, shallowCloneField(f))
 		}
 		clone.Fields = nested

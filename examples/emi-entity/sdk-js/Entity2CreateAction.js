@@ -47,7 +47,8 @@ export class Entity2CreateAction {
   };
   static Definition = {
     name: "entity2Create",
-    cliShort: "entity2-c",
+    cliName: "create",
+    cliShort: "c",
     url: "/entity2",
     method: "post",
     description: 'Creates a new "entity2" row.',

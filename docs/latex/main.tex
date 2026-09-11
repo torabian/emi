@@ -1,0 +1,229 @@
+% ------------------------------------------------------------------
+% The Emi Compiler Gazette
+% A newspaper-style overview of Emi's most common features.
+%
+% Build with `make docs-pdf` from the repository root, or directly:
+%   latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+% ------------------------------------------------------------------
+\documentclass[10pt,a4paper]{extarticle}
+
+\usepackage[margin=1.4cm,top=2.2cm,bottom=2cm]{geometry}
+\usepackage{multicol}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{lettrine}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{ragged2e}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,fit,backgrounds}
+
+\tcbuselibrary{skins,breakable}
+
+% ---------- newspaper palette ----------
+\definecolor{inkblack}{RGB}{20,20,20}
+\definecolor{rulegray}{RGB}{120,120,120}
+\definecolor{headlinered}{RGB}{20,60,140}
+\definecolor{boxgray}{RGB}{240,240,240}
+
+\color{inkblack}
+
+% ---------- headline / rubric fonts ----------
+\newcommand{\headlinefont}{\fontfamily{ppl}\bfseries\selectfont}
+\titleformat{\section}{\headlinefont\Large\color{headlinered}}{\thesection.}{0.4em}{}
+\titlespacing*{\section}{0pt}{1.2ex plus .2ex minus .2ex}{0.6ex plus .1ex}
+\titleformat{\subsection}{\headlinefont\normalsize\bfseries}{}{0em}{}
+\titlespacing*{\subsection}{0pt}{1.4ex plus .4ex minus .3ex}{0.4ex plus .1ex}
+
+% ---------- drop caps ----------
+\setlength{\DefaultFindent}{2pt}
+\renewcommand{\LettrineFontHook}{\headlinefont\color{headlinered}}
+
+% ---------- code / config listing style ----------
+\lstdefinestyle{yamlstyle}{
+  basicstyle=\ttfamily\scriptsize,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{rulegray},
+  backgroundcolor=\color{boxgray},
+  columns=fullflexible,
+  showstringspaces=false,
+}
+\lstset{style=yamlstyle}
+
+% ---------- masthead rules ----------
+\newcommand{\thinrule}{\noindent\textcolor{rulegray}{\rule{\linewidth}{0.4pt}}}
+\newcommand{\thickrule}{\noindent\rule{\linewidth}{1.6pt}}
+
+% ---------- running headers/footers (inside pages) ----------
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancyhead[L]{\scshape\small The Emi Compiler Gazette}
+\fancyhead[R]{\scshape\small \today}
+\fancyfoot[C]{\small\thepage}
+
+% ---------- pull-quote box ----------
+\newtcolorbox{pullquote}{
+  breakable, enhanced, colback=boxgray, colframe=inkblack,
+  boxrule=0.3pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  arc=0pt, outer arc=0pt,
+  fontupper=\itshape\small,
+}
+
+% ---------- diagram node/edge styles (used by the pipeline figure) ----------
+\tikzset{
+  ent/.style={draw=inkblack, thick, rounded corners=1.5pt, fill=boxgray,
+    font=\ttfamily\scriptsize, inner sep=4pt, align=center, minimum width=2.05cm,
+    minimum height=0.7cm},
+  src/.style={draw=inkblack, thick, rounded corners=1.5pt, fill=white,
+    font=\bfseries\scriptsize, inner sep=5pt, align=center, minimum width=2.3cm,
+    minimum height=1cm},
+  fk/.style={-{Stealth[length=5pt,width=4pt]}, thick, color=headlinered},
+  jk/.style={-{Stealth[length=5pt,width=4pt]}, thick, dashed, color=rulegray},
+  fklabel/.style={font=\tiny\itshape, fill=white, inner sep=1pt},
+}
+
+\newtcolorbox{sidebar}[1]{
+  breakable, enhanced, colback=boxgray, colframe=inkblack,
+  boxrule=0.5pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  arc=0pt, outer arc=0pt,
+  title={\headlinefont\small #1}, coltitle=inkblack, colbacktitle=boxgray,
+  fonttitle=\bfseries, attach boxed title to top left,
+  boxed title style={boxrule=0pt, colframe=boxgray},
+}
+
+\title{The Emi Compiler Gazette}
+\hypersetup{
+  pdftitle={The Emi Compiler Gazette},
+  pdfauthor={Emi Contributors},
+  colorlinks=true, linkcolor=headlinered, urlcolor=headlinered,
+}
+
+\begin{document}
+\thispagestyle{empty}
+
+% =========================== MASTHEAD ===========================
+\begin{center}
+  {\headlinefont\fontsize{40}{44}\selectfont THE EMI COMPILER GAZETTE}\\[2pt]
+  {\scshape\small An unofficial field guide to the Emi API-definition compiler}
+\end{center}
+\thickrule\\[1pt]
+\noindent
+\begin{minipage}[t]{0.33\linewidth}
+  \small\textbf{Vol. 1, No. 1} \hfill \textbf{\today}
+\end{minipage}
+\begin{minipage}[t]{0.33\linewidth}
+  \centering\small\textit{``One YAML file, every language''}
+\end{minipage}
+\begin{minipage}[t]{0.33\linewidth}
+  \raggedleft\small \url{github.com/torabian/emi}
+\end{minipage}
+\thinrule
+\vspace{4pt}
+
+% =========================== FRONT PAGE LEAD ===========================
+\begin{multicols}{3}
+\raggedcolumns
+
+\lettrine[lines=3,lraise=0.1,nindent=0pt]{E}{mi} is a code generator: you
+describe an API once --- DTOs, entities, actions, config, permissions,
+events --- in a single YAML (or JSON) definition, and Emi compiles that one
+definition into working, type-safe code for Go, TypeScript/JavaScript,
+Swift, Kotlin, and more, plus an OpenAPI document and a Postman collection.
+This issue of the Gazette walks the compiler floor, feature by feature, so
+a new contributor can find their desk quickly.
+
+Every team that ships an API ends up writing the same contract twice: once
+on the backend, again by hand on every client. Emi exists to make that
+contract a real, compilable thing, and generate every side of it so the
+drift problem stops existing rather than getting managed.
+
+\begin{sidebar}{Quick start}
+\begin{lstlisting}
+go install \
+  github.com/torabian/emi/cmd/emi@latest
+emi go    --path module.emi \
+  --output ./server
+emi js    --path module.emi \
+  --output ./web/sdk --tags react
+emi swift --path module.emi \
+  --output ./ios
+\end{lstlisting}
+\end{sidebar}
+
+\columnbreak
+
+\textbf{IN THIS EDITION}
+\begin{itemize}[leftmargin=1.1em,itemsep=1pt,topsep=2pt]
+  \item How Emi generates code, p.~\pageref{sec:overview}
+  \item The module definition, p.~\pageref{sec:module-spec}
+  \item Actions, p.~\pageref{sec:actions}
+  \item Complex types, p.~\pageref{sec:complex-types}
+  \item Compilation pipeline diagram, p.~\pageref{fig:pipeline}
+  \item Go entities \& relations, p.~\pageref{sec:go-entities}
+  \item Go create/update actions, p.~\pageref{sec:go-actions}
+  \item Permissions \& events, p.~\pageref{sec:permissions-events}
+  \item The JS/TS compiler, p.~\pageref{sec:js-compiler}
+  \item Reactive: WebSocket \& SSE, p.~\pageref{sec:reactive}
+  \item Swift \& Kotlin clients, p.~\pageref{sec:swift-kotlin}
+  \item Exports: MD, OpenAPI, Postman, p.~\pageref{sec:exports}
+  \item Query Predict, p.~\pageref{sec:query-predict}
+  \item Server in a browser tab, p.~\pageref{sec:in-browser}
+\end{itemize}
+
+\begin{pullquote}
+``OpenAPI describes an API that already exists. gRPC replaces your
+transport with its own. Emi generates the API itself --- backend and
+every client --- as ordinary, runtime-free, idiomatic code you fully
+own.''
+\end{pullquote}
+
+\begin{sidebar}{Compilers at a glance}
+\begin{itemize}[leftmargin=1.1em,itemsep=1pt,topsep=2pt]
+  \item \texttt{emi go} --- Gin server, client \& CLI
+  \item \texttt{emi js} --- JS/TS classes, React, Nest.js
+  \item \texttt{emi swift} / \texttt{emi kotlin} --- native clients
+  \item \texttt{emi openapi} / \texttt{postman} / \texttt{md} --- docs
+  \item \texttt{emi qp:dir} / \texttt{qp:gen} --- typed SQL bindings
+  \item same compiler, compiled to \textbf{WASM} --- runs in-browser
+\end{itemize}
+\end{sidebar}
+
+\end{multicols}
+
+\thinrule
+\newpage
+
+% =========================== BODY ===========================
+\begin{multicols}{2}
+\raggedcolumns
+
+\input{sections/01-overview}
+\input{sections/02-module-spec}
+\input{sections/03-actions}
+\input{sections/04-complex-types}
+\input{sections/05-pipeline-diagram}
+\input{sections/06-go-entities}
+\input{sections/07-go-relations}
+\input{sections/08-go-actions}
+\input{sections/09-permissions-events}
+\input{sections/10-js-compiler}
+\input{sections/11-reactive}
+\input{sections/12-swift-kotlin}
+\input{sections/13-exports}
+\input{sections/14-query-predict}
+\input{sections/15-in-browser}
+
+\end{multicols}
+
+\end{document}

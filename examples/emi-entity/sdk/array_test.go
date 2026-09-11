@@ -68,9 +68,9 @@ func TestArrayField_ChildStructHasLinkerIdAndCliHelpers(t *testing.T) {
 		t.Fatalf("LinkerId gorm tag = %q, want %q", got, "index")
 	}
 
-	// item2, id, uniqueId, linkerId
+	// item2, subItems, id, uniqueId, linkerId
 	flags := GetEntity1EntityItemsCliFlags("")
-	if len(flags) != 4 {
-		t.Fatalf("expected 4 cli flags (item2, id, uniqueId, linkerId), got %+v", flags)
+	if len(flags) != 5 {
+		t.Fatalf("expected 5 cli flags (item2, subItems, id, uniqueId, linkerId), got %+v", flags)
 	}
 }

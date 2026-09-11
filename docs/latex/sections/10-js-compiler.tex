@@ -1,0 +1,76 @@
+\section{The Style Section: JavaScript/TypeScript}
+\label{sec:js-compiler}
+
+JavaScript gets special focus in Emi, because nearly everything eventually
+has to be consumed by a JS environment. The JS output is real, runnable
+JavaScript --- no transpile step required --- while \texttt{--tags
+typescript} produces high-coverage \texttt{.ts} with, Emi's docs claim,
+some of the highest-quality TypeScript output among competing generators.
+\texttt{--tags react} layers on TanStack React Query hooks plus an
+internal \texttt{useSse} and \texttt{useWebSocketX}; \texttt{--tags
+nestjs} emits decorators that make request, headers and query params
+portable straight into Nest.js handlers with no extra code.
+
+\subsection{Auto-init: every field guaranteed to exist}
+When an action returns a class instance, \emph{every} non-nullable field
+--- including nested objects, arrays, and child DTOs --- is guaranteed to
+exist. Writing this by hand is a hassle and easy to get subtly wrong;
+Emi generates it from the definition alone:
+\begin{lstlisting}
+fields:
+  - name: object1
+    type: object
+    fields:
+      - name: contacts
+        type: array
+        fields:
+          - name: email
+            type: string
+            default: emi-compiler@emi-compiler.com
+          - name: phone
+            type: string?
+\end{lstlisting}
+produces a class whose \texttt{object1} field is \emph{always} an
+instance of a nested \texttt{AutoInitClassDto.Object1} class, never
+\texttt{undefined} --- the code stops sprinkling \texttt{?.}, \texttt{??},
+and \texttt{typeof x === 'string'} defensively, because the class already
+did the guarding.
+
+\subsection{Ergonomics every generated class ships with}
+\begin{itemize}[leftmargin=1.1em,itemsep=2pt,topsep=2pt]
+  \item \texttt{from()} --- full object constructor; \texttt{with()} ---
+        partial, deeply-typed via \texttt{PartialDeep}.
+  \item \texttt{copyWith()}, \texttt{clone()}, a correct \texttt{toJSON()}
+        that sees the private fields (plain \texttt{JSON.stringify}
+        otherwise can't --- the fields are genuinely private).
+  \item A static \texttt{Fields} map (e.g.\ \texttt{Fields.date === "date"})
+        for safe, refactor-proof path access instead of a hardcoded string
+        literal.
+\end{itemize}
+
+\subsection{The Headers class}
+HTTP request/response headers are a key/value definition; Emi generates a
+class extending the standard \texttt{Headers} with typed
+\texttt{getX()}/\texttt{setX()} accessors that coerce values on the way
+out:
+\begin{lstlisting}
+- {name: accept-language, type: string}
+- {name: cache-time,      type: int64}
+\end{lstlisting}
+\begin{lstlisting}
+export class SampleHeaders extends Headers {
+  getAcceptLanguage() { return this.#getTyped('accept-language', 'string|null'); }
+  setCacheTime(value: number|null) {
+    if (value !== null) this.set('cache-time', value);
+    return this;
+  }
+}
+\end{lstlisting}
+\texttt{.get()} on the plain \texttt{Headers} base still returns the raw
+string --- the typed accessors are additive, not a replacement.
+
+\begin{pullquote}
+Header/query-param typing at this level --- including \emph{nested} query
+params rendered as typed accessors --- is a feature Emi's own docs single
+out as unique among the generators it's compared against.
+\end{pullquote}

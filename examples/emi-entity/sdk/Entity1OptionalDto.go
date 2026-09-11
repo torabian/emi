@@ -46,8 +46,22 @@ type Entity1OptionalDto struct {
 
 // The base class definition for items
 type Entity1OptionalDtoItems struct {
-	UniqueId emigo.Nullable[string] `json:"uniqueId" yaml:"uniqueId"`
-	Item2    string                 `json:"item2" yaml:"item2"`
+	UniqueId emigo.Nullable[string]                               `json:"uniqueId" yaml:"uniqueId"`
+	Item2    string                                               `json:"item2" yaml:"item2"`
+	SubItems emigo.ArrayNullable[Entity1OptionalDtoItemsSubItems] `json:"subItems" yaml:"subItems"`
+}
+
+// The base class definition for subItems
+type Entity1OptionalDtoItemsSubItems struct {
+	UniqueId    emigo.Nullable[string]                                          `json:"uniqueId" yaml:"uniqueId"`
+	SubLabel    string                                                          `json:"subLabel" yaml:"subLabel"`
+	SubSubItems emigo.ArrayNullable[Entity1OptionalDtoItemsSubItemsSubSubItems] `json:"subSubItems" yaml:"subSubItems"`
+}
+
+// The base class definition for subSubItems
+type Entity1OptionalDtoItemsSubItemsSubSubItems struct {
+	UniqueId  emigo.Nullable[string] `json:"uniqueId" yaml:"uniqueId"`
+	LeafLabel string                 `json:"leafLabel" yaml:"leafLabel"`
 }
 
 // The base class definition for items2
@@ -361,6 +375,10 @@ func GetEntity1OptionalDtoItemsCliFlags(prefix string) []emigo.CliFlag {
 			Name: prefix + "item2",
 			Type: "string",
 		},
+		{
+			Name: prefix + "sub-items",
+			Type: "array?",
+		},
 	}
 }
 func CastEntity1OptionalDtoItemsFromCli(c emigo.CliCastable) Entity1OptionalDtoItems {
@@ -370,6 +388,60 @@ func CastEntity1OptionalDtoItemsFromCli(c emigo.CliCastable) Entity1OptionalDtoI
 	}
 	if c.IsSet("item2") {
 		data.Item2 = c.String("item2")
+	}
+	if c.IsSet("sub-items") {
+		data.SubItems = emigo.CapturePossibleArrayNullable(CastEntity1OptionalDtoItemsSubItemsFromCli, "sub-items", c)
+	}
+	return data
+}
+func GetEntity1OptionalDtoItemsSubItemsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "unique-id",
+			Type: "string?",
+		},
+		{
+			Name: prefix + "sub-label",
+			Type: "string",
+		},
+		{
+			Name: prefix + "sub-sub-items",
+			Type: "array?",
+		},
+	}
+}
+func CastEntity1OptionalDtoItemsSubItemsFromCli(c emigo.CliCastable) Entity1OptionalDtoItemsSubItems {
+	data := Entity1OptionalDtoItemsSubItems{}
+	if c.IsSet("unique-id") {
+		emigo.ParseNullable(c.String("unique-id"), &data.UniqueId)
+	}
+	if c.IsSet("sub-label") {
+		data.SubLabel = c.String("sub-label")
+	}
+	if c.IsSet("sub-sub-items") {
+		data.SubSubItems = emigo.CapturePossibleArrayNullable(CastEntity1OptionalDtoItemsSubItemsSubSubItemsFromCli, "sub-sub-items", c)
+	}
+	return data
+}
+func GetEntity1OptionalDtoItemsSubItemsSubSubItemsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "unique-id",
+			Type: "string?",
+		},
+		{
+			Name: prefix + "leaf-label",
+			Type: "string",
+		},
+	}
+}
+func CastEntity1OptionalDtoItemsSubItemsSubSubItemsFromCli(c emigo.CliCastable) Entity1OptionalDtoItemsSubItemsSubSubItems {
+	data := Entity1OptionalDtoItemsSubItemsSubSubItems{}
+	if c.IsSet("unique-id") {
+		emigo.ParseNullable(c.String("unique-id"), &data.UniqueId)
+	}
+	if c.IsSet("leaf-label") {
+		data.LeafLabel = c.String("leaf-label")
 	}
 	return data
 }

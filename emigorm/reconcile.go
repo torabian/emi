@@ -2,6 +2,7 @@ package emigorm
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // resolveExistingId looks up item's real primary key by matching its UniqueId (the only
@@ -38,12 +39,28 @@ func resolveExistingId[T any](tx *gorm.DB, item *T) error {
 // values, and it only clears (never deletes) rows dropped from the list, leaving
 // orphans behind forever. This does the reliable thing instead:
 //
-//   - "replace" (the default, anything other than "append"): every existing child row
-//     linked to linkerValue is loaded; any whose UniqueId isn't present in items gets
-//     hard-deleted; every item in items is then upserted (Save) with linkerColumnName
-//     set to linkerValue, so items that already exist (matched by UniqueId - see
-//     resolveExistingId) get their content overwritten and brand new ones get created.
+//   - "replace" (the default, anything other than "append"/"delete"): every existing
+//     child row linked to linkerValue is loaded; any whose UniqueId isn't present in
+//     items gets hard-deleted; every item in items is then upserted (Save) with
+//     linkerColumnName set to linkerValue, so items that already exist (matched by
+//     UniqueId - see resolveExistingId) get their content overwritten and brand new
+//     ones get created.
 //   - "append": items are upserted the same way, without touching pre-existing rows.
+//   - "delete": the inverse of append - each item in items is matched against an
+//     existing row by UniqueId (only UniqueId is read off items here; every other
+//     field is ignored, so a caller only ever needs to send {"uniqueId": "..."} per
+//     item to delete) and hard-deleted; every row *not* named is left completely
+//     untouched. No items are upserted - there's nothing left to Save() once a row is
+//     gone.
+//
+// A deleted row's own nested relations (e.g. an array-inside-array's own child rows)
+// are left for the database's own foreignKey constraint to clean up -
+// ApplyEntityGormTags already tags every array/array? field with
+// "constraint:OnDelete:CASCADE" (see go-entity-gorm.go), so this works uniformly at
+// any nesting depth without this package needing to know the child schema's shape.
+// sqlite needs its `_foreign_keys=on` DSN parameter (or an explicit `PRAGMA
+// foreign_keys = ON`) for this to actually take effect - it's off by default, unlike
+// Postgres/MySQL.
 //
 // linkerValue is the parent's *id* (its real primary key, not UniqueId - see
 // lib/golang/go-entity-default-fields.go for why). linkerColumnDbName is the linker
@@ -52,6 +69,30 @@ func resolveExistingId[T any](tx *gorm.DB, item *T) error {
 // customized), so that's what gets reflected into on each item.
 func ReconcileHasMany[T any](tx *gorm.DB, linkerColumnDbName string, linkerValue int64, operation string, items []*T) error {
 	return tx.Transaction(func(tx *gorm.DB) error {
+		if operation == "delete" {
+			for _, item := range items {
+				uid := uniqueIdOf(item)
+				if uid == "" {
+					continue
+				}
+				var existing T
+				err := tx.Where(linkerColumnDbName+" = ? AND unique_id = ?", linkerValue, uid).First(&existing).Error
+				if err != nil {
+					if err == gorm.ErrRecordNotFound {
+						continue
+					}
+					return err
+				}
+				// Same Select(clause.Associations) reasoning as the orphan-cleanup
+				// branch below - clears this row's own many2many join rows (if it
+				// has one nested inside it), not just the row itself.
+				if err := tx.Unscoped().Select(clause.Associations).Delete(&existing).Error; err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+
 		if operation != "append" {
 			var existing []*T
 			if err := tx.Where(linkerColumnDbName+" = ?", linkerValue).Find(&existing).Error; err != nil {
@@ -68,7 +109,21 @@ func ReconcileHasMany[T any](tx *gorm.DB, linkerColumnDbName string, linkerValue
 			for _, row := range existing {
 				id := uniqueIdOf(row)
 				if id != "" && !keep[id] {
-					if err := tx.Unscoped().Delete(row).Error; err != nil {
+					// Select(clause.Associations) clears every association gorm
+					// knows about T for first - for a many2many field (e.g. a
+					// {Field}Row []*Target sibling - see ReconcileManyToMany's own
+					// doc comment), that's just the join table rows, never the
+					// referenced Target rows themselves (verified same as
+					// ReconcileManyToMany's own header comment on
+					// Association().Replace/Append). Bug fix: a plain
+					// tx.Unscoped().Delete(row) here left those join rows
+					// behind, so dropping a T that still had a many2many
+					// selection failed outright with a foreign key violation
+					// (the join table's own FK into this row) instead of
+					// deleting it - e.g. a `descriptions` array item that had
+					// `skills` picked, removed via a "replace" with a shorter
+					// list.
+					if err := tx.Unscoped().Select(clause.Associations).Delete(row).Error; err != nil {
 						return err
 					}
 				}

@@ -1,4 +1,10 @@
 /**
+ * The base type definition for entity2Dto
+ * @typedef {Object} Entity2DtoType
+ * @property {string} [uniqueId]
+ * @property {string} label2
+ */
+/**
  * The base class definition for entity2Dto
  **/
 export class Entity2Dto {

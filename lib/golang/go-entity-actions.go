@@ -196,6 +196,161 @@ func %[1]sCreateFn(tx *gorm.DB, dto *%[1]s) (*%[1]s, error) {
 `, className, oneResolve.String(), afterCreate.String())
 }
 
+// buildArrayItemFields walks one array/array? field's own item-level sub-fields
+// (field.Fields) and produces the three code fragments walkUpdateFields' array case
+// needs to build+reconcile that field's child rows during Update:
+//
+//   - copyFields: the child struct literal's own scalar fields - goes directly inside
+//     the `&ChildStruct{ ... }` literal built while looping over field.Items.
+//   - inlineResolve: nested one/one? relations - resolved right after that struct
+//     literal is built, still inside the same per-item loop (a one/one? only needs the
+//     item's own {field}Id column, no dependency on the item having a real, database-
+//     assigned Id yet).
+//   - deferredResolve: nested collection/array/array? relations, which *do* need the
+//     item's real Id - rendered as a second pass, run once emigorm.ReconcileHasMany has
+//     Save()'d every item at this level (items[i].Id is populated in place by then,
+//     since items holds *T pointers). Guarded against %[1]s.Operation == "delete": a
+//     deleted item's row (and everything LinkerId-chained under it) is gone - see
+//     emigorm.ReconcileHasMany's own "delete" branch - so there is nothing left to
+//     reconcile against.
+//
+// Array/array? sub-fields recurse into this same function (buildArrayItemFields calling
+// itself, with childStruct as the next level's structPrefix - matching
+// ApplyEntityGormTags' own nested-struct naming exactly, see go-entity-gorm.go), so
+// array-inside-array reconciles correctly at any nesting depth, not just one level: this
+// used to be an explicit, documented limitation (each array item was persisted as a
+// single flat unit via Save(), with no way to even express replace/append/delete on a
+// relation nested inside one) until lib/core/preprocess-entities.go's
+// cloneEntityOptionalField started recursing into array sub-fields too, giving a nested
+// array the same Operation-wrapped, uniqueId-prepended dto shape as a top-level one.
+func buildArrayItemFields(field *core.EmiField, structPrefix string) (copyFields, inlineResolve, deferredResolve string) {
+	goName := core.ToUpper(field.Name)
+	childStruct := structPrefix + goName
+
+	var copyBuf, inlineBuf, deferredBuf strings.Builder
+	fmt.Fprintf(&copyBuf, "\t\t\t\tUniqueId: src.UniqueId.OrDefault(\"\"),\n")
+
+	for _, sub := range field.Fields {
+		if sub == nil {
+			continue
+		}
+		subGoName := core.ToUpper(sub.Name)
+
+		switch sub.Type {
+		case core.FieldTypeOne, core.FieldTypeOneNullable:
+			subIdField := entityIdFieldName(sub)
+			subResolveTarget := sub.Target
+			if sub.Module != "" {
+				subResolveTarget = sub.Module + "." + subResolveTarget
+			}
+			// Same fallback as the top-level FieldTypeOne/OneNullable case above -
+			// an untouched sub-relation (e.g. a `descriptions` array item's own
+			// `target`, left alone while some other field on that same item is
+			// edited) round-trips as the bare target dto, still carrying its own
+			// uniqueId even with no explicit selector tag.
+			fmt.Fprintf(&inlineBuf, `
+			if src.%[1]s.IsSet() {
+				selectorId := ""
+				if src.%[1]s.Operation == "select" {
+					if s, ok := src.%[1]s.Selector.(string); ok {
+						selectorId = s
+					}
+				} else {
+					selectorId = src.%[1]s.Item.UniqueId.OrDefault("")
+				}
+				if selectorId == "" {
+					return fmt.Errorf("%[4]s.%[5]s: updating a one/one? relation needs either {\"__operation\":\"select\",\"__selector\":...} or the target's own uniqueId in the payload")
+				}
+				resolvedId, err := emigorm.ReconcileOne[%[3]s](tx, "select", selectorId, nil)
+				if err != nil {
+					return err
+				}
+				item.%[2]s = resolvedId
+			}
+`, subGoName, subIdField, subResolveTarget, field.Name, sub.Name)
+
+		case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
+			// Same Dto-vs-Entity mismatch as the top-level FieldTypeCollection/
+			// CollectionNullable case (src.%[1]s.Items are the target entity's
+			// portable Dto, not field.Target's real, gorm-mapped struct
+			// emigorm.ReconcileManyToMany needs) - deferred to *after*
+			// ReconcileHasMany below rather than inlined into copyFields: the
+			// item's own row doesn't have a real Id (what
+			// tx.Model(item).Association(...) needs) until ReconcileHasMany has
+			// Save()'d it.
+			subRowField := entityRowFieldName(sub)
+			subResolveTarget := sub.Target
+			if sub.Module != "" {
+				subResolveTarget = sub.Module + "." + subResolveTarget
+			}
+			fmt.Fprintf(&deferredBuf, `
+		if src.%[1]s.IsSet() {
+			subItems := make([]*%[3]s, len(src.%[1]s.Items))
+			for j := range src.%[1]s.Items {
+				uid := src.%[1]s.Items[j].UniqueId.OrDefault("")
+				if uid == "" {
+					return fmt.Errorf("%[4]s.%[5]s: updating a collection/collection? relation only supports referencing existing rows by uniqueId, item %%d has none", j)
+				}
+				var existing %[3]s
+				if err := tx.First(&existing, "unique_id = ?", uid).Error; err != nil {
+					return err
+				}
+				subItems[j] = &existing
+			}
+			if err := emigorm.ReconcileManyToMany(tx, item, "%[2]s", src.%[1]s.Operation, subItems); err != nil {
+				return err
+			}
+		}
+`, subGoName, subRowField, subResolveTarget, field.Name, sub.Name)
+
+		case core.FieldTypeArray, core.FieldTypeArrayNullable:
+			// Recurse: this sub-field's own items need the exact same
+			// copy/inline/deferred treatment, one level down - built against
+			// childStruct (this level's own generated struct name) as the next
+			// level's structPrefix, and deferred the same way collection is (the
+			// nested items' LinkerId needs *this* item's real, now-known Id).
+			subCopy, subInline, subDeferred := buildArrayItemFields(sub, childStruct)
+			nestedStruct := childStruct + subGoName
+
+			var subSecondPass string
+			if subDeferred != "" {
+				// Only emit the nested second pass when there's actually
+				// something in it - a leaf array (no relation of its own nested
+				// inside its items) would otherwise declare src/item and never
+				// use them (a compile error, not just dead code).
+				subSecondPass = fmt.Sprintf(`
+			if src.%[1]s.Operation != "delete" {
+				for j := range subItems {
+					src := src.%[1]s.Items[j]
+					item := subItems[j]
+%[2]s				}
+			}
+`, subGoName, subDeferred)
+			}
+
+			fmt.Fprintf(&deferredBuf, `
+		if src.%[1]s.IsSet() {
+			subItems := make([]*%[2]s, len(src.%[1]s.Items))
+			for j := range src.%[1]s.Items {
+				src := src.%[1]s.Items[j]
+				item := &%[2]s{
+%[3]s				}
+%[4]s				subItems[j] = item
+			}
+			if err := emigorm.ReconcileHasMany(tx, "linker_id", item.Id, src.%[1]s.Operation, subItems); err != nil {
+				return err
+			}
+%[5]s		}
+`, subGoName, nestedStruct, subCopy, subInline, subSecondPass)
+
+		default:
+			fmt.Fprintf(&copyBuf, "\t\t\t\t%[1]s: src.%[1]s,\n", subGoName)
+		}
+	}
+
+	return copyBuf.String(), inlineBuf.String(), deferredBuf.String()
+}
+
 // walkUpdateFields is walkCreateFields's counterpart for buildUpdateFn: besides the
 // same one-resolve/reconcile recursion (now writing into changes/afterUpdate instead of
 // directly onto dto), it also has to recursively flatten *every* scalar field - at any
@@ -251,8 +406,24 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			// entity type emigorm.ReconcileOne needs to Save() an inline value) - the two
 			// are never the same type, so there is no way to reconcile an inline
 			// (non-"select") payload here without a dedicated Dto->Entity mapper, which
-			// doesn't exist. Only "select" (link to an existing row by uniqueId) is
-			// supported; anything else fails loudly rather than silently dropping data.
+			// doesn't exist.
+			//
+			// Only "select" is ever actually resolved (nothing here ever calls
+			// ReconcileOne with a non-nil item, so the target row's own content is
+			// never touched/created from this field) - but the *selector* for it
+			// doesn't have to come from an explicit {"__operation":"select",
+			// "__selector":...} tag. A relation field that was just loaded and never
+			// re-touched round-trips as the bare target dto (OneNullable's own "case
+			// 3" wire form - see emigo/OneNullable.go's doc comment), which still
+			// carries that target's own uniqueId even with no operation tag at all.
+			// Bug fix: this used to reject that shape outright ("...only supports
+			// the \"select\" operation...") even though nothing about the relation
+			// was ever edited - editing *any other* field on a record that already
+			// had this relation set failed unconditionally, and the only fix
+			// available to a caller was resending an explicit selector tag by hand.
+			// Falling back to %[1]s.Item's own uniqueId here means an untouched
+			// relation field just keeps resolving to itself, the same way every
+			// other untouched field on the record already does.
 			idField := entityIdFieldName(field)
 			// Cross-module target (field.Module set) needs qualifying the same way
 			// the entity struct's own belongs-to field type does (see
@@ -266,14 +437,18 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			}
 			fmt.Fprintf(oneResolve, `
 	if %[1]s.IsSet() {
-		if %[1]s.Operation != "select" {
-			return fmt.Errorf("%[4]s: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %%q", %[1]s.Operation)
+		selectorId := ""
+		if %[1]s.Operation == "select" {
+			if s, ok := %[1]s.Selector.(string); ok {
+				selectorId = s
+			}
+		} else {
+			selectorId = %[1]s.Item.UniqueId.OrDefault("")
 		}
-		var selectorId string
-		if s, ok := %[1]s.Selector.(string); ok {
-			selectorId = s
+		if selectorId == "" {
+			return fmt.Errorf("%[4]s: updating a one/one? relation needs either {\"__operation\":\"select\",\"__selector\":...} or the target's own uniqueId in the payload")
 		}
-		resolvedId, err := emigorm.ReconcileOne[%[3]s](tx, %[1]s.Operation, selectorId, nil)
+		resolvedId, err := emigorm.ReconcileOne[%[3]s](tx, "select", selectorId, nil)
 		if err != nil {
 			return err
 		}
@@ -307,56 +482,39 @@ func walkUpdateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			// top-level case uses, just run per-item inside the loop below instead of
 			// once up front.
 			childStruct := structPrefix + goName
-			var copyFields strings.Builder
-			var subOneResolve strings.Builder
-			fmt.Fprintf(&copyFields, "\t\t\t\tUniqueId: src.UniqueId.OrDefault(\"\"),\n")
-			for _, sub := range field.Fields {
-				if sub == nil {
-					continue
-				}
-				subGoName := core.ToUpper(sub.Name)
-				if sub.Type == core.FieldTypeOne || sub.Type == core.FieldTypeOneNullable {
-					subIdField := entityIdFieldName(sub)
-					// Same cross-module qualification as the top-level
-					// FieldTypeOne/FieldTypeOneNullable case above.
-					subResolveTarget := sub.Target
-					if sub.Module != "" {
-						subResolveTarget = sub.Module + "." + subResolveTarget
-					}
-					fmt.Fprintf(&subOneResolve, `
-			if src.%[1]s.IsSet() {
-				if src.%[1]s.Operation != "select" {
-					return fmt.Errorf("%[4]s.%[5]s: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %%q", src.%[1]s.Operation)
-				}
-				var selectorId string
-				if s, ok := src.%[1]s.Selector.(string); ok {
-					selectorId = s
-				}
-				resolvedId, err := emigorm.ReconcileOne[%[3]s](tx, src.%[1]s.Operation, selectorId, nil)
-				if err != nil {
-					return err
-				}
-				item.%[2]s = resolvedId
-			}
-`, subGoName, subIdField, subResolveTarget, field.Name, sub.Name)
-					continue
-				}
-				fmt.Fprintf(&copyFields, "\t\t\t\t%[1]s: src.%[1]s,\n", subGoName)
+			copyFields, inlineResolve, deferredResolve := buildArrayItemFields(field, structPrefix)
+
+			var secondPass strings.Builder
+			if deferredResolve != "" {
+				// A second pass over items, run only after ReconcileHasMany has
+				// Save()'d every one of them (nested collection/array/array?
+				// relations need the item's real, now-known Id - see
+				// buildArrayItemFields). Skipped entirely for "delete": a deleted
+				// item's row (and everything LinkerId-chained under it) is gone,
+				// so there is nothing left to reconcile against.
+				fmt.Fprintf(&secondPass, `
+		if %[1]s.Operation != "delete" {
+			for i := range items {
+				src := %[1]s.Items[i]
+				item := items[i]
+	%[2]s		}
+		}
+`, accessPath, deferredResolve)
 			}
 			fmt.Fprintf(afterUpdate, `
-	if %[1]s.IsSet() {
-		items := make([]*%[2]s, len(%[1]s.Items))
-		for i := range %[1]s.Items {
-			src := %[1]s.Items[i]
-			item := &%[2]s{
+		if %[1]s.IsSet() {
+			items := make([]*%[2]s, len(%[1]s.Items))
+			for i := range %[1]s.Items {
+				src := %[1]s.Items[i]
+				item := &%[2]s{
 %[3]s			}
 %[4]s			items[i] = item
-		}
-		if err := emigorm.ReconcileHasMany(tx, "linker_id", entity.Id, %[1]s.Operation, items); err != nil {
-			return err
-		}
-	}
-`, accessPath, childStruct, copyFields.String(), subOneResolve.String())
+			}
+			if err := emigorm.ReconcileHasMany(tx, "linker_id", entity.Id, %[1]s.Operation, items); err != nil {
+				return err
+			}
+%[5]s	}
+`, accessPath, childStruct, copyFields, inlineResolve, secondPass.String())
 
 		case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
 			// input.{Field}.Items are Entity1OptionalDto's own portable dto values for

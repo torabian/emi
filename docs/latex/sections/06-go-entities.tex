@@ -1,0 +1,66 @@
+\section{Business Section: Go Entities}
+\label{sec:go-entities}
+
+An entity is a database-backed structure: its fields become both a Go
+struct and database columns, migrated with \href{https://gorm.io}{gorm}.
+Declared in a module's \texttt{entities:} list, right next to
+\texttt{dtos:}/\texttt{actions:}:
+
+\begin{lstlisting}
+entities:
+  - name: entity1
+    table: entity1_table
+    description: Exercises every supported field type.
+    fields:
+      - name: title
+        type: string
+\end{lstlisting}
+
+\texttt{name} becomes the Go struct name (always upper-cased with
+\texttt{Entity} appended --- \texttt{Entity1Entity}); \texttt{table}
+overrides gorm's default pluralized/snake\_cased table name.
+
+\subsection{Two fields every entity gets for free}
+\begin{lstlisting}
+type Entity1Entity struct {
+  Id    int64  `gorm:"primaryKey;autoIncrement" json:"-"`
+  UniqueId string `gorm:"type:uuid;default:gen_random_uuid();unique"
+                    json:"uniqueId"`
+  Title string `json:"title"`
+}
+\end{lstlisting}
+\textbf{\texttt{Id}} is the real gorm primary key --- a plain
+auto-incrementing integer, never exposed over JSON/CLI, so joins and
+foreign keys can use a small integer instead of a UUID (smaller indexes,
+faster joins). \textbf{\texttt{UniqueId}} is the public identifier every
+API/CLI surface actually works with: a UUID generated natively by
+Postgres itself (\texttt{gen\_random\_uuid()}, built into Postgres 13+)
+via a column default, not application code. Both are prepended once, in
+\texttt{EntityDefaultFields} (\texttt{lib/golang/go-entity-default-\allowbreak
+fields.go}), before the struct generator, the update-input builder, and
+the gorm-tag pass all run --- every consumer sees them as ordinary
+declared fields.
+
+\subsection{Field types on gorm}
+\begin{sidebar}{Gorm tag by field type}
+\scriptsize
+\begin{tabular}{@{}p{0.32\linewidth}p{0.62\linewidth}@{}}
+scalar (\texttt{string}, \texttt{int}, \ldots) & none --- gorm maps it directly \\
+\texttt{enum}/\texttt{enum?} & none --- already a plain \texttt{string}/\texttt{Nullable[string]} \\
+\texttt{object}/\texttt{object?} & \texttt{embedded} (inlined as columns) \\
+\texttt{map}, \texttt{slice} (non-nullable) & \texttt{serializer:json} \\
+\texttt{map?}, \texttt{slice?} & none --- \texttt{Nullable[T]} already implements \texttt{Value()}/\texttt{Scan()} \\
+\texttt{complex} & none --- the type implements gorm's interfaces itself \\
+\texttt{array}/\texttt{collection}/\texttt{one} & see relations, \S\ref{sec:go-relations} \\
+\end{tabular}
+\end{sidebar}
+An explicit \texttt{tags: \{ gorm: ... \}} on a field always wins over
+these defaults. A \texttt{complex} field used on an entity must implement
+\texttt{driver.Valuer}/\texttt{sql.Scanner} itself --- the generator has
+no way to guess how to persist a hand-written type.
+
+Every entity file ends with a small, separate template
+(\texttt{go-entity.tpl}) whose output is appended \emph{after} the
+generated struct --- currently a \texttt{TableName()} override wired to
+\texttt{table:}, and the place to extend if a project wants something
+appended to every generated entity file.

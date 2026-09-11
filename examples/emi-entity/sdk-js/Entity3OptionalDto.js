@@ -1,4 +1,10 @@
 /**
+ * The base type definition for entity3OptionalDto
+ * @typedef {Object} Entity3OptionalDtoType
+ * @property {string} [uniqueId]
+ * @property {string} [message]
+ */
+/**
  * The base class definition for entity3OptionalDto
  **/
 export class Entity3OptionalDto {

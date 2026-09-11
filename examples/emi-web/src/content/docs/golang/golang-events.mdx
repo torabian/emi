@@ -1,0 +1,226 @@
+---
+title: "Events"
+sidebar:
+  order: 21
+---
+
+A module can declare an `events:` list — flat, unlike `permissions:`, since an event
+is a single fact ("a post got published"), not a tree. Each event has a `key` (its
+wire name, and the basis its generated Go identifier is derived from), an optional
+localized `name`/`description`, a `payload`, and `permissions` describing who's
+allowed to know it happened.
+
+`payload` is compiled through the exact same machinery an action's `in`/`out` body
+uses (the Common struct builder): declare `fields` inline and they're compiled into a
+real, typed struct; reference an existing dto by name via `dto:` instead; or leave
+`payload` out entirely, and the event's payload type falls back to a plain
+`interface{}`. `permissions` is a list of `with` blocks — the outer list is OR'd
+together, and each entry's `with` (a list of permission full keys) is AND'd, e.g.
+`[{with: [A, B]}, {with: [C, D]}]` means `(A and B) or (C and D)`.
+
+```yaml
+name: blog
+namespace: blog
+dtos:
+  - name: comment
+    fields:
+      - name: commentId
+        type: string
+      - name: body
+        type: text
+events:
+  - key: postPublished
+    name:
+      en: Post published
+    description:
+      en: Fires once a post moves from draft to published.
+    permissions:
+      - with: ["post.publish"]
+      - with: ["post.*"]
+    payload:
+      fields:
+        - name: postId
+          type: string
+        - name: title
+          type: string
+        - name: publishedAt
+          type: string
+  - key: commentAdded
+    payload:
+      dto: CommentDto
+  - key: postArchived
+```
+
+Three events, three different payload shapes:
+
+- **`postPublished`** declares payload `fields` inline, so they're compiled into a
+  dedicated `PostPublishedEventPayload` struct — the same way an action's request
+  body would be — complete with its own CLI flags helper and `Cast...FromCli`
+  constructor.
+- **`commentAdded`** points `dto:` at `CommentDto` (the struct `comment`'s own dto
+  declaration generates — `GetClassName` appends `Dto` to a dto's `name`, so the
+  reference has to spell out the generated name, not the bare `name:` field). Its
+  payload type is a plain alias to that existing struct, not a new one.
+- **`postArchived`** declares no `payload` at all, so its payload type aliases
+  straight to `interface{}`.
+
+Compiling this produces `Events.go`:
+
+```go
+package blog
+
+import (
+	"encoding/json"
+	"github.com/torabian/emi/emigo"
+)
+
+/**
+* Event keys generated from the module's events list.
+ */
+// The base class definition for postPublishedEventPayload
+type PostPublishedEventPayload struct {
+	PostId      string `json:"postId" yaml:"postId"`
+	Title       string `json:"title" yaml:"title"`
+	PublishedAt string `json:"publishedAt" yaml:"publishedAt"`
+}
+
+func (x *PostPublishedEventPayload) Json() string {
+	if x != nil {
+		str, _ := json.MarshalIndent(x, "", "  ")
+		return string(str)
+	}
+	return ""
+}
+func GetPostPublishedEventPayloadCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "post-id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "title",
+			Type: "string",
+		},
+		{
+			Name: prefix + "published-at",
+			Type: "string",
+		},
+	}
+}
+func CastPostPublishedEventPayloadFromCli(c emigo.CliCastable) PostPublishedEventPayload {
+	data := PostPublishedEventPayload{}
+	if c.IsSet("post-id") {
+		data.PostId = c.String("post-id")
+	}
+	if c.IsSet("title") {
+		data.Title = c.String("title")
+	}
+	if c.IsSet("published-at") {
+		data.PublishedAt = c.String("published-at")
+	}
+	return data
+}
+
+// PostPublishedEvent mirrors the "postPublished" event declared in this module's events list.
+var PostPublishedEvent = emigo.Event{
+	Key:         "postPublished",
+	Name:        map[string]string{"en": "Post published"},
+	Description: map[string]string{"en": "Fires once a post moves from draft to published."},
+	Permissions: [][]string{
+		{"post.publish"},
+		{"post.*"},
+	},
+}
+
+// NewPostPublishedEvent returns a copy of PostPublishedEvent with Payload set to payload - the usual way to
+// build the event instance a caller actually fires, without repeating its
+// Key/Name/Description/Permissions metadata at every call site.
+func NewPostPublishedEvent(payload PostPublishedEventPayload) emigo.Event {
+	evt := PostPublishedEvent
+	evt.Payload = payload
+	return evt
+}
+
+// CommentAddedEventPayload is the payload type for the "commentAdded" event.
+type CommentAddedEventPayload = CommentDto
+
+// CommentAddedEvent mirrors the "commentAdded" event declared in this module's events list.
+var CommentAddedEvent = emigo.Event{
+	Key:         "commentAdded",
+	Name:        nil,
+	Description: nil,
+	Permissions: nil,
+}
+
+// NewCommentAddedEvent returns a copy of CommentAddedEvent with Payload set to payload - the usual way to
+// build the event instance a caller actually fires, without repeating its
+// Key/Name/Description/Permissions metadata at every call site.
+func NewCommentAddedEvent(payload CommentAddedEventPayload) emigo.Event {
+	evt := CommentAddedEvent
+	evt.Payload = payload
+	return evt
+}
+
+// PostArchivedEventPayload is the payload type for the "postArchived" event.
+type PostArchivedEventPayload = interface{}
+
+// PostArchivedEvent mirrors the "postArchived" event declared in this module's events list.
+var PostArchivedEvent = emigo.Event{
+	Key:         "postArchived",
+	Name:        nil,
+	Description: nil,
+	Permissions: nil,
+}
+
+// NewPostArchivedEvent returns a copy of PostArchivedEvent with Payload set to payload - the usual way to
+// build the event instance a caller actually fires, without repeating its
+// Key/Name/Description/Permissions metadata at every call site.
+func NewPostArchivedEvent(payload PostArchivedEventPayload) emigo.Event {
+	evt := PostArchivedEvent
+	evt.Payload = payload
+	return evt
+}
+
+// AllEventsList collects every event declared by this module, for anything that
+// wants to walk them all at once (a notification-settings catalog, seeding a
+// NotificationType table, ...) - referencing each var above rather than
+// re-declaring separate literals, so it can never drift out of sync with them.
+var AllEventsList = []emigo.Event{
+	PostPublishedEvent,
+	CommentAddedEvent,
+	PostArchivedEvent,
+}
+```
+
+A few things to note about the output:
+
+- One exported var **per event**, not a single var wrapping the whole list — each
+  named PascalCase with a trailing `Event` (e.g. `postPublished` → `PostPublishedEvent`).
+  The name is derived from `key` by normalizing it to UpperCamelCase (not just
+  capitalizing its first letter), so `post_published` or `post-published` would both
+  generate the exact same `PostPublishedEvent` a bare `postPublished` does. Because two
+  differently-spelled keys can collide once normalized this way, the compiler rejects
+  the module outright if any two events would generate the same name — a `postPublished`
+  next to a `post_published` fails to compile with an explicit error, rather than
+  silently letting one shadow the other.
+- Right alongside every event var, a `<EventName>Payload` type is **always** declared —
+  a real struct when the event compiled payload fields, a plain alias when it referenced
+  a dto or declared no payload at all — so there's always exactly one identifier to
+  reach for regardless of how (or whether) an event typed its payload.
+- `emigo.Event.Permissions` stays `[][]string` at runtime, same as before `with` was
+  introduced — `with` is only the yaml-level spelling of each AND'd set; the compiler
+  flattens it down when rendering the literal.
+- `emigo.Event` itself also carries a `Payload interface{}` field, left `nil` in every
+  generated var above (it's metadata, not an event instance). Alongside every event var,
+  a `New<EventName>(payload <EventName>Payload) emigo.Event` constructor is also
+  generated — it copies the var and sets `.Payload`, so application code that fires an
+  event calls e.g. `blog.NewPostPublishedEvent(payload)` instead of copying the var and
+  setting `.Payload` by hand at every call site.
+- `AllEventsList` collects every var declared above into a single `[]emigo.Event`, for
+  anything that wants to walk the whole catalog at once (seeding a notification-settings
+  table, for instance) — built by referencing each var rather than re-declaring separate
+  literals, so it can never drift out of sync with them.
+
+This example (and every claim the generated code above makes) is asserted against the
+real compiler output by `TestEventsGenerate` in `lib/golang/go-events_test.go` — if the
+generator's output ever changes, that test fails first, before this page can go stale.

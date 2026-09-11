@@ -55,12 +55,26 @@ entities:
       - name: title
         type: string
 
-      # array / array? -> has-many, nested child struct linked via LinkerId
+      # array / array? -> has-many, nested child struct linked via LinkerId. items
+      # itself nests another array (subItems), which nests a third (subSubItems) -
+      # array-inside-array, 3 levels deep: create/update (replace/append/delete) all
+      # reconcile correctly at every level, not just the top one - see
+      # buildArrayItemFields in lib/golang/go-entity-actions.go.
       - name: items
         type: array
         fields:
           - name: item2
             type: string
+          - name: subItems
+            type: array
+            fields:
+              - name: subLabel
+                type: string
+              - name: subSubItems
+                type: array
+                fields:
+                  - name: leafLabel
+                    type: string
       - name: items2
         type: array?
         fields:

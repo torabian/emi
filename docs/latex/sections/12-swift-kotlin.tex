@@ -1,0 +1,59 @@
+\section{Foreign Desk: Swift \& Kotlin Clients}
+\label{sec:swift-kotlin}
+
+\subsection{Swift}
+The Swift compiler generates plain \texttt{Foundation}-based code (falling
+back to \texttt{FoundationNetworking} on Linux) --- no third-party
+dependency pulled in. It produces type-safe request/response objects and
+an action wrapper per action, mirroring every other Emi compiler:
+\begin{lstlisting}
+emi swift --path module.yaml --output ./Sources/Generated
+\end{lstlisting}
+\texttt{emi swift:dto} and \texttt{emi swift:headers} generate just the
+DTOs or just the headers, when the full compiler's output isn't needed.
+Each action carries its own metadata struct (name, URL, method) and a
+strongly typed response, so calling code never hardcodes a route or
+guesses a response shape:
+\begin{lstlisting}
+struct GetSinglePostActionMeta {
+    let name: String = "GetSinglePostAction"
+    let url: String = "/posts/:id"
+    let method: String = "Get"
+}
+struct GetSinglePostActionResponse {
+    let statusCode: Int
+    let headers: [String: String]
+    let payload: Data?
+}
+\end{lstlisting}
+
+\subsection{Kotlin}
+The Kotlin compiler targets Android and JVM projects from the same
+definitions, using \href{https://github.com/Kotlin/kotlinx.serialization}{kotlinx.serialization}
+for JSON and \href{https://square.github.io/okhttp/}{OkHttp} for
+networking --- both need to be on the consuming project's classpath, and
+nothing else does:
+\begin{lstlisting}
+emi kotlin --path module.yaml \
+  --output ./src/main/kotlin/generated
+\end{lstlisting}
+One invocation compiles everything a module declares --- \texttt{dtos:},
+\texttt{entities:} (each becomes a dto plus a set of CRUD actions), and
+\texttt{actions:} --- into a flat directory of \texttt{.kt} files plus
+shared runtime files. \texttt{emi kotlin:dto} and \texttt{emi
+kotlin:headers} narrow the output the same way their Swift counterparts
+do. \texttt{--pkg} sets the Kotlin \texttt{package} every generated file
+is written under (default \texttt{unknownpackage}) --- it only matters
+once more than one module compiles into the same project, so cross-module
+dto/entity references resolve to the right package.
+
+\begin{sidebar}{Shared shape across both compilers}
+\begin{itemize}[leftmargin=1.1em,itemsep=1pt,topsep=2pt]
+  \item \texttt{--path} / \texttt{--output} --- same convention as every
+        Emi sub-compiler
+  \item Without \texttt{--output}, generated virtual files print as JSON
+        to the terminal for inspection before anything touches disk
+  \item \texttt{--tags} --- comma-separated compile features, same
+        mechanism as the Go and JS compilers
+\end{itemize}
+\end{sidebar}

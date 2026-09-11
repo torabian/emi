@@ -1,0 +1,75 @@
+\section{Entity Relations: array, collection, one}
+\label{sec:go-relations}
+
+A dto's \texttt{one}/\texttt{collection} field just needs a Go type to
+hold data. An entity's relation field needs that \emph{and} a real,
+migratable gorm association --- and the two shapes are incompatible in a
+way that isn't obvious up front. \texttt{array}/\texttt{collection}/
+\texttt{one} normally render as \texttt{emigo.Array[T]}/
+\texttt{Collection[T]}/\texttt{One[T]} --- PATCH-payload wrapper types
+carrying an \texttt{Operation} (\texttt{replace}/\texttt{append}/
+\texttt{select}) --- the right shape for an API, but not one gorm can
+migrate (verified directly against \texttt{gorm.io/gorm/schema.Parse}).
+
+So an entity keeps the DTO field as-is (still the only public JSON/CLI
+surface) tagged \texttt{gorm:"-"}, and generates a hidden sibling field
+that \emph{is} a real gorm association:
+
+\begin{lstlisting}
+Items    emigo.Array[Entity1EntityItems] `gorm:"-" json:"items"`
+Owner    emigo.One[Entity2Entity]        `gorm:"-" json:"owner"`
+
+ItemsRow []*Entity1EntityItems `gorm:"foreignKey:LinkerId;references:Id;
+                                 constraint:OnDelete:CASCADE" json:"-"`
+OwnerId  int64          `gorm:"index" json:"-"`
+OwnerRow *Entity2Entity `gorm:"foreignKey:OwnerId;references:Id" json:"-"`
+\end{lstlisting}
+The \texttt{\{field\}Row}/\texttt{\{field\}Id} siblings are purely a
+persistence concern (\texttt{json:"-"}); whatever writes to the database
+(\S\ref{sec:go-actions}) keeps the DTO field and its sibling in sync.
+
+\begin{sidebar}{The three relation kinds}
+\textbf{array} --- has-many, owned composition. Nested \texttt{fields:}
+become a child struct with its own \texttt{Id}/\texttt{UniqueId} plus a
+\texttt{LinkerId} FK back to the parent.
+
+\textbf{collection} --- many-to-many, backed by a join table named
+\texttt{\{entity\}\_\{field\}} (e.g.\ \texttt{entity1\_items3}).
+
+\textbf{one} --- belongs-to: a foreign-key column on \emph{this} entity,
+named \texttt{\{field\}Id}, referencing the target's \texttt{Id}.
+\end{sidebar}
+
+\textbf{Why \texttt{Id} and not \texttt{UniqueId}}: every
+\texttt{foreignKey}/\allowbreak\texttt{references} tag joins on the small integer
+\texttt{Id}, keeping indexes smaller and joins faster, even though
+\texttt{UniqueId} is the only identity an API caller ever actually has.
+Since gorm's \texttt{Save()} decides insert-vs-update purely from whether
+\texttt{Id} is already populated, and a caller only ever knows
+\texttt{UniqueId}, the reconcile helpers (\S\ref{sec:go-actions}) resolve
+an incoming item's real \texttt{Id} by matching \texttt{UniqueId} first.
+
+\subsection{Relations nested inside object containers}
+A relation doesn't have to sit directly on the entity --- it can live
+inside an \texttt{object} (or \texttt{object?}) field, any depth deep.
+Gorm's own embedding correctly walks an arbitrarily deep \texttt{embedded}
+chain and still recognizes the association, keyed by its bare field name
+rather than the full nested path (verified against
+\texttt{gorm.io/gorm/schema.Parse} and a real database run) --- provided
+the nested child struct is named with the same accumulating prefix the
+struct generator uses for the container itself, and
+\texttt{\{Entity\}CreateFn}/\texttt{UpdateFn} recurse into
+\texttt{object}/\texttt{object?} containers to find relations at any
+depth. \texttt{object?} specifically needs its own fix: it renders as
+\texttt{emigo.Nullable[T]}, and gorm's embedding only ever sees the
+wrapper's own unexported fields, never \texttt{T}'s --- so it gets the
+same \texttt{\{field\}Row *T} hidden-sibling treatment a relation does,
+even for a field with no relation in it at all.
+
+\begin{pullquote}
+Known limitations: a relation declared on an array item itself (rather
+than on the entity or one of its object containers) isn't picked up ---
+each array item is still persisted as one flat unit via \texttt{Save()}.
+Cross-module targets (\texttt{module:} on a relation field) aren't
+accounted for in the FK/table naming yet.
+\end{pullquote}

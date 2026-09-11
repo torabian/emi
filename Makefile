@@ -1,3 +1,15 @@
+# Compiles docs/latex/*.tex (the "Emi Compiler Gazette" newspaper-style
+# docs) into a single docs/latex/main.pdf. Requires a LaTeX toolchain
+# (latexmk + a TeX distribution, e.g. `brew install --cask mactex-no-gui`
+# or `apt-get install texlive-full`) on PATH. Re-run after editing any
+# file under docs/latex/sections/.
+docs-pdf:
+	cd docs/latex && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+
+# Removes LaTeX build artifacts (keeps main.pdf).
+docs-pdf-clean:
+	cd docs/latex && latexmk -c
+
 build:
 	make build-js-sdks && \
 	make build-envelopes && \

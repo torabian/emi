@@ -1,0 +1,93 @@
+\section{Legal Notices: Permissions \& Events}
+\label{sec:permissions-events}
+
+\subsection{Permissions: a compiled tree}
+A module can declare a \texttt{permissions:} tree --- nested access
+control permissions the module contributes. Each node has a \texttt{key}
+(its slug) and a \texttt{name} (used to name the generated identifier,
+e.g.\ \texttt{name: managePosts} $\to$ \texttt{ManagePostsPermission}).
+The full identifier is either set explicitly via \texttt{fullKey:} or
+computed as \texttt{\{parent.fullKey\}.\{key\}} during preprocessing; a
+node that groups children and left its key to be derived gets a trailing
+\texttt{.*} (e.g.\ \texttt{post.*}), signaling it covers itself and
+everything below.
+
+\begin{lstlisting}
+permissions:
+  - key: post
+    name: managePosts
+    children:
+      - key: create
+        name: createPost
+      - key: publish
+        name: publishPost
+\end{lstlisting}
+
+Compiling this (Go target) produces one exported var \textbf{per root
+permission} --- not one var wrapping the whole forest, and no separate
+flat constant per node either. Each var is a fully typed, nested struct:
+every node embeds \texttt{emigo.Permission} (promoting its own
+\texttt{Key}) and has one field per child, so an editor autocompletes
+straight down it with zero risk of a typo'd key only failing at runtime:
+\begin{lstlisting}
+var ManagePostsPermission = struct {
+  emigo.Permission
+  CreatePost  emigo.Permission
+  PublishPost emigo.Permission
+}{ /* ... */ }
+
+var ManagePostsPermissionList = []emigo.Permission{
+  ManagePostsPermission.Permission,
+  ManagePostsPermission.CreatePost,
+  ManagePostsPermission.PublishPost,
+}
+\end{lstlisting}
+\texttt{<Name>PermissionList} sits alongside every root, built by
+referencing the root var's own fields rather than re-declaring separate
+literals, so it can never drift out of sync with it --- one list per
+root, not one combined list a caller has to filter back down. The JS/TS
+compiler mirrors this shape as a \texttt{const ... as const} object (or
+\texttt{Object.freeze(...)} without \texttt{--tags typescript}) instead of
+a Go struct, with the same one-const-per-root, \texttt{<Name>PermissionList}
+convention.
+
+\subsection{Events: flat facts, typed payloads}
+A module can declare an \texttt{events:} list --- flat, unlike
+\texttt{permissions:}, since an event is a single fact (``a post got
+published''), not a tree. Each event has a \texttt{key} (its wire name),
+optional localized \texttt{name}/\texttt{description}, a \texttt{payload},
+and \texttt{permissions} describing who's allowed to know it happened ---
+a list of \texttt{with} blocks, OR'd together, each entry's \texttt{with}
+list AND'd (\texttt{[\{with: [A,B]\}, \{with: [C,D]\}]} means
+\texttt{(A and B) or (C and D)}).
+
+\begin{lstlisting}
+events:
+  - key: postPublished
+    permissions:
+      - with: ["post.publish"]
+      - with: ["post.*"]
+    payload:
+      fields:
+        - {name: postId, type: string}
+  - key: commentAdded
+    payload:
+      dto: CommentDto
+  - key: postArchived
+\end{lstlisting}
+
+Three events, three payload shapes: \texttt{postPublished} declares
+\texttt{fields} inline, compiled into a dedicated
+\texttt{PostPublishedEventPayload} struct exactly like an action's
+request body, complete with CLI flags; \texttt{commentAdded} points
+\texttt{dto:} at an existing dto, so its payload type is a plain alias,
+not a new struct; \texttt{postArchived} declares no payload at all, so
+its payload type aliases straight to \texttt{interface\{\}}. One exported
+var is generated per event (PascalCase, trailing \texttt{Event}), always
+paired with a \texttt{<EventName>Payload} type and a
+\texttt{New<EventName>(payload)} constructor, and every var is collected
+into \texttt{AllEventsList} for anything that wants to walk the whole
+catalog. The compiler rejects the module outright if two differently
+spelled keys (\texttt{postPublished} vs.\ \texttt{post\_published})
+would normalize to the same generated identifier, rather than letting one
+silently shadow the other.

@@ -1,4 +1,10 @@
 /**
+ * The base type definition for entity4Dto
+ * @typedef {Object} Entity4DtoType
+ * @property {string} [uniqueId]
+ * @property {string} note
+ */
+/**
  * The base class definition for entity4Dto
  **/
 export class Entity4Dto {

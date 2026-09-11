@@ -1,0 +1,78 @@
+\section{Front Page: Why Emi Exists}
+\label{sec:overview}
+
+Every team that ships an API ends up writing the same thing twice --- once
+on the backend, where the route, the request body, and the response shape
+live, and again on the frontend, hand-copied into a \texttt{fetch} call, a
+model struct, a few \texttt{interface} declarations. Nobody decides to do
+this; it just happens, and the contract between backend and frontend
+isn't written down anywhere a compiler can see it. \textbf{Emi exists to
+make that contract a real, compilable thing}, and then generate every side
+of it, in idiomatic code, for every language a team ships.
+
+\subsection{Where Emi sits relative to what you've tried}
+\begin{itemize}[leftmargin=1.1em,itemsep=2pt,topsep=2pt]
+  \item \textbf{vs.\ OpenAPI generators} --- an OpenAPI spec is downstream
+        of the real API, a second artifact that has to be kept in sync by
+        hand or another generator. Emi inverts this: the Emi definition
+        \emph{is} the source, and your Go backend is generated \emph{from}
+        it, so the spec and the server can never disagree. Emi can still
+        emit a standard OpenAPI 3 document and a Postman collection on
+        demand (\S\ref{sec:exports}) --- interoperability without making a
+        hand-maintained spec the source of truth.
+  \item \textbf{vs.\ gRPC/Protobuf} --- gRPC solves a real version of this
+        problem but asks for a binary wire protocol browsers can't speak
+        natively, a runtime dependency in every client, and an all-in
+        ecosystem. Emi generates \textbf{plain HTTP and plain JSON}, with
+        \textbf{no Emi runtime} in the output --- nothing to import, no
+        library version to keep in lockstep. You can read every line Emi
+        produces, hand-edit it, and eject at any time.
+\end{itemize}
+
+\begin{pullquote}
+Emi's own one-sentence pitch: ``OpenAPI describes an API that already
+exists. gRPC replaces your transport with its own. Emi generates the API
+itself --- backend and every client --- as ordinary, runtime-free,
+idiomatic code you fully own.''
+\end{pullquote}
+
+\subsection{How Emi generates code}
+The whole system rests on one idea: \textbf{the definition is
+target-agnostic}. An Emi definition (\texttt{.emi} YAML or JSON) describes
+\emph{intent} --- actions, DTOs, enums, fields, nullability, collections
+--- and says nothing about Go, TypeScript, or Swift. A series of
+sub-compilers each turn that one definition into code for one target
+(the full fan-out is diagrammed in Fig.~1, \S\ref{sec:go-entities}).
+The CLI mirrors this directly:
+\begin{lstlisting}
+emi go      --path module.emi --output ./server
+emi js      --path module.emi --output ./web/sdk \
+  --tags react,typescript
+emi swift   --path module.emi --output ./ios
+emi kotlin  --path module.emi --output ./android
+emi openapi --path module.emi
+\end{lstlisting}
+\texttt{--tags} let one compiler shape its output without touching the
+definition: \texttt{--tags react} adds TanStack Query hooks plus
+\texttt{useSse}/\texttt{useWebSocketX}; \texttt{--tags nestjs} emits
+decorators that drop generated classes straight into Nest.js handlers;
+\texttt{--tags typescript} switches the JS compiler from runtime JS to
+\texttt{.ts}. None of them are mentioned in the definition --- they're
+presentation choices made at compile time. Because the compiler is
+written in Go and also compiled to WebAssembly, the \emph{exact same
+compiler} runs in the browser --- that's what powers the
+\href{https://torabian.github.io/emi/playground}{live playground}.
+
+\subsection{Why classes, not interfaces}
+Most codegen tools emit TypeScript \texttt{interface}s --- a compile-time
+promise, erased at runtime, so a server that starts sending \texttt{null}
+where it always sent a string throws in production while TypeScript
+shrugged at compile time. Emi's JS compiler emits real \textbf{classes}
+instead: private fields with typed getters/setters that coerce or reject
+bad values, \textbf{auto-initialization} of every non-nullable field
+(including nested objects, arrays and child DTOs, see
+\S\ref{sec:js-compiler}), and real class instances handed back from the
+network (built through a \texttt{creatorFn}), not a raw JSON blob cast to
+a type. TypeScript checks types at compile time \emph{and} the class
+enforces them at runtime --- the safety Go programmers take for granted,
+in a language that historically had none of it.

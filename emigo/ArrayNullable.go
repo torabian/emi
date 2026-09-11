@@ -28,6 +28,12 @@ import (
 //     {"__operation": "append", "items": [{"key": "x", "value": "y"}]}
 //     → ArrayNullable{Operation: "append", Items: [...], isSet: true}
 //
+// A fourth operation, "delete", is also accepted on the wire (only the tagged form -
+// there's no bare-array shorthand for it, unlike replace): each entry in items is
+// matched against an existing row by its uniqueId alone (every other field on it is
+// ignored) and removed; every row not named is left untouched. See
+// emigorm.ReconcileHasMany for how a persistence layer actually applies it.
+//
 // The vsql renderer treats ArrayNullable as opted-out via [ArrayNullable.SQLValue]
 // so unset fields disappear from generated column lists, and set fields are
 // JSON-encoded as a jsonb literal when they actually land in a column slot.
@@ -49,6 +55,14 @@ func ArrayNullableReplace[T any](items []T) ArrayNullable[T] {
 // and the new items are added (or upserted) alongside them.
 func ArrayNullableAppend[T any](items []T) ArrayNullable[T] {
 	return ArrayNullable[T]{Operation: "append", Items: items, isSet: true}
+}
+
+// ArrayNullableDelete builds a "delete" patch — each item is matched against an
+// existing row by its uniqueId alone (every other field on it is ignored) and removed;
+// every row not named is left untouched. A minimal item carrying just a uniqueId is
+// enough, e.g. ArrayNullableDelete([]T{{UniqueId: emigo.NullableOf("c1")}}).
+func ArrayNullableDelete[T any](items []T) ArrayNullable[T] {
+	return ArrayNullable[T]{Operation: "delete", Items: items, isSet: true}
 }
 
 // IsSet reports whether the ArrayNullable was explicitly populated (via a

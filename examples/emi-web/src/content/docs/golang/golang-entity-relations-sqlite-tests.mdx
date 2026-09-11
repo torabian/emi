@@ -1,0 +1,512 @@
+---
+title: "Testing entity relations against sqlite"
+sidebar:
+  order: 12
+---
+
+Prior to this work, `array_test.go`, `collection_test.go`, `one_test.go` and
+`nested_relations_test.go` only checked the **generated Go shape** (gorm struct tags,
+`schema.Parse`) via `reflect` — none of them actually created a row. The only end-to-end
+create/update coverage lived in `actions_postgres_test.go`, gated behind
+`//go:build integration` and a real Postgres instance (`make entity-db-up`).
+
+That Postgres-only requirement wasn't incidental: `uniqueId`'s default value used to be
+Postgres's own `gen_random_uuid()` column default, which sqlite and MySQL have no
+equivalent for. Along the way this repo already fixed that (`uniqueId` is now assigned
+by a generated `BeforeCreate` gorm hook, in Go, on every dialect — see
+`go-entity-default-fields.go`), but the checked-in example SDK under
+`examples/emi-entity/sdk` hadn't been regenerated since, so it still carried the old
+`gorm:"type:uuid;default:gen_random_uuid();unique"` tag and no hook. It's been
+regenerated (`emi compile --path examples/emi-entity/entity.emi.yml`) as part of this
+work so the fix actually takes effect, which is what makes the sqlite tests below
+possible without a live database at all.
+
+New test file: **`actions_sqlite_test.go`** (no build tag — runs under a plain
+`go test ./examples/emi-entity/sdk/...`). Each test opens a fresh sqlite file inside
+`t.TempDir()`, `AutoMigrate`s the tables it needs, and drives the generated
+`Entity1EntityActions.Create` / `.Update` the same way a real caller would.
+
+```
+go test ./examples/emi-entity/sdk/... -run TestSqlite -v
+```
+
+All 8 tests pass; results below.
+
+## Entities under test
+
+`examples/emi-entity/entity.emi.yml`:
+
+```yaml
+entities:
+  - name: entity2
+    fields:
+      - name: label2
+        type: string
+
+  - name: entity1
+    table: entity1_table
+    fields:
+      - name: title
+        type: string
+
+      # array / array? -> has-many, nested child struct linked via LinkerId
+      - name: items
+        type: array
+        fields:
+          - name: item2
+            type: string
+      - name: items2
+        type: array?
+        fields:
+          - name: item2
+            type: string
+
+      # collection / collection? -> many-to-many against Entity2Entity
+      - name: items3
+        type: collection
+        target: Entity2Entity
+      - name: items4
+        type: collection?
+        target: Entity2Entity
+
+      # one / one? -> one-to-one against Entity2Entity
+      - name: owner
+        type: one
+        target: Entity2Entity
+      - name: manager
+        type: one?
+        target: Entity2Entity
+
+      - name: isActive
+        type: bool
+
+      # relations nested 2 objects deep
+      - name: nestedContainer
+        type: object
+        fields:
+          - name: nestedInner
+            type: object
+            fields:
+              - name: nestedItems
+                type: array
+                fields:
+                  - name: label
+                    type: string
+              - name: nestedOwner
+                type: one
+                target: Entity2Entity
+```
+
+(`entity.emi.yml` has more scalar/map/complex fields not relevant here — see the file
+for the full picture.)
+
+---
+
+## 1. MOne — create resolves the target and persists the FK
+
+**Test:** `TestSqlite_OneField_CreateResolvesOwnerAndPersistsForeignKey`
+
+`owner: type: one` compiles to a plain, gorm-native belongs-to on `Entity1Entity`:
+
+```go
+Owner   *Entity2Entity `gorm:"foreignKey:OwnerId;references:Id" json:"owner" yaml:"owner"`
+OwnerId int64          `gorm:"index" json:"-" yaml:"-"`
+```
+
+Create payload (Go struct, same shape `Entity1EntityCreateFn` receives from a decoded
+JSON body):
+
+```go
+owner := &Entity2Entity{UniqueId: "owner-1", Label2: "owner-one"}
+db.Create(owner) // seed
+
+dto := &Entity1Entity{
+    Title:    "hello",
+    IsActive: true,
+    Owner:    owner,
+}
+created, err := Entity1EntityActions.Create(db, dto)
+```
+
+Equivalent JSON request body (`POST /entity1`):
+
+```json
+{
+  "title": "hello",
+  "isActive": true,
+  "owner": { "uniqueId": "owner-1", "label2": "owner-one" }
+}
+```
+
+**Result:** `OwnerId` is set to the seeded owner's `Id`; reloading with
+`.Preload("Owner")` resolves `Owner.Label2 == "owner-one"`. `UniqueId` on the created
+row is non-empty — assigned by the `BeforeCreate` hook, no `gen_random_uuid()` involved.
+✅ PASS
+
+## 2. MOne — update reassigns via selector
+
+**Test:** `TestSqlite_OneField_UpdateChangesOwnerViaSelect`
+
+Update payload (`Entity1OptionalDto`, the PATCH-shaped input):
+
+```go
+var input Entity1OptionalDto
+input.Owner.SetSelector("owner-2")
+Entity1EntityActions.Update(db, created.UniqueId, input)
+```
+
+Equivalent JSON (`PATCH /entity1/:uniqueId`):
+
+```json
+{ "owner": { "__operation": "select", "__selector": "owner-2" } }
+```
+
+**Result:** `updated.OwnerId == owner2.Id`. ✅ PASS
+
+## 3. MCollection — create + append (many-to-many)
+
+**Test:** `TestSqlite_CollectionField_CreateAndAppend`
+
+`items3: type: collection` produces a join table (`entity1_items3`) and a hidden
+`Items3Row []*Entity2Entity` gorm sibling.
+
+Create payload:
+
+```go
+dto := &Entity1Entity{
+    Title:  "hello",
+    Items3: emigo.CollectionReplace([]Entity2Entity{tagA}),
+}
+```
+
+```json
+{
+  "title": "hello",
+  "items3": { "__operation": "replace", "items": [{ "uniqueId": "tag-a", "label2": "tag-a" }] }
+}
+```
+
+Update (append) payload:
+
+```go
+var input Entity1OptionalDto
+input.Items3.Set("append", []Entity2Dto{{UniqueId: emigo.NullableOf("tag-b")}})
+```
+
+```json
+{ "items3": { "__operation": "append", "items": [{ "uniqueId": "tag-b" }] } }
+```
+
+**Result:** after create, `Items3Row` has 1 row (`tag-a`); after the append update, 2
+rows (`tag-a`, `tag-b`); `tag-a` itself still exists as a standalone `Entity2Entity` row
+(append/replace never deletes the *target* entity, only the join). ✅ PASS
+
+## 4. MArray — create + replace (has-many, top-level)
+
+**Test:** `TestSqlite_ArrayField_CreateAndReplace`
+
+`items: type: array` produces a real has-many child struct linked back via `LinkerId`:
+
+```go
+type Entity1EntityItems struct {
+    Item2    string
+    Id       int64
+    UniqueId string
+    LinkerId int64 `gorm:"index"`
+}
+```
+
+Create payload:
+
+```go
+dto := &Entity1Entity{
+    Title: "hello",
+    Items: []*Entity1EntityItems{
+        {UniqueId: "c1", Item2: "child-1"},
+        {UniqueId: "c2", Item2: "child-2"},
+    },
+}
+```
+
+```json
+{
+  "title": "hello",
+  "items": [
+    { "uniqueId": "c1", "item2": "child-1" },
+    { "uniqueId": "c2", "item2": "child-2" }
+  ]
+}
+```
+
+Update (replace) payload — drop `c1`, edit `c2`, add `c3`:
+
+```go
+var input Entity1OptionalDto
+input.Items.Set("replace", []Entity1OptionalDtoItems{
+    {UniqueId: emigo.NullableOf("c2"), Item2: "child-2-updated"},
+    {UniqueId: emigo.NullableOf("c3"), Item2: "child-3"},
+})
+```
+
+```json
+{
+  "items": {
+    "__operation": "replace",
+    "items": [
+      { "uniqueId": "c2", "item2": "child-2-updated" },
+      { "uniqueId": "c3", "item2": "child-3" }
+    ]
+  }
+}
+```
+
+**Result:** after replace, exactly 2 children remain (`c2` updated in place, `c3`
+newly inserted); `c1` is truly deleted (`db.Unscoped()` still finds 0 rows), not just
+unlinked. ✅ PASS
+
+## 5. MArray nested inside two `object` containers
+
+**Test:** `TestSqlite_NestedArray_CreateAndReplace`
+
+`nestedContainer.nestedInner.nestedItems` — array two objects deep. `object` fields
+embed directly (no separate table for the containers themselves), but `nestedItems`
+still gets its own fully-prefixed child table
+(`Entity1EntityNestedContainerNestedInnerNestedItems`) and `LinkerId` back to
+`entity1_table`.
+
+Create payload:
+
+```go
+dto := &Entity1Entity{
+    Title: "hello",
+    NestedContainer: Entity1EntityNestedContainer{
+        NestedInner: Entity1EntityNestedContainerNestedInner{
+            NestedItems: []*Entity1EntityNestedContainerNestedInnerNestedItems{
+                {Label: "nested-child-1"},
+                {Label: "nested-child-2"},
+            },
+            NestedOwner: &owner,
+        },
+    },
+}
+```
+
+```json
+{
+  "title": "hello",
+  "nestedContainer": {
+    "nestedInner": {
+      "nestedItems": [{ "label": "nested-child-1" }, { "label": "nested-child-2" }],
+      "nestedOwner": { "uniqueId": "nested-owner-1", "label2": "nested-owner" }
+    }
+  }
+}
+```
+
+Update (replace), reached through the nested `Nullable[T]` container wrappers:
+
+```go
+var input Entity1OptionalDto
+input.NestedContainer.Set(&Entity1OptionalDtoNestedContainer{})
+nc, _ := input.NestedContainer.Get()
+nc.NestedInner.Set(&Entity1OptionalDtoNestedContainerNestedInner{})
+ni, _ := nc.NestedInner.Get()
+ni.NestedItems.Set("replace", []Entity1OptionalDtoNestedContainerNestedInnerNestedItems{
+    {UniqueId: emigo.NullableOf(existingSecondChildId), Label: "nested-child-2-updated"},
+    {Label: "nested-child-3"},
+})
+```
+
+```json
+{
+  "nestedContainer": {
+    "nestedInner": {
+      "nestedItems": {
+        "__operation": "replace",
+        "items": [
+          { "uniqueId": "<second child's uniqueId>", "label": "nested-child-2-updated" },
+          { "label": "nested-child-3" }
+        ]
+      }
+    }
+  }
+}
+```
+
+**Result:** create cascades through both object levels — 2 nested children persisted,
+`nestedOwner` resolved via `Preload("NestedContainer.NestedInner.NestedOwner")`. The
+nested replace correctly ends with exactly `{nested-child-2-updated, nested-child-3}`.
+✅ PASS
+
+## 6. Schema sanity (AutoMigrate on sqlite)
+
+**Test:** `TestSqlite_AutoMigrateProducesExpectedSchema`
+
+Confirms, purely from `db.Migrator()` against the fresh sqlite file (no data yet):
+
+- `OwnerId`/`ManagerId` columns exist on `entity1_table`; there's no column for the
+  `Owner` DTO field itself (`gorm:"-"`).
+- `Entity1EntityItems` / `Entity1EntityItems2` child tables exist, each with a
+  `LinkerId` column.
+- `entity1_items3` / `entity1_items4` many-to-many join tables exist.
+- The nested array's own child table
+  (`Entity1EntityNestedContainerNestedInnerNestedItems`) exists.
+
+✅ PASS
+
+## 7. Array-inside-array — `delete` operation, 3 levels deep
+
+**Test:** `TestSqlite_ArrayInsideArray_DeleteRemovesOnlySelectedItems`
+
+`items.subItems.subSubItems` — an array nested inside another array, 3 levels deep.
+Until this test, `array`/`array?` only supported `replace`/`append`; deleting specific
+rows by id meant sending a `replace` with everything *except* those rows, and a
+relation declared on an array item's own fields (an array-inside-array included) was an
+explicit, documented limitation — persisted as a flat unit via `Save()`, with no way to
+say replace/append/delete on it at all. Both are now fixed:
+
+- **`delete`** is a fourth operation on `emigo.Array`/`ArrayNullable` (`emigorm.ReconcileHasMany`) —
+  each entry only needs its `uniqueId`; every other field is ignored. Rows not named
+  are left completely untouched.
+- **array-inside-array** now reconciles correctly at *any* nesting depth — the
+  preprocessor gives a nested array the same Operation-wrapped, uniqueId-prepended dto
+  shape a top-level one already had, and the generator (`buildArrayItemFields`)
+  recurses into an array's own nested array fields, generating the identical
+  reconcile call one level down.
+
+```yaml
+- name: items
+  type: array
+  fields:
+    - name: item2
+      type: string
+    - name: subItems
+      type: array
+      fields:
+        - name: subLabel
+          type: string
+        - name: subSubItems
+          type: array
+          fields:
+            - name: leafLabel
+              type: string
+```
+
+Seed payload — one top-level item, 5 `subItems`, two of them (`sub-2`, `sub-3`) each
+carrying their own `subSubItems`:
+
+```json
+{
+  "items": [
+    {
+      "item2": "parent-item",
+      "subItems": [
+        { "subLabel": "sub-1" },
+        { "subLabel": "sub-2", "subSubItems": [{ "leafLabel": "leaf-deleted-with-sub-2" }] },
+        { "subLabel": "sub-3", "subSubItems": [{ "leafLabel": "leaf-kept-on-sub-3" }] },
+        { "subLabel": "sub-4" },
+        { "subLabel": "sub-5" }
+      ]
+    }
+  ]
+}
+```
+
+Delete payload — only `sub-2` and `sub-4`'s `uniqueId`, nothing else:
+
+```json
+{
+  "items": [
+    {
+      "uniqueId": "<parent item's uniqueId>",
+      "item2": "parent-item",
+      "subItems": {
+        "__operation": "delete",
+        "items": [
+          { "uniqueId": "<sub-2's uniqueId>" },
+          { "uniqueId": "<sub-4's uniqueId>" }
+        ]
+      }
+    }
+  ]
+}
+```
+
+**Result:** 3 subItems remain (`sub-1`, `sub-3`, `sub-5`); `sub-2`/`sub-4` are hard-deleted
+(`db.Unscoped()` finds 0 rows), and `sub-2`'s own `subSubItems` row (`leaf-deleted-with-sub-2`)
+cascades away with it — no level-3 orphan left behind (`emigorm.ReconcileHasMany`'s
+`"delete"` branch reuses the same `Select(clause.Associations).Delete(&existing)` gorm
+already used for `replace`'s own orphan cleanup, which cascades through has-many
+children the same way, no DB-level `ON DELETE CASCADE`/sqlite FK pragma needed).
+`sub-3` (never touched by the delete) still carries `leaf-kept-on-sub-3` untouched. ✅ PASS
+
+## 8. All three relation types cascading from one `Create` call
+
+**Test:** `TestSqlite_EverythingTogether_CreateOneRowWithAllThreeRelationTypes`
+
+```go
+dto := &Entity1Entity{
+    Title:    "hello",
+    IsActive: true,
+    Items: []*Entity1EntityItems{
+        {Item2: "child-1"},
+        {Item2: "child-2"},
+    },
+    Items3: emigo.CollectionReplace([]Entity2Entity{*tagA, *tagB}),
+    Owner:  owner,
+}
+```
+
+```json
+{
+  "title": "hello",
+  "isActive": true,
+  "items": [{ "item2": "child-1" }, { "item2": "child-2" }],
+  "items3": {
+    "__operation": "replace",
+    "items": [
+      { "uniqueId": "tag-a", "label2": "tag-a" },
+      { "uniqueId": "tag-b", "label2": "tag-b" }
+    ]
+  },
+  "owner": { "uniqueId": "owner-1", "label2": "owner-one" }
+}
+```
+
+**Result:** one `Create` call cascades an MArray (2 children), an MCollection (2 join
+rows) and an MOne (FK resolved) together; `Id` is sqlite-autoincremented, `UniqueId` is
+hook-assigned. ✅ PASS
+
+---
+
+## Summary
+
+| Test | Relation type(s) | DB | Result |
+|---|---|---|---|
+| `TestSqlite_AutoMigrateProducesExpectedSchema` | one/collection/array + nested array | sqlite (tmp file) | ✅ PASS |
+| `TestSqlite_OneField_CreateResolvesOwnerAndPersistsForeignKey` | MOne (create) | sqlite | ✅ PASS |
+| `TestSqlite_OneField_UpdateChangesOwnerViaSelect` | MOne (update/select) | sqlite | ✅ PASS |
+| `TestSqlite_CollectionField_CreateAndAppend` | MCollection (create/append) | sqlite | ✅ PASS |
+| `TestSqlite_ArrayField_CreateAndReplace` | MArray (create/replace) | sqlite | ✅ PASS |
+| `TestSqlite_NestedArray_CreateAndReplace` | MArray nested in 2 objects (create/replace) | sqlite | ✅ PASS |
+| `TestSqlite_ArrayInsideArray_DeleteRemovesOnlySelectedItems` | MArray-inside-MArray, 3 levels, `delete` | sqlite | ✅ PASS |
+| `TestSqlite_EverythingTogether_CreateOneRowWithAllThreeRelationTypes` | MOne + MCollection + MArray together | sqlite | ✅ PASS |
+
+Run: `go test ./examples/emi-entity/sdk/... -run TestSqlite -v` — under a second, no
+external services required.
+
+## What changed to make #7 possible
+
+- `emigo/Array.go` / `ArrayNullable.go`: a new `"delete"` operation (plus
+  `ArrayDelete`/`ArrayNullableDelete` constructors) — matches existing rows by
+  `uniqueId` alone and removes them, leaving everything else untouched.
+- `emigorm/reconcile.go`: `ReconcileHasMany` gained a `"delete"` branch.
+- `lib/core/preprocess-entities.go`: `cloneEntityOptionalField` now recurses into an
+  array's own nested array sub-fields (previously only `shallowCloneField`d), so a
+  nested array gets the same Operation-wrapped, uniqueId-prepended dto shape a
+  top-level one already had.
+- `lib/golang/go-entity-actions.go`: the array-field body-building logic used by
+  `walkUpdateFields` was extracted into a recursive `buildArrayItemFields`, so an
+  array's own nested array fields reconcile via the same generated
+  `emigorm.ReconcileHasMany` call, one level down, at any depth.
+

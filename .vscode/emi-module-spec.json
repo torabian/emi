@@ -101,6 +101,13 @@
           },
           "type": "array",
           "description": "Tree of access control permissions this module contributes. Compiled into a usable Permissions constant/tree per target language."
+        },
+        "events": {
+          "items": {
+            "$ref": "#/definitions/EmiEvent"
+          },
+          "type": "array",
+          "description": "Facts this module can emit through the event system"
         }
       },
       "additionalProperties": false,
@@ -397,6 +404,54 @@
         "description": {
           "type": "string",
           "description": "Description of the enum for developers. It's not translated or meant to be shown to end users."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiEvent": {
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Unique machine identifier of this event"
+        },
+        "name": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Human readable label of the event"
+        },
+        "description": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Explains what this event represents"
+        },
+        "permissions": {
+          "items": {
+            "$ref": "#/definitions/EmiEventPermission"
+          },
+          "type": "array",
+          "description": "Permission combinations that grant visibility into this event: the outer list is OR'd together"
+        },
+        "payload": {
+          "$ref": "#/definitions/EmiActionBody",
+          "description": "Shape of data this event carries when it fires. Compiled the same way an action's request/response body is: fields becomes a typed DTO"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiEventPermission": {
+      "properties": {
+        "with": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Permission full keys that must all be held together (AND'd) for this combination to grant visibility."
         }
       },
       "additionalProperties": false,

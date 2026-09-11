@@ -42,6 +42,8 @@ func openPostgresTestDB(t *testing.T) *gorm.DB {
 		&Entity1Entity{},
 		&Entity1EntityItems{},
 		&Entity1EntityItems2{},
+		&Entity1EntityItemsSubItems{},
+		&Entity1EntityItemsSubItemsSubSubItems{},
 		&Entity1EntityNestedContainerNestedInnerNestedItems{},
 		&Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt{},
 	); err != nil {

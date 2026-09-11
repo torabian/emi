@@ -2,6 +2,107 @@ import { Entity2Dto } from "./Entity2Dto";
 import { MArray, MCollection, MOne } from "./sdk/common/operators";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
+ * The base type definition for subSubItemsType
+ * @typedef {Object} Entity1DtoType.ItemsType.SubItemsType.SubSubItemsType
+ * @property {string} leafLabel
+ */
+/**
+ * The base type definition for subItemsType
+ * @typedef {Object} Entity1DtoType.ItemsType.SubItemsType
+ * @property {string} subLabel
+ * @property {Entity1DtoType.ItemsType.SubItemsType.SubSubItemsType[]} subSubItems
+ */
+/**
+ * The base type definition for itemsType
+ * @typedef {Object} Entity1DtoType.ItemsType
+ * @property {string} item2
+ * @property {Entity1DtoType.ItemsType.SubItemsType[]} subItems
+ */
+/**
+ * The base type definition for items2Type
+ * @typedef {Object} Entity1DtoType.Items2Type
+ * @property {string} item2
+ */
+/**
+ * The base type definition for content1Type
+ * @typedef {Object} Entity1DtoType.Content1Type
+ * @property {number} [item1]
+ */
+/**
+ * The base type definition for content2Type
+ * @typedef {Object} Entity1DtoType.Content2Type
+ * @property {number} [item2]
+ */
+/**
+ * The base type definition for nestedItemsType
+ * @typedef {Object} Entity1DtoType.NestedContainerType.NestedInnerType.NestedItemsType
+ * @property {string} label
+ */
+/**
+ * The base type definition for nestedInnerType
+ * @typedef {Object} Entity1DtoType.NestedContainerType.NestedInnerType
+ * @property {Entity1DtoType.NestedContainerType.NestedInnerType.NestedItemsType[]} nestedItems
+ * @property {Entity2Dto} [nestedOwner]
+ */
+/**
+ * The base type definition for nestedContainerType
+ * @typedef {Object} Entity1DtoType.NestedContainerType
+ * @property {Entity1DtoType.NestedContainerType.NestedInnerType} nestedInner
+ */
+/**
+ * The base type definition for nestedItemsOptType
+ * @typedef {Object} Entity1DtoType.NestedContainerOptType.NestedInnerType.NestedItemsOptType
+ * @property {string} label
+ */
+/**
+ * The base type definition for nestedInnerType
+ * @typedef {Object} Entity1DtoType.NestedContainerOptType.NestedInnerType
+ * @property {Entity1DtoType.NestedContainerOptType.NestedInnerType.NestedItemsOptType[]} nestedItemsOpt
+ */
+/**
+ * The base type definition for nestedContainerOptType
+ * @typedef {Object} Entity1DtoType.NestedContainerOptType
+ * @property {Entity1DtoType.NestedContainerOptType.NestedInnerType} nestedInner
+ */
+/**
+ * The base type definition for entity1Dto
+ * @typedef {Object} Entity1DtoType
+ * @property {string} [uniqueId]
+ * @property {string} title
+ * @property {Entity1DtoType.ItemsType[]} items
+ * @property {Entity1DtoType.Items2Type[]} [items2]
+ * @property {Entity2Dto[]} [items3]
+ * @property {Entity2Dto[]} [items4]
+ * @property {Entity2Dto} [owner]
+ * @property {Entity2Dto} [manager]
+ * @property {Entity1DtoType.Content1Type} content1
+ * @property {Entity1DtoType.Content2Type} [content2]
+ * @property {Money} complex1
+ * @property {string} [subtitle]
+ * @property {boolean} isActive
+ * @property {boolean} [isFeatured]
+ * @property {number} viewCount
+ * @property {number} [viewCountOpt]
+ * @property {number} smallCount
+ * @property {number} [smallCountOpt]
+ * @property {number} bigCount
+ * @property {number} [bigCountOpt]
+ * @property {number} ratio32
+ * @property {number} [ratio32Opt]
+ * @property {number} ratio64
+ * @property {number} [ratio64Opt]
+ * @property {"active" | "inactive"} status
+ * @property {any} [statusOpt]
+ * @property {{[key: string]: any}} metadata
+ * @property {{[key: string]: any}} [metadataOpt]
+ * @property {{[key: string]: any}} rawSettings
+ * @property {string[]} labels
+ * @property {any} [labelsOpt]
+ * @property {any} misc
+ * @property {Entity1DtoType.NestedContainerType} nestedContainer
+ * @property {Entity1DtoType.NestedContainerOptType} [nestedContainerOpt]
+ */
+/**
  * The base class definition for entity1Dto
  **/
 export class Entity1Dto {
@@ -121,7 +222,7 @@ export class Entity1Dto {
   set items2(value) {
     // For nullable array, we allow explicit undefined or null values
     if (value === null || value === undefined) {
-      this.#items2 = value;
+      this.#items2 = value === null ? null : undefined;
       return;
     }
     // When the passed value is already an array, we check if we need to
@@ -175,7 +276,7 @@ export class Entity1Dto {
   set items3(value) {
     // For nullable collection, we allow explicit undefined or null values
     if (value === null || value === undefined) {
-      this.#items3 = value;
+      this.#items3 = value === null ? null : undefined;
       return;
     }
     // When the passed value is already an array, we check if we need to
@@ -229,7 +330,7 @@ export class Entity1Dto {
   set items4(value) {
     // For nullable collection, we allow explicit undefined or null values
     if (value === null || value === undefined) {
-      this.#items4 = value;
+      this.#items4 = value === null ? null : undefined;
       return;
     }
     // When the passed value is already an array, we check if we need to
@@ -281,6 +382,19 @@ export class Entity1Dto {
    * @type {Entity2Dto}
    **/
   set owner(value) {
+    // For a nullable relation, a literal null is a deliberate "clear"
+    // signal and has to stay null - not fall through to the else branch
+    // below and become MOne.of(new Entity2Dto(null)) (the
+    // constructor tolerates a null/undefined argument by returning an
+    // empty-but-non-null instance), which serializes as an empty object
+    // instead of null. The backend tells "explicitly cleared" apart from
+    // "field left untouched" (an absent key) only by seeing a real null
+    // on the wire, the same way every other nullable field here (array?,
+    // collection?) already short-circuits on null/undefined above.
+    if (value === null || value === undefined) {
+      this.#owner = value === null ? null : undefined;
+      return;
+    }
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof MOne) {
       this.#owner = value;
@@ -311,6 +425,19 @@ export class Entity1Dto {
    * @type {Entity2Dto}
    **/
   set manager(value) {
+    // For a nullable relation, a literal null is a deliberate "clear"
+    // signal and has to stay null - not fall through to the else branch
+    // below and become MOne.of(new Entity2Dto(null)) (the
+    // constructor tolerates a null/undefined argument by returning an
+    // empty-but-non-null instance), which serializes as an empty object
+    // instead of null. The backend tells "explicitly cleared" apart from
+    // "field left untouched" (an absent key) only by seeing a real null
+    // on the wire, the same way every other nullable field here (array?,
+    // collection?) already short-circuits on null/undefined above.
+    if (value === null || value === undefined) {
+      this.#manager = value === null ? null : undefined;
+      return;
+    }
     // For objects, the sub type needs to always be instance of the sub class.
     if (value instanceof MOne) {
       this.#manager = value;
@@ -397,7 +524,11 @@ export class Entity1Dto {
    * @type {Money}
    **/
   set complex1(value) {
-    this.#complex1 = value;
+    if (value instanceof Money) {
+      this.#complex1 = value;
+    } else {
+      this.#complex1 = new Money(value);
+    }
   }
   setComplex1(value) {
     this.complex1 = value;
@@ -1013,6 +1144,337 @@ export class Entity1Dto {
       this.item2 = value;
       return this;
     }
+    /**
+     *
+     * @type {Entity1Dto.Items.SubItems}
+     **/
+    #subItems = MArray.of([]);
+    /**
+     *
+     * @returns {Entity1Dto.Items.SubItems}
+     **/
+    get subItems() {
+      return this.#subItems;
+    }
+    /**
+     *
+     * @type {Entity1Dto.Items.SubItems}
+     **/
+    set subItems(value) {
+      // When the passed value is already an array, we check if we need to
+      // cast the inner items into class instance.
+      if (Array.isArray(value)) {
+        if (value.length > 0 && value[0] instanceof Entity1Dto.Items.SubItems) {
+          this.#subItems = MArray.of(value);
+        } else {
+          this.#subItems = MArray.of(
+            value.map((item) => new Entity1Dto.Items.SubItems(item)),
+          );
+        }
+        return;
+      }
+      // If the instance is already an MArray, we assume it's all good.
+      if (value instanceof MArray) {
+        this.#subItems = value;
+        return;
+      }
+      // If the value is not array, and is not a MArray, we need to be consider,
+      // it might be eligible to be casted into MArray.
+      const { ok, value: mcastValue } = MArray.cast(value);
+      if (ok) {
+        this.#subItems = mcastValue;
+        return;
+      }
+      console.warn(
+        "Cannot assing value to subItems, because it needs MArray instance or an Array.",
+      );
+    }
+    setSubItems(value) {
+      this.subItems = value;
+      return this;
+    }
+    /**
+     * The base class definition for subItems
+     **/
+    static SubItems = class SubItems {
+      /**
+       *
+       * @type {string}
+       **/
+      #subLabel = "";
+      /**
+       *
+       * @returns {string}
+       **/
+      get subLabel() {
+        return this.#subLabel;
+      }
+      /**
+       *
+       * @type {string}
+       **/
+      set subLabel(value) {
+        this.#subLabel = String(value);
+      }
+      setSubLabel(value) {
+        this.subLabel = value;
+        return this;
+      }
+      /**
+       *
+       * @type {Entity1Dto.Items.SubItems.SubSubItems}
+       **/
+      #subSubItems = MArray.of([]);
+      /**
+       *
+       * @returns {Entity1Dto.Items.SubItems.SubSubItems}
+       **/
+      get subSubItems() {
+        return this.#subSubItems;
+      }
+      /**
+       *
+       * @type {Entity1Dto.Items.SubItems.SubSubItems}
+       **/
+      set subSubItems(value) {
+        // When the passed value is already an array, we check if we need to
+        // cast the inner items into class instance.
+        if (Array.isArray(value)) {
+          if (
+            value.length > 0 &&
+            value[0] instanceof Entity1Dto.Items.SubItems.SubSubItems
+          ) {
+            this.#subSubItems = MArray.of(value);
+          } else {
+            this.#subSubItems = MArray.of(
+              value.map(
+                (item) => new Entity1Dto.Items.SubItems.SubSubItems(item),
+              ),
+            );
+          }
+          return;
+        }
+        // If the instance is already an MArray, we assume it's all good.
+        if (value instanceof MArray) {
+          this.#subSubItems = value;
+          return;
+        }
+        // If the value is not array, and is not a MArray, we need to be consider,
+        // it might be eligible to be casted into MArray.
+        const { ok, value: mcastValue } = MArray.cast(value);
+        if (ok) {
+          this.#subSubItems = mcastValue;
+          return;
+        }
+        console.warn(
+          "Cannot assing value to subSubItems, because it needs MArray instance or an Array.",
+        );
+      }
+      setSubSubItems(value) {
+        this.subSubItems = value;
+        return this;
+      }
+      /**
+       * The base class definition for subSubItems
+       **/
+      static SubSubItems = class SubSubItems {
+        /**
+         *
+         * @type {string}
+         **/
+        #leafLabel = "";
+        /**
+         *
+         * @returns {string}
+         **/
+        get leafLabel() {
+          return this.#leafLabel;
+        }
+        /**
+         *
+         * @type {string}
+         **/
+        set leafLabel(value) {
+          this.#leafLabel = String(value);
+        }
+        setLeafLabel(value) {
+          this.leafLabel = value;
+          return this;
+        }
+        constructor(data) {
+          if (data === null || data === undefined) {
+            return;
+          }
+          if (typeof data === "string") {
+            this.applyFromObject(JSON.parse(data));
+          } else if (this.#isJsonAppliable(data)) {
+            this.applyFromObject(data);
+          } else {
+            throw new Error(
+              "Instance cannot be created on an unknown value, check the content being passed. got: " +
+                typeof data,
+            );
+          }
+        }
+        #isJsonAppliable(obj) {
+          const g = globalThis;
+          const isBuffer =
+            typeof g.Buffer !== "undefined" &&
+            typeof g.Buffer.isBuffer === "function" &&
+            g.Buffer.isBuffer(obj);
+          const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+          return (
+            obj &&
+            typeof obj === "object" &&
+            !Array.isArray(obj) &&
+            !isBuffer &&
+            !(obj instanceof ArrayBuffer) &&
+            !isBlob
+          );
+        }
+        /**
+         * casts the fields of a javascript object into the class properties one by one
+         **/
+        applyFromObject(data = {}) {
+          const d = data;
+          if (d.leafLabel !== undefined) {
+            this.leafLabel = d.leafLabel;
+          }
+        }
+        /**
+         *	Special toJSON override, since the field are private,
+         *	Json stringify won't see them unless we mention it explicitly.
+         **/
+        toJSON() {
+          return {
+            leafLabel: this.#leafLabel,
+          };
+        }
+        toString() {
+          return JSON.stringify(this);
+        }
+        static get Fields() {
+          return {
+            leafLabel: "leafLabel",
+          };
+        }
+        /**
+         * Creates an instance of Entity1Dto.Items.SubItems.SubSubItems, and possibleDtoObject
+         * needs to satisfy the type requirement fully, otherwise typescript compile would
+         * be complaining.
+         **/
+        static from(possibleDtoObject) {
+          return new Entity1Dto.Items.SubItems.SubSubItems(possibleDtoObject);
+        }
+        /**
+         * Creates an instance of Entity1Dto.Items.SubItems.SubSubItems, and partialDtoObject
+         * needs to satisfy the type, but partially, and rest of the content would
+         * be constructed according to data types and nullability.
+         **/
+        static with(partialDtoObject) {
+          return new Entity1Dto.Items.SubItems.SubSubItems(partialDtoObject);
+        }
+        copyWith(partial) {
+          return new Entity1Dto.Items.SubItems.SubSubItems({
+            ...this.toJSON(),
+            ...partial,
+          });
+        }
+        clone() {
+          return new Entity1Dto.Items.SubItems.SubSubItems(this.toJSON());
+        }
+      };
+      constructor(data) {
+        if (data === null || data === undefined) {
+          return;
+        }
+        if (typeof data === "string") {
+          this.applyFromObject(JSON.parse(data));
+        } else if (this.#isJsonAppliable(data)) {
+          this.applyFromObject(data);
+        } else {
+          throw new Error(
+            "Instance cannot be created on an unknown value, check the content being passed. got: " +
+              typeof data,
+          );
+        }
+      }
+      #isJsonAppliable(obj) {
+        const g = globalThis;
+        const isBuffer =
+          typeof g.Buffer !== "undefined" &&
+          typeof g.Buffer.isBuffer === "function" &&
+          g.Buffer.isBuffer(obj);
+        const isBlob = typeof g.Blob !== "undefined" && obj instanceof g.Blob;
+        return (
+          obj &&
+          typeof obj === "object" &&
+          !Array.isArray(obj) &&
+          !isBuffer &&
+          !(obj instanceof ArrayBuffer) &&
+          !isBlob
+        );
+      }
+      /**
+       * casts the fields of a javascript object into the class properties one by one
+       **/
+      applyFromObject(data = {}) {
+        const d = data;
+        if (d.subLabel !== undefined) {
+          this.subLabel = d.subLabel;
+        }
+        if (d.subSubItems !== undefined) {
+          this.subSubItems = d.subSubItems;
+        }
+      }
+      /**
+       *	Special toJSON override, since the field are private,
+       *	Json stringify won't see them unless we mention it explicitly.
+       **/
+      toJSON() {
+        return {
+          subLabel: this.#subLabel,
+          subSubItems: this.#subSubItems,
+        };
+      }
+      toString() {
+        return JSON.stringify(this);
+      }
+      static get Fields() {
+        return {
+          subLabel: "subLabel",
+          subSubItems$: "subSubItems",
+          get subSubItems() {
+            return withPrefix(
+              "items.subItems.subSubItems[:i]",
+              Entity1Dto.Items.SubItems.SubSubItems.Fields,
+            );
+          },
+        };
+      }
+      /**
+       * Creates an instance of Entity1Dto.Items.SubItems, and possibleDtoObject
+       * needs to satisfy the type requirement fully, otherwise typescript compile would
+       * be complaining.
+       **/
+      static from(possibleDtoObject) {
+        return new Entity1Dto.Items.SubItems(possibleDtoObject);
+      }
+      /**
+       * Creates an instance of Entity1Dto.Items.SubItems, and partialDtoObject
+       * needs to satisfy the type, but partially, and rest of the content would
+       * be constructed according to data types and nullability.
+       **/
+      static with(partialDtoObject) {
+        return new Entity1Dto.Items.SubItems(partialDtoObject);
+      }
+      copyWith(partial) {
+        return new Entity1Dto.Items.SubItems({ ...this.toJSON(), ...partial });
+      }
+      clone() {
+        return new Entity1Dto.Items.SubItems(this.toJSON());
+      }
+    };
     constructor(data) {
       if (data === null || data === undefined) {
         return;
@@ -1052,6 +1514,9 @@ export class Entity1Dto {
       if (d.item2 !== undefined) {
         this.item2 = d.item2;
       }
+      if (d.subItems !== undefined) {
+        this.subItems = d.subItems;
+      }
     }
     /**
      *	Special toJSON override, since the field are private,
@@ -1060,6 +1525,7 @@ export class Entity1Dto {
     toJSON() {
       return {
         item2: this.#item2,
+        subItems: this.#subItems,
       };
     }
     toString() {
@@ -1068,6 +1534,13 @@ export class Entity1Dto {
     static get Fields() {
       return {
         item2: "item2",
+        subItems$: "subItems",
+        get subItems() {
+          return withPrefix(
+            "items.subItems[:i]",
+            Entity1Dto.Items.SubItems.Fields,
+          );
+        },
       };
     }
     /**
@@ -1533,6 +2006,19 @@ export class Entity1Dto {
        * @type {Entity2Dto}
        **/
       set nestedOwner(value) {
+        // For a nullable relation, a literal null is a deliberate "clear"
+        // signal and has to stay null - not fall through to the else branch
+        // below and become MOne.of(new Entity2Dto(null)) (the
+        // constructor tolerates a null/undefined argument by returning an
+        // empty-but-non-null instance), which serializes as an empty object
+        // instead of null. The backend tells "explicitly cleared" apart from
+        // "field left untouched" (an absent key) only by seeing a real null
+        // on the wire, the same way every other nullable field here (array?,
+        // collection?) already short-circuits on null/undefined above.
+        if (value === null || value === undefined) {
+          this.#nestedOwner = value === null ? null : undefined;
+          return;
+        }
         // For objects, the sub type needs to always be instance of the sub class.
         if (value instanceof MOne) {
           this.#nestedOwner = value;

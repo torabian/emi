@@ -57,6 +57,12 @@ type Emi struct {
 	// each target backend (see lib/golang and lib/js).
 	Permissions []*EmiPermission `yaml:"permissions,omitempty" json:"permissions,omitempty" jsonschema:"description=Tree of access control permissions this module contributes. Compiled into a usable Permissions constant/tree per target language."`
 
+	// Events declares the facts this module can emit through the event system (e.g.
+	// "a user was created"), each with the permission combinations that grant
+	// visibility into it. Compiled into a usable Events catalog per target language
+	// (currently Go only - see lib/golang/go-events.go).
+	Events []*EmiEvent `yaml:"events,omitempty" json:"events,omitempty" jsonschema:"description=Facts this module can emit through the event system, each with the permission combinations that grant visibility into it. Compiled into a usable Events catalog per target language."`
+
 	// SourcePath is the absolute path of the yaml file this module was read from, if
 	// known (set by ReadEmiFromFile/StringToEmiWithPath - the plain content-only
 	// loaders leave it empty). It is not part of the module's own definition, so it's

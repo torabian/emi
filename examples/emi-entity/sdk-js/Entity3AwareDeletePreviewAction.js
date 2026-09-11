@@ -56,7 +56,8 @@ export class Entity3AwareDeletePreviewAction {
   };
   static Definition = {
     name: "entity3AwareDeletePreview",
-    cliShort: "entity3-dp",
+    cliName: "delete-preview",
+    cliShort: "dp",
     url: "/entity3/delete-preview",
     method: "get",
     qs: [
@@ -93,6 +94,18 @@ export class Entity3AwareDeletePreviewAction {
     },
   };
 }
+/**
+ * The base type definition for affectedType
+ * @typedef {Object} Entity3AwareDeletePreviewActionResType.AffectedType
+ * @property {string} relation
+ * @property {number} count
+ */
+/**
+ * The base type definition for entity3AwareDeletePreviewActionRes
+ * @typedef {Object} Entity3AwareDeletePreviewActionResType
+ * @property {string} message
+ * @property {Entity3AwareDeletePreviewActionResType.AffectedType[]} affected
+ */
 /**
  * The base class definition for entity3AwareDeletePreviewActionRes
  **/
