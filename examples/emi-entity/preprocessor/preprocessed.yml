@@ -33,6 +33,20 @@ dtos:
       type: string?
     - name: item2
       type: string
+    - name: subItems
+      type: array?
+      fields:
+      - name: uniqueId
+        type: string?
+      - name: subLabel
+        type: string
+      - name: subSubItems
+        type: array?
+        fields:
+        - name: uniqueId
+          type: string?
+        - name: leafLabel
+          type: string
   - name: items2
     type: array?
     fields:
@@ -185,6 +199,16 @@ dtos:
     fields:
     - name: item2
       type: string
+    - name: subItems
+      type: array
+      fields:
+      - name: subLabel
+        type: string
+      - name: subSubItems
+        type: array
+        fields:
+        - name: leafLabel
+          type: string
   - name: items2
     type: array?
     fields:
@@ -325,6 +349,16 @@ entities:
     fields:
     - name: item2
       type: string
+    - name: subItems
+      type: array
+      fields:
+      - name: subLabel
+        type: string
+      - name: subSubItems
+        type: array
+        fields:
+        - name: leafLabel
+          type: string
   - name: items2
     type: array?
     fields:
@@ -472,7 +506,8 @@ actions:
     - name: echoedAt
       type: string
 - name: entity2Create
-  cliShort: entity2-c
+  cliName: create
+  cliShort: c
   url: /entity2
   method: post
   description: Creates a new "entity2" row.
@@ -482,7 +517,8 @@ actions:
     envelope: GResponse
     dto: Entity2Dto
 - name: entity2Update
-  cliShort: entity2-u
+  cliName: update
+  cliShort: u
   url: /entity2/:uniqueId
   method: patch
   description: Applies a partial update to a "entity2" row by uniqueId.
@@ -492,7 +528,8 @@ actions:
     envelope: GResponse
     dto: Entity2Dto
 - name: entity2Get
-  cliShort: entity2-g
+  cliName: get
+  cliShort: g
   url: /entity2/:uniqueId
   method: get
   description: Looks up a single "entity2" row by uniqueId.
@@ -500,7 +537,8 @@ actions:
     envelope: GResponse
     dto: Entity2Dto
 - name: entity2Browse
-  cliShort: entity2-b
+  cliName: browse
+  cliShort: b
   url: /entity2/browse
   method: get
   qs:
@@ -519,7 +557,8 @@ actions:
     envelope: GResponse
     dto: Entity2OptionalDto
 - name: entity2AwareDeletePreview
-  cliShort: entity2-dp
+  cliName: delete-preview
+  cliShort: dp
   url: /entity2/delete-preview
   method: get
   qs:
@@ -541,7 +580,8 @@ actions:
       - name: count
         type: int64
 - name: entity2AwareDelete
-  cliShort: entity2-d
+  cliName: delete
+  cliShort: d
   url: /entity2/delete
   method: post
   description: Deletes the given "entity2" uniqueIds, along with everything entity2AwareDeletePreview
@@ -552,7 +592,8 @@ actions:
       type: slice
       primitive: string
 - name: entity1Create
-  cliShort: entity1-c
+  cliName: create
+  cliShort: c
   url: /entity1
   method: post
   description: Creates a new "entity1" row.
@@ -562,7 +603,8 @@ actions:
     envelope: GResponse
     dto: Entity1Dto
 - name: entity1Update
-  cliShort: entity1-u
+  cliName: update
+  cliShort: u
   url: /entity1/:uniqueId
   method: patch
   description: Applies a partial update to a "entity1" row by uniqueId.
@@ -572,7 +614,8 @@ actions:
     envelope: GResponse
     dto: Entity1Dto
 - name: entity1Get
-  cliShort: entity1-g
+  cliName: get
+  cliShort: g
   url: /entity1/:uniqueId
   method: get
   description: Looks up a single "entity1" row by uniqueId.
@@ -580,7 +623,8 @@ actions:
     envelope: GResponse
     dto: Entity1Dto
 - name: entity1Browse
-  cliShort: entity1-b
+  cliName: browse
+  cliShort: b
   url: /entity1/browse
   method: get
   qs:
@@ -599,7 +643,8 @@ actions:
     envelope: GResponse
     dto: Entity1OptionalDto
 - name: entity1AwareDeletePreview
-  cliShort: entity1-dp
+  cliName: delete-preview
+  cliShort: dp
   url: /entity1/delete-preview
   method: get
   qs:
@@ -621,7 +666,8 @@ actions:
       - name: count
         type: int64
 - name: entity1AwareDelete
-  cliShort: entity1-d
+  cliName: delete
+  cliShort: d
   url: /entity1/delete
   method: post
   description: Deletes the given "entity1" uniqueIds, along with everything entity1AwareDeletePreview
@@ -632,7 +678,8 @@ actions:
       type: slice
       primitive: string
 - name: entity3Create
-  cliShort: entity3-c
+  cliName: create
+  cliShort: c
   url: /entity3
   method: post
   description: Creates a new "entity3" row.
@@ -642,7 +689,8 @@ actions:
     envelope: GResponse
     dto: Entity3Dto
 - name: entity3Get
-  cliShort: entity3-g
+  cliName: get
+  cliShort: g
   url: /entity3/:uniqueId
   method: get
   description: Looks up a single "entity3" row by uniqueId.
@@ -650,7 +698,8 @@ actions:
     envelope: GResponse
     dto: Entity3Dto
 - name: entity3Browse
-  cliShort: entity3-b
+  cliName: browse
+  cliShort: b
   url: /entity3/browse
   method: get
   qs:
@@ -669,7 +718,8 @@ actions:
     envelope: GResponse
     dto: Entity3OptionalDto
 - name: entity3AwareDeletePreview
-  cliShort: entity3-dp
+  cliName: delete-preview
+  cliShort: dp
   url: /entity3/delete-preview
   method: get
   qs:
@@ -691,7 +741,8 @@ actions:
       - name: count
         type: int64
 - name: entity3AwareDelete
-  cliShort: entity3-d
+  cliName: delete
+  cliShort: d
   url: /entity3/delete
   method: post
   description: Deletes the given "entity3" uniqueIds, along with everything entity3AwareDeletePreview
@@ -702,7 +753,8 @@ actions:
       type: slice
       primitive: string
 - name: entity4Update
-  cliShort: entity4-u
+  cliName: update
+  cliShort: u
   url: /entity4/:uniqueId
   method: patch
   description: Applies a partial update to a "entity4" row by uniqueId.
@@ -712,7 +764,8 @@ actions:
     envelope: GResponse
     dto: Entity4Dto
 - name: entity4Get
-  cliShort: entity4-g
+  cliName: get
+  cliShort: g
   url: /entity4/:uniqueId
   method: get
   description: Looks up a single "entity4" row by uniqueId.
@@ -720,7 +773,8 @@ actions:
     envelope: GResponse
     dto: Entity4Dto
 - name: entity4AwareDeletePreview
-  cliShort: entity4-dp
+  cliName: delete-preview
+  cliShort: dp
   url: /entity4/delete-preview
   method: get
   qs:
@@ -742,7 +796,8 @@ actions:
       - name: count
         type: int64
 - name: entity4AwareDelete
-  cliShort: entity4-d
+  cliName: delete
+  cliShort: d
   url: /entity4/delete
   method: post
   description: Deletes the given "entity4" uniqueIds, along with everything entity4AwareDeletePreview

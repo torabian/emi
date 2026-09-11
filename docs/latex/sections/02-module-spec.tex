@@ -1,0 +1,69 @@
+\section{Classifieds: The Module Definition}
+\label{sec:module-spec}
+
+An Emi definition can be written as YAML or JSON --- there is no special
+language of its own. At an abstract level it is just a definition;
+different sub-compilers (Go, JS, Swift, \ldots) produce different target
+code from the same root document, shaped by \texttt{--tags}. Every struct
+mentioned in this Gazette lives in one place in the compiler's own source:
+\texttt{lib/core/Emi.go}.
+
+\subsection{A minimal module}
+\begin{lstlisting}
+name: sampleModule
+actions:
+  - name: getSinglePost
+    url: https://jsonplaceholder.typicode.com/posts/:id
+    cliName: get-single-post
+    method: get
+    description: Gets a specific post
+    out:
+      fields:
+        - name: userId
+          type: int64
+        - name: id
+          type: int64
+        - name: title
+          type: string
+        - name: body
+          type: string
+\end{lstlisting}
+
+\begin{sidebar}{Root-level module properties}
+\scriptsize
+\begin{tabular}{@{}p{0.24\linewidth}p{0.7\linewidth}@{}}
+\textbf{name} & lower camelCase; \texttt{Module.go}/\texttt{Module.dyno.go} are named from it \\
+\textbf{namespace} & module's location in the app tree (PHP-style), used as the client export path \\
+\textbf{description} & module purpose, used in codegen and generated docs \\
+\textbf{version} & optional, useful across codegen phases \\
+\textbf{targets} & compiler self-containment \\
+\textbf{enums} & module-level enums, reusable across the rest of the definition \\
+\textbf{dtos} & plain data shapes (Go structs) for request/response actions \\
+\textbf{entities} & database-backed structures --- fields become both struct fields and DB columns \\
+\textbf{complexes} & custom data type definitions and their import location \\
+\textbf{actions} & controller-like endpoints, HTTP and/or CLI (\S\ref{sec:actions}) \\
+\textbf{remotes} & external HTTP services, made type-safe by declaring them here \\
+\textbf{config} & server-side configuration manager \\
+\textbf{manifests} & bundles of actions \\
+\textbf{vsqls} & typed virtual SQL queries (see Query Predict, \S\ref{sec:query-predict}) \\
+\textbf{templates} & reusable shape definitions \\
+\textbf{permissions} & access-control tree the module contributes (\S\ref{sec:permissions-events}) \\
+\textbf{events} & facts the module can emit through the event system (\S\ref{sec:permissions-events}) \\
+\end{tabular}
+\end{sidebar}
+
+\subsection{dtos vs.\ entities}
+A \texttt{dto} is a plain data shape with no persistence of its own; an
+\texttt{entity} is database-backed --- its fields become both a Go struct
+\emph{and} migrated database columns (via \href{https://gorm.io}{gorm}).
+Under the hood entities reuse the exact same field-rendering machinery
+dtos use --- nested objects, CLI flags, JSON/YAML tags all work
+identically (\S\ref{sec:go-entities} covers what's specific to entities:
+default \texttt{id}/\texttt{uniqueId} fields and gorm tags).
+
+\begin{pullquote}
+Emi definitions deliberately avoid target-language code, so the same
+YAML can be compiled into as many languages as the project grows to need
+--- adding a tenth target is a new sub-compiler reading the same
+document, never a rewrite of the nine definitions that already exist.
+\end{pullquote}

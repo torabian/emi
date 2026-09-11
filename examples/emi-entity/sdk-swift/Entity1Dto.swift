@@ -38,6 +38,16 @@ struct Entity1Dto: Codable {
   // The base class definition for items
 struct Entity1DtoItems: Codable {
 		let item2: String
+		let subItems: [Entity1DtoItemsSubItems]
+}
+  // The base class definition for subItems
+struct Entity1DtoItemsSubItems: Codable {
+		let subLabel: String
+		let subSubItems: [Entity1DtoItemsSubItemsSubSubItems]
+}
+  // The base class definition for subSubItems
+struct Entity1DtoItemsSubItemsSubSubItems: Codable {
+		let leafLabel: String
 }
   // The base class definition for items2
 struct Entity1DtoItems2: Codable {

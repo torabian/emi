@@ -1,4 +1,10 @@
 /**
+ * The base type definition for entity4OptionalDto
+ * @typedef {Object} Entity4OptionalDtoType
+ * @property {string} [uniqueId]
+ * @property {string} [note]
+ */
+/**
  * The base class definition for entity4OptionalDto
  **/
 export class Entity4OptionalDto {

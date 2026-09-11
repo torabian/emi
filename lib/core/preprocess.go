@@ -70,6 +70,10 @@ func (m *Emi) Preprocess() error {
 		return err
 	}
 
+	if err := ValidateEventIdentifiers(m.Events); err != nil {
+		return err
+	}
+
 	return runPreprocessHooks(m, globalPreprocessHooks)
 }
 

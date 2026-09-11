@@ -1,0 +1,59 @@
+\section{Wanted: Endpoints --- Actions}
+\label{sec:actions}
+
+Actions are, in effect, functions: they take an input and return an
+output, corresponding to a ``controller'' in traditional API frameworks.
+Each action is an endpoint, but --- unlike a typical controller --- an
+action can also be called from contexts other than HTTP, for example the
+CLI, since \texttt{cliName} turns any action into a \texttt{urfave/cli}
+command for free.
+
+\begin{lstlisting}
+name: sampleModule
+actions:
+  - name: getSinglePost
+    url: https://jsonplaceholder.typicode.com/posts/:id
+    cliName: get-single-post
+    method: get
+    out:
+      fields:
+        - {name: userId, type: int64}
+        - {name: title,  type: string}
+  - name: sampleSse
+    url: http://localhost:3000/stream
+    method: get
+    out:
+      fields: [{name: message, type: string}]
+  - name: webSocketOrgEcho
+    url: "wss://echo.websocket.org/.ws"
+    method: reactive
+    in:
+      fields: [{name: firstName, type: string}]
+    out:
+      fields: [{name: lastName, type: string}]
+\end{lstlisting}
+
+\begin{sidebar}{Action properties}
+\scriptsize
+\begin{tabular}{@{}p{0.22\linewidth}p{0.72\linewidth}@{}}
+\textbf{name} & required, camelCase, unique within the module \\
+\textbf{cliName} & overrides the CLI command name (defaults to \texttt{name}) \\
+\textbf{cliShort} & shorter alternative alongside \texttt{cliName} \\
+\textbf{url} & HTTP route; omitted means the action is CLI-only \\
+\textbf{method} & \texttt{post}/\texttt{patch}/\texttt{put}/\texttt{get}/\texttt{delete}/\texttt{reactive} \\
+\textbf{binaryType} & websocket payload type, text by default \\
+\textbf{qs} & type-safe query parameters, for both CLI and HTTP \\
+\textbf{description} & used in specs and generated documentation \\
+\textbf{in} / \textbf{out} & request/response body definitions \\
+\end{tabular}
+\end{sidebar}
+
+Only \texttt{name} is strictly required for an action to compile;
+\texttt{in}, \texttt{out}, \texttt{method} and \texttt{url} are simply the
+properties developers reach for most often. Calling a non-listed method
+falls back to HTTP with that non-standard verb. \texttt{reactive} is
+Emi's own addition on top of the HTTP-standard methods --- it's what
+turns an action into a WebSocket channel instead of a request/response
+pair (\S\ref{sec:reactive}), and a plain \texttt{get} whose handler
+streams chunked output is how an SSE action like \texttt{sampleSse} above
+is declared, with no separate keyword needed.

@@ -54,7 +54,10 @@ func TestOneNullableField_IsARealGormBelongsTo(t *testing.T) {
 	if !ok {
 		t.Fatal("expected Entity1Entity to have a Manager field")
 	}
-	want := "foreignKey:ManagerId;references:Id"
+	// one? gets no DB-level FK constraint (constraint:-) - see go-entity-gorm.go: an
+	// unset one? leaves its hidden {field}Id sibling at Go's int64 zero value, which a
+	// real FK constraint would reject outright since no row ever has id 0.
+	want := "foreignKey:ManagerId;references:Id;constraint:-"
 	if got := field.Tag.Get("gorm"); got != want {
 		t.Fatalf("Manager gorm tag = %q, want %q", got, want)
 	}

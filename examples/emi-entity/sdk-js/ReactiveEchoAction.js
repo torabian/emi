@@ -46,6 +46,11 @@ export class ReactiveEchoAction {
   };
 }
 /**
+ * The base type definition for reactiveEchoActionReq
+ * @typedef {Object} ReactiveEchoActionReqType
+ * @property {string} message
+ */
+/**
  * The base class definition for reactiveEchoActionReq
  **/
 export class ReactiveEchoActionReq {
@@ -152,6 +157,12 @@ export class ReactiveEchoActionReq {
     return new ReactiveEchoActionReq(this.toJSON());
   }
 }
+/**
+ * The base type definition for reactiveEchoActionRes
+ * @typedef {Object} ReactiveEchoActionResType
+ * @property {string} message
+ * @property {string} echoedAt
+ */
 /**
  * The base class definition for reactiveEchoActionRes
  **/

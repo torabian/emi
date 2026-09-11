@@ -41,8 +41,8 @@ func Entity1CreateActionMeta() struct {
 		Description string
 	}{
 		Name:        "Entity1CreateAction",
-		CliName:     "entity1-create-action",
-		CliShort:    "entity1-c",
+		CliName:     "create",
+		CliShort:    "c",
 		URL:         "/entity1",
 		Method:      "POST",
 		Description: `Creates a new "entity1" row.`,
@@ -290,6 +290,7 @@ func Entity1CreateActionCliFlags() []cli.Flag {
 			Usage:   `Raw request header as "Key: Value", repeatable`,
 		},
 	}
+	flags = append(flags, emigo.CastEmiFlagToUrfave(GetEntity1DtoCliFlags(""))...)
 	return flags
 }
 
@@ -314,6 +315,7 @@ func Entity1CreateActionCliHandler(
 			CliCtx:      c,
 			QueryParams: url.Values{},
 			Headers:     emigo.ParseCliHeaders(c.StringSlice("header")),
+			Body:        CastEntity1DtoFromCli(c),
 		}
 		return emigo.HandleActionInCli(handler(req))
 	}
@@ -334,24 +336,18 @@ func Entity1CreateActionCli(
 // Entity1CreateActionHttpHandler returns the HTTP method, the ServeMux pattern, and a
 // typed net/http handler for the Entity1CreateAction action. Developers implement
 // their business logic as a function that receives a typed request object and
-// returns either an *Entity1CreateActionResponse or nil. JSON marshalling, headers,
-// status codes, and errors are handled automatically.
+// returns either an *Entity1CreateActionResponse or nil. Body binding, headers, status
+// codes, and errors are all handled by emigo - see BindHttpRequestBody, RenderHttpError
+// and RenderHttpResult in github.com/torabian/emi/emigo.
 func Entity1CreateActionHttpHandler(
 	handler func(c Entity1CreateActionRequest) (*Entity1CreateActionResponse, error),
 ) (method, pattern string, h http.HandlerFunc) {
 	meta := Entity1CreateActionMeta()
 	return meta.Method, meta.URL, func(w http.ResponseWriter, r *http.Request) {
 		var body Entity1Dto
-		if r.Body != nil {
-			defer r.Body.Close()
-			if data, _ := io.ReadAll(r.Body); len(data) > 0 {
-				if err := json.Unmarshal(data, &body); err != nil {
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(map[string]string{"error": "invalid JSON: " + err.Error()})
-					return
-				}
-			}
+		if err := emigo.BindHttpRequestBody(r, &body); err != nil {
+			emigo.RenderHttpError(w, r, err)
+			return
 		}
 		// Build typed request wrapper. GinCtx stays nil here (this is not gin),
 		// which is what the IsGin() helper keys off.
@@ -362,9 +358,7 @@ func Entity1CreateActionHttpHandler(
 		}
 		resp, err := handler(req)
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			emigo.RenderHttpError(w, r, err)
 			return
 		}
 		// If the handler returned nil (and no error), the response was handled
@@ -372,24 +366,7 @@ func Entity1CreateActionHttpHandler(
 		if resp == nil {
 			return
 		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			w.Header().Set(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			if w.Header().Get("Content-Type") == "" {
-				w.Header().Set("Content-Type", "application/json")
-			}
-			w.WriteHeader(status)
-			json.NewEncoder(w).Encode(resp.Payload)
-		} else {
-			w.WriteHeader(status)
-		}
+		emigo.RenderHttpResult(w, r, resp)
 	}
 }
 

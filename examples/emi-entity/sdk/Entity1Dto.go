@@ -46,7 +46,19 @@ type Entity1Dto struct {
 
 // The base class definition for items
 type Entity1DtoItems struct {
-	Item2 string `json:"item2" yaml:"item2"`
+	Item2    string                               `json:"item2" yaml:"item2"`
+	SubItems emigo.Array[Entity1DtoItemsSubItems] `json:"subItems" yaml:"subItems"`
+}
+
+// The base class definition for subItems
+type Entity1DtoItemsSubItems struct {
+	SubLabel    string                                          `json:"subLabel" yaml:"subLabel"`
+	SubSubItems emigo.Array[Entity1DtoItemsSubItemsSubSubItems] `json:"subSubItems" yaml:"subSubItems"`
+}
+
+// The base class definition for subSubItems
+type Entity1DtoItemsSubItemsSubSubItems struct {
+	LeafLabel string `json:"leafLabel" yaml:"leafLabel"`
 }
 
 // The base class definition for items2
@@ -320,6 +332,9 @@ func CastEntity1DtoFromCli(c emigo.CliCastable) Entity1Dto {
 	if c.IsSet("ratio64-opt") {
 		emigo.ParseNullable(c.String("ratio64-opt"), &data.Ratio64Opt)
 	}
+	if c.IsSet("status") {
+		data.Status = c.String("status")
+	}
 	if c.IsSet("status-opt") {
 		emigo.ParseNullable(c.String("status-opt"), &data.StatusOpt)
 	}
@@ -346,12 +361,56 @@ func GetEntity1DtoItemsCliFlags(prefix string) []emigo.CliFlag {
 			Name: prefix + "item2",
 			Type: "string",
 		},
+		{
+			Name: prefix + "sub-items",
+			Type: "array",
+		},
 	}
 }
 func CastEntity1DtoItemsFromCli(c emigo.CliCastable) Entity1DtoItems {
 	data := Entity1DtoItems{}
 	if c.IsSet("item2") {
 		data.Item2 = c.String("item2")
+	}
+	if c.IsSet("sub-items") {
+		data.SubItems = emigo.CapturePossibleArray(CastEntity1DtoItemsSubItemsFromCli, "sub-items", c)
+	}
+	return data
+}
+func GetEntity1DtoItemsSubItemsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "sub-label",
+			Type: "string",
+		},
+		{
+			Name: prefix + "sub-sub-items",
+			Type: "array",
+		},
+	}
+}
+func CastEntity1DtoItemsSubItemsFromCli(c emigo.CliCastable) Entity1DtoItemsSubItems {
+	data := Entity1DtoItemsSubItems{}
+	if c.IsSet("sub-label") {
+		data.SubLabel = c.String("sub-label")
+	}
+	if c.IsSet("sub-sub-items") {
+		data.SubSubItems = emigo.CapturePossibleArray(CastEntity1DtoItemsSubItemsSubSubItemsFromCli, "sub-sub-items", c)
+	}
+	return data
+}
+func GetEntity1DtoItemsSubItemsSubSubItemsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "leaf-label",
+			Type: "string",
+		},
+	}
+}
+func CastEntity1DtoItemsSubItemsSubSubItemsFromCli(c emigo.CliCastable) Entity1DtoItemsSubItemsSubSubItems {
+	data := Entity1DtoItemsSubItemsSubSubItems{}
+	if c.IsSet("leaf-label") {
+		data.LeafLabel = c.String("leaf-label")
 	}
 	return data
 }

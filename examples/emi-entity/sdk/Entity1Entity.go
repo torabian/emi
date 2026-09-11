@@ -12,14 +12,14 @@ import (
 // The base class definition for entity1Entity
 type Entity1Entity struct {
 	Id                    int64                                           `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
-	UniqueId              string                                          `gorm:"type:uuid;default:gen_random_uuid();unique" json:"uniqueId" yaml:"uniqueId"`
+	UniqueId              string                                          `gorm:"type:varchar(100);unique" json:"uniqueId" yaml:"uniqueId"`
 	Title                 string                                          `json:"title" yaml:"title"`
 	Items                 []*Entity1EntityItems                           `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"items" yaml:"items"`
 	Items2                []Entity1EntityItems2                           `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"items2" yaml:"items2"`
 	Items3                emigo.Collection[Entity2Entity]                 `gorm:"-" json:"items3" yaml:"items3"`
 	Items4                emigo.CollectionNullable[Entity2Entity]         `gorm:"-" json:"items4" yaml:"items4"`
 	Owner                 *Entity2Entity                                  `gorm:"foreignKey:OwnerId;references:Id" json:"owner" yaml:"owner"`
-	Manager               Entity2Entity                                   `gorm:"foreignKey:ManagerId;references:Id" json:"manager" yaml:"manager"`
+	Manager               Entity2Entity                                   `gorm:"foreignKey:ManagerId;references:Id;constraint:-" json:"manager" yaml:"manager"`
 	Content1              Entity1EntityContent1                           `gorm:"embedded" json:"content1" yaml:"content1"`
 	Content2              emigo.Nullable[Entity1EntityContent2]           `gorm:"-" json:"content2" yaml:"content2"`
 	Complex1              Money                                           `json:"complex1" yaml:"complex1"`
@@ -56,17 +56,35 @@ type Entity1Entity struct {
 
 // The base class definition for items
 type Entity1EntityItems struct {
-	Item2    string `json:"item2" yaml:"item2"`
-	Id       int64  `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
-	UniqueId string `gorm:"type:uuid;default:gen_random_uuid();unique" json:"uniqueId" yaml:"uniqueId"`
-	LinkerId int64  `gorm:"index" json:"linkerId" yaml:"linkerId"`
+	Item2    string                        `json:"item2" yaml:"item2"`
+	SubItems []*Entity1EntityItemsSubItems `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"subItems" yaml:"subItems"`
+	Id       int64                         `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
+	UniqueId string                        `gorm:"type:varchar(100);unique" json:"uniqueId" yaml:"uniqueId"`
+	LinkerId int64                         `gorm:"index" json:"linkerId" yaml:"linkerId"`
+}
+
+// The base class definition for subItems
+type Entity1EntityItemsSubItems struct {
+	SubLabel    string                                   `json:"subLabel" yaml:"subLabel"`
+	SubSubItems []*Entity1EntityItemsSubItemsSubSubItems `gorm:"foreignKey:LinkerId;references:Id;constraint:OnDelete:CASCADE" json:"subSubItems" yaml:"subSubItems"`
+	Id          int64                                    `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
+	UniqueId    string                                   `gorm:"type:varchar(100);unique" json:"uniqueId" yaml:"uniqueId"`
+	LinkerId    int64                                    `gorm:"index" json:"linkerId" yaml:"linkerId"`
+}
+
+// The base class definition for subSubItems
+type Entity1EntityItemsSubItemsSubSubItems struct {
+	LeafLabel string `json:"leafLabel" yaml:"leafLabel"`
+	Id        int64  `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
+	UniqueId  string `gorm:"type:varchar(100);unique" json:"uniqueId" yaml:"uniqueId"`
+	LinkerId  int64  `gorm:"index" json:"linkerId" yaml:"linkerId"`
 }
 
 // The base class definition for items2
 type Entity1EntityItems2 struct {
 	Item2    string `json:"item2" yaml:"item2"`
 	Id       int64  `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
-	UniqueId string `gorm:"type:uuid;default:gen_random_uuid();unique" json:"uniqueId" yaml:"uniqueId"`
+	UniqueId string `gorm:"type:varchar(100);unique" json:"uniqueId" yaml:"uniqueId"`
 	LinkerId int64  `gorm:"index" json:"linkerId" yaml:"linkerId"`
 }
 
@@ -96,7 +114,7 @@ type Entity1EntityNestedContainerNestedInner struct {
 type Entity1EntityNestedContainerNestedInnerNestedItems struct {
 	Label    string `json:"label" yaml:"label"`
 	Id       int64  `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
-	UniqueId string `gorm:"type:uuid;default:gen_random_uuid();unique" json:"uniqueId" yaml:"uniqueId"`
+	UniqueId string `gorm:"type:varchar(100);unique" json:"uniqueId" yaml:"uniqueId"`
 	LinkerId int64  `gorm:"index" json:"linkerId" yaml:"linkerId"`
 }
 
@@ -114,7 +132,7 @@ type Entity1EntityNestedContainerOptNestedInner struct {
 type Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt struct {
 	Label    string `json:"label" yaml:"label"`
 	Id       int64  `gorm:"primaryKey;autoIncrement" json:"-" yaml:"-"`
-	UniqueId string `gorm:"type:uuid;default:gen_random_uuid();unique" json:"uniqueId" yaml:"uniqueId"`
+	UniqueId string `gorm:"type:varchar(100);unique" json:"uniqueId" yaml:"uniqueId"`
 	LinkerId int64  `gorm:"index" json:"linkerId" yaml:"linkerId"`
 }
 
@@ -362,6 +380,9 @@ func CastEntity1EntityFromCli(c emigo.CliCastable) Entity1Entity {
 	if c.IsSet("ratio64-opt") {
 		emigo.ParseNullable(c.String("ratio64-opt"), &data.Ratio64Opt)
 	}
+	if c.IsSet("status") {
+		data.Status = c.String("status")
+	}
 	if c.IsSet("status-opt") {
 		emigo.ParseNullable(c.String("status-opt"), &data.StatusOpt)
 	}
@@ -415,6 +436,10 @@ func GetEntity1EntityItemsCliFlags(prefix string) []emigo.CliFlag {
 			Type: "string",
 		},
 		{
+			Name: prefix + "sub-items",
+			Type: "_list",
+		},
+		{
 			Name: prefix + "id",
 			Type: "int64",
 		},
@@ -432,6 +457,82 @@ func CastEntity1EntityItemsFromCli(c emigo.CliCastable) Entity1EntityItems {
 	data := Entity1EntityItems{}
 	if c.IsSet("item2") {
 		data.Item2 = c.String("item2")
+	}
+	if c.IsSet("id") {
+		data.Id = int64(c.Int64("id"))
+	}
+	if c.IsSet("unique-id") {
+		data.UniqueId = c.String("unique-id")
+	}
+	if c.IsSet("linker-id") {
+		data.LinkerId = int64(c.Int64("linker-id"))
+	}
+	return data
+}
+func GetEntity1EntityItemsSubItemsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "sub-label",
+			Type: "string",
+		},
+		{
+			Name: prefix + "sub-sub-items",
+			Type: "_list",
+		},
+		{
+			Name: prefix + "id",
+			Type: "int64",
+		},
+		{
+			Name: prefix + "unique-id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "linker-id",
+			Type: "int64",
+		},
+	}
+}
+func CastEntity1EntityItemsSubItemsFromCli(c emigo.CliCastable) Entity1EntityItemsSubItems {
+	data := Entity1EntityItemsSubItems{}
+	if c.IsSet("sub-label") {
+		data.SubLabel = c.String("sub-label")
+	}
+	if c.IsSet("id") {
+		data.Id = int64(c.Int64("id"))
+	}
+	if c.IsSet("unique-id") {
+		data.UniqueId = c.String("unique-id")
+	}
+	if c.IsSet("linker-id") {
+		data.LinkerId = int64(c.Int64("linker-id"))
+	}
+	return data
+}
+func GetEntity1EntityItemsSubItemsSubSubItemsCliFlags(prefix string) []emigo.CliFlag {
+	return []emigo.CliFlag{
+		{
+			Name: prefix + "leaf-label",
+			Type: "string",
+		},
+		{
+			Name: prefix + "id",
+			Type: "int64",
+		},
+		{
+			Name: prefix + "unique-id",
+			Type: "string",
+		},
+		{
+			Name: prefix + "linker-id",
+			Type: "int64",
+		},
+	}
+}
+func CastEntity1EntityItemsSubItemsSubSubItemsFromCli(c emigo.CliCastable) Entity1EntityItemsSubItemsSubSubItems {
+	data := Entity1EntityItemsSubItemsSubSubItems{}
+	if c.IsSet("leaf-label") {
+		data.LeafLabel = c.String("leaf-label")
 	}
 	if c.IsSet("id") {
 		data.Id = int64(c.Int64("id"))
@@ -657,6 +758,104 @@ func (x *Entity1Entity) TableName() string {
 	return "entity1_table"
 }
 
+// BeforeCreate assigns UniqueId a random UUID (v4) if the caller hasn't already set one -
+// gorm calls this automatically from every Create()/Save() insert path (including the
+// has-many/many-to-many reconcile helpers in emigorm, which persist child rows via
+// tx.Save() directly rather than through a generated *CreateFn). This replaces relying
+// on a DB-level column default (e.g. Postgres's gen_random_uuid()): sqlite and MySQL
+// have no dialect-portable equivalent, so assigning it here instead works identically
+// across every gorm dialect, with no SQL default expression at all.
+func (x *Entity1Entity) BeforeCreate(tx *gorm.DB) error {
+	if x.UniqueId == "" {
+		x.UniqueId = emigo.NewUUIDv4()
+	}
+	return nil
+}
+
+// BeforeCreate assigns UniqueId a random UUID (v4) if the caller hasn't already set one -
+// gorm calls this automatically from every Create()/Save() insert path (including the
+// has-many/many-to-many reconcile helpers in emigorm, which persist child rows via
+// tx.Save() directly rather than through a generated *CreateFn). This replaces relying
+// on a DB-level column default (e.g. Postgres's gen_random_uuid()): sqlite and MySQL
+// have no dialect-portable equivalent, so assigning it here instead works identically
+// across every gorm dialect, with no SQL default expression at all.
+func (x *Entity1EntityItems) BeforeCreate(tx *gorm.DB) error {
+	if x.UniqueId == "" {
+		x.UniqueId = emigo.NewUUIDv4()
+	}
+	return nil
+}
+
+// BeforeCreate assigns UniqueId a random UUID (v4) if the caller hasn't already set one -
+// gorm calls this automatically from every Create()/Save() insert path (including the
+// has-many/many-to-many reconcile helpers in emigorm, which persist child rows via
+// tx.Save() directly rather than through a generated *CreateFn). This replaces relying
+// on a DB-level column default (e.g. Postgres's gen_random_uuid()): sqlite and MySQL
+// have no dialect-portable equivalent, so assigning it here instead works identically
+// across every gorm dialect, with no SQL default expression at all.
+func (x *Entity1EntityItemsSubItems) BeforeCreate(tx *gorm.DB) error {
+	if x.UniqueId == "" {
+		x.UniqueId = emigo.NewUUIDv4()
+	}
+	return nil
+}
+
+// BeforeCreate assigns UniqueId a random UUID (v4) if the caller hasn't already set one -
+// gorm calls this automatically from every Create()/Save() insert path (including the
+// has-many/many-to-many reconcile helpers in emigorm, which persist child rows via
+// tx.Save() directly rather than through a generated *CreateFn). This replaces relying
+// on a DB-level column default (e.g. Postgres's gen_random_uuid()): sqlite and MySQL
+// have no dialect-portable equivalent, so assigning it here instead works identically
+// across every gorm dialect, with no SQL default expression at all.
+func (x *Entity1EntityItemsSubItemsSubSubItems) BeforeCreate(tx *gorm.DB) error {
+	if x.UniqueId == "" {
+		x.UniqueId = emigo.NewUUIDv4()
+	}
+	return nil
+}
+
+// BeforeCreate assigns UniqueId a random UUID (v4) if the caller hasn't already set one -
+// gorm calls this automatically from every Create()/Save() insert path (including the
+// has-many/many-to-many reconcile helpers in emigorm, which persist child rows via
+// tx.Save() directly rather than through a generated *CreateFn). This replaces relying
+// on a DB-level column default (e.g. Postgres's gen_random_uuid()): sqlite and MySQL
+// have no dialect-portable equivalent, so assigning it here instead works identically
+// across every gorm dialect, with no SQL default expression at all.
+func (x *Entity1EntityItems2) BeforeCreate(tx *gorm.DB) error {
+	if x.UniqueId == "" {
+		x.UniqueId = emigo.NewUUIDv4()
+	}
+	return nil
+}
+
+// BeforeCreate assigns UniqueId a random UUID (v4) if the caller hasn't already set one -
+// gorm calls this automatically from every Create()/Save() insert path (including the
+// has-many/many-to-many reconcile helpers in emigorm, which persist child rows via
+// tx.Save() directly rather than through a generated *CreateFn). This replaces relying
+// on a DB-level column default (e.g. Postgres's gen_random_uuid()): sqlite and MySQL
+// have no dialect-portable equivalent, so assigning it here instead works identically
+// across every gorm dialect, with no SQL default expression at all.
+func (x *Entity1EntityNestedContainerNestedInnerNestedItems) BeforeCreate(tx *gorm.DB) error {
+	if x.UniqueId == "" {
+		x.UniqueId = emigo.NewUUIDv4()
+	}
+	return nil
+}
+
+// BeforeCreate assigns UniqueId a random UUID (v4) if the caller hasn't already set one -
+// gorm calls this automatically from every Create()/Save() insert path (including the
+// has-many/many-to-many reconcile helpers in emigorm, which persist child rows via
+// tx.Save() directly rather than through a generated *CreateFn). This replaces relying
+// on a DB-level column default (e.g. Postgres's gen_random_uuid()): sqlite and MySQL
+// have no dialect-portable equivalent, so assigning it here instead works identically
+// across every gorm dialect, with no SQL default expression at all.
+func (x *Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt) BeforeCreate(tx *gorm.DB) error {
+	if x.UniqueId == "" {
+		x.UniqueId = emigo.NewUUIDv4()
+	}
+	return nil
+}
+
 // Entity1EntityCreateFn creates a new Entity1Entity row (and its array/collection/one relations,
 // including ones nested inside object/object? fields) from dto. dto.Id/dto.UniqueId are
 // assigned by the database (see AutoMigrate's column defaults) and populated back onto
@@ -718,28 +917,36 @@ func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDt
 		}
 		changes := map[string]interface{}{}
 		if input.Owner.IsSet() {
-			if input.Owner.Operation != "select" {
-				return fmt.Errorf("owner: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %q", input.Owner.Operation)
+			selectorId := ""
+			if input.Owner.Operation == "select" {
+				if s, ok := input.Owner.Selector.(string); ok {
+					selectorId = s
+				}
+			} else {
+				selectorId = input.Owner.Item.UniqueId.OrDefault("")
 			}
-			var selectorId string
-			if s, ok := input.Owner.Selector.(string); ok {
-				selectorId = s
+			if selectorId == "" {
+				return fmt.Errorf("owner: updating a one/one? relation needs either {\"__operation\":\"select\",\"__selector\":...} or the target's own uniqueId in the payload")
 			}
-			resolvedId, err := emigorm.ReconcileOne[Entity2Entity](tx, input.Owner.Operation, selectorId, nil)
+			resolvedId, err := emigorm.ReconcileOne[Entity2Entity](tx, "select", selectorId, nil)
 			if err != nil {
 				return err
 			}
 			changes["OwnerId"] = resolvedId
 		}
 		if input.Manager.IsSet() {
-			if input.Manager.Operation != "select" {
-				return fmt.Errorf("manager: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %q", input.Manager.Operation)
+			selectorId := ""
+			if input.Manager.Operation == "select" {
+				if s, ok := input.Manager.Selector.(string); ok {
+					selectorId = s
+				}
+			} else {
+				selectorId = input.Manager.Item.UniqueId.OrDefault("")
 			}
-			var selectorId string
-			if s, ok := input.Manager.Selector.(string); ok {
-				selectorId = s
+			if selectorId == "" {
+				return fmt.Errorf("manager: updating a one/one? relation needs either {\"__operation\":\"select\",\"__selector\":...} or the target's own uniqueId in the payload")
 			}
-			resolvedId, err := emigorm.ReconcileOne[Entity2Entity](tx, input.Manager.Operation, selectorId, nil)
+			resolvedId, err := emigorm.ReconcileOne[Entity2Entity](tx, "select", selectorId, nil)
 			if err != nil {
 				return err
 			}
@@ -750,14 +957,18 @@ func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDt
 				if v.NestedInner.IsSet() {
 					if v, ok := v.NestedInner.Get(); ok && v != nil {
 						if v.NestedOwner.IsSet() {
-							if v.NestedOwner.Operation != "select" {
-								return fmt.Errorf("nestedOwner: updating a one/one? relation only supports the \"select\" operation (link to an existing row by its uniqueId), got %q", v.NestedOwner.Operation)
+							selectorId := ""
+							if v.NestedOwner.Operation == "select" {
+								if s, ok := v.NestedOwner.Selector.(string); ok {
+									selectorId = s
+								}
+							} else {
+								selectorId = v.NestedOwner.Item.UniqueId.OrDefault("")
 							}
-							var selectorId string
-							if s, ok := v.NestedOwner.Selector.(string); ok {
-								selectorId = s
+							if selectorId == "" {
+								return fmt.Errorf("nestedOwner: updating a one/one? relation needs either {\"__operation\":\"select\",\"__selector\":...} or the target's own uniqueId in the payload")
 							}
-							resolvedId, err := emigorm.ReconcileOne[Entity2Entity](tx, v.NestedOwner.Operation, selectorId, nil)
+							resolvedId, err := emigorm.ReconcileOne[Entity2Entity](tx, "select", selectorId, nil)
 							if err != nil {
 								return err
 							}
@@ -857,23 +1068,65 @@ func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDt
 			items := make([]*Entity1EntityItems, len(input.Items.Items))
 			for i := range input.Items.Items {
 				src := input.Items.Items[i]
-				items[i] = &Entity1EntityItems{
+				item := &Entity1EntityItems{
 					UniqueId: src.UniqueId.OrDefault(""),
 					Item2:    src.Item2,
 				}
+				items[i] = item
 			}
 			if err := emigorm.ReconcileHasMany(tx, "linker_id", entity.Id, input.Items.Operation, items); err != nil {
 				return err
+			}
+			if input.Items.Operation != "delete" {
+				for i := range items {
+					src := input.Items.Items[i]
+					item := items[i]
+					if src.SubItems.IsSet() {
+						subItems := make([]*Entity1EntityItemsSubItems, len(src.SubItems.Items))
+						for j := range src.SubItems.Items {
+							src := src.SubItems.Items[j]
+							item := &Entity1EntityItemsSubItems{
+								UniqueId: src.UniqueId.OrDefault(""),
+								SubLabel: src.SubLabel,
+							}
+							subItems[j] = item
+						}
+						if err := emigorm.ReconcileHasMany(tx, "linker_id", item.Id, src.SubItems.Operation, subItems); err != nil {
+							return err
+						}
+						if src.SubItems.Operation != "delete" {
+							for j := range subItems {
+								src := src.SubItems.Items[j]
+								item := subItems[j]
+								if src.SubSubItems.IsSet() {
+									subItems := make([]*Entity1EntityItemsSubItemsSubSubItems, len(src.SubSubItems.Items))
+									for j := range src.SubSubItems.Items {
+										src := src.SubSubItems.Items[j]
+										item := &Entity1EntityItemsSubItemsSubSubItems{
+											UniqueId:  src.UniqueId.OrDefault(""),
+											LeafLabel: src.LeafLabel,
+										}
+										subItems[j] = item
+									}
+									if err := emigorm.ReconcileHasMany(tx, "linker_id", item.Id, src.SubSubItems.Operation, subItems); err != nil {
+										return err
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 		if input.Items2.IsSet() {
 			items := make([]*Entity1EntityItems2, len(input.Items2.Items))
 			for i := range input.Items2.Items {
 				src := input.Items2.Items[i]
-				items[i] = &Entity1EntityItems2{
+				item := &Entity1EntityItems2{
 					UniqueId: src.UniqueId.OrDefault(""),
 					Item2:    src.Item2,
 				}
+				items[i] = item
 			}
 			if err := emigorm.ReconcileHasMany(tx, "linker_id", entity.Id, input.Items2.Operation, items); err != nil {
 				return err
@@ -921,10 +1174,11 @@ func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDt
 							items := make([]*Entity1EntityNestedContainerNestedInnerNestedItems, len(v.NestedItems.Items))
 							for i := range v.NestedItems.Items {
 								src := v.NestedItems.Items[i]
-								items[i] = &Entity1EntityNestedContainerNestedInnerNestedItems{
+								item := &Entity1EntityNestedContainerNestedInnerNestedItems{
 									UniqueId: src.UniqueId.OrDefault(""),
 									Label:    src.Label,
 								}
+								items[i] = item
 							}
 							if err := emigorm.ReconcileHasMany(tx, "linker_id", entity.Id, v.NestedItems.Operation, items); err != nil {
 								return err
@@ -942,10 +1196,11 @@ func Entity1EntityUpdateFn(tx *gorm.DB, uniqueId string, input Entity1OptionalDt
 							items := make([]*Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt, len(v.NestedItemsOpt.Items))
 							for i := range v.NestedItemsOpt.Items {
 								src := v.NestedItemsOpt.Items[i]
-								items[i] = &Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt{
+								item := &Entity1EntityNestedContainerOptNestedInnerNestedItemsOpt{
 									UniqueId: src.UniqueId.OrDefault(""),
 									Label:    src.Label,
 								}
+								items[i] = item
 							}
 							if err := emigorm.ReconcileHasMany(tx, "linker_id", entity.Id, v.NestedItemsOpt.Operation, items); err != nil {
 								return err

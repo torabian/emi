@@ -40,8 +40,8 @@ func Entity2AwareDeletePreviewActionMeta() struct {
 		Description string
 	}{
 		Name:        "Entity2AwareDeletePreviewAction",
-		CliName:     "entity2-aware-delete-preview-action",
-		CliShort:    "entity2-dp",
+		CliName:     "delete-preview",
+		CliShort:    "dp",
 		URL:         "/entity2/delete-preview",
 		Method:      "GET",
 		Description: `Reports what deleting the given "entity2" uniqueIds would affect, without deleting anything.`,
@@ -421,8 +421,9 @@ func Entity2AwareDeletePreviewActionCli(
 // Entity2AwareDeletePreviewActionHttpHandler returns the HTTP method, the ServeMux pattern, and a
 // typed net/http handler for the Entity2AwareDeletePreviewAction action. Developers implement
 // their business logic as a function that receives a typed request object and
-// returns either an *Entity2AwareDeletePreviewActionResponse or nil. JSON marshalling, headers,
-// status codes, and errors are handled automatically.
+// returns either an *Entity2AwareDeletePreviewActionResponse or nil. Body binding, headers, status
+// codes, and errors are all handled by emigo - see BindHttpRequestBody, RenderHttpError
+// and RenderHttpResult in github.com/torabian/emi/emigo.
 func Entity2AwareDeletePreviewActionHttpHandler(
 	handler func(c Entity2AwareDeletePreviewActionRequest) (*Entity2AwareDeletePreviewActionResponse, error),
 ) (method, pattern string, h http.HandlerFunc) {
@@ -437,9 +438,7 @@ func Entity2AwareDeletePreviewActionHttpHandler(
 		}
 		resp, err := handler(req)
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			emigo.RenderHttpError(w, r, err)
 			return
 		}
 		// If the handler returned nil (and no error), the response was handled
@@ -447,24 +446,7 @@ func Entity2AwareDeletePreviewActionHttpHandler(
 		if resp == nil {
 			return
 		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			w.Header().Set(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			if w.Header().Get("Content-Type") == "" {
-				w.Header().Set("Content-Type", "application/json")
-			}
-			w.WriteHeader(status)
-			json.NewEncoder(w).Encode(resp.Payload)
-		} else {
-			w.WriteHeader(status)
-		}
+		emigo.RenderHttpResult(w, r, resp)
 	}
 }
 

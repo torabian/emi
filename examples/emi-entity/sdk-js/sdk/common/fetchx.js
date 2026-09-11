@@ -118,11 +118,22 @@ export class FetchxContext {
         if (!/^https?:\/\//.test(url)) {
             url = this.baseUrl + url;
         }
-        // merge default headers
-        init.headers = {
+        // merge default headers - entries with an undefined/null value are
+        // dropped rather than kept, since the Fetch API's Headers constructor
+        // coerces an `undefined` value to the literal string "undefined" instead
+        // of omitting it (e.g. a not-yet-selected workspace-id ends up sent as
+        // the header value "undefined", which a workspace-scoped endpoint reads
+        // as a real, if bogus, workspace id).
+        const merged = {
             ...this.defaultHeaders,
             ...(init.headers || {}),
         };
+        for (const key of Object.keys(merged)) {
+            if (merged[key] === undefined || merged[key] === null) {
+                delete merged[key];
+            }
+        }
+        init.headers = merged;
         // call request interceptor if present
         if (this.requestInterceptor) {
             return this.requestInterceptor(url, init);

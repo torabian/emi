@@ -1,0 +1,75 @@
+\section{Obituaries for Stale Data: Create \& Update}
+\label{sec:go-actions}
+
+Every entity gets two generated functions --- \texttt{\{Entity\}CreateFn}
+and \texttt{\{Entity\}UpdateFn} --- plus a small actions bundle wiring
+them up as the defaults, mirroring the pattern
+\href{https://github.com/torabian/fireback}{fireback} uses.
+
+\subsection{The update input: optional, all the way down}
+A struct-based \texttt{gorm.Updates()} call silently drops zero-valued
+fields, so it can't tell ``the caller didn't mention this field'' apart
+from ``the caller explicitly set it to zero.'' Every entity therefore
+gets a second generated type, \texttt{\{Entity\}UpdateInput}, where
+\emph{every} field --- even a plain, always-present scalar on the entity
+itself --- is wrapped optional:
+\begin{lstlisting}
+type Entity1EntityUpdateInput struct {
+  Title  emigo.Nullable[string] `json:"title"`
+  Items  emigo.ArrayNullable[Entity1EntityItems] `json:"items"`
+  Owner  emigo.OneNullable[Entity2Entity]         `json:"owner"`
+  Complex1 *Money                                 `json:"complex1"`
+}
+\end{lstlisting}
+\texttt{id}/\texttt{uniqueId} are left out entirely --- immutable
+identity, not something an update patches. A \texttt{complex} field (no
+\texttt{?} counterpart exists) becomes a plain pointer instead;
+\texttt{nil} means untouched. Critically, \texttt{array}/
+\texttt{collection}/\texttt{one} fields reuse the \emph{real} row/target
+type directly, not a second, separately-optional clone --- only whether
+the field itself was touched (\texttt{IsSet()}) is optional; an item
+included in a replace/append batch still has to be given in full, exactly
+like Create, because the reconcile helpers persist each item with a plain
+\texttt{Save()} that writes every field.
+
+\subsection{The reconcile helpers (\texttt{emigorm})}
+Gorm's own \texttt{Association().Replace()} was verified \textbf{unreliable}
+for a has-many \texttt{array} relation: an incoming item whose primary key
+already exists silently keeps its \emph{old} content, and items dropped
+from the list are never deleted --- just orphaned. So
+\texttt{github.com/torabian/emi/emigorm} (kept out of the wasm-safe
+\texttt{emigo} core since it depends on \texttt{gorm.io/gorm}) provides
+three reconcile functions instead:
+
+\begin{sidebar}{One reconciler per relation kind}
+\textbf{ReconcileHasMany} (\texttt{array}) --- diffs existing children
+against the incoming list by \texttt{UniqueId}, hard-deletes any row
+missing from a \texttt{"replace"} batch, \texttt{Save()}s every incoming
+item. \texttt{"append"} skips the diff/delete step.
+
+\textbf{ReconcileManyToMany} (\texttt{collection}) --- gorm's Association
+API \emph{is} reliable here, so this upserts inline target values first,
+then delegates to \texttt{Association().Replace()}/\texttt{.Append()}.
+
+\textbf{ReconcileOne} (\texttt{one}) --- \texttt{"select"} resolves an
+existing target's \texttt{Id} from its \texttt{UniqueId} and leaves it
+untouched; anything else upserts the inline value.
+\end{sidebar}
+
+All three resolve an incoming item's real \texttt{Id} by matching
+\texttt{UniqueId} against an existing row \emph{before} calling
+\texttt{Save()} --- otherwise every ``update'' would silently insert a
+duplicate.
+
+\subsection{Testing}
+Every relation is verified two ways: \textbf{structurally}, with no
+database at all, via \texttt{gorm.io/gorm/schema.Parse} (confirms every
+\texttt{has\_many}/\texttt{many\_to\_many}/\texttt{belongs\_to} resolves
+correctly in milliseconds); and \textbf{end to end against real
+Postgres} (\texttt{examples/emi-entity/sdk/*\_test.go}) --- cascading
+create, partial update, array replace-with-orphan-deletion, collection
+append, and one re-select are all covered. Since \texttt{UniqueId}'s
+column default is Postgres-specific, the live tests need a real Postgres
+instance (\texttt{make entity-db-up}); MySQL is wired up too but expected
+to fail on the same \texttt{gen\_random\_uuid()} default --- an accepted
+tradeoff, not something actively kept green.

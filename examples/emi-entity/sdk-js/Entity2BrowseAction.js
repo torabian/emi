@@ -48,7 +48,8 @@ export class Entity2BrowseAction {
   };
   static Definition = {
     name: "entity2Browse",
-    cliShort: "entity2-b",
+    cliName: "browse",
+    cliShort: "b",
     url: "/entity2/browse",
     method: "get",
     qs: [

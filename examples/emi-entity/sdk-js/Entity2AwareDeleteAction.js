@@ -32,7 +32,8 @@ export class Entity2AwareDeleteAction {
   };
   static Definition = {
     name: "entity2AwareDelete",
-    cliShort: "entity2-d",
+    cliName: "delete",
+    cliShort: "d",
     url: "/entity2/delete",
     method: "post",
     description:
@@ -48,6 +49,11 @@ export class Entity2AwareDeleteAction {
     },
   };
 }
+/**
+ * The base type definition for entity2AwareDeleteActionReq
+ * @typedef {Object} Entity2AwareDeleteActionReqType
+ * @property {string[]} uniqueIds
+ */
 /**
  * The base class definition for entity2AwareDeleteActionReq
  **/

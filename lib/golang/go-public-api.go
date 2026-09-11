@@ -349,6 +349,19 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		})
 	}
 
+	eventsOutput, err := GoEventsGenerate(module.Events, ctx, f.Emigo, complexes)
+	if err != nil {
+		return nil, err
+	}
+
+	if eventsOutput != nil {
+		files = append(files, core.VirtualFile{
+			Name:         eventsOutput.SuggestedFileName,
+			Extension:    eventsOutput.SuggestedExtension,
+			ActualScript: AsFullDocument(eventsOutput, f.PackageName),
+		})
+	}
+
 	return files, nil
 }
 

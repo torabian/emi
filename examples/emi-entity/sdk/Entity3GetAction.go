@@ -42,8 +42,8 @@ func Entity3GetActionMeta() struct {
 		Description string
 	}{
 		Name:        "Entity3GetAction",
-		CliName:     "entity3-get-action",
-		CliShort:    "entity3-g",
+		CliName:     "get",
+		CliShort:    "g",
 		URL:         "/entity3/:uniqueId",
 		Method:      "GET",
 		Description: `Looks up a single "entity3" row by uniqueId.`,
@@ -374,8 +374,9 @@ func Entity3GetActionCli(
 // Entity3GetActionHttpHandler returns the HTTP method, the ServeMux pattern, and a
 // typed net/http handler for the Entity3GetAction action. Developers implement
 // their business logic as a function that receives a typed request object and
-// returns either an *Entity3GetActionResponse or nil. JSON marshalling, headers,
-// status codes, and errors are handled automatically.
+// returns either an *Entity3GetActionResponse or nil. Body binding, headers, status
+// codes, and errors are all handled by emigo - see BindHttpRequestBody, RenderHttpError
+// and RenderHttpResult in github.com/torabian/emi/emigo.
 func Entity3GetActionHttpHandler(
 	handler func(c Entity3GetActionRequest) (*Entity3GetActionResponse, error),
 ) (method, pattern string, h http.HandlerFunc) {
@@ -393,9 +394,7 @@ func Entity3GetActionHttpHandler(
 		}
 		resp, err := handler(req)
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			emigo.RenderHttpError(w, r, err)
 			return
 		}
 		// If the handler returned nil (and no error), the response was handled
@@ -403,24 +402,7 @@ func Entity3GetActionHttpHandler(
 		if resp == nil {
 			return
 		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			w.Header().Set(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			if w.Header().Get("Content-Type") == "" {
-				w.Header().Set("Content-Type", "application/json")
-			}
-			w.WriteHeader(status)
-			json.NewEncoder(w).Encode(resp.Payload)
-		} else {
-			w.WriteHeader(status)
-		}
+		emigo.RenderHttpResult(w, r, resp)
 	}
 }
 

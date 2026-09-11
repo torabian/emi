@@ -1,0 +1,66 @@
+\section{Sports Desk: Query Predict}
+\label{sec:query-predict}
+
+Query Predict (\texttt{qp}) is Emi's approach to \textbf{hand-written SQL
+with generated, type-safe Go bindings}. You write plain \texttt{.sql}
+files; Emi parses them, predicts the shape of each result row and the
+parameters it needs, and generates a typed row struct and a
+prepared-statement builder. There is no schema introspection, no
+auto-migration, and no SQL synthesis --- the SQL you write is the SQL
+that runs. This keeps the full power of SQL in your hands while still
+giving compile-time safety over the columns and parameters a query
+touches.
+
+\begin{sidebar}{Three commands}
+\textbf{emi qp:dir} --- scans a directory of \texttt{.sql} files, one
+generated Go file per query, named from the SQL file.
+
+\textbf{emi qp:gen} --- reads a Query Predict YAML document bundling
+several named queries and a Go package name.
+
+\textbf{emi qp:sql} --- compiles one query into executable Go and
+transforms its metadata into pure SQL.
+\end{sidebar}
+
+\begin{lstlisting}
+emi qp:dir --path ./queries-source --output ./output
+\end{lstlisting}
+For a query like \texttt{select name, id from users;}, Emi emits a typed
+row struct, the original SQL as a constant, and a context/prepare helper:
+\begin{lstlisting}
+const BasicSelectSQL = `select name, id from users;`
+type BasicSelectRow struct { Name string; Id string }
+type BasicSelectContext struct {
+  Filter, Having, Restriction string
+  Params map[string]interface{}
+}
+\end{lstlisting}
+
+\subsection{SQL helper functions}
+A small set of marker functions can appear inside the SQL itself, letting
+dynamic behaviour stay in the query while the generated code remains
+predictable and typed:
+\begin{sidebar}{Query Predict SQL helpers}
+\scriptsize
+\begin{tabular}{@{}p{0.42\linewidth}p{0.5\linewidth}@{}}
+\texttt{field(expr, 'type', 'goName'?)} & annotate an expression's Go type (and optionally its field name) when it can't be inferred \\
+\texttt{useval('name')} & a named value substituted from \texttt{ctx.Params} at runtime, safely escaped \\
+\texttt{filter()} & replaced by the \texttt{Filter} clause from the context (default \texttt{1}) \\
+\texttt{restriction()} & replaced by the \texttt{Restriction} clause (default \texttt{1}) \\
+\end{tabular}
+\end{sidebar}
+\begin{lstlisting}
+SELECT u.user_id,
+  field(u.user_name, 'string') as UserName,
+  field(COUNT(o.order_id), 'int64') AS total_orders
+FROM users u LEFT JOIN orders o ON u.user_id = o.user_id
+WHERE filter()
+GROUP BY u.user_id, u.user_name
+LIMIT useval('limit')
+\end{lstlisting}
+Here \texttt{field(..., 'int64')} tells the generator the aggregate
+column is an \texttt{int64}, \texttt{filter()} is swapped for whatever
+filter the caller supplies at runtime, and \texttt{useval('limit')} pulls
+the \texttt{limit} entry out of \texttt{ctx.Params} --- Emi never invents
+schema, migrations, or queries of its own; it only makes the boundary
+between hand-written SQL and Go type-safe.

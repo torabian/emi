@@ -43,8 +43,8 @@ func Entity4UpdateActionMeta() struct {
 		Description string
 	}{
 		Name:        "Entity4UpdateAction",
-		CliName:     "entity4-update-action",
-		CliShort:    "entity4-u",
+		CliName:     "update",
+		CliShort:    "u",
 		URL:         "/entity4/:uniqueId",
 		Method:      "PATCH",
 		Description: `Applies a partial update to a "entity4" row by uniqueId.`,
@@ -333,6 +333,7 @@ func Entity4UpdateActionCliFlags() []cli.Flag {
 			Usage:   `Raw request header as "Key: Value", repeatable`,
 		},
 	}
+	flags = append(flags, emigo.CastEmiFlagToUrfave(GetEntity4OptionalDtoCliFlags(""))...)
 	flags = append(flags, emigo.CastEmiFlagToUrfave(GetEntity4UpdateActionPathParameterCliFlags(""))...)
 	return flags
 }
@@ -358,6 +359,7 @@ func Entity4UpdateActionCliHandler(
 			CliCtx:      c,
 			QueryParams: url.Values{},
 			Headers:     emigo.ParseCliHeaders(c.StringSlice("header")),
+			Body:        CastEntity4OptionalDtoFromCli(c),
 			Params:      Entity4UpdateActionPathParameterFromCli(c),
 		}
 		return emigo.HandleActionInCli(handler(req))
@@ -379,24 +381,18 @@ func Entity4UpdateActionCli(
 // Entity4UpdateActionHttpHandler returns the HTTP method, the ServeMux pattern, and a
 // typed net/http handler for the Entity4UpdateAction action. Developers implement
 // their business logic as a function that receives a typed request object and
-// returns either an *Entity4UpdateActionResponse or nil. JSON marshalling, headers,
-// status codes, and errors are handled automatically.
+// returns either an *Entity4UpdateActionResponse or nil. Body binding, headers, status
+// codes, and errors are all handled by emigo - see BindHttpRequestBody, RenderHttpError
+// and RenderHttpResult in github.com/torabian/emi/emigo.
 func Entity4UpdateActionHttpHandler(
 	handler func(c Entity4UpdateActionRequest) (*Entity4UpdateActionResponse, error),
 ) (method, pattern string, h http.HandlerFunc) {
 	meta := Entity4UpdateActionMeta()
 	return meta.Method, meta.URL, func(w http.ResponseWriter, r *http.Request) {
 		var body Entity4OptionalDto
-		if r.Body != nil {
-			defer r.Body.Close()
-			if data, _ := io.ReadAll(r.Body); len(data) > 0 {
-				if err := json.Unmarshal(data, &body); err != nil {
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(map[string]string{"error": "invalid JSON: " + err.Error()})
-					return
-				}
-			}
+		if err := emigo.BindHttpRequestBody(r, &body); err != nil {
+			emigo.RenderHttpError(w, r, err)
+			return
 		}
 		// Build typed request wrapper. GinCtx stays nil here (this is not gin),
 		// which is what the IsGin() helper keys off.
@@ -410,9 +406,7 @@ func Entity4UpdateActionHttpHandler(
 		}
 		resp, err := handler(req)
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			emigo.RenderHttpError(w, r, err)
 			return
 		}
 		// If the handler returned nil (and no error), the response was handled
@@ -420,24 +414,7 @@ func Entity4UpdateActionHttpHandler(
 		if resp == nil {
 			return
 		}
-		// Apply headers
-		for k, v := range resp.Headers {
-			w.Header().Set(k, v)
-		}
-		// Apply status and payload
-		status := resp.StatusCode
-		if status == 0 {
-			status = http.StatusOK
-		}
-		if resp.Payload != nil {
-			if w.Header().Get("Content-Type") == "" {
-				w.Header().Set("Content-Type", "application/json")
-			}
-			w.WriteHeader(status)
-			json.NewEncoder(w).Encode(resp.Payload)
-		} else {
-			w.WriteHeader(status)
-		}
+		emigo.RenderHttpResult(w, r, resp)
 	}
 }
 

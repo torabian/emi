@@ -32,7 +32,8 @@ export class Entity4AwareDeleteAction {
   };
   static Definition = {
     name: "entity4AwareDelete",
-    cliShort: "entity4-d",
+    cliName: "delete",
+    cliShort: "d",
     url: "/entity4/delete",
     method: "post",
     description:
@@ -48,6 +49,11 @@ export class Entity4AwareDeleteAction {
     },
   };
 }
+/**
+ * The base type definition for entity4AwareDeleteActionReq
+ * @typedef {Object} Entity4AwareDeleteActionReqType
+ * @property {string[]} uniqueIds
+ */
 /**
  * The base class definition for entity4AwareDeleteActionReq
  **/

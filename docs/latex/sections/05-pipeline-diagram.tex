@@ -1,0 +1,45 @@
+\end{multicols}
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth, node distance=1.1cm and 3.2cm]
+
+  \node[src] (src) at (0,2.75) {module.emi\\[1pt]\normalfont\scriptsize(YAML/JSON)};
+  \node[src] (compiler) at (3.4,2.75) {emi\\[1pt]\normalfont\scriptsize compiler};
+
+  \node[ent] (go)     at (7.4,5.5) {Go\\[1pt]\tiny Gin server + client + CLI};
+  \node[ent] (js)     at (7.4,4.4) {JavaScript\\[1pt]\tiny vanilla, classes};
+  \node[ent] (ts)     at (7.4,3.3) {TypeScript\\[1pt]\tiny --tags typescript};
+  \node[ent] (react)  at (7.4,2.2) {React\\[1pt]\tiny --tags react: TanStack hooks};
+  \node[ent] (mobile) at (7.4,1.1) {Swift / Kotlin\\[1pt]\tiny native DTOs + clients};
+  \node[ent] (docs)   at (7.4,0)   {OpenAPI 3 / Postman\\[1pt]\tiny Markdown docs};
+
+  \draw[fk] (src) -- (compiler);
+  \draw[fk] (compiler) -- (go);
+  \draw[fk] (compiler) -- (js);
+  \draw[fk] (compiler) -- (ts);
+  \draw[fk] (compiler) -- (react);
+  \draw[fk] (compiler) -- (mobile);
+  \draw[fk] (compiler) -- (docs);
+
+\end{tikzpicture}
+\end{center}
+
+\phantomsection\label{fig:pipeline}
+\begin{center}
+\begin{minipage}{0.94\linewidth}
+\small\textbf{Fig.~1 --- The compilation pipeline.} One target-agnostic
+definition, many sub-compilers, each reading the same document. The CLI
+mirrors this diagram directly --- \texttt{emi go}, \texttt{emi js},
+\texttt{emi swift}, \texttt{emi kotlin}, \texttt{emi openapi} --- and
+\texttt{--tags} (\texttt{react}, \texttt{nestjs}, \texttt{typescript})
+layer presentation choices onto a target's output without the definition
+ever mentioning them. Because the compiler itself is written in Go and
+also builds to \texttt{GOOS=js GOARCH=wasm}, the exact same compiler that
+produces this fan-out also runs client-side in a browser tab --- no
+server, no install (\S\ref{sec:in-browser}, and the
+\href{https://torabian.github.io/emi/playground}{live playground}).
+\end{minipage}
+\end{center}
+
+\begin{multicols}{2}
+\raggedcolumns

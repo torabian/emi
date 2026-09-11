@@ -1,0 +1,58 @@
+\section{Wire Service: Reactive --- WebSocket \& SSE}
+\label{sec:reactive}
+
+Marking an action \texttt{method: reactive} tells Emi the endpoint is a
+WebSocket, full-duplex channel. The JS compiler generates a
+\texttt{WebSocketX} class --- the base every reactive action's generated
+code sits on top of --- which extends the standard \texttt{WebSocket}
+with the exception that \texttt{message} and \texttt{send} are overridden
+to accept generic types, and the constructor takes a factory for message
+creation when working with JSON messages. Other generators (React, for
+instance) wrap the instance rather than replacing it, layering a
+\texttt{useWebSocketX} hook on top.
+
+\begin{lstlisting}
+actions:
+  - name: userStream
+    url: ws://localhost:8081
+    method: reactive
+    in:
+      fields:
+        - {name: min,   type: int}
+        - {name: max,   type: int}
+        - {name: count, type: int}
+    out:
+      fields:
+        - {name: number, type: int}
+\end{lstlisting}
+
+produces a complete typed request/response pair plus an action wrapper:
+
+\begin{lstlisting}
+export class UserStreamAction {
+  static URL = "ws://localhost:8081";
+  static Method = "REACTIVE";
+  static Create = (overrideUrl?, qs?, options) => {
+    const Cls = options?.SocketClass ??
+      WebSocketX<UserStreamActionReq, UserStreamActionRes>;
+    return new Cls(url, undefined, {
+      MessageFactoryClass: UserStreamActionRes,
+    });
+  };
+}
+\end{lstlisting}
+
+The generated request (\texttt{UserStreamActionReq}) and response
+(\texttt{UserStreamActionRes}) classes are ordinary Emi DTO classes ---
+same private fields, typed getters/setters, and auto-init guarantees as
+any other generated class (\S\ref{sec:js-compiler}); the only thing
+\texttt{reactive} changes is the transport they travel over. The
+generated JavaScript works in both Node.js and browser environments,
+though the client side is the primary focus.
+
+\begin{pullquote}
+SSE gets the same treatment as WebSocket in spirit: a plain \texttt{get}
+action whose response streams chunked messages compiles to typed
+messages on the client, and \texttt{--tags react} adds a matching
+\texttt{useSse} hook right alongside \texttt{useWebSocketX}.
+\end{pullquote}

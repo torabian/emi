@@ -1,0 +1,51 @@
+\section{And One Thing That Shouldn't Be Possible}
+\label{sec:in-browser}
+
+Because the Go server compiles to WebAssembly and Postgres
+(\href{https://pglite.dev}{pglite}) does too, Emi can run an
+\textbf{entire backend inside a browser tab} --- the \emph{same} Go
+handlers, the \emph{same} SQL, the \emph{same} generated DTO classes ---
+talking to a real Postgres database, with no server process and no
+network. It is not a separate, browser-only rewrite: compile the
+Emi-generated Go server to \texttt{GOOS=js GOARCH=wasm}, give it an HTTP
+router that lives in memory, and back its database calls with a real
+Postgres compiled to WebAssembly. The browser then ``fetches'' from a
+server sitting in the same tab.
+
+\begin{sidebar}{In one sentence}
+\texttt{main.js} calls \texttt{localFetch()} into Go WASM's
+\texttt{net/http} router, which runs the ordinary generated handlers,
+which query a \texttt{Database} interface backed by
+\texttt{database-bridge.js} talking to pglite --- everything from the
+handler down to the SQL string is byte-for-byte identical to what runs
+on the real Gin server in \texttt{cmd/server}.
+\end{sidebar}
+
+\subsection{What is shared and what is swapped}
+The whole design rests on one small interface --- handlers never import
+\texttt{pgx} directly or hold a concrete connection, only a
+\texttt{Database}:
+\begin{lstlisting}
+type Database interface {
+  QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+  Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+  Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
+  CopyFrom(ctx context.Context, tableName pgx.Identifier,
+    columnNames []string, rowSrc pgx.CopyFromSource) (int64, error)
+}
+\end{lstlisting}
+Because this is exactly the shape of \texttt{*pgx.Conn}, the
+\textbf{server build} just passes a live connection straight through
+(passthrough). The \textbf{browser build} passes a \texttt{WasmDatabase}
+that routes the same calls through a JS bridge into pglite instead ---
+the handler code above this interface never knows, or needs to know,
+which one it's talking to.
+
+\begin{pullquote}
+See it running: the
+\href{https://torabian.github.io/emi/in-browser-server/}{in-browser
+server demo} --- arguably the clearest possible demonstration of what
+``one definition, real code everywhere'' actually buys a team: the exact
+same handlers ship to production and run, unmodified, in a visitor's
+browser tab.
+\end{pullquote}

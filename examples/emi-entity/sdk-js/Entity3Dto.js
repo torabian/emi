@@ -1,4 +1,10 @@
 /**
+ * The base type definition for entity3Dto
+ * @typedef {Object} Entity3DtoType
+ * @property {string} [uniqueId]
+ * @property {string} message
+ */
+/**
  * The base class definition for entity3Dto
  **/
 export class Entity3Dto {

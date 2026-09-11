@@ -1,0 +1,68 @@
+\section{Public Notices: Markdown, OpenAPI, Postman}
+\label{sec:exports}
+
+Three commands don't emit source code at all --- they \emph{describe} a
+module in a standard interoperable format, reading the same definition
+that produces the Go/Swift/Kotlin/JS clients, so none of them can drift
+away from the real implementation.
+
+\subsection{\texttt{emi md} --- Markdown docs}
+The fastest way to get human-readable, always up to date documentation
+for a module: a title, description, table of contents, and one section
+per action listing method, URL, CLI name, and request/response fields.
+\begin{lstlisting}
+emi md --path module.yaml --output ./out
+# ./out/postsModule.md
+\end{lstlisting}
+Output for a single-action module looks like:
+\begin{lstlisting}
+### `GetSinglePostAction`
+| | |
+|---|---|
+| **Method** | `GET` |
+| **URL** | `/posts/:id` |
+| **CLI** | `get-single-post` |
+#### Response
+| Field | Type |
+|---|---|
+| `userId` | `int64` |
+\end{lstlisting}
+Committed next to the module, served in a docs site, or rendered straight
+into a README.
+
+\subsection{\texttt{emi openapi} --- OpenAPI 3}
+A \emph{describer}, not a compiler: reads the definition, produces a
+standard \href{https://spec.openapis.org/oas/v3.0.3}{OpenAPI 3} document
+for Swagger UI, Redoc, code generators, or API gateways.
+\begin{lstlisting}
+emi openapi --path module.yaml --output ./out --json
+# ./out/postsModule.openapi.yaml (+ .json)
+\end{lstlisting}
+Route parameter syntax is rewritten (\texttt{/posts/:id} becomes
+\texttt{/posts/\{id\}}), path parameters are promoted, and Emi field
+types map onto the correct OpenAPI \texttt{type}/\texttt{format} pairs
+(e.g.\ \texttt{int64} $\to$ \texttt{type: integer, format: int64}).
+
+\subsection{\texttt{emi postman} --- Postman v2.1 collection}
+Every action becomes a Postman request with method, URL, and the standard
+Emi headers pre-filled, ready to import and start hitting endpoints
+immediately.
+\begin{lstlisting}
+emi postman --path module.yaml \
+  --host localhost --port 8080 --output ./out
+\end{lstlisting}
+Host and port are emitted as Postman environment variables
+(\texttt{\{\{HOST\}\}}, \texttt{\{\{PORT\}\}}) so switching between
+local, staging and production is a matter of changing the active
+environment, and the common Emi headers (\texttt{authorization},
+\texttt{role-id}, \texttt{workspace-id}) are wired to
+\texttt{\{\{AUTH\}\}}/\texttt{\{\{RID\}\}}/\texttt{\{\{WID\}\}}
+variables, filled once and reused across every request.
+
+\begin{pullquote}
+All three exporters share the same two flags: \texttt{--path} (the
+definition file) and \texttt{--output} (where to write; omit it and the
+result prints to stdout so it can be piped or inspected) --- plus
+\texttt{--tags} to add or remove compile features, same as every other
+Emi sub-compiler.
+\end{pullquote}

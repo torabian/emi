@@ -34,16 +34,16 @@ export class MOne {
     static select(selector) {
         const one = new MOne();
         one.selector = selector;
-        one.operation = "replace";
+        one.operation = "select";
         return one;
     }
     toJSON() {
         // When its explicit replace, it means that we need to pass a selector, so reader will
         // be able to replace it via internal mechanism
-        if (this.operation === "replace") {
+        if (this.operation === "select") {
             return {
                 __operation: this.operation,
-                selector: this.selector,
+                __selector: this.selector,
             };
         }
         return this.content;

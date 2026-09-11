@@ -39,6 +39,18 @@ struct Entity1OptionalDto: Codable {
 struct Entity1OptionalDtoItems: Codable {
 		let uniqueId: String?
 		let item2: String
+		let subItems: [Entity1OptionalDtoItemsSubItems]?
+}
+  // The base class definition for subItems
+struct Entity1OptionalDtoItemsSubItems: Codable {
+		let uniqueId: String?
+		let subLabel: String
+		let subSubItems: [Entity1OptionalDtoItemsSubItemsSubSubItems]?
+}
+  // The base class definition for subSubItems
+struct Entity1OptionalDtoItemsSubItemsSubSubItems: Codable {
+		let uniqueId: String?
+		let leafLabel: String
 }
   // The base class definition for items2
 struct Entity1OptionalDtoItems2: Codable {
