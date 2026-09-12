@@ -6,6 +6,35 @@ and \texttt{\{Entity\}UpdateFn} --- plus a small actions bundle wiring
 them up as the defaults, mirroring the pattern
 \href{https://github.com/torabian/fireback}{fireback} uses.
 
+\subsubsection{Request body formats}
+Every generated Go action --- Create/Update included --- reads its body
+through \texttt{emigo.BindGinRequestBody}, which picks the decoder from
+the request's own \texttt{Content-Type} rather than assuming JSON:
+\begin{itemize}[leftmargin=1.1em,itemsep=2pt,topsep=2pt]
+  \item \texttt{application/json} --- the default, and what every
+    generated client sends.
+  \item \texttt{application/yaml}/\texttt{x-yaml}/\texttt{text/yaml}
+    --- the same struct, from YAML.
+  \item \texttt{application/xml}/\texttt{text/xml}.
+  \item \texttt{multipart/form-data} --- each non-file field round-trips
+    through JSON into the struct; each uploaded file becomes a
+    \texttt{BindMultipartFile} (\texttt{filename}/\texttt{mime}/
+    \texttt{data}), unless the host app registers its own
+    \texttt{ConvertMultipartFile} (fireback, for instance, turns one into
+    an \texttt{XFile}).
+  \item \texttt{application/x-www-form-urlencoded} --- a plain HTML
+    \texttt{<form method="post">} postback works unmodified, no
+    JavaScript or fetch call required: the browser's own form submission
+    already sends this content type, and every field lands in the same
+    generated struct a JSON body would.
+\end{itemize}
+Only \texttt{POST}/\texttt{PATCH}/\texttt{PUT} read a body at all --- a
+no-op for every other method, matching plain HTTP. The response side
+mirrors this: \texttt{RenderGinResult} content-negotiates off the
+request's \texttt{Accept} header (JSON, YAML, TOML, or CSV; JSON when
+unset or unrecognized), so a caller gets the format it asked for without
+the handler itself knowing or caring which one that is.
+
 \subsubsection{The update input: optional, all the way down}
 A struct-based \texttt{gorm.Updates()} call silently drops zero-valued
 fields, so it can't tell ``the caller didn't mention this field'' apart

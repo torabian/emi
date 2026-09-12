@@ -85,6 +85,42 @@ generated struct --- currently a \texttt{TableName()} override wired to
 \texttt{table:}, and the place to extend if a project wants something
 appended to every generated entity file.
 
+\subsubsection{Browsing: JSON Logic filters}
+An entity with browsing enabled also gets a generated
+\texttt{\{Entity\}BrowseFn} and a \texttt{GET /entity1/browse} action,
+exposing five query params: \texttt{filter}, \texttt{sort},
+\texttt{startIndex}, \texttt{itemsPerPage}, \texttt{cursor}.
+\texttt{filter} is a \href{https://jsonlogic.com}{JSON Logic} expression,
+transpiled straight to SQL by \texttt{emigorm.ApplyQueryFilter} --- never
+string-concatenated, and never a filter language Emi invented itself:
+\begin{lstlisting}
+GET /entity1/browse?filter={"==":[{"var":"title"},"hello"]}
+GET /entity1/browse?filter={"and":[
+  {">":[{"var":"age"},18]},
+  {"contains":[{"var":"title"},"draft"]}
+]}
+\end{lstlisting}
+Every standard JSON Logic operator works (\texttt{==}, \texttt{!=},
+\texttt{>}, \texttt{<}, \texttt{and}, \texttt{or}, \texttt{in}, \ldots)
+plus one Emi adds itself: \texttt{contains} --- a case-insensitive
+substring match (\texttt{::text ILIKE '\%...\%'}), the one operator
+plain JSON Logic has no native equivalent for.
+
+Sort and paging are the plain, non-JSON-Logic half:
+\texttt{sort=createdAt desc} (empty defaults to \texttt{id asc}, needed
+for keyset paging to stay correct), and either offset paging
+(\texttt{startIndex}/\texttt{itemsPerPage}) or cursor paging
+(\texttt{cursor}, echoing the response's own cursor field back on the
+next call --- \texttt{cursor=id(42)}).
+
+\begin{pullquote}
+\texttt{filter} is the only \emph{user}-controlled half of a Browse
+query. A handler's own tenant/workspace isolation goes through the
+separate \texttt{emigorm.ApplyQueryScope} (a raw SQL fragment the
+handler itself writes, applied unconditionally) --- \texttt{filter} has
+no way to see or override it.
+\end{pullquote}
+
 \subsection{Writing a complex type}
 \label{sec:go-complex}
 A \texttt{complex: Money} field (\S\ref{sec:complex-types}) needs a real
