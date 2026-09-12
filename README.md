@@ -3,6 +3,7 @@
 ### One YAML API definition → type-safe Go, TypeScript, Swift, Kotlin, Python, Dart, C#, Java, PHP, C & C++ SDKs
 
 **Live playground:** https://torabian.github.io/emi/playground — try Emi in the browser, no install needed.
+**Cookbook:** https://github.com/torabian/emi/releases/latest/download/emi-docs.pdf
 
 Emi is a code generator: you describe your API once — dtos, entities, actions, config —
 in a single yaml file, and Emi compiles that one definition into working, type-safe code
