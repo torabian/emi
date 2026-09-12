@@ -1,0 +1,74 @@
+\section{Additional Language Targets}
+\label{sec:additional-targets}
+
+Every remaining client target takes the same \texttt{.emi.yml} through
+its own sub-compiler, with the same \texttt{--path}/\texttt{--output}
+pair every other Emi compiler already uses. Each one below is
+client-only --- no server, no CLI, no entity/gorm persistence --- and
+most share the same two housekeeping tags: \texttt{no-sdk} (skip
+embedding the runtime files) and \texttt{no-pkg} (skip the
+language-native package manifest --- \texttt{requirements.txt},
+\texttt{pom.xml}, \texttt{.csproj}, \texttt{composer.json},
+\texttt{pubspec.yaml}, \texttt{README.md}, depending on the target).
+
+\subsection{Python}
+\texttt{dataclasses}-based DTOs and an \texttt{httpx} client, synchronous
+by default:
+\begin{lstlisting}
+emi python --path module.emi.yml --output ./out/python
+emi python --path module.emi.yml --output ./out/python --tags async
+\end{lstlisting}
+\texttt{--tags async} swaps every generated client function to
+\texttt{async def}, backed by \texttt{httpx.AsyncClient}, instead.
+
+\subsection{Dart}
+DTO classes with hand-generated \texttt{toJson}/\texttt{fromJson} and a
+\texttt{package:http} client:
+\begin{lstlisting}
+emi dart --path module.emi.yml --output ./out/dart
+\end{lstlisting}
+
+\subsection{C\#}
+\texttt{System.Text.Json}-based DTOs and an \texttt{HttpClient} transport:
+\begin{lstlisting}
+emi csharp --path module.emi.yml --output ./out/csharp
+\end{lstlisting}
+
+\subsection{Java}
+Jackson-based DTOs on top of \texttt{java.net.http.HttpClient}:
+\begin{lstlisting}
+emi java --path module.emi.yml --output ./out/java
+\end{lstlisting}
+
+\subsection{PHP}
+Reflection-based DTO hydration and a \texttt{curl} HTTP transport:
+\begin{lstlisting}
+emi php --path module.emi.yml --output ./out/php
+\end{lstlisting}
+
+\subsection{C}
+Vendored \texttt{cJSON} (de)serialization and \texttt{libcurl} transport
+--- no nullable value types without pointers, a documented scope limit:
+\begin{lstlisting}
+emi c --path module.emi.yml --output ./out/c
+\end{lstlisting}
+
+\subsection{C++: generic and Unreal Engine}
+One compiler, two dialects, picked with \texttt{--dialect} (or the
+equivalent \texttt{--tags unreal}, handy when a caller is already
+building a \texttt{--tags} list): portable ISO C++17 for desktop/ESP-IDF/
+Arduino by default, or \texttt{USTRUCT}/\texttt{UPROPERTY} DTOs usable
+from Blueprint when the Unreal dialect is selected.
+\begin{lstlisting}
+emi cpp --path module.emi.yml --output ./out/cpp                  # generic ISO C++17
+emi cpp --path module.emi.yml --output ./out/cpp-unreal \
+  --dialect unreal                                                # Unreal Engine
+\end{lstlisting}
+
+\begin{pullquote}
+\texttt{--path}, \texttt{--output}, and \texttt{--tags} is the interface
+every Emi compiler shares, this section's seven targets included --- run
+\texttt{emi tags} at any time to print the full, current tag list for
+every registered target, straight from the compiler's own source of
+truth rather than a copy that can drift out of date here.
+\end{pullquote}

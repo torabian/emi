@@ -1,19 +1,23 @@
 % ------------------------------------------------------------------
-% The Emi Compiler Gazette
-% A newspaper-style overview of Emi's most common features.
+% Emi Compiler Documentation
+% Generated from the project README plus a feature-by-feature walk
+% of the compiler.
 %
 % Build with `make docs-pdf` from the repository root, or directly:
-%   latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+%   tectonic main.tex
 % ------------------------------------------------------------------
 \documentclass[10pt,a4paper]{extarticle}
 
 \usepackage[margin=1.4cm,top=2.2cm,bottom=2cm]{geometry}
 \usepackage{multicol}
-\usepackage{times}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+% ---------- O'Reilly-ish type: warm serif body, sans headings, ----------
+% ---------- humanist monospace for code -------------------------------
+\usepackage{mathpazo}                    % Palatino-based serif body text
+\usepackage[scaled=0.92]{helvet}         % sans-serif for headings/rubrics
+\usepackage[scaled=0.88]{inconsolata}    % humanist monospace for code
 \usepackage{graphicx}
-\usepackage{lettrine}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
 \usepackage{xcolor}
@@ -29,28 +33,26 @@
 
 \tcbuselibrary{skins,breakable}
 
-% ---------- newspaper palette ----------
-\definecolor{inkblack}{RGB}{20,20,20}
-\definecolor{rulegray}{RGB}{120,120,120}
-\definecolor{headlinered}{RGB}{20,60,140}
-\definecolor{boxgray}{RGB}{240,240,240}
+% ---------- palette (warm, book-ink tones) ----------
+\definecolor{inkblack}{RGB}{35,28,22}
+\definecolor{rulegray}{RGB}{150,132,110}
+\definecolor{accentcolor}{RGB}{176,68,24}
+\definecolor{boxgray}{RGB}{247,241,230}
 
 \color{inkblack}
 
-% ---------- headline / rubric fonts ----------
-\newcommand{\headlinefont}{\fontfamily{ppl}\bfseries\selectfont}
-\titleformat{\section}{\headlinefont\Large\color{headlinered}}{\thesection.}{0.4em}{}
+% ---------- heading fonts ----------
+\newcommand{\headlinefont}{\normalfont\sffamily\bfseries\selectfont}
+\titleformat{\section}{\headlinefont\Large\color{accentcolor}}{\thesection.}{0.4em}{}
 \titlespacing*{\section}{0pt}{1.2ex plus .2ex minus .2ex}{0.6ex plus .1ex}
 \titleformat{\subsection}{\headlinefont\normalsize\bfseries}{}{0em}{}
 \titlespacing*{\subsection}{0pt}{1.4ex plus .4ex minus .3ex}{0.4ex plus .1ex}
-
-% ---------- drop caps ----------
-\setlength{\DefaultFindent}{2pt}
-\renewcommand{\LettrineFontHook}{\headlinefont\color{headlinered}}
+\titleformat{\subsubsection}{\normalfont\bfseries\itshape}{}{0em}{}
+\titlespacing*{\subsubsection}{0pt}{1.2ex plus .3ex minus .3ex}{0.3ex plus .1ex}
 
 % ---------- code / config listing style ----------
 \lstdefinestyle{yamlstyle}{
-  basicstyle=\ttfamily\scriptsize,
+  basicstyle=\ttfamily\small,
   breaklines=true,
   frame=single,
   rulecolor=\color{rulegray},
@@ -60,21 +62,21 @@
 }
 \lstset{style=yamlstyle}
 
-% ---------- masthead rules ----------
+% ---------- rules ----------
 \newcommand{\thinrule}{\noindent\textcolor{rulegray}{\rule{\linewidth}{0.4pt}}}
 \newcommand{\thickrule}{\noindent\rule{\linewidth}{1.6pt}}
 
-% ---------- running headers/footers (inside pages) ----------
+% ---------- running headers/footers ----------
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0.4pt}
-\fancyhead[L]{\scshape\small The Emi Compiler Gazette}
-\fancyhead[R]{\scshape\small \today}
+\fancyhead[L]{\headlinefont\scshape\small Emi Compiler Documentation}
+\fancyhead[R]{\headlinefont\scshape\small \today}
 \fancyfoot[C]{\small\thepage}
 
-% ---------- pull-quote box ----------
+% ---------- callout box (pull quote / note) ----------
 \newtcolorbox{pullquote}{
-  breakable, enhanced, colback=boxgray, colframe=inkblack,
+  enhanced, colback=boxgray, colframe=inkblack,
   boxrule=0.3pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
   arc=0pt, outer arc=0pt,
   fontupper=\itshape\small,
@@ -88,13 +90,13 @@
   src/.style={draw=inkblack, thick, rounded corners=1.5pt, fill=white,
     font=\bfseries\scriptsize, inner sep=5pt, align=center, minimum width=2.3cm,
     minimum height=1cm},
-  fk/.style={-{Stealth[length=5pt,width=4pt]}, thick, color=headlinered},
+  fk/.style={-{Stealth[length=5pt,width=4pt]}, thick, color=accentcolor},
   jk/.style={-{Stealth[length=5pt,width=4pt]}, thick, dashed, color=rulegray},
   fklabel/.style={font=\tiny\itshape, fill=white, inner sep=1pt},
 }
 
 \newtcolorbox{sidebar}[1]{
-  breakable, enhanced, colback=boxgray, colframe=inkblack,
+  enhanced, colback=boxgray, colframe=inkblack,
   boxrule=0.5pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
   arc=0pt, outer arc=0pt,
   title={\headlinefont\small #1}, coltitle=inkblack, colbacktitle=boxgray,
@@ -102,84 +104,221 @@
   boxed title style={boxrule=0pt, colframe=boxgray},
 }
 
-\title{The Emi Compiler Gazette}
+\title{Emi Compiler Documentation}
 \hypersetup{
-  pdftitle={The Emi Compiler Gazette},
+  pdftitle={Emi Compiler Documentation},
   pdfauthor={Emi Contributors},
-  colorlinks=true, linkcolor=headlinered, urlcolor=headlinered,
+  colorlinks=true, linkcolor=accentcolor, urlcolor=accentcolor,
 }
 
 \begin{document}
 \thispagestyle{empty}
 
-% =========================== MASTHEAD ===========================
+% =========================== TITLE ===========================
 \begin{center}
-  {\headlinefont\fontsize{40}{44}\selectfont THE EMI COMPILER GAZETTE}\\[2pt]
-  {\scshape\small An unofficial field guide to the Emi API-definition compiler}
+  {\headlinefont\fontsize{28}{32}\selectfont Emi Compiler}\\[4pt]
+  {\small One YAML API definition \(\rightarrow\) type-safe Go, TypeScript,
+  Swift, Kotlin, Python, Dart, C\#, Java, PHP, C \& C++ SDKs}
 \end{center}
 \thickrule\\[1pt]
 \noindent
-\begin{minipage}[t]{0.33\linewidth}
-  \small\textbf{Vol. 1, No. 1} \hfill \textbf{\today}
+\begin{minipage}[t]{0.5\linewidth}
+  \small\textbf{Documentation} \hfill \textbf{\today}
 \end{minipage}
-\begin{minipage}[t]{0.33\linewidth}
-  \centering\small\textit{``One YAML file, every language''}
-\end{minipage}
-\begin{minipage}[t]{0.33\linewidth}
-  \raggedleft\small \url{github.com/torabian/emi}
+\begin{minipage}[t]{0.5\linewidth}
+  \raggedleft\small \url{https://github.com/torabian/emi}
 \end{minipage}
 \thinrule
-\vspace{4pt}
+\vspace{6pt}
 
-% =========================== FRONT PAGE LEAD ===========================
-\begin{multicols}{3}
+% =========================== README CONTENT ===========================
+\begin{multicols}{2}
 \raggedcolumns
+Emi is a code generator: you describe your API once --- dtos, entities,
+actions, config --- in a single YAML file, and Emi compiles that one
+definition into working, type-safe code for multiple languages, so the
+backend and every client SDK are always generated from the same source of
+truth and never drift out of sync with each other.
 
-\lettrine[lines=3,lraise=0.1,nindent=0pt]{E}{mi} is a code generator: you
-describe an API once --- DTOs, entities, actions, config, permissions,
-events --- in a single YAML (or JSON) definition, and Emi compiles that one
-definition into working, type-safe code for Go, TypeScript/JavaScript,
-Swift, Kotlin, and more, plus an OpenAPI document and a Postman collection.
-This issue of the Gazette walks the compiler floor, feature by feature, so
-a new contributor can find their desk quickly.
+\subsection*{Good fit for}
+\begin{itemize}[leftmargin=1.3em,itemsep=2pt,topsep=2pt]
+  \item A Go/Gin backend paired with a TypeScript web app, mobile
+    (Swift/Kotlin), and desktop clients from one definition.
+  \item A game (Unreal Engine) or embedded device (ESP-IDF/Arduino)
+    talking to that backend over real WebSockets.
+  \item Publishing a multi-language \textbf{SDK} for your API --- the way a
+    payment provider, cloud platform, or any product with outside
+    integrators has to hand every customer a client in \emph{their}
+    stack, not just yours, and keep all of those clients correct as the
+    API evolves.
+  \item Generating a \textbf{CLI} straight from the same action
+    definitions the HTTP API exposes.
+  \item Node.js \textbf{microservices}, including \textbf{NestJS} --- the
+    same generated JS/TS client that ships to the browser runs equally
+    well server-side, so one client codegen covers both.
+  \item Running codegen in-browser via \textbf{WASM} --- no server round
+    trip, same compiler as the CLI.
+  \item Keeping a shared API contract in sync across a polyglot team
+    without hand-syncing types.
+\end{itemize}
 
-Every team that ships an API ends up writing the same contract twice: once
-on the backend, again by hand on every client. Emi exists to make that
-contract a real, compilable thing, and generate every side of it so the
-drift problem stops existing rather than getting managed.
+Beyond basic DTO/action generation, Emi's goal is to cover the topics that
+usually get bolted on by hand afterwards: \textbf{reactive programming}
+(real WebSocket/SSE actions, typed on both ends), \textbf{nullability}
+(nullable-aware types across every target), \textbf{envelopes} (a
+consistent response-wrapper shape, e.g.\ Google's JSON style guide),
+\textbf{translations} (string-resource generation across languages), a
+first-class \textbf{CLI} (Golang actions double as \texttt{urfave/cli}
+commands for free), and \textbf{WASM} (the same compiler runs in the
+browser, no server round trip).
 
-\begin{sidebar}{Quick start}
+\subsection*{Quick start}
+
+\textbf{1. Install Emi}
 \begin{lstlisting}
-go install \
-  github.com/torabian/emi/cmd/emi@latest
-emi go    --path module.emi \
-  --output ./server
-emi js    --path module.emi \
-  --output ./web/sdk --tags react
-emi swift --path module.emi \
-  --output ./ios
+go install github.com/torabian/emi/cmd/emi@latest
 \end{lstlisting}
-\end{sidebar}
+(or download a prebuilt binary from the
+\href{https://github.com/torabian/emi/releases}{releases} page)
+
+\textbf{2. Create the sample yaml} --- save this as \texttt{user.emi.yml}:
+\begin{lstlisting}
+complexes:
+  - name: Money
+    compiler: go
+    location: github.com/torabian/emi/examples/fullstack/sdk/complexes
+    namespace: complexes
+
+dtos:
+  - name: address
+    fields:
+      - name: city
+        type: string
+      - name: zip
+        type: string?
+
+  - name: user
+    fields:
+      - name: id
+        type: string
+      - name: email
+        type: string
+      - name: age
+        type: int?
+      - name: tags
+        type: slice
+        primitive: string
+      - name: addresses
+        type: collection
+        target: AddressDto
+      - name: balance
+        type: complex
+        complex: Money
+\end{lstlisting}
+
+\texttt{dtos} is a list of data-transfer object definitions --- each one
+gets its own generated class/struct, one per target language.
+\texttt{fields} are plain, typed properties, and a trailing \texttt{?}
+(as in \texttt{int?}, \texttt{string?}, \texttt{collection?}) marks any
+field nullable, which every compiler renders the idiomatic way for that
+language (\texttt{emigo.Nullable[int]} in Go, \texttt{int?} in Swift/C\#,
+\texttt{Optional[int]} in Python, \ldots). A few field shapes worth
+knowing:
+\begin{itemize}[leftmargin=1.3em,itemsep=2pt,topsep=2pt]
+  \item \textbf{Scalars} --- \texttt{string}, \texttt{int}, \texttt{bool},
+    \texttt{float}, \ldots
+  \item \textbf{\texttt{slice}} --- a homogeneous list of a
+    \texttt{primitive} scalar (here, \texttt{tags: []string}).
+  \item \textbf{\texttt{array}} --- a fixed-shape list where each item is
+    itself an inline object (declared with its own nested
+    \texttt{fields}).
+  \item \textbf{\texttt{collection} / \texttt{one}} --- a relation to
+    another dto/entity via \texttt{target:} (\texttt{collection} is many,
+    \texttt{one} is a single reference) --- \texttt{addresses} here
+    becomes \texttt{[]AddressDto} (or the equivalent per language).
+  \item \textbf{\texttt{complex}} --- an escape hatch to a hand-written
+    type declared under \texttt{complexes:}, imported from a real
+    language-native location instead of generated.
+\end{itemize}
 
 \columnbreak
+\textbf{3. Compile it to multiple languages}
+\begin{lstlisting}
+emi go     --path user.emi.yml --output ./out/go
+emi js     --path user.emi.yml --output ./out/js --tags typescript
+emi swift  --path user.emi.yml --output ./out/swift
+emi python --path user.emi.yml --output ./out/python
+\end{lstlisting}
 
-\textbf{IN THIS EDITION}
-\begin{itemize}[leftmargin=1.1em,itemsep=1pt,topsep=2pt]
-  \item How Emi generates code, p.~\pageref{sec:overview}
-  \item The module definition, p.~\pageref{sec:module-spec}
-  \item Actions, p.~\pageref{sec:actions}
-  \item Complex types, p.~\pageref{sec:complex-types}
-  \item Compilation pipeline diagram, p.~\pageref{fig:pipeline}
-  \item Go entities \& relations, p.~\pageref{sec:go-entities}
-  \item Go create/update actions, p.~\pageref{sec:go-actions}
-  \item Permissions \& events, p.~\pageref{sec:permissions-events}
-  \item The JS/TS compiler, p.~\pageref{sec:js-compiler}
-  \item Reactive: WebSocket \& SSE, p.~\pageref{sec:reactive}
-  \item Swift \& Kotlin clients, p.~\pageref{sec:swift-kotlin}
-  \item Exports: MD, OpenAPI, Postman, p.~\pageref{sec:exports}
-  \item Query Predict, p.~\pageref{sec:query-predict}
-  \item Server in a browser tab, p.~\pageref{sec:in-browser}
-\end{itemize}
+Each command reruns the same \texttt{user.emi.yml} through a different
+target compiler and writes matching, type-safe code to its own output
+folder. You can also list every target once, under \texttt{targets:}, in
+the yaml itself and compile them all in one shot with
+\texttt{emi compile --path user.emi.yml}.
+
+\subsection*{Emi YAML at a glance}
+
+A \texttt{.emi.yml} module is just a grouping of top-level blocks --- this
+is the ``table of contents'' every compiler (Go, JS, Swift, \ldots) walks:
+\end{multicols}
+
+{\small
+\begin{tabular}{@{}p{0.16\linewidth}p{0.8\linewidth}@{}}
+\toprule
+\textbf{Block} & \textbf{What it's for} \\
+\midrule
+\texttt{namespace} & Where the module lives in the app tree (PHP-style), used as the client export path. \\
+\texttt{dtos} & Plain data-transfer objects --- shared shapes for request/response bodies. \\
+\texttt{entities} & Database-backed structs; fields become Go struct fields and DB columns, and feed auto-synthesized CRUD actions. \\
+\texttt{complexes} & Custom data types that don't fit the built-in field types. \\
+\texttt{actions} & Controller-like units of behavior (HTTP and/or CLI), with typed \texttt{in}/\texttt{out} bodies. \\
+\texttt{remotes} & Typed definitions of external HTTP services the module calls. \\
+\texttt{config} & Typed server config, good for casting \texttt{.env} values. \\
+\texttt{manifests} & Bundles of actions (include/exclude patterns) shippable as one unit (\texttt{go-client}, \texttt{go-gin}, \texttt{go-cli}, \texttt{go-wasm}). \\
+\texttt{vsqls} & Hand-written SQL paired with a generated typed parameter struct. \\
+\texttt{targets} & Self-contained compiler targets bundled with the module, for one-shot \texttt{emi compile}. \\
+\texttt{templates} & Reusable dto/action shapes, never compiled on their own --- only referenced (e.g.\ via \texttt{captures}). \\
+\bottomrule
+\end{tabular}
+}
+
+\begin{multicols}{2}
+\raggedcolumns
+Full schema:
+\url{https://github.com/torabian/emi/blob/main/playground/public/emi-module-spec.json}
+(works with the Red Hat YAML extension in VS Code for
+autocomplete/validation).
+
+\subsection*{Language targets \& features}
+\end{multicols}
+
+{\small
+\begin{tabular}{@{}p{0.19\linewidth}p{0.77\linewidth}@{}}
+\toprule
+\textbf{Target} & \textbf{What you get} \\
+\midrule
+\textbf{Golang} & Full server + client: DTOs, \texttt{Gin} HTTP handlers, \texttt{urfave/cli} CLI, GORM entities, reactive/WebSocket support. The only target that generates a server. \\
+\textbf{JavaScript / TypeScript} & Typed client SDK (vanilla or React + TanStack Query hooks), typed \texttt{fetch} layer, JSDoc typedefs for plain JS, reactive WebSocket/SSE hooks, NestJS decorators. Runs in the browser or Node. \\
+\textbf{Swift} & \texttt{Codable} DTO structs, typed header structs, typed WebSocket client for reactive actions. HTTP actions are WIP. \\
+\textbf{Kotlin} & Typed DTO/action client code. Reactive/WebSocket not yet supported. \\
+\textbf{Python} & \texttt{dataclasses}-based DTOs, \texttt{httpx} HTTP client (sync or async), SSE for reactive actions. \\
+\textbf{Dart} & DTO classes with hand-generated \texttt{toJson}/\texttt{fromJson}, \texttt{package:http} client, SSE for reactive actions. \\
+\textbf{C\#} & \texttt{System.Text.Json}-based DTOs, \texttt{HttpClient} transport, SSE via \texttt{IAsyncEnumerable<string>}. \\
+\textbf{Java} & Jackson-based DTOs, \texttt{java.net.http.HttpClient} transport, SSE for reactive actions. \\
+\textbf{PHP} & Reflection-based DTO hydration, \texttt{curl} HTTP transport, SSE for reactive actions. \\
+\textbf{C} & Vendored \texttt{cJSON} (de)serialization, \texttt{libcurl} transport. No nullable value types without pointers (documented scope limit). \\
+\textbf{C++ (generic)} & Portable ISO C++17 DTOs/actions for desktop, ESP-IDF, and Arduino; \texttt{IEmiHttpTransport} seam; real RFC 6455 WebSocket client for reactive actions. \\
+\textbf{C++ (Unreal Engine)} & \texttt{USTRUCT}/\texttt{UPROPERTY} DTOs usable from Blueprint, Unreal's own JSON reflection, async HTTP via \texttt{FHttpModule}, real WebSocket via \texttt{IWebSocket}. \\
+\bottomrule
+\end{tabular}
+}
+
+\begin{multicols}{2}
+\raggedcolumns
+Every target except Golang is client-only --- no server, no CLI, and no
+entity/GORM persistence is ever generated for them. Shared across all
+targets: nullable-aware types, nested object/array/map fields,
+\texttt{one}/\texttt{collection} relations, and enums.
 
 \begin{pullquote}
 ``OpenAPI describes an API that already exists. gRPC replaces your
@@ -187,19 +326,29 @@ transport with its own. Emi generates the API itself --- backend and
 every client --- as ordinary, runtime-free, idiomatic code you fully
 own.''
 \end{pullquote}
-
-\begin{sidebar}{Compilers at a glance}
-\begin{itemize}[leftmargin=1.1em,itemsep=1pt,topsep=2pt]
-  \item \texttt{emi go} --- Gin server, client \& CLI
-  \item \texttt{emi js} --- JS/TS classes, React, Nest.js
-  \item \texttt{emi swift} / \texttt{emi kotlin} --- native clients
-  \item \texttt{emi openapi} / \texttt{postman} / \texttt{md} --- docs
-  \item \texttt{emi qp:dir} / \texttt{qp:gen} --- typed SQL bindings
-  \item same compiler, compiled to \textbf{WASM} --- runs in-browser
-\end{itemize}
-\end{sidebar}
-
 \end{multicols}
+
+\thinrule
+\vspace{4pt}
+
+{\headlinefont\large Contents}
+\vspace{2pt}
+\begin{itemize}[leftmargin=1.1em,itemsep=1pt,topsep=2pt]
+  \item How Emi generates code, p.~\pageref{sec:overview}
+  \item The module definition, p.~\pageref{sec:module-spec}
+  \item Actions, p.~\pageref{sec:actions}
+  \item Complex types, p.~\pageref{sec:complex-types}
+  \item Compilation pipeline diagram, p.~\pageref{fig:pipeline}
+  \item Go compiler features (entities, relations, actions), p.~\pageref{sec:go-compiler-features}
+  \item Permissions \& events, p.~\pageref{sec:permissions-events}
+  \item The JS/TS compiler, p.~\pageref{sec:js-compiler}
+  \item Reactive: WebSocket \& SSE, p.~\pageref{sec:reactive}
+  \item Swift \& Kotlin clients, p.~\pageref{sec:swift-kotlin}
+  \item Additional language targets (Python, Dart, C\#, Java, PHP, C, C++), p.~\pageref{sec:additional-targets}
+  \item Exports: MD, OpenAPI, Postman, p.~\pageref{sec:exports}
+  \item Query Predict, p.~\pageref{sec:query-predict}
+  \item Running the compiler in the browser, p.~\pageref{sec:in-browser}
+\end{itemize}
 
 \thinrule
 \newpage
@@ -220,6 +369,7 @@ own.''
 \input{sections/10-js-compiler}
 \input{sections/11-reactive}
 \input{sections/12-swift-kotlin}
+\input{sections/12b-additional-targets}
 \input{sections/13-exports}
 \input{sections/14-query-predict}
 \input{sections/15-in-browser}

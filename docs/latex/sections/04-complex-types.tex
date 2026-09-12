@@ -1,4 +1,4 @@
-\section{Editorial: Complex Types}
+\section{Complex Types}
 \label{sec:complex-types}
 
 Instead of a primitive like \texttt{string} or \texttt{int}, a field can
@@ -52,5 +52,6 @@ has to pull its own weight: it must implement
 \texttt{database/sql/driver.Valuer} and \texttt{sql.Scanner} itself if it
 needs to persist as anything other than gorm's default guess --- the
 generator can't know how to store an arbitrary hand-written type
-(\S\ref{sec:go-entities}).
+(\S\ref{sec:go-complex}). Writing the JS/TS-side class is covered in
+\S\ref{sec:js-complex}.
 \end{pullquote}

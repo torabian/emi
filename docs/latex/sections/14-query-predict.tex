@@ -1,4 +1,4 @@
-\section{Sports Desk: Query Predict}
+\section{Query Predict}
 \label{sec:query-predict}
 
 Query Predict (\texttt{qp}) is Emi's approach to \textbf{hand-written SQL
@@ -41,7 +41,7 @@ A small set of marker functions can appear inside the SQL itself, letting
 dynamic behaviour stay in the query while the generated code remains
 predictable and typed:
 \begin{sidebar}{Query Predict SQL helpers}
-\scriptsize
+\small
 \begin{tabular}{@{}p{0.42\linewidth}p{0.5\linewidth}@{}}
 \texttt{field(expr, 'type', 'goName'?)} & annotate an expression's Go type (and optionally its field name) when it can't be inferred \\
 \texttt{useval('name')} & a named value substituted from \texttt{ctx.Params} at runtime, safely escaped \\

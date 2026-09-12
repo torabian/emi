@@ -1,4 +1,4 @@
-\section{The Style Section: JavaScript/TypeScript}
+\section{The JavaScript/TypeScript Compiler}
 \label{sec:js-compiler}
 
 JavaScript gets special focus in Emi, because nearly everything eventually
@@ -35,6 +35,73 @@ instance of a nested \texttt{AutoInitClassDto.Object1} class, never
 \texttt{undefined} --- the code stops sprinkling \texttt{?.}, \texttt{??},
 and \texttt{typeof x === 'string'} defensively, because the class already
 did the guarding.
+
+\subsection{Collection and One: replace, append, select}
+\texttt{array}, \texttt{collection}, and \texttt{one} fields compile to
+\texttt{MArray<T>}, \texttt{MCollection<T>}, and \texttt{MOne<T>} ---
+wrapper classes from \texttt{sdk/common/operators} that mirror Go's own
+\texttt{emigo.Array[T]}/\texttt{Collection[T]}/\texttt{One[T]}
+(\S\ref{sec:go-relations}): the same PATCH-payload semantics, JS side. A
+generated setter accepts either a real wrapper instance or a plain
+array/object and coerces it, so most call sites never construct a
+wrapper by hand:
+\begin{lstlisting}
+user.collectionField = [new User({ name: "Ada" })];   // replace (the usual case)
+user.collectionField = MCollection.append([newUser]); // append to the existing set instead
+user.oneField = MOne.select(existingUser.uniqueId);   // resolve by selector, leave the target alone
+\end{lstlisting}
+\texttt{MOne.select(selector)} mirrors \texttt{ReconcileOne}'s
+\texttt{"select"} operation on the Go side (\S\ref{sec:go-actions}): it
+resolves an existing target by selector without touching its fields,
+instead of upserting an inline value. Every wrapper shares the same
+accessors --- \texttt{.get()} returns the plain value/array underneath,
+\texttt{.len()} (array/collection) counts it, and
+\texttt{.isReplace()}/\texttt{.isAppend()}/\texttt{.isSelector()} report
+which operation is active.
+
+\begin{sidebar}{Why \texttt{toJSON()} matters here}
+Each wrapper defines its own \texttt{toJSON()}, so
+\texttt{JSON.stringify()} on a DTO that contains one never needs special
+handling: a \texttt{"replace"} serializes as a bare array/value (the
+implicit, most common case on the wire); \texttt{"append"} and
+\texttt{"select"} serialize as a tagged object instead ---
+\texttt{\{\_\_operation, items\}} or \texttt{\{\_\_operation,
+\_\_selector\}} --- so the server-side reader knows which operation to
+apply before it ever looks at the payload shape.
+\end{sidebar}
+
+\subsection{Writing a complex class}
+\label{sec:js-complex}
+A plain (non-instantiated) \texttt{complex: Money} field needs nothing
+more than a real class at the declared \texttt{location} --- Emi imports
+it and types the field with it, never generates it. The minimal contract
+is just a constructor that accepts whatever the field's raw value looks
+like:
+\begin{lstlisting}
+export class Money {
+  constructor(data: unknown) {}
+}
+\end{lstlisting}
+When the field uses the \texttt{+} prefix (\texttt{complex: +Money},
+\S\ref{sec:complex-types}) the generated setter calls \texttt{new
+Money(value)} on anything that isn't already \texttt{instanceof Money},
+so the constructor is where a real implementation normalizes whatever
+shape the server actually sent (a number, a string, a nested object)
+into the class's own fields:
+\begin{lstlisting}
+export class Money {
+  #cents: number;
+  constructor(data: unknown) {
+    this.#cents = typeof data === "number" ? data : (data as any)?.cents ?? 0;
+  }
+  toJSON() { return this.#cents; }
+}
+\end{lstlisting}
+Nothing else is required --- no interface to implement, no registration
+beyond the \texttt{complexes:} entry. The Go side of the same type has
+its own, separate contract (\S\ref{sec:go-complex}): the two are
+unrelated hand-written files that happen to share a name in the
+\texttt{complexes:} list.
 
 \subsection{Ergonomics every generated class ships with}
 \begin{itemize}[leftmargin=1.1em,itemsep=2pt,topsep=2pt]
@@ -74,3 +141,51 @@ Header/query-param typing at this level --- including \emph{nested} query
 params rendered as typed accessors --- is a feature Emi's own docs single
 out as unique among the generators it's compared against.
 \end{pullquote}
+
+\subsection{React Query: hooks and the provider}
+\label{sec:js-react-query}
+\texttt{--tags react} generates one \texttt{use\{Action\}Query} hook per
+GET-style action (and a matching mutation hook for write actions), each
+one a thin wrapper around TanStack Query's own \texttt{useQuery}. The
+query key is derived from the action's own URL-building function plus its
+query-string options, so two components calling the same action with the
+same \texttt{params}/\texttt{qs} share one cache entry automatically ---
+nothing to key by hand:
+\begin{lstlisting}
+const { data, isLoading, response } = useGetSinglePostQuery({
+  params: { id: postId },
+});
+\end{lstlisting}
+Every generated hook reads its HTTP config --- base URL, default headers,
+request/response interceptors --- from React context via
+\texttt{useFetchxContext()}, not from arguments the caller passes in. That
+context has to be set up once, near the app root, alongside TanStack's
+own \texttt{QueryClientProvider} (a plain TanStack Query prerequisite,
+not something Emi generates):
+\begin{lstlisting}
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { FetchxProvider } from "./sdk/react/useFetchx";
+import { FetchxContext } from "./sdk/common/fetchx";
+
+const queryClient = new QueryClient();
+const fetchxContext = new FetchxContext(
+  "https://api.example.com",  // baseUrl, prefixed onto every relative request
+  { "x-app": "web" },         // defaultHeaders
+);
+
+export function AppProviders({ children }) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <FetchxProvider value={fetchxContext}>
+        {children}
+      </FetchxProvider>
+    </QueryClientProvider>
+  );
+}
+\end{lstlisting}
+\texttt{FetchxContext} also takes a \texttt{requestInterceptor} (e.g.\ to
+attach an auth token before every request) and a
+\texttt{responseInterceptor} (e.g.\ centralized 401 handling) --- both
+run for every generated hook and every plain, non-React call through
+\texttt{fetchx()} alike, since hooks are just \texttt{useQuery} sitting on
+top of the same context.

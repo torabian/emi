@@ -1,11 +1,11 @@
-\section{Classifieds: The Module Definition}
+\section{The Module Definition}
 \label{sec:module-spec}
 
 An Emi definition can be written as YAML or JSON --- there is no special
 language of its own. At an abstract level it is just a definition;
 different sub-compilers (Go, JS, Swift, \ldots) produce different target
 code from the same root document, shaped by \texttt{--tags}. Every struct
-mentioned in this Gazette lives in one place in the compiler's own source:
+mentioned in this document lives in one place in the compiler's own source:
 \texttt{lib/core/Emi.go}.
 
 \subsection{A minimal module}
@@ -30,7 +30,7 @@ actions:
 \end{lstlisting}
 
 \begin{sidebar}{Root-level module properties}
-\scriptsize
+\small
 \begin{tabular}{@{}p{0.24\linewidth}p{0.7\linewidth}@{}}
 \textbf{name} & lower camelCase; \texttt{Module.go}/\texttt{Module.dyno.go} are named from it \\
 \textbf{namespace} & module's location in the app tree (PHP-style), used as the client export path \\

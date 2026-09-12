@@ -1,4 +1,4 @@
-\section{Entity Relations: array, collection, one}
+\subsection{Relations: array, collection, one}
 \label{sec:go-relations}
 
 A dto's \texttt{one}/\texttt{collection} field just needs a Go type to
@@ -49,7 +49,7 @@ Since gorm's \texttt{Save()} decides insert-vs-update purely from whether
 \texttt{UniqueId}, the reconcile helpers (\S\ref{sec:go-actions}) resolve
 an incoming item's real \texttt{Id} by matching \texttt{UniqueId} first.
 
-\subsection{Relations nested inside object containers}
+\subsubsection{Relations nested inside object containers}
 A relation doesn't have to sit directly on the entity --- it can live
 inside an \texttt{object} (or \texttt{object?}) field, any depth deep.
 Gorm's own embedding correctly walks an arbitrarily deep \texttt{embedded}

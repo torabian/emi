@@ -1,4 +1,4 @@
-\section{Obituaries for Stale Data: Create \& Update}
+\subsection{Create \& Update Actions}
 \label{sec:go-actions}
 
 Every entity gets two generated functions --- \texttt{\{Entity\}CreateFn}
@@ -6,7 +6,7 @@ and \texttt{\{Entity\}UpdateFn} --- plus a small actions bundle wiring
 them up as the defaults, mirroring the pattern
 \href{https://github.com/torabian/fireback}{fireback} uses.
 
-\subsection{The update input: optional, all the way down}
+\subsubsection{The update input: optional, all the way down}
 A struct-based \texttt{gorm.Updates()} call silently drops zero-valued
 fields, so it can't tell ``the caller didn't mention this field'' apart
 from ``the caller explicitly set it to zero.'' Every entity therefore
@@ -32,7 +32,7 @@ included in a replace/append batch still has to be given in full, exactly
 like Create, because the reconcile helpers persist each item with a plain
 \texttt{Save()} that writes every field.
 
-\subsection{The reconcile helpers (\texttt{emigorm})}
+\subsubsection{The reconcile helpers (\texttt{emigorm})}
 Gorm's own \texttt{Association().Replace()} was verified \textbf{unreliable}
 for a has-many \texttt{array} relation: an incoming item whose primary key
 already exists silently keeps its \emph{old} content, and items dropped
@@ -61,7 +61,7 @@ All three resolve an incoming item's real \texttt{Id} by matching
 \texttt{Save()} --- otherwise every ``update'' would silently insert a
 duplicate.
 
-\subsection{Testing}
+\subsubsection{Testing}
 Every relation is verified two ways: \textbf{structurally}, with no
 database at all, via \texttt{gorm.io/gorm/schema.Parse} (confirms every
 \texttt{has\_many}/\texttt{many\_to\_many}/\texttt{belongs\_to} resolves

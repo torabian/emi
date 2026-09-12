@@ -1,4 +1,4 @@
-\section{Public Notices: Markdown, OpenAPI, Postman}
+\section{Exports: Markdown, OpenAPI, Postman}
 \label{sec:exports}
 
 Three commands don't emit source code at all --- they \emph{describe} a
@@ -62,7 +62,8 @@ variables, filled once and reused across every request.
 \begin{pullquote}
 All three exporters share the same two flags: \texttt{--path} (the
 definition file) and \texttt{--output} (where to write; omit it and the
-result prints to stdout so it can be piped or inspected) --- plus
-\texttt{--tags} to add or remove compile features, same as every other
-Emi sub-compiler.
+result prints to stdout so it can be piped or inspected). Unlike the
+code-generating compilers (\S\ref{sec:additional-targets}), none of the
+three currently registers its own \texttt{--tags} --- there is nothing
+yet to toggle in a document that's just read back off the definition.
 \end{pullquote}
