@@ -28,6 +28,11 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
 
+      - name: Setup Tectonic (LaTeX docs)
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL https://drop-sh.fullyjustified.net | sh
+          sudo mv tectonic /usr/local/bin/tectonic
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -70,7 +75,10 @@ jobs:
 
       - name: Regenerate allegro
         run: cd ./examples/allegro-sdk && make
-      
+
+      - name: Build LaTeX docs PDF
+        run: make docs-pdf
+
 
       - name: Add web version and playground into same
         run: make compile-github
@@ -169,3 +177,13 @@ jobs:
           asset_path: artifacts/emi-node-wasm-package.zip
           asset_name: emi-node-wasm-package.zip
           asset_content_type: application/zip
+
+      - name: Upload docs PDF
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: docs/latex/main.pdf
+          asset_name: emi-docs.pdf
+          asset_content_type: application/pdf
