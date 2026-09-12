@@ -1,0 +1,120 @@
+\section{JSON Schema on the JavaScript Side}
+\label{sec:json-schema}
+
+Every JS/TS dto already has a field-plan tree the compiler walks to render
+a form (\S\ref{sec:js-compiler}); \texttt{lib/formgen} walks that same
+tree a second way, into a renderer-agnostic JSON Schema instead of a
+bespoke component. There are two ways to get one out.
+
+\subsection{Two ways to get a schema}
+\textbf{Per-dto, standalone} --- \texttt{emi js:rjsf} takes a single
+\texttt{emi: dto} definition and writes two files: the schema itself, and
+a thin wrapper component around \href{https://rjsf-team.github.io/react-jsonschema-form/}{react-jsonschema-form}
+(RJSF) that renders it:
+\begin{lstlisting}
+emi js:rjsf --path address.emi.yml --output ./out
+# ./out/AddressDto.schema.json
+# ./out/AddressDtoForm.tsx
+\end{lstlisting}
+
+\textbf{Embedded on the class} --- \texttt{--tags json-schema} on a full
+module compile instead attaches every generated dto/action-request/
+action-response class's schema directly to itself, as
+\texttt{static JsonSchema = \{...\}} (off by default --- it's extra
+bytes most consumers don't need):
+\begin{lstlisting}
+emi js --path module.emi.yml --output ./out --tags json-schema,typescript
+\end{lstlisting}
+Both read the exact same \texttt{BuildJSONSchema} tree walk
+(\texttt{lib/formgen/jsonschema.go}), so the shape of the schema itself
+never depends on which of the two you use --- only where it ends up.
+
+\subsection{A minimal example}
+\begin{lstlisting}
+name: address
+fields:
+  - name: street
+    type: string
+    description: Street and number
+  - name: unit
+    type: string?
+  - name: kind
+    type: enum
+    enum:
+      - key: home
+        description: Home address
+      - key: work
+  - name: manager
+    type: one
+    target: employee
+\end{lstlisting}
+compiles (\texttt{emi js:rjsf}) to:
+\begin{lstlisting}
+{
+  "type": "object",
+  "title": "AddressDto",
+  "properties": {
+    "street": { "type": "string", "title": "Street", "description": "Street and number" },
+    "unit":   { "type": "string", "title": "Unit" },
+    "kind":   { "type": "string", "title": "Kind", "oneOf": [
+      { "const": "home", "title": "Home address" },
+      { "const": "work", "title": "work" }
+    ]},
+    "manager": { "title": "Manager" }
+  },
+  "required": ["street", "kind", "manager"]
+}
+\end{lstlisting}
+
+\begin{sidebar}{Two things worth noticing}
+\texttt{unit} is missing from \texttt{required} --- the trailing
+\texttt{?} is the only thing that removes a field from it, independent
+of the field's own type or widget. And \texttt{manager} --- a
+\texttt{one} relation, so genuinely unconstrained (\texttt{\{title:
+"Manager"\}}, no \texttt{type}) --- is still \emph{in} \texttt{required},
+because it isn't nullable: \texttt{required} tracks nullability alone,
+not whether the schema actually constrains the value. RJSF only checks
+the key is present, so an empty object still satisfies it.
+\end{sidebar}
+
+An \texttt{enum} option's human label comes from its \texttt{description}
+(falling back to the raw key, as \texttt{work} does above); \texttt{one}/
+\texttt{collection} relation fields and \texttt{any}/\texttt{complex}
+fields both resolve to an unconstrained \texttt{\{\}} on purpose --- the
+schema compiler was never given the target entity's own fields (a
+relation) or has no fixed shape to begin with (\texttt{any}), so it
+leaves the value alone rather than guessing, deliberately mirroring the
+same ``leave it to a custom field on the renderer side'' choice
+\S\ref{sec:js-complex} makes for a hand-written complex type.
+
+\subsection{Using it in the front end}
+The RJSF wrapper is a controlled component --- \texttt{value}/
+\texttt{onChange}, the same convention every other generated form
+component in Emi uses --- so a consuming app drops it in with zero
+manual field wiring, validation included:
+\begin{lstlisting}
+import AddressDtoForm from "./out/AddressDtoForm";
+
+function EditAddress() {
+  const [value, setValue] = useState<Partial<AddressDto>>({});
+  return <AddressDtoForm value={value} onChange={setValue} />;
+}
+\end{lstlisting}
+Under the hood that wrapper is nothing more than the schema plus RJSF's
+own \texttt{<Form>} and \texttt{@rjsf/validator-ajv8} --- swap either
+import and the same generated \texttt{.schema.json} still works, since
+nothing about it is RJSF-specific.
+
+The embedded \texttt{static JsonSchema} form exists for the opposite
+case: an app that isn't using RJSF at all still gets a real JSON Schema
+for free on every generated class, to hand to a different schema-driven
+renderer, validate a payload with a bare \texttt{ajv} instance before a
+submit, or drive a headless dynamic-form engine --- all without a second
+compile step or a hand-maintained schema that can drift from the dto.
+
+\begin{pullquote}
+Both paths are opt-in and additive: no code Emi already generates for a
+dto changes shape because a schema exists alongside it, and skipping
+both (the default) costs nothing --- no \texttt{formgen} import ends up
+in the output at all.
+\end{pullquote}
