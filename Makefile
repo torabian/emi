@@ -1,14 +1,15 @@
 # Compiles docs/latex/*.tex (the "Emi Compiler Gazette" newspaper-style
-# docs) into a single docs/latex/main.pdf. Requires a LaTeX toolchain
-# (latexmk + a TeX distribution, e.g. `brew install --cask mactex-no-gui`
-# or `apt-get install texlive-full`) on PATH. Re-run after editing any
-# file under docs/latex/sections/.
+# docs) into a single docs/latex/main.pdf. Requires tectonic on PATH
+# (`brew install tectonic` or see https://tectonic-typesetting.github.io).
+# Tectonic fetches any needed LaTeX packages on demand, so no separate
+# TeX distribution or package install is required. Re-run after editing
+# any file under docs/latex/sections/.
 docs-pdf:
-	cd docs/latex && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+	cd docs/latex && tectonic main.tex
 
 # Removes LaTeX build artifacts (keeps main.pdf).
 docs-pdf-clean:
-	cd docs/latex && latexmk -c
+	cd docs/latex && rm -f main.aux main.log main.out main.toc
 
 build:
 	make build-js-sdks && \
