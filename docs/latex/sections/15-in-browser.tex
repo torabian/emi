@@ -1,4 +1,4 @@
-\section{And One Thing That Shouldn't Be Possible}
+\section{Running the Compiler in the Browser}
 \label{sec:in-browser}
 
 Because the Go server compiles to WebAssembly and Postgres
@@ -40,6 +40,77 @@ Because this is exactly the shape of \texttt{*pgx.Conn}, the
 that routes the same calls through a JS bridge into pglite instead ---
 the handler code above this interface never knows, or needs to know,
 which one it's talking to.
+
+\subsection{The wasm router}
+\label{sec:wasm-router}
+There is no wasm-specific router --- the wasm build registers the exact
+same generated handlers on a plain \texttt{net/http.ServeMux} the real
+Gin server would use elsewhere; only what \emph{drives} that mux differs.
+\texttt{emigo.LiftWasmServer(mux, config)} is the entire bridge: it
+exposes one global JS function (\texttt{window.handleWasmRequest} by
+default) that turns a fetch-style call into a real \texttt{*http.Request}
+and captures the response with an in-memory
+\texttt{httptest.ResponseRecorder}:
+\begin{lstlisting}
+js.Global().Set(jsFunctionName, js.FuncOf(func(_ js.Value, args []js.Value) any {
+  method, url, bodyStr, headersJSON := args[0].String(), args[1].String(),
+    args[2].String(), args[3].String()
+
+  return js.Global().Get("Promise").New(js.FuncOf(func(_ js.Value, p []js.Value) any {
+    resolve, reject := p[0], p[1]
+    go func() {
+      req := httptest.NewRequest(method, url, strings.NewReader(bodyStr))
+      // ...headersJSON unmarshalled onto req.Header...
+      rec := httptest.NewRecorder()
+      mux.ServeHTTP(rec, req) // real routing, real handler, real ResponseWriter
+      // ...rec.Result() marshalled to {status, headers, body} JSON, resolve.Invoke(...)...
+    }()
+    return nil
+  }))
+}))
+\end{lstlisting}
+Two details matter more than they look:
+\begin{itemize}[leftmargin=1.1em,itemsep=2pt,topsep=2pt]
+  \item \textbf{It returns a Promise, not the response.} A handler may
+    call back into JS itself (a pglite query is a JS promise under the
+    hood), and those promises only settle while the JS event loop is
+    running. A synchronous \texttt{js.FuncOf} callback never yields that
+    loop, so \texttt{ServeHTTP} runs on a goroutine instead --- control
+    returns to JS immediately, the event loop keeps turning, and the
+    goroutine's own awaited promises can resolve.
+  \item \textbf{The router never sees JS at all.} \texttt{httptest}
+    builds a genuine \texttt{*http.Request}/\texttt{ResponseRecorder}
+    pair, so \texttt{mux.ServeHTTP} runs precisely the code path a real
+    inbound request would --- same routing, same middleware, same
+    generated handler.
+\end{itemize}
+
+On the JS side, the bridge is a fetch-shaped wrapper around that one
+function:
+\begin{lstlisting}
+async function localFetch(url, opts = {}) {
+  const raw = await window.handleWasmRequest(
+    opts.method || "GET", url, opts.body || "",
+    JSON.stringify(opts.headers || {}),
+  );
+  const { status, headers, body } = JSON.parse(raw);
+  const h = new Headers();
+  for (const [k, vs] of Object.entries(headers || {})) for (const v of vs) h.append(k, v);
+  return new Response(body, { status, headers: h });
+}
+\end{lstlisting}
+Because it hands back a real \texttt{Response}, this slots straight into
+\texttt{FetchxContext}'s \texttt{fetchOverrideFn} (\S\ref{sec:js-react-query}):
+point the generated SDK's transport at \texttt{localFetch} instead of the
+browser's native \texttt{fetch}, and every generated hook, DTO, and
+action wrapper --- unmodified --- talks to the in-tab Go server instead
+of the network, with no code aware of the difference.
+
+\texttt{reactive} actions don't go through this router at all: a
+hijackable socket doesn't exist in wasm, so \texttt{emigo.NewWasmReactor()}
+bridges the same generated reactive handler straight to a
+\texttt{WebSocketWasm} JS class instead --- a parallel path, not a
+detail of the HTTP one above.
 
 \begin{pullquote}
 See it running: the

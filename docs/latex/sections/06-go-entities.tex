@@ -1,4 +1,15 @@
-\section{Business Section: Go Entities}
+\section{Go Compiler Features}
+\label{sec:go-compiler-features}
+
+The Go compiler is the only Emi target that generates a full server, not
+just a client for one --- so this section tours what it adds on top of
+the shared DTO/action codegen already covered above: database-backed
+entities, typed relations with real migratable \href{https://gorm.io}{gorm}
+associations, and the create/update actions generated for every entity.
+Each part below shows a small sample of the Go code the compiler actually
+emits.
+
+\subsection{Entities}
 \label{sec:go-entities}
 
 An entity is a database-backed structure: its fields become both a Go
@@ -20,7 +31,7 @@ entities:
 \texttt{Entity} appended --- \texttt{Entity1Entity}); \texttt{table}
 overrides gorm's default pluralized/snake\_cased table name.
 
-\subsection{Two fields every entity gets for free}
+\subsubsection{Two fields every entity gets for free}
 \begin{lstlisting}
 type Entity1Entity struct {
   Id    int64  `gorm:"primaryKey;autoIncrement" json:"-"`
@@ -41,10 +52,15 @@ fields.go}), before the struct generator, the update-input builder, and
 the gorm-tag pass all run --- every consumer sees them as ordinary
 declared fields.
 
-\subsection{Field types on gorm}
-\begin{sidebar}{Gorm tag by field type}
-\scriptsize
-\begin{tabular}{@{}p{0.32\linewidth}p{0.62\linewidth}@{}}
+\end{multicols}
+
+\subsubsection{Field types on gorm}
+\label{sec:go-gorm-types}
+{\small
+\begin{tabular}{@{}p{0.22\linewidth}p{0.74\linewidth}@{}}
+\toprule
+\textbf{Field type} & \textbf{Gorm tag} \\
+\midrule
 scalar (\texttt{string}, \texttt{int}, \ldots) & none --- gorm maps it directly \\
 \texttt{enum}/\texttt{enum?} & none --- already a plain \texttt{string}/\texttt{Nullable[string]} \\
 \texttt{object}/\texttt{object?} & \texttt{embedded} (inlined as columns) \\
@@ -52,8 +68,12 @@ scalar (\texttt{string}, \texttt{int}, \ldots) & none --- gorm maps it directly 
 \texttt{map?}, \texttt{slice?} & none --- \texttt{Nullable[T]} already implements \texttt{Value()}/\texttt{Scan()} \\
 \texttt{complex} & none --- the type implements gorm's interfaces itself \\
 \texttt{array}/\texttt{collection}/\texttt{one} & see relations, \S\ref{sec:go-relations} \\
+\bottomrule
 \end{tabular}
-\end{sidebar}
+}
+
+\begin{multicols}{2}
+\raggedcolumns
 An explicit \texttt{tags: \{ gorm: ... \}} on a field always wins over
 these defaults. A \texttt{complex} field used on an entity must implement
 \texttt{driver.Valuer}/\texttt{sql.Scanner} itself --- the generator has
@@ -64,3 +84,82 @@ Every entity file ends with a small, separate template
 generated struct --- currently a \texttt{TableName()} override wired to
 \texttt{table:}, and the place to extend if a project wants something
 appended to every generated entity file.
+
+\subsection{Writing a complex type}
+\label{sec:go-complex}
+A \texttt{complex: Money} field (\S\ref{sec:complex-types}) needs a real
+Go type at the declared \texttt{location}/\texttt{namespace} --- nothing
+more, to just carry the value through a DTO or action. Persisting it on
+an \texttt{entity} is a separate, opt-in step: gorm has no idea how to
+store an arbitrary hand-written struct, so the type has to say so itself.
+
+\subsubsection{Nullability: no wrapper, no pointer}
+A \texttt{complex} field is the one place Go's nullable-field convention
+doesn't apply. Every other nullable field type gets wrapped in
+\texttt{emigo.Nullable[T]} (\S\ref{sec:go-gorm-types}); a complex field
+never does, whether the field is declared \texttt{complex} or (the
+JS-only variant) \texttt{complex?} --- both compile to the exact same
+plain \texttt{Money} value in Go, because a complex value has no
+wire-level nullability of its own as far as the Go compiler is concerned.
+\texttt{complex?} exists purely so the JS/TS compiler can tell ``always
+instantiate'' apart from ``allow \texttt{undefined}/\texttt{null} on the
+setter''; every other backend, Go included, treats the two identically.
+
+The one place a complex field \emph{does} become a pointer is inside the
+generated \texttt{\{Entity\}UpdateInput} struct (\S\ref{sec:go-actions}):
+since there's no \texttt{Nullable[T]} counterpart for a hand-written
+type, the update-input builder falls back to a plain \texttt{*Money},
+where \texttt{nil} means ``untouched'' --- the same ``was this field
+mentioned at all'' signal every other field gets from
+\texttt{Nullable[T]}'s own \texttt{IsSet()}, just spelled with a raw
+pointer instead of a generic wrapper.
+
+\subsubsection{Persisting to one column}
+Implementing \texttt{database/sql/driver.Valuer} and \texttt{sql.Scanner}
+stores the whole value as a single column:
+\begin{lstlisting}
+type Money struct {
+  Cents int64
+}
+
+func (m Money) Value() (driver.Value, error) {
+  return m.Cents, nil
+}
+
+func (m *Money) Scan(value interface{}) error {
+  switch v := value.(type) {
+  case int64:
+    m.Cents = v
+  case []byte:
+    cents, err := strconv.ParseInt(string(v), 10, 64)
+    if err != nil {
+      return err
+    }
+    m.Cents = cents
+  }
+  return nil
+}
+\end{lstlisting}
+A real complex type is expected to implement whatever interfaces its own
+storage needs --- \texttt{MarshalText}/\texttt{UnmarshalText} too, if it
+should also cast cleanly from a CLI string argument, the same way
+fireback's own complex types (e.g.\ \texttt{XDate}) do.
+
+\subsubsection{Persisting across multiple columns}
+Valuer/Scanner is a single-column round trip; not every complex type fits
+one column. Skip both interfaces and gorm falls back to walking the
+struct like it does for an \texttt{object}/\texttt{object?} field
+(\S\ref{sec:go-gorm-types}) --- each exported field becomes its own column:
+\begin{lstlisting}
+type Address struct {
+  Street string `gorm:"column:addr_street"`
+  City   string `gorm:"column:addr_city"`
+  Zip    string `gorm:"column:addr_zip"`
+}
+\end{lstlisting}
+No \texttt{Value()}/\texttt{Scan()} at all here --- the struct is plain
+data, and gorm's own reflection spreads it across \texttt{addr\_street},
+\texttt{addr\_city}, \texttt{addr\_zip} exactly as it would for any
+embedded struct. Pick single-column when the type has one natural
+serialized form (money as cents, a date as text); pick multi-column when
+it's naturally shaped as several fields side by side.

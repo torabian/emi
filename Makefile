@@ -1,5 +1,5 @@
-# Compiles docs/latex/*.tex (the "Emi Compiler Gazette" newspaper-style
-# docs) into a single docs/latex/main.pdf. Requires tectonic on PATH
+# Compiles docs/latex/*.tex (the Emi Compiler documentation) into a
+# single docs/latex/main.pdf. Requires tectonic on PATH
 # (`brew install tectonic` or see https://tectonic-typesetting.github.io).
 # Tectonic fetches any needed LaTeX packages on demand, so no separate
 # TeX distribution or package install is required. Re-run after editing
