@@ -1,0 +1,11 @@
+% ------------------------------------------------------------------
+% Emi Compiler Documentation -- DARK palette entry point.
+%
+% This file only selects the dark palette; the actual document lives
+% in main-body.tex (shared with main.tex, the light-palette entry
+% point). Build with `make docs-pdf-dark` (or `make docs-pdf` for
+% both palettes) from the repository root, or directly: tectonic dark.tex
+% ------------------------------------------------------------------
+\newif\ifemidark
+\emidarktrue
+\input{main-body.tex}
