@@ -1,0 +1,106 @@
+\section{Intents: MCP Tool Generation}
+\label{sec:intents}
+
+Where an action exposes a REST route or CLI command, an
+\texttt{intent} exposes the same kind of typed signature to an AI
+agent: a named, model-callable tool with a declared input and output
+shape, compiled into an MCP (Model Context Protocol) server's
+\texttt{tools/list} the way an action compiles into an HTTP route.
+Intents live in their own top-level \texttt{intents} list, sibling to
+\texttt{actions}.
+
+\begin{lstlisting}
+name: gomcp
+intents:
+  - name: add
+    title: Add two numbers
+    description: Adds two numbers and returns their sum.
+    annotations: {readOnlyHint: true, idempotentHint: true}
+    in:
+      fields:
+        - {name: a, type: float64}
+        - {name: b, type: float64}
+    out:
+      fields: [{name: sum, type: float64}]
+
+  - name: deleteInvoiceTool
+    from: deleteInvoice
+    title: Delete an invoice
+    annotations: {destructiveHint: true}
+
+actions:
+  - name: searchInvoices
+    method: get
+    url: /invoices/search
+    intent: true
+    in:
+      fields: [{name: query, type: string}]
+    out:
+      fields: [{name: total, type: int}]
+\end{lstlisting}
+
+This one file shows all three ways to declare an intent. \texttt{add}
+is standalone: no backing action exists, since a pure math tool has no
+reason to be an HTTP route. \texttt{deleteInvoiceTool} is derived from
+an existing action via \texttt{from} --- \texttt{description}/\texttt{in}/
+\texttt{out} are copied from \texttt{deleteInvoice} wherever the
+intent doesn't declare its own, so exposing an action as a tool needs
+no field duplication. \texttt{searchInvoices} needs no \texttt{intents}
+entry at all: \texttt{intent: true} on the action synthesizes one
+automatically, under the action's own name.
+
+\begin{sidebar}{Intent properties}
+\small
+\begin{tabular}{@{}p{0.24\linewidth}p{0.7\linewidth}@{}}
+\textbf{name} & tool name shown to the model; defaults to \texttt{from} \\
+\textbf{from} & name of an existing action to derive description/in/out from \\
+\textbf{title} & human-readable title (MCP's \texttt{title} annotation) \\
+\textbf{description} & sent verbatim to the model --- write it for the model, not for a developer \\
+\textbf{in} / \textbf{out} & request/response body, same shape as an action's \\
+\textbf{annotations} & \texttt{readOnlyHint}, \texttt{destructiveHint}, \texttt{idempotentHint}, \texttt{openWorldHint} \\
+\textbf{permission} & key from the module's permission tree gating visibility \\
+\end{tabular}
+\end{sidebar}
+
+Preprocessing resolves \texttt{intent: true} and \texttt{from}
+references before any compiler runs, and validates that a
+\texttt{dto} reference on an intent's \texttt{in}/\texttt{out} names a
+dto the module actually declares --- a typo surfaces as a clear error
+at compile time instead of an ``undefined type'' failure deep inside
+generated Go.
+
+\subsection{What the Go compiler generates}
+\texttt{emi go} renders every intent into \texttt{Intents.go}: an
+\texttt{\{Name\}IntentArgs}/\texttt{\{Name\}IntentResult} struct pair
+for any intent with inline fields (a \texttt{dto} or \texttt{primitive}
+reference reuses the existing type instead, exactly as an action
+body would), through the very same struct generator dtos and actions
+use --- so nested objects, arrays, enums, \texttt{complex} fields and
+CLI flag helpers all work identically. Alongside each struct pair sits
+an accessor carrying the tool's metadata:
+
+\begin{lstlisting}
+func AddIntentMeta() struct {
+    Name, Title, Description, Permission string
+    ReadOnlyHint, DestructiveHint,
+    IdempotentHint, OpenWorldHint bool
+}
+\end{lstlisting}
+
+This is deliberately as far as generation goes: wiring
+\texttt{\{Name\}IntentMeta()} and the typed \texttt{Args}/\texttt{Result}
+structs into a real \texttt{*mcp.Server} is left to a hand-written file,
+the same division of labor a reactive action gets between its
+generated file and a developer-supplied \texttt{Impl} --- \texttt{emi}
+has no opinion on which MCP SDK a project standardizes on, or on the
+actual tool implementation. \texttt{examples/go-mcp} shows the whole
+loop end to end: a two-tool math module compiled with \texttt{emi go},
+served for real over MCP's stdio JSON-RPC transport by a few dozen
+lines of hand-written Go.
+
+\begin{pullquote}
+Because \texttt{intents} reuses the same field/struct/complex-type
+machinery as actions and dtos, an intent is never a second definition
+of a shape that already exists elsewhere in the module --- \texttt{from}
+and \texttt{dto} both mean ``point at the type that's already there.''
+\end{pullquote}

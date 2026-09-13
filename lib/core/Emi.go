@@ -57,6 +57,13 @@ type Emi struct {
 	// each target backend (see lib/golang and lib/js).
 	Permissions []*EmiPermission `yaml:"permissions,omitempty" json:"permissions,omitempty" jsonschema:"description=Tree of access control permissions this module contributes. Compiled into a usable Permissions constant/tree per target language."`
 
+	// Intents are model-facing tool signatures, compiled into MCP server tool
+	// registrations the same way Actions compile into REST/CLI. Each either stands
+	// alone (In/Out declared inline) or is derived from an existing action via From.
+	// Any EmiAction with Intent: true is automatically added here under its own name -
+	// see preprocessIntents.
+	Intents []*EmiIntent `yaml:"intents,omitempty" json:"intents,omitempty" jsonschema:"description=Model-facing tool signatures. Compiled into MCP server tool registrations the way Actions compile into REST/CLI."`
+
 	// Events declares the facts this module can emit through the event system (e.g.
 	// "a user was created"), each with the permission combinations that grant
 	// visibility into it. Compiled into a usable Events catalog per target language

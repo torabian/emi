@@ -69,6 +69,7 @@ Depending on your use case, you might not need all features, or they might not b
 | `description` | `string` | Action description used in API specs and documentation |
 | `in` | `undefined` | Request body definition similar to HTTP request body |
 | `out` | `undefined` | Response body definition similar to HTTP response body |
+| `intent` | `boolean` | When true this action is automatically also exposed as an intent (MCP tool) under its own name. Equivalent to declaring an intent whose from is this action's name. |
 ## Action methods
 Emi allows for standard http methods, as well as some extra which will be converted to different protocols.
 Currently supported the actions and methods are the following: `post`, `patch`, `put`, `get`, `delete`, `reactive`. Calling for non-existing method, would resolve to http with the non-standard method.
