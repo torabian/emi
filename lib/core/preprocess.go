@@ -74,7 +74,14 @@ func (m *Emi) Preprocess() error {
 		return err
 	}
 
-	return runPreprocessHooks(m, globalPreprocessHooks)
+	if err := runPreprocessHooks(m, globalPreprocessHooks); err != nil {
+		return err
+	}
+
+	// Runs after globalPreprocessHooks (not before) so that hook-synthesized actions -
+	// e.g. entity actions added by PreprocessEntityActions, when a backend opts into it -
+	// are already in m.Actions and reachable by an intent's From reference.
+	return m.preprocessIntents()
 }
 
 // PreprocessForAction runs Preprocess, then any hooks registered specifically for

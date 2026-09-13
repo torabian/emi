@@ -1,0 +1,50 @@
+# Minimal smoke test for emi's `intents` section: a module with no REST actions at
+# all, just two standalone math intents, compiled with `emi go` and then served as
+# real MCP tools by cmd/server/main.go (see the "def"/"server" Makefile targets).
+name: gomcp
+description: Sample MCP server exposing two math tools, generated from emi intents.
+
+complexes:
+  - name: Int
+    compiler: go
+    location: math/big
+    namespace: big
+
+intents:
+  - name: add
+    title: Add two numbers
+    description: Adds two numbers together and returns their sum.
+    annotations:
+      readOnlyHint: true
+      idempotentHint: true
+    in:
+      fields:
+        - name: a
+          type: float64?
+          description: First operand.
+        - name: ccc
+          type: complex
+          complex: Int
+        - name: b
+          type: float64
+          description: Second operand.
+    out:
+      fields:
+        - name: sum
+          type: float64
+
+  - name: isPrime
+    title: Check if a number is prime
+    description: Reports whether a given integer is a prime number.
+    annotations:
+      readOnlyHint: true
+      idempotentHint: true
+    in:
+      fields:
+        - name: n
+          type: int64
+          description: The integer to test.
+    out:
+      fields:
+        - name: prime
+          type: bool

@@ -41,6 +41,29 @@
 
 \color{inkblack}
 
+% ---------- per-section colour themes ----------
+% The book stays on this warm rust/ink palette by default, but three
+% families of sections switch the accent colour and code-block tint to
+% match what the section is actually about:
+%   - rustaccent  : default / narrative sections (unchanged rust tone)
+%   - emipurple   : the emi YAML/JSON definition itself (the "source of
+%                   truth" you author, before any code generation happens)
+%   - goblue      : sections about the generated Go server/client (Go's
+%                   own brand blue, darkened for print contrast)
+%   - jsyellow    : sections about the generated JS/TS client (JS's
+%                   trademark yellow, darkened to stay legible as text)
+\definecolor{rustaccent}{RGB}{176,68,24}
+\definecolor{emipurple}{RGB}{119,45,166}
+\definecolor{goblue}{RGB}{0,99,165}
+\definecolor{jsyellow}{RGB}{150,112,0}
+
+\newcommand{\sectiontheme}[1]{%
+  \colorlet{accentcolor}{#1}%
+  \colorlet{boxgray}{#1!6!white}%
+  \colorlet{rulegray}{#1!45!black}%
+  \lstset{rulecolor=\color{rulegray}, backgroundcolor=\color{boxgray}}%
+}
+
 % ---------- heading fonts ----------
 \newcommand{\headlinefont}{\normalfont\sffamily\bfseries\selectfont}
 \titleformat{\section}{\headlinefont\Large\color{accentcolor}}{\thesection.}{0.4em}{}
@@ -337,6 +360,7 @@ own.''
   \item How Emi generates code, p.~\pageref{sec:overview}
   \item The module definition, p.~\pageref{sec:module-spec}
   \item Actions, p.~\pageref{sec:actions}
+  \item Intents: MCP tool generation, p.~\pageref{sec:intents}
   \item Complex types, p.~\pageref{sec:complex-types}
   \item Compilation pipeline diagram, p.~\pageref{fig:pipeline}
   \item Go compiler features (entities, relations, actions), p.~\pageref{sec:go-compiler-features}
@@ -361,6 +385,7 @@ own.''
 \input{sections/01-overview}
 \input{sections/02-module-spec}
 \input{sections/03-actions}
+\input{sections/03b-intents}
 \input{sections/04-complex-types}
 \input{sections/05-pipeline-diagram}
 \input{sections/06-go-entities}

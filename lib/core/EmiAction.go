@@ -39,6 +39,12 @@ type EmiAction struct {
 
 	// Response body definition similar to HTTP response body.
 	Out *EmiActionBody `yaml:"out,omitempty" json:"out,omitempty" jsonschema:"description=Response body definition similar to HTTP response body"`
+
+	// When true, this action is automatically also exposed as an intent (MCP tool)
+	// under its own name - equivalent to hand-declaring `intents: - {name: <name>, from:
+	// <name>}` - see preprocessIntents. A hand-declared intent of the same name always
+	// wins over this auto-generated one.
+	Intent bool `yaml:"intent,omitempty" json:"intent,omitempty" jsonschema:"description=When true this action is automatically also exposed as an intent (MCP tool) under its own name. Equivalent to declaring an intent whose from is this action's name."`
 }
 
 func (x EmiAction) MethodUpper() string {

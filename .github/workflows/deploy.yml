@@ -14,6 +14,11 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # TODO: remove once actions/create-release and actions/upload-release-asset
+      # are replaced with a maintained alternative (both are archived and still
+      # report an old Node runtime, which trips the Node 20 deprecation warning).
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     steps:
       - name: Checkout

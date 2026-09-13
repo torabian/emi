@@ -309,6 +309,19 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	}
 	files = append(files, vsqlFiles...)
 
+	intentsOutputs, err := GoIntentsGenerate(module.Intents, ctx, f.Emigo, complexes)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, output := range intentsOutputs {
+		files = append(files, core.VirtualFile{
+			Name:         output.SuggestedFileName,
+			Extension:    output.SuggestedExtension,
+			ActualScript: AsFullDocument(output, f.PackageName),
+		})
+	}
+
 	for _, manifest := range module.Manifests {
 		gomanifest, err := GoManifest(manifest, module, ctx)
 		if err != nil {

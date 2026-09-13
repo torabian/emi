@@ -102,6 +102,13 @@
           "type": "array",
           "description": "Tree of access control permissions this module contributes. Compiled into a usable Permissions constant/tree per target language."
         },
+        "intents": {
+          "items": {
+            "$ref": "#/definitions/EmiIntent"
+          },
+          "type": "array",
+          "description": "Model-facing tool signatures. Compiled into MCP server tool registrations the way Actions compile into REST/CLI."
+        },
         "events": {
           "items": {
             "$ref": "#/definitions/EmiEvent"
@@ -170,6 +177,10 @@
         "out": {
           "$ref": "#/definitions/EmiActionBody",
           "description": "Response body definition similar to HTTP response body"
+        },
+        "intent": {
+          "type": "boolean",
+          "description": "When true this action is automatically also exposed as an intent (MCP tool) under its own name. Equivalent to declaring an intent whose from is this action's name."
         }
       },
       "additionalProperties": false,
@@ -646,6 +657,66 @@
         "complexNamespace": {
           "type": "string",
           "description": "Complex namespace means the prefix which the complex is available for example math.Vector3 the 'math' section is the namespace"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiIntent": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Tool name exposed to the model e.g. searchInvoices. Defaults to From when From is set and Name is left empty."
+        },
+        "from": {
+          "type": "string",
+          "description": "Name of an existing EmiAction to derive description/in/out from. The intent's own Description/In/Out (if set) always take precedence over the action's."
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable title surfaced as the MCP tool's 'title' annotation in clients/UIs."
+        },
+        "description": {
+          "type": "string",
+          "description": "Tool description sent verbatim to the model - write it for the model not for a developer. When From is set and this is empty the source action's Description is used instead."
+        },
+        "in": {
+          "$ref": "#/definitions/EmiActionBody",
+          "description": "Becomes the tool's inputSchema. When From is set and this is nil the source action's In is used instead."
+        },
+        "out": {
+          "$ref": "#/definitions/EmiActionBody",
+          "description": "Becomes the tool's outputSchema/structuredContent shape. When From is set and this is nil the source action's Out is used instead."
+        },
+        "annotations": {
+          "$ref": "#/definitions/EmiIntentAnnotations",
+          "description": "MCP tool behavior-hint annotations passed straight through to the tool registration."
+        },
+        "permission": {
+          "type": "string",
+          "description": "Permission key from this module's Permissions tree required to see/call this tool."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiIntentAnnotations": {
+      "properties": {
+        "readOnlyHint": {
+          "type": "boolean",
+          "description": "Tool does not modify its environment."
+        },
+        "destructiveHint": {
+          "type": "boolean",
+          "description": "Tool may perform destructive updates (only meaningful when ReadOnlyHint is false)"
+        },
+        "idempotentHint": {
+          "type": "boolean",
+          "description": "Calling the tool repeatedly with the same arguments has no additional effect."
+        },
+        "openWorldHint": {
+          "type": "boolean",
+          "description": "Tool interacts with an open-ended external world (e.g. web search) rather than a closed enumerable domain."
         }
       },
       "additionalProperties": false,
