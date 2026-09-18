@@ -1,4 +1,4 @@
-# Emi Compiler
+# Emi Compiler for AI era
 
 ### One YAML API definition → type-safe Go, TypeScript, Swift, Kotlin, Python, Dart, C#, Java, PHP, C & C++ SDKs
 

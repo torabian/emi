@@ -144,7 +144,7 @@ object {{ .realms.ActionName }}Client {
                 val rawBody = resp.body?.string()
                 {{ if .responseType }}
                 val parsedPayload: {{ .responseType }}? = rawBody?.let {
-                    if (it.isEmpty()) null else Json.decodeFromString<{{ .responseType }}>(it)
+                    if (it.isEmpty()) null else emikot.EmiResponseJson.decodeFromString<{{ .responseType }}>(it)
                 }
                 {{ end }}
 

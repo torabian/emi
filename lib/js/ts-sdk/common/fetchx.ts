@@ -205,3 +205,5 @@ export type PartialDeep<T> = {
       ? PartialDeep<T[P]>
       : T[P];
 };
+
+export type PlainOf<T> = T extends { toJSON(): infer R } ? R : T;

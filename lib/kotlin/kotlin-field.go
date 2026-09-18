@@ -97,14 +97,56 @@ func KotlinSafeDefaultValue(field *core.EmiField) string {
 	}
 
 	if field.Default != nil {
+		var literal string
 		switch v := field.Default.(type) {
 		case string:
-			return fmt.Sprintf("%q", v)
+			literal = fmt.Sprintf("%q", v)
 		case int, int64, float64, bool:
-			return fmt.Sprintf("%v", v)
+			literal = fmt.Sprintf("%v", v)
 		default:
 			b, _ := json.Marshal(v)
-			return string(b)
+			literal = string(b)
+		}
+
+		// A nullable field (e.g. "enum?" after OptionalDto expansion forces every
+		// field nullable - see core/preprocess-entities.go's nullableFieldType)
+		// renders its type as MaybeField<T> (goComputedField), so its default has to
+		// match - a bare literal here previously produced e.g.
+		// `val tokenDuration: MaybeField<String> = "90"`, a type mismatch, for any
+		// nullable field carrying a non-empty emi `default:` (see
+		// BotOptionalDto.tokenDuration in modules/abac/Abac.emi.yml).
+		if core.IsNullable(string(field.Type)) {
+			return fmt.Sprintf("MaybeField(Maybe.Value(%v))", literal)
+		}
+		return literal
+	}
+
+	// Every nullable scalar (int?/float?/float32?/int32?/int64?/bool?/...) computes
+	// to a MaybeField<T> wrapper the same way string? does (see StringNullable/
+	// ResolveDefaultField above) - but ResolveDefaultField only special-cases
+	// FieldTypeStringNullable, so anything else nullable fell through to the plain
+	// switch below with no matching case (e.g. "int?" matches neither "int" nor
+	// "object?"/"one?"/... ), returning "" - i.e. no default statement at all,
+	// making the field a *required* constructor param. That's the bug this
+	// guards against: kotlinx.serialization always calls a required (non-
+	// optional-in-the-descriptor) property's serializer regardless of
+	// encodeDefaults, and MaybeFieldSerializer.serialize's Maybe.Absent branch is
+	// a bare `return` with nothing written - fine for an optional property (the
+	// encoder skips calling the serializer for it entirely once its runtime
+	// value matches the compile-time default), but for a required one the
+	// encoder has already written `"key":` before invoking the serializer, so a
+	// value of Maybe.Absent leaves a dangling `"key":,` - invalid JSON that
+	// fails server-side decoding for every write action carrying such a field
+	// (confirmed with UserDto.gender - modules/abac/Abac.emi.yml's `gender: int?`
+	// - via UserCreateActionClient/UserDto.kt: `Json.encodeToString` of a
+	// MaybeField(Maybe.Absent) gender produced literally `"gender":,`).
+	if core.IsNullable(string(field.Type)) {
+		switch field.Type {
+		case "object?", "one?", "collection?", "map?", "enum?", "string?":
+			// Handled by their own case/ResolveDefaultField already - fall through
+			// to the switch below unchanged.
+		default:
+			return "MaybeField(Maybe.Absent)"
 		}
 	}
 

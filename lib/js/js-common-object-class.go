@@ -200,16 +200,33 @@ func CollectTargets(fields []*core.EmiField) []EntityTargetRef {
 // - so a cross-module Dto-shaped target silently ignored jsProvider and produced a
 // dangling "./XDto" import. Handled explicitly first so jsProvider is honored for
 // both shapes.
-func entityTargetToCodeChunk(target string, jsProvider string) *core.CodeChunkCompiled {
+//
+// isTypeScript gates whether the target's plain-type companion (<target>Type -
+// see tsTargetTypeName, js-common-object-types.go) is also imported alongside the
+// class. It must be skipped entirely for plain JS output: `import { type X }`'s
+// inline type-only marker is TypeScript-only grammar - even a bundler parsing a
+// .js file as plain JavaScript (not just tsc) rejects it outright, so this can't
+// just always be added and left for something else to strip. There is no plain
+// type at all to import in JS output anyway (the class is everything a JS
+// consumer gets), so "skip" here is the correct behavior, not a workaround.
+func entityTargetToCodeChunk(target string, jsProvider string, isTypeScript bool) *core.CodeChunkCompiled {
 	if !strings.HasSuffix(target, "Entity") || target == "Entity" {
 		if jsProvider == "" {
-			return castDtoNameToCodeChunk(target)
+			return castDtoNameToCodeChunk(target, isTypeScript)
 		}
 
 		directory, dtoClassName := parseDtoPath(jsProvider)
 		objectRef := dtoClassName
 		if dtoClassName != target {
 			objectRef = dtoClassName + " as " + target
+		}
+		objects := []string{objectRef}
+		if isTypeScript {
+			typeObjectRef := "type " + dtoClassName + "Type"
+			if dtoClassName != target {
+				typeObjectRef = "type " + dtoClassName + "Type as " + target + "Type"
+			}
+			objects = append(objects, typeObjectRef)
 		}
 
 		return &core.CodeChunkCompiled{
@@ -220,7 +237,18 @@ func entityTargetToCodeChunk(target string, jsProvider string) *core.CodeChunkCo
 			},
 			CodeChunkDependensies: []core.CodeChunkDependency{
 				{
-					Objects:  []string{objectRef},
+					// Both the class and (TypeScript only) its own plain-type
+					// companion, so a one/collection field referencing this
+					// target can resolve <target>Type without a dangling
+					// import - the exported *Type declaration must never
+					// mention a class name, only another plain type. The
+					// "type " prefix is the existing inline type-only-import
+					// marker (see CombineImportsJsWorld) - required, not
+					// cosmetic, once a consuming tsconfig turns on
+					// verbatimModuleSyntax: a type imported as a plain value
+					// specifier is a compile error there ("... must be
+					// imported using a type-only import").
+					Objects:  objects,
 					Location: directory,
 				},
 			},
@@ -235,6 +263,11 @@ func entityTargetToCodeChunk(target string, jsProvider string) *core.CodeChunkCo
 	dtoName := strings.TrimSuffix(source, "Entity") + "Dto"
 	directory, dtoClassName := parseDtoPath(dtoName)
 
+	objects := []string{dtoClassName + " as " + target}
+	if isTypeScript {
+		objects = append(objects, "type "+dtoClassName+"Type as "+target+"Type")
+	}
+
 	return &core.CodeChunkCompiled{
 		ActualScript: []byte(""),
 		Tokens: []core.GeneratedScriptToken{
@@ -243,7 +276,10 @@ func entityTargetToCodeChunk(target string, jsProvider string) *core.CodeChunkCo
 		},
 		CodeChunkDependensies: []core.CodeChunkDependency{
 			{
-				Objects:  []string{dtoClassName + " as " + target},
+				// See the comment on the sibling branch above - same reasoning
+				// (including the isTypeScript gate and the required "type "
+				// prefix), just via the Entity->Dto name swap instead of jsProvider.
+				Objects:  objects,
 				Location: directory,
 			},
 		},
@@ -327,7 +363,7 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 
 	collectTargets := CollectTargets(fields)
 	for _, item := range collectTargets {
-		m := entityTargetToCodeChunk(item.Target, item.JsProvider)
+		m := entityTargetToCodeChunk(item.Target, item.JsProvider, isTypeScript)
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, m.CodeChunkDependensies...)
 	}
 
@@ -484,15 +520,47 @@ export abstract class %vFactory {
 
 	/**
 	*	Special toJSON override, since the field are private,
-	*	Json stringify won't see them unless we mention it explicitly.
+	*	Json stringify won't see them unless we mention it explicitly. Each
+	*	field goes through #toPlainJSON rather than a bare this.#field: a
+	*	nested dto instance, or an emigo Array/One/Collection wrapper, has its
+	*	own toJSON that JSON.stringify would only reach on a *second* pass -
+	*	calling it here means toJSON()'s own return value is already the same
+	*	plain shape a consumer choosing the exported type instead of this
+	*	class gets, rather than a shallow object still holding class instances.
 	**/
-	toJSON() {
-    	return { 
+	toJSON(){{ if .IsTypeScript }}: {{ .ClassTypePath }}{{ end }} {
+    	return {
 			{{ range .Fields }}
-				{{ .Name }}: this.#{{ .Name }},
+				{{ .Name }}: this.#toPlainJSON(this.#{{ .Name }}),
 			{{ end }}
-		};
+		}{{ if .IsTypeScript }} as {{ .ClassTypePath }}{{ end }};
   	}
+
+	/**
+	* Resolves value into a plain, JSON-serializable value: recurses into
+	* arrays, and - the case JSON.stringify's own recursion would only get to
+	* after this method already returned - calls a nested value's own
+	* toJSON() (a dto instance, or an emigo Array/One/Collection wrapper)
+	* rather than leaving it as-is. A plain value (string, number, a map's
+	* own plain object, ...) is returned unchanged.
+	**/
+	#toPlainJSON(value{{ if .IsTypeScript }}: unknown{{ end }}){{ if .IsTypeScript }}: unknown{{ end }} {
+		if (value === null || value === undefined) {
+			return value;
+		}
+		if (Array.isArray(value)) {
+			return value.map((item) => this.#toPlainJSON(item));
+		}
+		{{ if .IsTypeScript }}
+		const asAny = value as any;
+		{{ else }}
+		const asAny = value;
+		{{ end }}
+		if (typeof asAny.toJSON === "function") {
+			return this.#toPlainJSON(asAny.toJSON());
+		}
+		return value;
+	}
 
 	toString() {
 		return JSON.stringify(this);

@@ -1,0 +1,121 @@
+---
+title: "Vsql Columns: an Optional, Typed Projection"
+sidebar:
+  order: 2
+---
+
+`columns` declares which columns a query can optionally include — typically a `SELECT`/`RETURNING` projection, though
+nothing stops a query from repurposing the same `Selected` picker for a different kind of toggle (an `UPDATE` gating
+which `SET` clauses actually apply is a real pattern used in `examples/vsql-sqlite`).
+
+Each entry embeds `EmiField` directly, so a column has the full field vocabulary — `object`, `array`, `enum`,
+`complex`, nested `fields` — not just a name and a type.
+
+```yaml
+columns:
+  - name: preferences
+    type: object
+    selected: false
+    column: "json_object('theme', theme, 'locale', locale)"
+    fields:
+      - { name: theme, type: string }
+      - { name: locale, type: string }
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>name</code> / <code>type</code> / ...</td>
+      <td>The full embedded <code>EmiField</code> — identifier and Go/emi type.</td>
+    </tr>
+    <tr>
+      <td><code>column</code></td>
+      <td>
+        SQL fragment to project when selected; defaults to <code>name</code> snake_cased. Any expression works,
+        including one spanning <strong>more than one</strong> physical column.
+      </td>
+    </tr>
+    <tr>
+      <td><code>selected</code></td>
+      <td>Default inclusion state.</td>
+    </tr>
+  </tbody>
+</table>
+
+## What gets generated
+
+From a `columns` list, `emi go` generates four things:
+
+1. **A `{Name}VsqlRow` response DTO** — one field per column, run through the very same struct generator as `params`.
+   An `object` column becomes a real nested struct, not a string.
+2. **A `{Name}VsqlColumns` picker** — one `emigo.ColumnState` per column, with a `New{Name}VsqlColumns()` constructor
+   seeded from each `selected:` default and a `Cols()` method joining the currently-selected columns' `column` text
+   into a projection, so a query template writes `{{ .Columns.Cols }}` once instead of repeating the column list.
+3. **A `{Name}VsqlData` wrapper** — combines `Params` (embedded, so `{{ .Field }}` still resolves via Go's field
+   promotion) with `Columns`, which is what a query template actually receives.
+4. **A `{Name}VsqlColumnsQuery` cast helper** — see below.
+
+Declaring `columns` at all changes `Prepare{Name}Vsql`'s signature to take a second `columns` argument —
+unconditionally, even for a query whose text never references `.Columns.Cols` at all (the `UPDATE`-as-SET-gate case).
+
+## Nullability
+
+A column that defaults to `selected: false` is forced onto its nullable type variant in the generated row DTO during
+preprocessing, **regardless of the type it was declared with** — `int64` becomes `emigo.Nullable[int64]`, `object`
+becomes `emigo.Nullable[RowAddress]`, and so on.
+
+A column a caller can choose to leave out has no guarantee of being populated once a result is scanned, so the field
+has to be able to represent "not fetched" on its own terms — distinguishing that from "fetched, zero value".
+
+`any` is left alone (already unconditionally nil-capable) and `complex` becomes `complex?`, a no-op for Go generation
+— a complex type has no wire-level nullability of its own. A `Money`-shaped type deciding what an absent amount looks
+like is its job, via the same `SQLValue() (string, bool)` contract the reference renderer's `SQLValuer` interface
+already uses.
+
+## Complex columns spanning several physical columns
+
+Because `column` is a free-form SQL fragment, one `EmiColumn` (one `Selected` toggle) can legitimately project more
+than one real column:
+
+```yaml
+- name: money
+  type: complex
+  complex: Money
+  selected: false
+  column: "amount_cents, currency"
+```
+
+`Cols()` splices `"amount_cents, currency"` in verbatim under the one `Money` toggle. Emi's job stops at the field
+name and projection text; the actual multi-column `rows.Scan(&row.Money.AmountCents, &row.Money.Currency)` wiring is
+the consumer's, matching the "no schema introspection" stance — a two-column complex type is not something Emi could
+infer correctly on its own anyway.
+
+## Casting the column picker from a query string
+
+Whenever `columns` is declared, `emi go` also generates `{Name}VsqlColumnsQuery` — reusing the exact same
+`emigo.UnmarshalQs`/`emigo.NewDecoder` machinery an action's own `qs` fields already use — so a caller can build the
+picker straight from an incoming HTTP request instead of translating query parameters into it by hand:
+
+```go
+cols := SelectUserByIdVsqlColumnsQueryFromHttp(r).Columns()
+query, args := PrepareSelectUserByIdVsql(params, cols)
+```
+
+`Columns()` only overrides the keys the query string actually mentioned (checked via `url.Values.Has`); anything
+absent keeps its own declared `selected:` default rather than becoming `false` — a client asking for `?email=true`
+gets the usual defaults plus email, not just email alone.
+
+## Everything goes through the same field machinery
+
+Every artifact `columns` generates — the row DTO, the picker, the query-string cast — goes through the exact same
+field/struct/complex-type machinery as a dto or an action body. A vsql query is never a second type system bolted
+onto the first one; it is hand-written SQL wearing the same typed clothes as everything else Emi compiles.
+
+See [Predict: detecting columns from SQL](/emi/vsql/vsql-predict/) for populating `columns` automatically instead of
+writing it by hand.

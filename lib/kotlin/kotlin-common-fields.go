@@ -71,8 +71,9 @@ func renderField(
 	parentChain string,
 	fieldDepth string,
 	ctx core.MicroGenContext,
+	rootClassName string,
 ) renderedField {
-	computedType := goFieldTypeOnNestedClasses(field, parentChain)
+	computedType := goFieldTypeOnNestedClasses(field, parentChain, rootClassName)
 	isFieldNullable := core.IsNullable(string(field.Type))
 
 	GoDoc := NewGoDoc("  ")
@@ -118,7 +119,7 @@ func renderFieldsShallow(
 	out := make([]renderedField, 0, len(fields))
 	for _, f := range fields {
 		if f != nil {
-			out = append(out, renderField(f, parentChain, fieldDepth, ctx))
+			out = append(out, renderField(f, parentChain, fieldDepth, ctx, goctx.RootClassName))
 		}
 	}
 	return out

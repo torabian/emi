@@ -408,15 +408,42 @@ export class GetSinglePostActionRes {
   }
   /**
    *	Special toJSON override, since the field are private,
-   *	Json stringify won't see them unless we mention it explicitly.
+   *	Json stringify won't see them unless we mention it explicitly. Each
+   *	field goes through #toPlainJSON rather than a bare this.#field: a
+   *	nested dto instance, or an emigo Array/One/Collection wrapper, has its
+   *	own toJSON that JSON.stringify would only reach on a *second* pass -
+   *	calling it here means toJSON()'s own return value is already the same
+   *	plain shape a consumer choosing the exported type instead of this
+   *	class gets, rather than a shallow object still holding class instances.
    **/
-  toJSON() {
+  toJSON(): GetSinglePostActionResType {
     return {
-      userId: this.#userId,
-      id: this.#id,
-      title: this.#title,
-      body: this.#body,
-    };
+      userId: this.#toPlainJSON(this.#userId),
+      id: this.#toPlainJSON(this.#id),
+      title: this.#toPlainJSON(this.#title),
+      body: this.#toPlainJSON(this.#body),
+    } as GetSinglePostActionResType;
+  }
+  /**
+   * Resolves value into a plain, JSON-serializable value: recurses into
+   * arrays, and - the case JSON.stringify's own recursion would only get to
+   * after this method already returned - calls a nested value's own
+   * toJSON() (a dto instance, or an emigo Array/One/Collection wrapper)
+   * rather than leaving it as-is. A plain value (string, number, a map's
+   * own plain object, ...) is returned unchanged.
+   **/
+  #toPlainJSON(value: unknown): unknown {
+    if (value === null || value === undefined) {
+      return value;
+    }
+    if (Array.isArray(value)) {
+      return value.map((item) => this.#toPlainJSON(item));
+    }
+    const asAny = value as any;
+    if (typeof asAny.toJSON === "function") {
+      return this.#toPlainJSON(asAny.toJSON());
+    }
+    return value;
   }
   toString() {
     return JSON.stringify(this);
@@ -457,6 +484,7 @@ export class GetSinglePostActionRes {
 export abstract class GetSinglePostActionResFactory {
   abstract create(data: unknown): GetSinglePostActionRes;
 }
+type PlainOf<T> = T extends { toJSON(): infer R } ? R : T;
 /**
  * The base type definition for getSinglePostActionRes
  **/
@@ -473,9 +501,9 @@ export type GetSinglePostActionResType = {
   id: number;
   /**
    *
-   * @type {Money}
+   * @type {PlainOf<Money>}
    **/
-  title: Money;
+  title: PlainOf<Money>;
   /**
    *
    * @type {string}

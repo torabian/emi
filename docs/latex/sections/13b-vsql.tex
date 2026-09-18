@@ -1,0 +1,391 @@
+\sectiontheme{goblue}
+\section{Vsql: Hand-Written SQL with Typed Bindings}
+\label{sec:vsql}
+
+A \texttt{vsql} entry pairs a hand-written SQL query with a typed
+parameter shape --- the same governing idea as Query Predict
+(\S\ref{sec:query-predict}), reworked as a first-class part of the
+module instead of a separate command-line tool, and extended well past
+what Query Predict ever did: array/object/complex parameters, an
+optional caller-controlled column projection, a typed JSON-Logic
+filter surface, and a debugging command.
+The philosophy carries over unchanged: \textbf{no schema
+introspection, no auto-migration, no SQL synthesis}. Emi never looks
+at a live database and never writes a query for you --- it only makes
+the boundary between the SQL you wrote and the Go code that calls it
+type-safe. Entries live in a top-level \texttt{vsqls} list.
+
+\begin{lstlisting}
+vsqls:
+  - name: insertUser
+    description: Inserts one user and returns the new row's id.
+    params:
+      - {name: email, type: string}
+      - {name: role, type: enum, of: [{k: Admin}, {k: Member}]}
+    columns:
+      - {name: id, type: int64, selected: true}
+      - {name: email, type: string, selected: false}
+    query: |
+      INSERT INTO users (email, user_role) VALUES ({{ sql .Email }}, {{ sql .Role }})
+      RETURNING {{ .Columns.Cols }};
+\end{lstlisting}
+
+\texttt{emi go} compiles this into \texttt{InsertUserVsqlParams} (the
+Go struct generator dtos and actions already use, so nested objects,
+arrays, enums and \texttt{complex} fields all work identically here),
+a \texttt{InsertUserVsqlQuery} constant holding the SQL verbatim ---
+template syntax and all --- and \texttt{PrepareInsertUserVsql(params,
+columns)}, which just hands back \texttt{(query, args)} unrendered.
+Rendering the template and executing it against a real driver is left
+to the caller; \texttt{examples/vsql/vsql} ships a reference renderer
+(\texttt{sql}, \texttt{deref}, \texttt{sqlFields}/\texttt{sqlFieldsExcept}
+template helpers) worth copying wholesale into a real project rather
+than reinventing.
+
+\subsection{Params and In}
+\texttt{params} is the quick, inline way to declare input --- most
+queries only need it. \texttt{in} is an action-shaped alternative,
+\emph{alongside} \texttt{params} rather than instead of it: the exact
+type \texttt{EmiAction.in} uses, so it can reference an existing dto by
+name (\texttt{in: \{dto: userFilterDto\}}) or carry typed headers,
+instead of repeating fields inline. Preprocessing resolves \texttt{in}
+and merges it into \texttt{params} before any generator runs ---
+\texttt{params} wins on a field-name collision, since it's the more
+specific, local declaration. Declare either one, or both; the merge is
+what makes a vsql's input shape reusable as an action's request body
+later, without a second, differently-shaped declaration.
+
+\subsection{Captures}
+\texttt{captures} pulls fields from an existing dto, template dto, or
+action body into \texttt{params} at preprocessing time --- the same
+mechanism and \texttt{EmiCapture} shape used elsewhere in the module,
+with finer-grained \texttt{include}/\texttt{exclude} control than
+\texttt{in.dto}'s whole-dto reference. By the time a generator runs,
+captured fields have already been flattened into \texttt{params} and
+\texttt{captures} itself is cleared.
+
+\subsection{Columns: an optional, typed projection}
+\label{sec:vsql-columns}
+\texttt{columns} declares which columns a query can optionally
+include --- typically a \texttt{SELECT}/\texttt{RETURNING}
+projection, though nothing stops a query from repurposing the same
+\texttt{Selected} picker for a different kind of toggle (an
+\texttt{UPDATE} gating which \texttt{SET} clauses actually apply is a
+real pattern used in \texttt{examples/vsql-sqlite}). Each entry embeds
+\texttt{EmiField} directly, so a column has the full field vocabulary
+--- \texttt{object}, \texttt{array}, \texttt{enum}, \texttt{complex},
+nested \texttt{fields} --- not just a name and a type.
+
+\begin{lstlisting}
+columns:
+  - name: preferences
+    type: object
+    selected: false
+    column: "json_object('theme', theme, 'locale', locale)"
+    fields:
+      - {name: theme, type: string}
+      - {name: locale, type: string}
+\end{lstlisting}
+
+\begin{sidebar}{EmiColumn fields}
+\small
+\begin{tabular}{@{}p{0.22\linewidth}p{0.72\linewidth}@{}}
+\textbf{name / type / \dots} & the full embedded \texttt{EmiField} --- identifier and Go/emi type \\
+\textbf{column} & SQL fragment to project when selected; defaults to \texttt{name} snake\_cased. Any expression works, including one spanning \emph{more than one} physical column (see below) \\
+\textbf{selected} & default inclusion state \\
+\end{tabular}
+\end{sidebar}
+
+From a \texttt{columns} list, \texttt{emi go} generates four things:
+a \texttt{\{Name\}VsqlRow} response DTO (one field per column, run
+through the very same struct generator as \texttt{params} --- an
+\texttt{object} column becomes a real nested struct, not a string);
+a \texttt{\{Name\}VsqlColumns} picker (one \texttt{emigo.ColumnState}
+per column) with a \texttt{New\{Name\}VsqlColumns()} constructor
+seeded from each \texttt{selected:} default and a \texttt{Cols()}
+method joining the currently-selected columns' \texttt{column} text
+into a projection, so a query template writes \texttt{\{\{
+.Columns.Cols \}\}} once instead of repeating the column list; a
+\texttt{\{Name\}VsqlData} wrapper combining \texttt{Params} (embedded,
+so \texttt{\{\{ .Field \}\}} still resolves via Go's field promotion)
+with \texttt{Columns}, which is what a query template actually
+receives; and (\S\ref{sec:vsql-columns-query}) a query-string cast
+helper. Declaring \texttt{columns} at all changes
+\texttt{Prepare\{Name\}Vsql}'s signature to take a second
+\texttt{columns} argument --- unconditionally, even for a query like
+the \texttt{UPDATE} case above whose text never references
+\texttt{.Columns.Cols} at all.
+
+\textbf{Nullability.} A column that defaults to \texttt{selected:
+false} is forced onto its nullable type variant in the generated row
+DTO during preprocessing, \emph{regardless of the type it was
+declared with} --- \texttt{int64} becomes \texttt{emigo.Nullable[int64]},
+\texttt{object} becomes \texttt{emigo.Nullable\allowbreak[RowAddress]},
+and so on. A column a caller can choose to leave out has no guarantee
+of being populated once a result is scanned, so the field has to be
+able to represent ``not fetched'' on its own terms --- distinguishing
+that from ``fetched, zero value''. \texttt{any} is left alone (already
+unconditionally nil-capable) and \texttt{complex} becomes
+\texttt{complex?}, a no-op for Go generation; a complex type has no
+wire-level nullability of its own; a \texttt{Money}-shaped type
+deciding what an absent amount looks like is its job, via the same
+\texttt{SQLValue() (string, bool)} contract the reference renderer's
+\texttt{SQLValuer} interface already uses.
+
+\textbf{Complex columns spanning several physical columns.} Because
+\texttt{column} is a free-form SQL fragment, one \texttt{EmiColumn}
+(one \texttt{Selected} toggle) can legitimately project more than one
+real column:
+
+\begin{lstlisting}
+  - name: money
+    type: complex
+    complex: Money
+    selected: false
+    column: "amount_cents, currency"
+\end{lstlisting}
+
+\texttt{Cols()} splices \texttt{"amount\_cents, currency"} in
+verbatim under the one \texttt{Money} toggle. Emi's job stops at the
+field name and projection text; the actual multi-column
+\texttt{rows.Scan(\&row.Money.AmountCents, \&row.Money.Currency)}
+wiring is the consumer's, matching the ``no schema introspection''
+stance --- a two-column complex type is not something Emi could infer
+correctly on its own anyway.
+
+\subsection{Query text: inline, or read from a file}
+\texttt{query} compiles the SQL in as a Go string constant. As an
+alternative, \texttt{queryName} names a file to be read from a
+caller-supplied \texttt{fs.FS} \emph{at runtime} instead --- typically
+a real \texttt{.sql} file under \texttt{go:embed}, so the SQL gets
+real editor syntax highlighting and no YAML string-escaping. The two
+are mutually exclusive; declaring both is a compile-time error, not a
+silent ``one wins''. Setting \texttt{queryName} changes
+\texttt{Prepare\{Name\}Vsql} to take an \texttt{fs.FS} as its first
+argument and return an extra \texttt{error} (the file read can fail):
+
+\begin{lstlisting}
+func PrepareSelectUsersPagedVsql(
+    fsys fs.FS, params SelectUsersPagedVsqlParams, columns SelectUsersPagedVsqlColumns,
+) (query string, args interface{}, err error)
+\end{lstlisting}
+
+\subsection{Predict: detecting columns from a plain SELECT}
+\label{sec:vsql-predict}
+Setting \texttt{predict: true} populates \texttt{columns}
+automatically at preprocessing time by parsing \texttt{query} (or the
+file named by \texttt{queryName}) as a plain SQL \texttt{SELECT} and
+detecting its projected columns --- the exact column-detection
+mechanism Query Predict has always used, ported into a standalone
+\texttt{lib/sqlpredict} package (no dependency on the rest of Emi's
+core) so vsql can use it without Query Predict needing to stick
+around. It is a no-op whenever \texttt{columns} is already non-empty
+--- a hand-written list always wins, never silently overwritten.
+
+\begin{lstlisting}
+vsqls:
+  - name: listActiveUsers
+    predict: true
+    query: |
+      SELECT id, email, field(count(o.order_id), 'int64', 'totalOrders', true)
+      FROM users u LEFT JOIN orders o ON u.id = o.user_id
+      WHERE u.id > {{ .MinId }}
+      GROUP BY u.id;
+\end{lstlisting}
+
+\texttt{id}/\texttt{email} come out as plain \texttt{string} columns
+(the default when no type hint is given); the \texttt{field(expr,
+'type', 'goName', optional)} marker --- identical syntax to Query
+Predict's own --- names \texttt{totalOrders} explicitly, types it
+\texttt{int64}, and its \texttt{true} fourth argument makes it
+optional, which comes out as \texttt{emigo.Nullable[int64]} in the
+generated row.
+
+\begin{sidebar}{Predict: what it can and can't do}
+\small
+\begin{tabular}{@{}p{0.3\linewidth}p{0.65\linewidth}@{}}
+\textbf{Only a plain SELECT} & the underlying parser implements MySQL grammar and has no notion of \texttt{RETURNING} at all --- an \texttt{INSERT}/\texttt{UPDATE}/\texttt{DELETE ... RETURNING} vsql, the shape most examples in this book actually use, needs \texttt{columns} written by hand instead \\
+\textbf{Template markup} & every \texttt{\{\{ ... \}\}} block is replaced with \texttt{NULL} before parsing, so a \texttt{WHERE}/\texttt{VALUES} clause mixing in Go-template syntax still parses --- only the \texttt{SELECT} list itself has to be real SQL \\
+\textbf{A wildcard select} & \texttt{SELECT *} (bare, table-qualified like \texttt{u.*}, or mixed with named columns) leaves \texttt{columns} empty and returns \emph{no error} --- what \texttt{*} expands to depends on the live schema, which this project's SQL philosophy never inspects. The vsql simply ends up with no row DTO and no column picker, exactly as if \texttt{predict} had never been set \\
+\textbf{Joins with same-named columns} & \texttt{u.id}/\texttt{o.id} keep their table qualifier in both the detected Go name (\texttt{UId}/\texttt{OId}) and the re-projected SQL (\texttt{u.id}, not a bare, ambiguous \texttt{id}) --- an explicit \texttt{AS alias} is honored the same way, keeping the full \texttt{expr AS alias} text rather than collapsing to the bare alias \\
+\textbf{Genuine collisions} & if two columns still resolve to the same Go name after that, preprocessing fails with a clear error rather than generating a struct with a duplicate field \\
+\end{tabular}
+\end{sidebar}
+
+\subsection{Casting the column picker from a query string}
+\label{sec:vsql-columns-query}
+Whenever \texttt{columns} is declared, \texttt{emi go} also generates
+\texttt{\{Name\}VsqlColumnsQuery} --- reusing the exact same
+\texttt{emigo.UnmarshalQs}/\texttt{emigo.NewDecoder} machinery an
+action's own \texttt{qs} fields already use --- so a caller can build
+the picker straight from an incoming HTTP request instead of
+translating query parameters into it by hand:
+
+\begin{lstlisting}
+cols := SelectUserByIdVsqlColumnsQueryFromHttp(r).Columns()
+query, args := PrepareSelectUserByIdVsql(params, cols)
+\end{lstlisting}
+
+\texttt{Columns()} only overrides the keys the query string actually
+mentioned (checked via \texttt{url.Values.Has}); anything absent keeps
+its own declared \texttt{selected:} default rather than becoming
+\texttt{false} --- a client asking for \texttt{?email=true} gets the
+usual defaults plus email, not just email alone.
+
+\subsection{Filters: typed JSON-Logic queries}
+\label{sec:vsql-filters}
+\texttt{filters} declares which fields a caller may reference inside a
+JSON-Logic filter expression (\url{https://jsonlogic.com}) run against
+this query's rows, e.g.\ \texttt{\{"==": [\{"var": "role"\}, "Admin"]\}}
+--- the same JSON-Logic-to-SQL path this ecosystem already has for
+entity Browse actions (\texttt{emigorm.ApplyQueryFilter}, via
+\texttt{jsonlogic2sql}), now with an allow-list Emi can generate rather
+than an unconstrained string. \texttt{filters} is deliberately a plain
+\texttt{[]*EmiField}, not \texttt{[]*EmiColumn}: an allow-list is a
+value shape (name + type), not a selection picker, so it compiles
+through the very same struct/class generator as \texttt{params} ---
+\texttt{GoCommonStructGenerator} in Go, \texttt{JsCommonObjectGenerator}
+in JS --- rather than reusing \texttt{Columns}' picker machinery.
+
+When left empty and \texttt{columns} is set, \texttt{filters} defaults
+to \texttt{columns}' own fields during preprocessing --- the row
+surface a \texttt{SELECT} already exposes is the natural default set
+of things worth filtering on. A query with no \texttt{columns} needs
+\texttt{filters} declared explicitly if it wants filtering at all.
+
+\begin{lstlisting}
+vsqls:
+  - name: selectUserById
+    columns:
+      - {name: id, type: int64, selected: true}
+      - {name: email, type: string, selected: true}
+      - {name: role, type: enum, of: [{k: Admin}, {k: Member}], selected: false}
+    query: |
+      SELECT {{ .Columns.Cols }} FROM users WHERE id = {{ .Id }};
+\end{lstlisting}
+
+\texttt{emi go} generates \texttt{SelectUserByIdVsqlFilters} (defaulted
+from the three columns above), plus a runtime allow-list --- Go
+generics can't express a string-literal union the way TypeScript can,
+so this is the compile-time check Go gets instead:
+
+\begin{lstlisting}
+var SelectUserByIdVsqlFilterFields = []string{"id", "email", "role"}
+
+func SelectUserByIdVsqlFilterFieldAllowed(name string) bool {
+  for _, f := range SelectUserByIdVsqlFilterFields {
+    if f == name {
+      return true
+    }
+  }
+  return false
+}
+\end{lstlisting}
+
+A real caller runs this before ever handing a filter to
+\texttt{jsonlogic2sql}: walk the parsed JSON-Logic tree, and reject the
+request if any \texttt{\{"var": ...\}} leaf names something outside
+\texttt{SelectUserByIdVsqlFilterFields}.
+
+\textbf{TypeScript gets more: a compile-time check.} Under
+\texttt{--tags typescript}, the same field list also becomes a
+literal string union, plus one minimal JSON-Logic node type
+constrained to it:
+
+\begin{lstlisting}
+export type SelectUserByIdVsqlFilterField = "id" | "email" | "role";
+
+export type SelectUserByIdVsqlFilterVarNode = {
+  var: SelectUserByIdVsqlFilterField;
+};
+export type SelectUserByIdVsqlFilterOperatorNode = {
+  [operator: string]: SelectUserByIdVsqlFilterValue;
+} & { var?: never };
+export type SelectUserByIdVsqlFilterValue =
+  | SelectUserByIdVsqlFilter
+  | string | number | boolean | null
+  | SelectUserByIdVsqlFilterValue[];
+export type SelectUserByIdVsqlFilter =
+  | SelectUserByIdVsqlFilterVarNode
+  | SelectUserByIdVsqlFilterOperatorNode;
+\end{lstlisting}
+
+A caller can now write real JSON-Logic and have the compiler catch a
+typo or a field the query never declared:
+
+\begin{lstlisting}
+const ok: SelectUserByIdVsqlFilter = {
+  and: [{ "==": [{ var: "role" }, "Admin"] }, { "!": { var: "email" } }],
+};
+
+// @ts-expect-error - "isAdmin" was never declared on this query
+const bad: SelectUserByIdVsqlFilter = { var: "isAdmin" };
+\end{lstlisting}
+
+\begin{sidebar}{Three things that look obvious and aren't}
+\small
+\begin{tabular}{@{}p{0.3\linewidth}p{0.64\linewidth}@{}}
+\textbf{No third-party JsonLogic types} & JsonLogic's own spec ships no TypeScript typing, and a generic library couldn't know a \emph{specific} query's allowed fields anyway --- only Emi, generating per-vsql, can. The generated type stays plain-JSON-shaped, though: nothing stops handing a value of it straight to a real runtime such as \texttt{json-logic-js} \\
+\textbf{A bare index signature isn't enough} & \texttt{\{ [operator: string]: ... \}} alone lets \texttt{\{ var: "notAField" \}} slip through as just another operator key --- TypeScript's structural typing doesn't single out \texttt{"var"}. \texttt{\& \{ var?: never \}} on the operator-node arm is what actually forces a \texttt{var}-carrying object to be checked against the field-name union instead; verified against a real \texttt{tsc} run, not just read off the type \\
+\textbf{Needs strictNullChecks} & without it, a literal like \texttt{"email"} widens to plain \texttt{string} inside the recursive union and the constraint silently stops rejecting anything --- also caught by an actual \texttt{tsc} run, not assumed \\
+\end{tabular}
+\end{sidebar}
+
+\texttt{examples/vsql-columns/ts} has a working \texttt{tsconfig.json}
+and a \texttt{filter-typesafety.ts} exercising exactly this: valid
+JSON-Logic typechecking clean, three \texttt{@ts-expect-error} cases
+(an unknown field nested, one as a direct \texttt{var} node, and a
+typo of a real field name) that must keep failing or the whole file
+fails to typecheck --- \texttt{make test-ts} regenerates and runs it
+for real.
+
+\subsection{Debugging a query: \texttt{emi vsql:debug}}
+Renders one vsql's final SQL against caller-supplied values and
+prints it, with no compiled project, no generated Go code, and no
+database --- useful while writing a definition, to check the template
+even parses and the projection comes out right.
+
+\begin{lstlisting}
+emi vsql:debug --path queries.emi.yml --name insertUsers \
+  --params '{"users":[{"email":"a@x.com"}]}' --select "id,email,money"
+\end{lstlisting}
+
+\texttt{--params} and \texttt{--in} are each a JSON object of field
+values (merged, \texttt{--params} winning a collision, mirroring
+\texttt{params}/\texttt{in}'s own precedence); \texttt{--select} is a
+comma list of column names to mark selected, replacing every
+column's own default entirely when given. The command builds the same
+template-data shape (\texttt{.Field}, \texttt{.Array.Items},
+\texttt{.Columns.Cols}, \texttt{.Columns.X.Selected}) real generated
+Go code would, directly off the parsed schema plus the given JSON ---
+no compiled struct in the loop at all.
+
+\begin{sidebar}{A recurring template gotcha}
+\small
+Go's \texttt{text/template} truthiness rules only treat \texttt{0},
+empty strings, \texttt{nil}, and zero-length arrays/slices/maps as
+false --- a \texttt{struct} is never false, regardless of its fields.
+That means \texttt{\{\{ if .Email \}\}} on an
+\texttt{emigo.Nullable[string]} param is \emph{always} true, whether
+or not it was actually set. Guard a nullable field's presence with
+\texttt{\{\{ if .Email.IsSet \}\}} instead; \texttt{\{\{ sql .Email
+\}\}} on its own already renders correctly either way (the reference
+renderer's \texttt{sql} helper duck-types \texttt{Nullable[T]} and
+omits/nulls it appropriately), but a whole conditional clause built
+around one needs the explicit \texttt{.IsSet} check.
+\end{sidebar}
+
+\begin{pullquote}
+Every artifact vsql generates --- params, captures, columns, the row
+DTO --- goes through the exact same field/struct/complex-type
+machinery as a dto or an action body. A vsql query is never a second
+type system bolted onto the first one; it is hand-written SQL wearing
+the same typed clothes as everything else Emi compiles.
+\end{pullquote}
+
+\texttt{examples/vsql}, \texttt{examples/vsql-columns} (Go and,
+under \texttt{ts/}, a real generated TypeScript SDK) and
+\texttt{examples/vsql-sqlite} show the whole surface end to end, the
+last one running ten queries --- batch inserts, optional filters,
+partial updates, a predicted join --- for real against an in-memory
+SQLite database.

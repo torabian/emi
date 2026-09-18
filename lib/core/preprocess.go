@@ -2,7 +2,11 @@ package core
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/torabian/emi/lib/sqlpredict"
 )
 
 // SelfFieldsToken is the special Include entry that, when found inside an
@@ -12,7 +16,17 @@ const SelfFieldsToken = "self.fields"
 // Preprocess resolves derived/derived-like definitions on the module so the
 // downstream generators receive a fully-expanded structure. Currently this:
 //
+//   - Resolves EmiVsql.In (Dto reference or inline Fields) and merges it into
+//     EmiVsql.Params - see resolveVsqlIn. In is left in place afterwards
+//     (its Headers/Dto name aren't expressible as plain fields).
 //   - Flattens EmiVsql.Captures into EmiVsql.Params and clears Captures.
+//   - When EmiVsql.Predict is set and Columns is empty, detects Columns by
+//     parsing the query as a plain SELECT - see predictVsqlColumns.
+//   - Forces every vsql column that defaults to unselected onto its nullable
+//     type variant, regardless of what was declared - see
+//     nullifyUnselectedColumns.
+//   - When EmiVsql.Filters is empty, defaults it to Columns' own fields -
+//     see defaultVsqlFilters.
 //   - Runs every hook registered via RegisterPreprocessHook (see
 //     preprocess-hooks.go) - e.g. entities' update-dto synthesis in
 //     preprocess-entities.go plugs in this way, rather than being called here
@@ -20,7 +34,10 @@ const SelfFieldsToken = "self.fields"
 //
 // It is safe to call more than once: a second pass is a no-op once captures
 // have been consumed (and hooks are expected to be similarly idempotent -
-// preprocessEntityUpdateDtos, for instance, skips dtos it already synthesized).
+// preprocessEntityUpdateDtos, for instance, skips dtos it already synthesized;
+// nullifyUnselectedColumns is naturally idempotent since it only touches
+// types that aren't already nullable; resolveVsqlIn is idempotent because its
+// merge into Params keeps whichever fields are already there by name).
 func (m *Emi) Preprocess() error {
 	if m == nil {
 		return nil
@@ -54,10 +71,34 @@ func (m *Emi) Preprocess() error {
 
 	for i := range m.Vsqls {
 		v := &m.Vsqls[i]
+		owner := fmt.Sprintf("vsql %q", v.Name)
+
+		if v.Predict && len(v.Columns) == 0 {
+			cols, err := predictVsqlColumns(v, m.SourcePath)
+			if err != nil {
+				return fmt.Errorf("%s: predict: %w", owner, err)
+			}
+			v.Columns = cols
+		}
+
+		nullifyUnselectedColumns(v.Columns)
+
+		if len(v.Filters) == 0 {
+			v.Filters = defaultVsqlFilters(v.Columns)
+		}
+
+		if v.In != nil {
+			inFields, err := resolveVsqlIn(v.In, dtoByName, templateDtoByName, owner)
+			if err != nil {
+				return err
+			}
+			v.Params = mergeFieldsKeepFirst(v.Params, inFields)
+		}
+
 		if len(v.Captures) == 0 {
 			continue
 		}
-		merged, err := resolveCaptures(v.Captures, v.Params, dtoByName, templateDtoByName, actionByName, fmt.Sprintf("vsql %q", v.Name))
+		merged, err := resolveCaptures(v.Captures, v.Params, dtoByName, templateDtoByName, actionByName, owner)
 		if err != nil {
 			return err
 		}
@@ -93,6 +134,157 @@ func (m *Emi) PreprocessForAction(action string) error {
 		return err
 	}
 	return runPreprocessHooks(m, actionPreprocessHooks[action])
+}
+
+// resolveVsqlIn turns an EmiVsql.In body into a plain field list: In.Dto
+// (looked up first against top-level Dtos, then template Dtos) if set,
+// otherwise In.Fields verbatim. Headers, Envelope and Primitive aren't
+// resolved here - they only matter once a vsql can actually be exposed the
+// way an EmiAction is, which isn't wired up yet; In is left on the vsql
+// afterwards precisely so that future code still has them available.
+func resolveVsqlIn(body *EmiActionBody, dtoByName, templateDtoByName map[string]*EmiDto, owner string) ([]*EmiField, error) {
+	if body == nil {
+		return nil, nil
+	}
+	if body.Dto != "" {
+		if dto, ok := dtoByName[body.Dto]; ok {
+			return dto.Fields, nil
+		}
+		if dto, ok := templateDtoByName[body.Dto]; ok {
+			return dto.Fields, nil
+		}
+		return nil, fmt.Errorf("%s: in: dto %q not found", owner, body.Dto)
+	}
+	return body.Fields, nil
+}
+
+// mergeFieldsKeepFirst combines two field lists into one, in order, dropping
+// any field from b whose Name already appears in a - so Params and In can
+// describe the same query without one silently overwriting the other's
+// field, and re-running this (e.g. on a second Preprocess pass) is a no-op.
+func mergeFieldsKeepFirst(a, b []*EmiField) []*EmiField {
+	if len(b) == 0 {
+		return a
+	}
+	seen := make(map[string]bool, len(a))
+	for _, f := range a {
+		if f != nil {
+			seen[f.Name] = true
+		}
+	}
+	out := a
+	for _, f := range b {
+		if f == nil || seen[f.Name] {
+			continue
+		}
+		seen[f.Name] = true
+		out = append(out, f)
+	}
+	return out
+}
+
+// predictVsqlColumns resolves the SQL text to parse (Query verbatim, or
+// QueryName read from disk relative to sourcePath's directory) and runs it
+// through sqlpredict.DetectSelectColumns, converting each detected column
+// into an *EmiColumn: Column is set to the detected Source verbatim (the
+// literal expression to project - never derived from Name, since a detected
+// name like "TotalOrders" snake-casing to "total_orders" would silently
+// drop an aggregate expression like "count(order_id)"), Type from the
+// detected type (or its nullable variant when field() marked it optional),
+// and Selected: true - the query, as written, already selects every one of
+// these unconditionally.
+func predictVsqlColumns(v *EmiVsql, sourcePath string) ([]*EmiColumn, error) {
+	query := v.Query
+	if v.QueryName != "" {
+		p := v.QueryName
+		if !filepath.IsAbs(p) && sourcePath != "" {
+			p = filepath.Join(filepath.Dir(sourcePath), p)
+		}
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return nil, fmt.Errorf("reading queryName %q: %w", v.QueryName, err)
+		}
+		query = string(b)
+	}
+	if query == "" {
+		return nil, fmt.Errorf("neither query nor queryName is set")
+	}
+
+	detected, err := sqlpredict.DetectSelectColumns(query)
+	if err != nil {
+		return nil, err
+	}
+
+	cols := make([]*EmiColumn, 0, len(detected))
+	for _, d := range detected {
+		typ := d.Type
+		if typ == "" {
+			typ = string(FieldTypeString)
+		}
+		if d.Optional {
+			typ += "?"
+		}
+		cols = append(cols, &EmiColumn{
+			EmiField: EmiField{
+				Name: ToLower(d.Name),
+				Type: FieldType(typ),
+			},
+			Column:   d.Source,
+			Selected: true,
+		})
+	}
+	return cols, nil
+}
+
+// defaultVsqlFilters builds the default Filters list from columns: one
+// *EmiField per column, copied (not aliased) so a later mutation of one list
+// - nullifyUnselectedColumns already ran on columns by the time this is
+// called, precisely so Filters' types mirror the row's actual scanned types
+// - never reaches back into the other. Returns nil for no columns, which is
+// exactly "Filters stays empty" (a query with nothing to select has nothing
+// sensible to default filtering to either).
+func defaultVsqlFilters(columns []*EmiColumn) []*EmiField {
+	if len(columns) == 0 {
+		return nil
+	}
+	fields := make([]*EmiField, 0, len(columns))
+	for _, col := range columns {
+		if col == nil {
+			continue
+		}
+		f := col.EmiField
+		fields = append(fields, &f)
+	}
+	return fields
+}
+
+// nullifyUnselectedColumns forces every column that defaults to unselected
+// (Selected: false) onto its nullable type variant, even when the column was
+// declared as a non-nullable type. A column the caller can choose to leave
+// out of the query has no guarantee of being populated once a result is
+// scanned into the row DTO, so the generated field must be able to represent
+// "not fetched" regardless of what the column's own type would otherwise be
+// - the same way an actually-optional SQL column would be modeled.
+//
+// FieldTypeAny is left alone: it already renders as interface{}, which is
+// unconditionally nil-capable on its own (see its own doc comment in
+// EmiFieldType.go). FieldTypeComplex becomes FieldTypeComplexNullable, which
+// every backend but the JS/TS generator treats identically to plain complex
+// (see FieldTypeComplexNullable's doc comment) - harmless for those, and the
+// correct "optional" signal for JS/TS. Every other emi type has a mechanical
+// "?"-suffixed nullable counterpart (see EmiFieldType.go), so appending it is
+// safe generically. A column already declared nullable, or a column that is
+// selected by default, is left untouched.
+func nullifyUnselectedColumns(columns []*EmiColumn) {
+	for _, col := range columns {
+		if col == nil || col.Selected || col.Type == "" {
+			continue
+		}
+		if col.Type == FieldTypeAny || strings.HasSuffix(string(col.Type), "?") {
+			continue
+		}
+		col.Type = FieldType(string(col.Type) + "?")
+	}
 }
 
 // resolveCaptures applies a list of EmiCapture entries against the owner's

@@ -262,6 +262,166 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "EmiColumn": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the field in camel case. Will be upper case automatically when necessary"
+        },
+        "cli": {
+          "type": "string",
+          "description": "The field name apperance on the cli tools"
+        },
+        "recommended": {
+          "type": "boolean",
+          "description": "Recommended field will be asked upon an interactive cli operation."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description about the field for developers and generated documents."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "array",
+            "_list",
+            "map?",
+            "map",
+            "slice",
+            "one",
+            "class",
+            "collection",
+            "object",
+            "enum",
+            "string",
+            "bool",
+            "int",
+            "int32",
+            "int64",
+            "float32",
+            "float64",
+            "array?",
+            "_list?",
+            "slice?",
+            "one?",
+            "class?",
+            "collection?",
+            "object?",
+            "enum?",
+            "string?",
+            "bool?",
+            "int?",
+            "int32?",
+            "int64?",
+            "float32?",
+            "float64?",
+            "any",
+            "complex",
+            "complex?"
+          ],
+          "description": "Type of the field based on Emi types."
+        },
+        "mapKeyOf": {
+          "type": "string",
+          "enum": [
+            "string",
+            "int",
+            "any"
+          ],
+          "description": "In case of type map this is the map key type"
+        },
+        "mapPairOf": {
+          "type": "string",
+          "enum": [
+            "string",
+            "int",
+            "any",
+            "object",
+            "slice"
+          ],
+          "description": "In case of type map this is the map key type"
+        },
+        "primitive": {
+          "type": "string",
+          "enum": [
+            "string",
+            "bool",
+            "int",
+            "int32",
+            "int64",
+            "float32",
+            "float64",
+            "bytes"
+          ],
+          "description": "The primitve that is allowed for the slice is limited to following values"
+        },
+        "target": {
+          "type": "string",
+          "description": "The entity in golang which will be operated on in case of type: one or type: collection"
+        },
+        "default": {
+          "description": "Default value of the field which will be added to the meta tags"
+        },
+        "module": {
+          "type": "string",
+          "description": "When using one or collection types you need to set the module name here to import tha"
+        },
+        "provider": {
+          "type": "string",
+          "description": "The go project module of the important target for one or collection fields if its from exte"
+        },
+        "providerAlias": {
+          "type": "string",
+          "description": "You can set an alias for the provider so the import will be done using that name instead of auto detection. Useful ingolang implementation."
+        },
+        "jsProvider": {
+          "type": "string",
+          "description": "Full JS/TS import path (including the target's own class name) for a one/one?/collection/collection? field whose target lives in another module's js output directory - see Provider's own doc comment for the Go equivalent this fills the gap for."
+        },
+        "of": {
+          "items": {
+            "$ref": "#/definitions/EmiEnumInline"
+          },
+          "type": "array",
+          "description": "List of enum values in case of enum type for the field. Check EmiEnumInline for more d"
+        },
+        "complex": {
+          "type": "string",
+          "description": "In case of complex data type"
+        },
+        "matches": {
+          "items": {
+            "$ref": "#/definitions/EmiFieldMatch"
+          },
+          "type": "array",
+          "description": "On the json type this field will generate necessary code to cast it into different dtos"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "For types such as array or object children fields can be defined and will separate struct with name prefixed to parent"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Tags are key/pair values which might be useful in some languages - such as golang. There you can specifiy extra tags for language."
+        },
+        "column": {
+          "type": "string",
+          "description": "SQL fragment (column name or expression) emitted when this column is selected. Defaults to the snake_cased field name when empty; set it to override the column name used in the query."
+        },
+        "selected": {
+          "type": "boolean",
+          "description": "Whether this column is included by default"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "EmiCompile": {
       "properties": {
         "compiler": {
@@ -949,6 +1109,10 @@
           "type": "array",
           "description": "Typed parameter list for the query"
         },
+        "in": {
+          "$ref": "#/definitions/EmiActionBody",
+          "description": "Alternative"
+        },
         "captures": {
           "items": {
             "$ref": "#/definitions/EmiCapture"
@@ -958,7 +1122,29 @@
         },
         "query": {
           "type": "string",
-          "description": "Raw SQL string the query will execute."
+          "description": "Raw SQL string the query will execute. Mutually exclusive with queryName."
+        },
+        "queryName": {
+          "type": "string",
+          "description": "File name to read this query's SQL from at runtime via a caller-supplied fs.FS"
+        },
+        "columns": {
+          "items": {
+            "$ref": "#/definitions/EmiColumn"
+          },
+          "type": "array",
+          "description": "Columns this query can optionally select. Emi generates a picker struct plus a Cols() projection helper from this list."
+        },
+        "predict": {
+          "type": "boolean",
+          "description": "When true and columns is empty"
+        },
+        "filters": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "Fields a caller may reference inside a JSON-Logic filter expression against this query. Defaults to Columns' fields when left empty and Columns is set; compiled through the same struct/class generator as Params"
         }
       },
       "additionalProperties": false,

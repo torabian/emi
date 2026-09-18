@@ -8,6 +8,17 @@ import (
 	"github.com/torabian/emi/lib/core"
 )
 
+// SwiftActionRender templates one non-reactive action's Meta/Response/Req/Res/Client.
+// The generated compute() sets `Accept: application/json` and, whenever it has a body,
+// `Content-Type: application/json` too - the latter was missing entirely until fixed
+// here, confirmed live against a real fireback server: gin's `c.ShouldBind` picks its
+// binding engine from the request's Content-Type (binding.Default(method,
+// contentType)), and falls back to form-urlencoded, not JSON, when it's absent for a
+// POST - so a real, correctly-JSON-encoded request body silently bound to an
+// all-zero-value struct server-side (every field read as "", not merely optional
+// fields), which for CheckClassicPassportAction's `value` surfaced as a misleading
+// "The email address is not valid" (empty string fails the email format regex too) with
+// no hint the client's own JSON was ever received.
 func SwiftActionRender(
 	action core.EmiRpcAction,
 	ctx core.MicroGenContext,
@@ -129,6 +140,9 @@ final class {{ .realms.ActionName }}Client {
         request.httpMethod = meta.method
         request.httpBody = body
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if body != nil {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
 
         headers.forEach {
             request.setValue($0.value, forHTTPHeaderField: $0.key)

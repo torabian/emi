@@ -1,0 +1,461 @@
+# Ten vsql queries against one `users` table, run for real against an
+# in-memory SQLite database in sqlite_test.go. Together they exercise every
+# vsql feature added so far: plain params, array params, columns (selection,
+# nullability, column: overrides, object and complex columns), captures,
+# `in`, and queryName. Every field below carries a description on purpose -
+# this file doubles as a reference for what each one does.
+
+dtos:
+  # Captured whole by searchUsersByFilter (query 4) via `captures:`. Kept as
+  # its own top-level dto (rather than written inline) so it could just as
+  # easily be reused by a hand-written action elsewhere in a real module.
+  - name: userFilterDto
+    description: Optional filter fields for searchUsersByFilter. Both fields
+      are nullable (`?`) - an unset one means "don't filter on this", not
+      "filter for empty".
+    fields:
+      - name: email
+        type: string?
+        description: Exact email match. Unset (not merely empty) means no
+          email filter is applied at all.
+      - name: role
+        type: enum?
+        of:
+          - k: Admin
+          - k: Member
+        description: Exact role match. Unset means no role filter.
+
+  # Referenced by listUsersSorted (query 5) via `in: {dto: ...}`, merged with
+  # that query's own inline `limit`/`offset` params.
+  - name: userSortDto
+    description: Sort direction for listUsersSorted. Kept separate from that
+      query's params to show `in.dto` and inline `params` combining into one
+      field list.
+    fields:
+      - name: orderBy
+        type: enum
+        of:
+          - k: id
+          - k: email
+        description: Column to sort by. Deliberately an enum of the exact
+          lowercase column names (not a display label like "Id") - `of:`
+          constrains it to two known-safe values, so the query can splice
+          {{ .OrderBy }} straight in as a raw SQL identifier (never quoted
+          like a value) without risking injection through this field.
+
+vsqls:
+  # ────────────────────────────────────────────────────────────────────
+  # 1. Pure DDL - no params, no columns. The simplest possible vsql: just a
+  #    name and a query, proving Emi passes hand-written SQL through as-is
+  #    even when there is nothing typed about it at all.
+  # ────────────────────────────────────────────────────────────────────
+  - name: createSchema
+    description: Creates the users table every other query in this file
+      operates on. Has neither params nor columns - there is nothing for a
+      caller to vary, so Emi generates only PrepareCreateSchemaVsql() with no
+      arguments at all beyond the (query, args) return.
+    query: |
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        first_name TEXT,
+        last_name TEXT,
+        user_role TEXT,
+        is_active INTEGER,
+        balance_cents INTEGER,
+        rating REAL,
+        street TEXT,
+        city TEXT,
+        money_amount_cents INTEGER,
+        money_currency TEXT
+      );
+
+  # ────────────────────────────────────────────────────────────────────
+  # 2. Single-row INSERT. Plain scalar params (including one nullable
+  #    string) plus a RETURNING projection through columns - one of which
+  #    is selected by default under a different SQL name than its field
+  #    name (role -> user_role).
+  # ────────────────────────────────────────────────────────────────────
+  - name: insertUser
+    description: Inserts one user and returns a caller-chosen projection of
+      the new row via RETURNING.
+    params:
+      - name: email
+        type: string
+        description: Required - every user needs one.
+      - name: firstName
+        type: string
+        description: Required display name part.
+      - name: lastName
+        type: string?
+        description: Optional - some users only give a first name. Nullable
+          (`?`) so the query can tell "not provided" apart from "provided as
+          empty string" via {{ if .LastName.IsSet }}.
+      - name: role
+        type: enum
+        of:
+          - k: Admin
+          - k: Member
+        description: Required account role, Admin or Member and nothing else
+          - "of:" is what makes that a compile-time-checked Go type instead
+          of a bare string.
+      - name: isActive
+        type: bool
+        description: Whether the account starts enabled.
+    columns:
+      - name: id
+        type: int64
+        description: Primary key of the new row. Selected by default.
+        selected: true
+      - name: email
+        type: string
+        description: Echoes the email that was just inserted. Selected by
+          default.
+        selected: true
+      - name: role
+        type: enum
+        of:
+          - k: Admin
+          - k: Member
+        description: Selected by default. The real column is user_role, not
+          role - `column:` overrides the default snake_cased-Name
+          projection for exactly this kind of field/column name mismatch.
+        selected: true
+        column: user_role
+      - name: isActive
+        type: bool
+        description: Off by default - most callers don't need it echoed
+          back. Because it defaults unselected, Emi's preprocessing forces
+          this field to a nullable type in the generated row DTO
+          (emigo.Nullable[bool]) even though it's declared as a plain bool
+          here - see nullifyUnselectedColumns.
+        selected: false
+        column: is_active
+    query: |
+      INSERT INTO users (email, first_name, last_name, user_role, is_active)
+      VALUES (
+        {{ sql .Email }},
+        {{ sql .FirstName }},
+        {{ if .LastName.IsSet }}{{ sql .LastName }}{{ else }}NULL{{ end }},
+        {{ sql .Role }},
+        {{ sql .IsActive }}
+      )
+      RETURNING {{ .Columns.Cols }};
+
+  # ────────────────────────────────────────────────────────────────────
+  # 3. Batch INSERT via an array param, RETURNING through a complex column
+  #    (Money) that spans two physical SQL columns under one Selected
+  #    toggle.
+  # ────────────────────────────────────────────────────────────────────
+  - name: insertUsersBatch
+    description: Inserts many users in one round trip. `users` is an array
+      param - the query loops over it with a plain {{ range }}, the same
+      pattern as every array param in this repo's examples.
+    params:
+      - name: users
+        type: array
+        description: One entry per user row to insert.
+        fields:
+          - name: email
+            type: string
+            description: Required per entry, same as insertUser's.
+          - name: firstName
+            type: string
+            description: Required per entry.
+          - name: lastName
+            type: string
+            description: Required here (unlike insertUser) - kept
+              non-nullable on purpose to show both variants exist side by
+              side across these ten queries.
+          - name: moneyAmountCents
+            type: int64
+            description: Opening balance, in integer cents (no float
+              rounding surprises).
+          - name: moneyCurrency
+            type: string
+            description: ISO 4217 currency code for moneyAmountCents, e.g.
+              "USD".
+    columns:
+      - name: id
+        type: int64
+        description: Selected by default.
+        selected: true
+      - name: email
+        type: string
+        description: Selected by default.
+        selected: true
+      - name: money
+        type: complex
+        complex: Money
+        description: Off by default. Money is a consumer-owned Go type (see
+          sdkgen/money.go) backed by two physical columns
+          (money_amount_cents, money_currency) - `column:` lists both under
+          this one Selected toggle, and Cols() splices them in verbatim.
+          `complex` has no wire-level nullability of its own, so being off
+          by default only flips the type to `complex?`, a no-op for Go -
+          Money.SQLValue is what decides how an absent amount would render,
+          not this field's nullability.
+        selected: false
+        column: "money_amount_cents, money_currency"
+    query: |
+      INSERT INTO users (email, first_name, last_name, money_amount_cents, money_currency)
+      VALUES
+      {{- range $i, $u := .Users.Items }}{{ if $i }},{{ end }}
+        ({{ sql $u.Email }}, {{ sql $u.FirstName }}, {{ sql $u.LastName }}, {{ sql $u.MoneyAmountCents }}, {{ sql $u.MoneyCurrency }})
+      {{- end }}
+      RETURNING {{ .Columns.Cols }};
+
+  # ────────────────────────────────────────────────────────────────────
+  # 4. SELECT with optional filters, sourced entirely from an existing dto
+  #    via `captures:` instead of inline `params:`.
+  # ────────────────────────────────────────────────────────────────────
+  - name: searchUsersByFilter
+    description: Looks up users by an optional email and/or role filter.
+      Every param comes from userFilterDto via captures rather than being
+      declared inline - by the time codegen runs, Preprocess has already
+      flattened captures' resolved fields into Params (see
+      lib/core/preprocess.go's resolveCaptures), so the generated
+      SearchUsersByFilterVsqlParams looks exactly like it would have if
+      email/role had been written directly under `params:` here.
+    captures:
+      - dto: userFilterDto
+        description: Pulls in both of userFilterDto's fields unchanged - no
+          include/exclude needed since this query wants all of them.
+    query: |
+      SELECT id, email FROM users WHERE 1 = 1
+      {{ if .Email.IsSet }} AND email = {{ sql .Email }}{{ end }}
+      {{ if .Role.IsSet }} AND user_role = {{ sql .Role }}{{ end }};
+
+  # ────────────────────────────────────────────────────────────────────
+  # 5. SELECT with pagination, input split across `in` (an existing dto) and
+  #    inline `params` - both merged into one field list.
+  # ────────────────────────────────────────────────────────────────────
+  - name: listUsersSorted
+    description: Lists users sorted by a caller-chosen column, paginated.
+      orderBy comes from `in.dto` (userSortDto); limit/offset are declared
+      inline under `params:`. Preprocess merges the two into one Params
+      list - Params wins on a name collision, though none occurs here since
+      the field names don't overlap.
+    in:
+      dto: userSortDto
+    params:
+      - name: limit
+        type: int
+        description: Max rows to return.
+      - name: offset
+        type: int
+        description: Rows to skip before the first one returned.
+    query: |
+      SELECT id, email, first_name, last_name FROM users
+      ORDER BY {{ .OrderBy }}
+      LIMIT {{ .Limit }} OFFSET {{ .Offset }};
+
+  # ────────────────────────────────────────────────────────────────────
+  # 6. SELECT by id with a wide columns list: covers every nullability case
+  #    (selected vs. not) plus an object column built from a SQL-side JSON
+  #    aggregate over two physical columns.
+  # ────────────────────────────────────────────────────────────────────
+  - name: selectUserById
+    description: Fetches one user row with a fully caller-controlled
+      projection - the widest columns list of these ten queries, on purpose,
+      to cover every nullability case in one place.
+    params:
+      - name: id
+        type: int64
+        description: Row to fetch. Always required - there's no picker
+          toggle for the WHERE clause, only for what comes back.
+    columns:
+      - name: id
+        type: int64
+        description: Selected by default - stays a plain int64 in the row DTO.
+        selected: true
+      - name: email
+        type: string
+        description: Selected by default - stays a plain string.
+        selected: true
+      - name: role
+        type: enum
+        of:
+          - k: Admin
+          - k: Member
+        description: Selected by default - stays a plain string (enums have
+          no separate Go type). Column name overridden to user_role.
+        selected: true
+        column: user_role
+      - name: isActive
+        type: bool
+        description: Off by default - becomes emigo.Nullable[bool] in the
+          row DTO, distinguishing "not fetched" from "fetched, false".
+        selected: false
+        column: is_active
+      - name: balanceCents
+        type: int64
+        description: Off by default - becomes emigo.Nullable[int64].
+        selected: false
+      - name: rating
+        type: float64
+        description: Off by default - becomes emigo.Nullable[float64].
+        selected: false
+      - name: address
+        type: object
+        description: Off by default - becomes
+          emigo.Nullable[SelectUserByIdVsqlRowAddress], a real nested struct,
+          not two loose strings. The `column:` here isn't a plain column
+          name at all - it's a json_object(...) SQL expression aggregating
+          street+city into one JSON text value, which the caller then
+          json.Unmarshal's into that struct after scanning. Demonstrates
+          that `column:` accepts any SQL expression, not just identifiers.
+        selected: false
+        column: "json_object('street', street, 'city', city)"
+        fields:
+          - name: street
+            type: string
+            description: Street address line.
+          - name: city
+            type: string
+            description: City name.
+    query: |
+      SELECT {{ .Columns.Cols }} FROM users WHERE id = {{ .Id }};
+
+  # ────────────────────────────────────────────────────────────────────
+  # 7. UPDATE that reuses the Columns/Selected picker for a completely
+  #    different purpose than SELECT/RETURNING projection: gating which
+  #    optional fields get applied to a partial UPDATE.
+  # ────────────────────────────────────────────────────────────────────
+  - name: updateUserPartial
+    description: Patches a user row - only the fields the caller marks
+      Selected are actually changed; every other column keeps its existing
+      value via COALESCE. Columns isn't only for SELECT/RETURNING
+      projections - here Selected means "apply this SET clause" instead of
+      "include this in the result", the same generated picker shape doing a
+      different job. RETURNING below is hand-written rather than
+      {{ .Columns.Cols }} for exactly that reason - Columns already means
+      something else in this query.
+    params:
+      - name: id
+        type: int64
+        description: Row to update. Always applied - there's no picker
+          toggle for the WHERE clause.
+      - name: email
+        type: string?
+        description: New email, or unset to leave it unchanged.
+      - name: firstName
+        type: string?
+        description: New first name, or unset to leave it unchanged.
+      - name: lastName
+        type: string?
+        description: New last name, or unset to leave it unchanged.
+      - name: balanceCents
+        type: int64?
+        description: New balance, or unset to leave it unchanged.
+    columns:
+      - name: email
+        type: string
+        description: Set true exactly when params.Email actually carries a
+          value the caller wants applied - the query trusts this flag rather
+          than re-checking Email.IsSet itself.
+        selected: false
+      - name: firstName
+        type: string
+        description: Same convention as email, for firstName.
+        selected: false
+        column: first_name
+      - name: lastName
+        type: string
+        description: Same convention as email, for lastName.
+        selected: false
+        column: last_name
+      - name: balanceCents
+        type: int64
+        description: Same convention as email, for balanceCents.
+        selected: false
+        column: balance_cents
+    query: |
+      UPDATE users SET
+        email = COALESCE({{ if .Columns.Email.Selected }}{{ sql .Email }}{{ else }}NULL{{ end }}, email),
+        first_name = COALESCE({{ if .Columns.FirstName.Selected }}{{ sql .FirstName }}{{ else }}NULL{{ end }}, first_name),
+        last_name = COALESCE({{ if .Columns.LastName.Selected }}{{ sql .LastName }}{{ else }}NULL{{ end }}, last_name),
+        balance_cents = COALESCE({{ if .Columns.BalanceCents.Selected }}{{ sql .BalanceCents }}{{ else }}NULL{{ end }}, balance_cents)
+      WHERE id = {{ .Id }}
+      RETURNING id, email, first_name, last_name, balance_cents;
+
+  # ────────────────────────────────────────────────────────────────────
+  # 8. DELETE with a RETURNING projection - proof columns work the same way
+  #    on a DELETE as on a SELECT or INSERT.
+  # ────────────────────────────────────────────────────────────────────
+  - name: deleteUserById
+    description: Deletes one user row and returns a projection of what was
+      deleted, via columns/RETURNING exactly like insertUser's.
+    params:
+      - name: id
+        type: int64
+        description: Row to delete.
+    columns:
+      - name: id
+        type: int64
+        description: Selected by default.
+        selected: true
+      - name: email
+        type: string
+        description: Selected by default - lets the caller log/confirm which
+          address was removed without a separate SELECT first.
+        selected: true
+    query: |
+      DELETE FROM users WHERE id = {{ .Id }} RETURNING {{ .Columns.Cols }};
+
+  # ────────────────────────────────────────────────────────────────────
+  # 9. Scalar aggregate with one optional filter param and no columns at
+  #    all - the params counterpart to createSchema's "no columns" case.
+  # ────────────────────────────────────────────────────────────────────
+  - name: countUsersByRole
+    description: Counts users, optionally restricted to one role. No columns
+      section - the result shape here is just the literal "total" the query
+      selects, not a caller-controlled projection.
+    params:
+      - name: role
+        type: enum?
+        of:
+          - k: Admin
+          - k: Member
+        description: When set, only rows with this role are counted; when
+          unset, every row is counted.
+    query: |
+      SELECT count(*) as total FROM users WHERE 1 = 1
+      {{ if .Role.IsSet }} AND user_role = {{ sql .Role }}{{ end }};
+
+  # ────────────────────────────────────────────────────────────────────
+  # 10. Paginated SELECT whose SQL lives in its own .sql file, read via
+  #     queryName instead of an inline `query:` string.
+  # ────────────────────────────────────────────────────────────────────
+  - name: selectUsersPaged
+    description: Lists users with a caller-controlled projection, page by
+      page. Uses queryName instead of query - the SQL lives in
+      sqlfiles/select_users_paged.sql as a real, syntax-highlightable .sql
+      file rather than a YAML string; PrepareSelectUsersPagedVsql takes an
+      fs.FS and reads it from there at runtime (in this example, an
+      embed.FS - see sqlfiles/embed.go).
+    queryName: select_users_paged.sql
+    params:
+      - name: limit
+        type: int
+        description: Max rows per page.
+      - name: offset
+        type: int
+        description: Rows to skip before the first one on this page.
+    columns:
+      - name: id
+        type: int64
+        description: Selected by default.
+        selected: true
+      - name: email
+        type: string
+        description: Selected by default.
+        selected: true
+      - name: role
+        type: enum
+        of:
+          - k: Admin
+          - k: Member
+        description: Off by default. Column name overridden to user_role.
+        selected: false
+        column: user_role

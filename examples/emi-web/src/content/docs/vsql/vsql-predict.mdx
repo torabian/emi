@@ -1,0 +1,107 @@
+---
+title: "Predict: Detecting Columns from SQL"
+sidebar:
+  order: 3
+---
+
+Setting `predict: true` populates `columns` automatically at preprocessing time by parsing `query` (or the file named
+by `queryName`) as a plain SQL `SELECT` and detecting its projected columns — the exact column-detection mechanism
+[Query Predict](/emi/query-predict/query-predict-intro/) has always used, ported into a standalone `lib/sqlpredict`
+package (no dependency on the rest of Emi's core) so vsql can use it without Query Predict needing to stick around.
+
+It is a no-op whenever `columns` is already non-empty — a hand-written list always wins, never silently overwritten.
+
+```yaml
+vsqls:
+  - name: listActiveUsers
+    predict: true
+    query: |
+      SELECT id, email, field(count(o.order_id), 'int64', 'totalOrders', true)
+      FROM users u LEFT JOIN orders o ON u.id = o.user_id
+      WHERE u.id > {{ .MinId }}
+      GROUP BY u.id;
+```
+
+`id`/`email` come out as plain `string` columns (the default when no type hint is given); the
+`field(expr, 'type', 'goName', optional)` marker — identical syntax to Query Predict's own — names `totalOrders`
+explicitly, types it `int64`, and its `true` fourth argument makes it optional, which comes out as
+`emigo.Nullable[int64]` in the generated row.
+
+## What it can and can't do
+
+<table>
+  <thead>
+    <tr>
+      <th>Case</th>
+      <th>Behavior</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Only a plain SELECT</td>
+      <td>
+
+        The underlying parser implements MySQL grammar and has no notion of `RETURNING` at all — an
+        `INSERT`/`UPDATE`/`DELETE ... RETURNING` vsql, the shape most examples in this repo actually use, needs
+        `columns` written by hand instead.
+
+      </td>
+    </tr>
+    <tr>
+      <td>Template markup</td>
+      <td>
+
+        Every `{{ ... }}` block is replaced with `NULL` before parsing, so a `WHERE`/`VALUES` clause mixing in
+        Go-template syntax still parses — only the `SELECT` list itself has to be real SQL.
+
+      </td>
+    </tr>
+    <tr>
+      <td>A wildcard select</td>
+      <td>
+
+        `SELECT *` (bare, table-qualified like `u.*`, or mixed with named columns) leaves `columns` empty and
+        returns **no error** — what `*` expands to depends on the live schema, which this project's SQL philosophy
+        never inspects. The vsql simply ends up with no row DTO and no column picker, exactly as if `predict` had
+        never been set.
+
+      </td>
+    </tr>
+    <tr>
+      <td>Joins with same-named columns</td>
+      <td>
+
+        `u.id`/`o.id` keep their table qualifier in both the detected Go name (`UId`/`OId`) and the re-projected SQL
+        (`u.id`, not a bare, ambiguous `id`) — an explicit `AS alias` is honored the same way, keeping the full
+        `expr AS alias` text rather than collapsing to the bare alias.
+
+      </td>
+    </tr>
+    <tr>
+      <td>Genuine collisions</td>
+      <td>
+        If two columns still resolve to the same Go name after that, preprocessing fails with a clear error rather
+        than generating a struct with a duplicate field.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+## A join example
+
+```yaml
+vsqls:
+  - name: userOrderTotals
+    predict: true
+    query: |
+      SELECT u.id, o.id AS order_id, u.email, o.amount_cents
+      FROM users u
+      JOIN orders o ON o.user_id = u.id;
+```
+
+This generates a row with four distinct fields — `UId`, `OrderId`, `UEmail`, `OAmountCents` — instead of colliding
+`u.id` and `o.id` into one duplicate `Id` field (the actual bug the original, unqualified column-detection logic had
+before this fix). `Cols()` reprojects `u.id, o.id AS order_id, u.email, o.amount_cents` — every table qualifier and
+alias preserved, so the regenerated SQL stays unambiguous against the same join.
+
+`examples/vsql-sqlite` runs this exact query against a real, in-memory SQLite database with both tables populated.

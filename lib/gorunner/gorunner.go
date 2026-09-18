@@ -450,6 +450,7 @@ func BuildCommands() []*cli.Command {
 		&CompileCommand,
 		&TagsCommand,
 		&DiffEmiYamlCommand,
+		&VsqlDebugCommand,
 	}
 	commands = append(commands,
 		cliCommandFromTextActions(js.GetJsPublicActions().TextActions)...)

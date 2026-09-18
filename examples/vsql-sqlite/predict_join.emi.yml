@@ -1,0 +1,19 @@
+# Separate from queries.emi.yml on purpose: this file exists only to prove
+# predict:true handles a join across two tables that share a column name
+# (id) without generating a broken/ambiguous result - see
+# predict_join_test.go. lib/sqlpredict keeps each column's table qualifier
+# (u.id vs o.id) specifically so this doesn't collide into one Go field or
+# one ambiguous "id" in the regenerated SQL.
+vsqls:
+  - name: userOrderTotals
+    description: Joins users to orders and predicts its row shape instead of
+      declaring columns by hand. u.id and o.id would both naively become
+      "Id" if the join's table qualifiers were discarded (the actual bug
+      lib/querypredict itself has always had) - order_id's explicit alias
+      shows the other way to disambiguate, on top of qualifier-preservation
+      handling the unaliased case (u.id/u.email) on its own.
+    predict: true
+    query: |
+      SELECT u.id, o.id AS order_id, u.email, o.amount_cents
+      FROM users u
+      JOIN orders o ON o.user_id = u.id;

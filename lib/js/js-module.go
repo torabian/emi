@@ -220,6 +220,18 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		dtos = append(dtos, actionRendered)
 	}
 
+	// A vsql compiles into up to two more classes (Params always, Row when
+	// Columns is declared) through that same dtos slice/file-writing loop
+	// below - see JsVsqlGenerate's own doc comment for why the picker/
+	// Prepare/execution machinery stays Go-only.
+	for _, vsql := range module.Vsqls {
+		vsqlChunks, err := JsVsqlGenerate(vsql, ctx, complexes)
+		if err != nil {
+			return nil, err
+		}
+		dtos = append(dtos, vsqlChunks...)
+	}
+
 	// Those actions are valid ts or js files, including some helpers for react, fetch
 	// and couple of more, directly can be written on the disk
 	for _, action := range actionsRendered {

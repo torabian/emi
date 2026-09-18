@@ -53,9 +53,19 @@ type commonClassContext struct {
 func renderClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx commonClassContext) []renderedClass {
 
 	GoDoc := NewGoDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
-	signature := fmt.Sprintf("@Serializable\r\ndata class %v", prefixName)
 
 	fieldsRendered := renderFieldsShallow(fields, treeLocation, fieldDepth, ctx, goctx)
+
+	// Kotlin data classes require at least one constructor parameter - a dto with zero
+	// fields (e.g. OkayResponseDto, a bodyless marker response used as `out: {}`)
+	// rendered as `data class X ()`, which doesn't compile. Falls back to a plain
+	// class in that case; every other dto still gets the usual `data class` (value
+	// equality/copy()/componentN() on an empty class would be meaningless anyway).
+	classKeyword := "data class"
+	if len(fieldsRendered) == 0 {
+		classKeyword = "class"
+	}
+	signature := fmt.Sprintf("@Serializable\r\n%s %v", classKeyword, prefixName)
 
 	currentClass := renderedClass{
 		ClassName:     core.ToUpper(className),
@@ -140,13 +150,17 @@ func kotlinCollectTargetDeps(fields []*core.EmiField, currentName string) []core
 			}
 
 			if field.Target != "" && field.Target != currentName {
+				target := kotlinResolveTarget(field.Target, currentName)
+				if target == currentName {
+					continue
+				}
 				if field.Module != "" {
 					deps = append(deps, core.CodeChunkDependency{
-						Location: field.Module + "." + field.Target,
+						Location: field.Module + "." + target,
 					})
 				} else {
 					deps = append(deps, core.CodeChunkDependency{
-						Objects: []string{field.Target},
+						Objects: []string{target},
 					})
 				}
 			}

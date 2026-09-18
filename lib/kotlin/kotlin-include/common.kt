@@ -8,6 +8,16 @@ import kotlinx.serialization.json.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 
+/**
+ * The Json instance every generated action's compute() decodes its response with (see
+ * kotlin-action-render.go/kotlin-action-reactive-render.go) - `coerceInputValues = true`
+ * so a `null` for a non-nullable field (e.g. a Go nil slice/map, serialized as JSON
+ * `null` rather than `[]`/`{}` - see CheckClassicPassportActionRes.flags: `List<String>`
+ * on the Kotlin side, but sent back as `"flags":null` whenever empty) decodes to that
+ * field's own default instead of throwing. The bare top-level `Json` object (used
+ * everywhere else - dto en/decoding, FormState, etc.) intentionally stays strict.
+ */
+val EmiResponseJson: Json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
 @Serializable
 sealed class Maybe<out T> {

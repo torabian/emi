@@ -260,7 +260,7 @@ func renderFormStateClass(b *strings.Builder, fields []*core.EmiField, dtoClassN
 		// (parent + PascalCase(field name)), so the same string that names this
 		// level's dto class is also the parentChain a field at this level resolves
 		// against.
-		computedType := goFieldTypeOnNestedClasses(f, dtoClassName)
+		computedType := goFieldTypeOnNestedClasses(f, dtoClassName, dtoClassName)
 		toDto, fromDto := formStateConversion(f, computedType, name+".value", "dto."+name)
 		plans = append(plans, plan{field: f, name: name, toDto: toDto, fromDto: fromDto})
 	}
