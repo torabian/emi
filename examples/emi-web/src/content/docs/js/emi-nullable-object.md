@@ -37,7 +37,7 @@ fields:
 
 ```ts
 import { MOne } from "./sdk/common/operators";
-import { UncleDto } from "./UncleDto";
+import { UncleDto, type UncleDtoType } from "./UncleDto";
 import { type PartialDeep } from "./sdk/common/fetchx";
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
@@ -275,12 +275,39 @@ export class NullableResponseActionDto {
     }
     /**
      *	Special toJSON override, since the field are private,
-     *	Json stringify won't see them unless we mention it explicitly.
+     *	Json stringify won't see them unless we mention it explicitly. Each
+     *	field goes through #toPlainJSON rather than a bare this.#field: a
+     *	nested dto instance, or an emigo Array/One/Collection wrapper, has its
+     *	own toJSON that JSON.stringify would only reach on a *second* pass -
+     *	calling it here means toJSON()'s own return value is already the same
+     *	plain shape a consumer choosing the exported type instead of this
+     *	class gets, rather than a shallow object still holding class instances.
      **/
-    toJSON() {
+    toJSON(): NullableResponseActionDtoType.MotherType {
       return {
-        firstName: this.#firstName,
-      };
+        firstName: this.#toPlainJSON(this.#firstName),
+      } as NullableResponseActionDtoType.MotherType;
+    }
+    /**
+     * Resolves value into a plain, JSON-serializable value: recurses into
+     * arrays, and - the case JSON.stringify's own recursion would only get to
+     * after this method already returned - calls a nested value's own
+     * toJSON() (a dto instance, or an emigo Array/One/Collection wrapper)
+     * rather than leaving it as-is. A plain value (string, number, a map's
+     * own plain object, ...) is returned unchanged.
+     **/
+    #toPlainJSON(value: unknown): unknown {
+      if (value === null || value === undefined) {
+        return value;
+      }
+      if (Array.isArray(value)) {
+        return value.map((item) => this.#toPlainJSON(item));
+      }
+      const asAny = value as any;
+      if (typeof asAny.toJSON === "function") {
+        return this.#toPlainJSON(asAny.toJSON());
+      }
+      return value;
     }
     toString() {
       return JSON.stringify(this);
@@ -389,12 +416,39 @@ export class NullableResponseActionDto {
     }
     /**
      *	Special toJSON override, since the field are private,
-     *	Json stringify won't see them unless we mention it explicitly.
+     *	Json stringify won't see them unless we mention it explicitly. Each
+     *	field goes through #toPlainJSON rather than a bare this.#field: a
+     *	nested dto instance, or an emigo Array/One/Collection wrapper, has its
+     *	own toJSON that JSON.stringify would only reach on a *second* pass -
+     *	calling it here means toJSON()'s own return value is already the same
+     *	plain shape a consumer choosing the exported type instead of this
+     *	class gets, rather than a shallow object still holding class instances.
      **/
-    toJSON() {
+    toJSON(): NullableResponseActionDtoType.FatherType {
       return {
-        firstName: this.#firstName,
-      };
+        firstName: this.#toPlainJSON(this.#firstName),
+      } as NullableResponseActionDtoType.FatherType;
+    }
+    /**
+     * Resolves value into a plain, JSON-serializable value: recurses into
+     * arrays, and - the case JSON.stringify's own recursion would only get to
+     * after this method already returned - calls a nested value's own
+     * toJSON() (a dto instance, or an emigo Array/One/Collection wrapper)
+     * rather than leaving it as-is. A plain value (string, number, a map's
+     * own plain object, ...) is returned unchanged.
+     **/
+    #toPlainJSON(value: unknown): unknown {
+      if (value === null || value === undefined) {
+        return value;
+      }
+      if (Array.isArray(value)) {
+        return value.map((item) => this.#toPlainJSON(item));
+      }
+      const asAny = value as any;
+      if (typeof asAny.toJSON === "function") {
+        return this.#toPlainJSON(asAny.toJSON());
+      }
+      return value;
     }
     toString() {
       return JSON.stringify(this);
@@ -499,15 +553,42 @@ export class NullableResponseActionDto {
   }
   /**
    *	Special toJSON override, since the field are private,
-   *	Json stringify won't see them unless we mention it explicitly.
+   *	Json stringify won't see them unless we mention it explicitly. Each
+   *	field goes through #toPlainJSON rather than a bare this.#field: a
+   *	nested dto instance, or an emigo Array/One/Collection wrapper, has its
+   *	own toJSON that JSON.stringify would only reach on a *second* pass -
+   *	calling it here means toJSON()'s own return value is already the same
+   *	plain shape a consumer choosing the exported type instead of this
+   *	class gets, rather than a shallow object still holding class instances.
    **/
-  toJSON() {
+  toJSON(): NullableResponseActionDtoType {
     return {
-      mother: this.#mother,
-      father: this.#father,
-      firstUncle: this.#firstUncle,
-      secondUncle: this.#secondUncle,
-    };
+      mother: this.#toPlainJSON(this.#mother),
+      father: this.#toPlainJSON(this.#father),
+      firstUncle: this.#toPlainJSON(this.#firstUncle),
+      secondUncle: this.#toPlainJSON(this.#secondUncle),
+    } as NullableResponseActionDtoType;
+  }
+  /**
+   * Resolves value into a plain, JSON-serializable value: recurses into
+   * arrays, and - the case JSON.stringify's own recursion would only get to
+   * after this method already returned - calls a nested value's own
+   * toJSON() (a dto instance, or an emigo Array/One/Collection wrapper)
+   * rather than leaving it as-is. A plain value (string, number, a map's
+   * own plain object, ...) is returned unchanged.
+   **/
+  #toPlainJSON(value: unknown): unknown {
+    if (value === null || value === undefined) {
+      return value;
+    }
+    if (Array.isArray(value)) {
+      return value.map((item) => this.#toPlainJSON(item));
+    }
+    const asAny = value as any;
+    if (typeof asAny.toJSON === "function") {
+      return this.#toPlainJSON(asAny.toJSON());
+    }
+    return value;
   }
   toString() {
     return JSON.stringify(this);
@@ -573,14 +654,14 @@ export type NullableResponseActionDtoType = {
   father?: NullableResponseActionDtoType.FatherType;
   /**
    * Uncle is a separate dto, therefor we use that entity
-   * @type {UncleDto}
+   * @type {UncleDtoType}
    **/
-  firstUncle: UncleDto;
+  firstUncle: UncleDtoType;
   /**
    * Second uncle is optional
-   * @type {UncleDto}
+   * @type {UncleDtoType}
    **/
-  secondUncle?: UncleDto;
+  secondUncle?: UncleDtoType;
 };
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace NullableResponseActionDtoType {

@@ -162,7 +162,7 @@ func JsActionManifestRealms(
 		deps = append(deps, fields.CodeChunkDependensies...)
 		actionRealms.RequestClass = fields
 	} else if action.HasRequestDto() {
-		actionRealms.RequestClass = castDtoNameToCodeChunk(action.GetRequestDto())
+		actionRealms.RequestClass = castDtoNameToCodeChunk(action.GetRequestDto(), ctx.HasTag(Typescript))
 		deps = append(deps, actionRealms.RequestClass.CodeChunkDependensies...)
 	}
 
@@ -179,7 +179,7 @@ func JsActionManifestRealms(
 		deps = append(deps, fields.CodeChunkDependensies...)
 		actionRealms.ResponseClass = fields
 	} else if action.HasResponseDto() {
-		actionRealms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto())
+		actionRealms.ResponseClass = castDtoNameToCodeChunk(action.GetResponseDto(), ctx.HasTag(Typescript))
 		deps = append(deps, actionRealms.ResponseClass.CodeChunkDependensies...)
 	}
 
@@ -227,7 +227,11 @@ func parseDtoPath(input string) (path string, className string) {
 	return
 }
 
-func castDtoNameToCodeChunk(dtoName string) *core.CodeChunkCompiled {
+// isTypeScript gates the plain-type companion import - see
+// entityTargetToCodeChunk's own doc comment for why plain JS output must
+// never get it (the inline `import { type X }` marker isn't valid grammar
+// there at all, even to a bundler just parsing the file as JavaScript).
+func castDtoNameToCodeChunk(dtoName string, isTypeScript bool) *core.CodeChunkCompiled {
 	names := strings.Split(dtoName, "|")
 
 	chunk := &core.CodeChunkCompiled{
@@ -256,9 +260,24 @@ func castDtoNameToCodeChunk(dtoName string) *core.CodeChunkCompiled {
 	for _, name := range names {
 		directory, className := parseDtoPath(strings.TrimSpace(name))
 
+		objects := []string{className}
+		if isTypeScript {
+			// The class's own plain-type companion (className+"Type", the same
+			// name TOKEN_TYPEDEF_NAME above already assumes exists) - backs that
+			// assumption with a real import, so a one/collection field
+			// referencing this dto (tsTargetTypeName, js-common-object-types.go)
+			// resolves <className>Type instead of a dangling reference. "type "
+			// is the existing inline type-only-import marker (see
+			// CombineImportsJsWorld) - required once a consuming tsconfig turns
+			// on verbatimModuleSyntax, not just cosmetic. Skipped entirely for
+			// plain JS output: that marker isn't valid JavaScript grammar at
+			// all, and there's no plain type to import there anyway.
+			objects = append(objects, "type "+className+"Type")
+		}
+
 		chunk.CodeChunkDependensies = append(chunk.CodeChunkDependensies,
 			core.CodeChunkDependency{
-				Objects:  []string{className},
+				Objects:  objects,
 				Location: directory,
 			},
 		)

@@ -724,40 +724,67 @@ setNullableFloat64FieldWithValue (value: number | null | undefined) {
 	}
 	/**
 	*	Special toJSON override, since the field are private,
-	*	Json stringify won't see them unless we mention it explicitly.
+	*	Json stringify won't see them unless we mention it explicitly. Each
+	*	field goes through #toPlainJSON rather than a bare this.#field: a
+	*	nested dto instance, or an emigo Array/One/Collection wrapper, has its
+	*	own toJSON that JSON.stringify would only reach on a *second* pass -
+	*	calling it here means toJSON()'s own return value is already the same
+	*	plain shape a consumer choosing the exported type instead of this
+	*	class gets, rather than a shallow object still holding class instances.
 	**/
-	toJSON() {
-    	return { 
-				stringField: this.#stringField,
-				stringFieldWithValue: this.#stringFieldWithValue,
-				nullablestringField: this.#nullablestringField,
-				nullablestringFieldWithValue: this.#nullablestringFieldWithValue,
-				boolField: this.#boolField,
-				boolFieldWithValue: this.#boolFieldWithValue,
-				nullableboolField: this.#nullableboolField,
-				nullableboolFieldWithValue: this.#nullableboolFieldWithValue,
-				intField: this.#intField,
-				intFieldWithValue: this.#intFieldWithValue,
-				nullableIntField: this.#nullableIntField,
-				nullableIntFieldWithValue: this.#nullableIntFieldWithValue,
-				int32Field: this.#int32Field,
-				int32FieldWithValue: this.#int32FieldWithValue,
-				nullableInt32Field: this.#nullableInt32Field,
-				nullableInt32FieldWithValue: this.#nullableInt32FieldWithValue,
-				int64Field: this.#int64Field,
-				int64FieldWithValue: this.#int64FieldWithValue,
-				nullableInt64Field: this.#nullableInt64Field,
-				nullableInt64FieldWithValue: this.#nullableInt64FieldWithValue,
-				float32Field: this.#float32Field,
-				float32FieldWithValue: this.#float32FieldWithValue,
-				nullableFloat32Field: this.#nullableFloat32Field,
-				nullableFloat32FieldWithValue: this.#nullableFloat32FieldWithValue,
-				float64Field: this.#float64Field,
-				float64FieldWithValue: this.#float64FieldWithValue,
-				nullableFloat64Field: this.#nullableFloat64Field,
-				nullableFloat64FieldWithValue: this.#nullableFloat64FieldWithValue,
-		};
+	toJSON(): AnonymouseType {
+    	return {
+				stringField: this.#toPlainJSON(this.#stringField),
+				stringFieldWithValue: this.#toPlainJSON(this.#stringFieldWithValue),
+				nullablestringField: this.#toPlainJSON(this.#nullablestringField),
+				nullablestringFieldWithValue: this.#toPlainJSON(this.#nullablestringFieldWithValue),
+				boolField: this.#toPlainJSON(this.#boolField),
+				boolFieldWithValue: this.#toPlainJSON(this.#boolFieldWithValue),
+				nullableboolField: this.#toPlainJSON(this.#nullableboolField),
+				nullableboolFieldWithValue: this.#toPlainJSON(this.#nullableboolFieldWithValue),
+				intField: this.#toPlainJSON(this.#intField),
+				intFieldWithValue: this.#toPlainJSON(this.#intFieldWithValue),
+				nullableIntField: this.#toPlainJSON(this.#nullableIntField),
+				nullableIntFieldWithValue: this.#toPlainJSON(this.#nullableIntFieldWithValue),
+				int32Field: this.#toPlainJSON(this.#int32Field),
+				int32FieldWithValue: this.#toPlainJSON(this.#int32FieldWithValue),
+				nullableInt32Field: this.#toPlainJSON(this.#nullableInt32Field),
+				nullableInt32FieldWithValue: this.#toPlainJSON(this.#nullableInt32FieldWithValue),
+				int64Field: this.#toPlainJSON(this.#int64Field),
+				int64FieldWithValue: this.#toPlainJSON(this.#int64FieldWithValue),
+				nullableInt64Field: this.#toPlainJSON(this.#nullableInt64Field),
+				nullableInt64FieldWithValue: this.#toPlainJSON(this.#nullableInt64FieldWithValue),
+				float32Field: this.#toPlainJSON(this.#float32Field),
+				float32FieldWithValue: this.#toPlainJSON(this.#float32FieldWithValue),
+				nullableFloat32Field: this.#toPlainJSON(this.#nullableFloat32Field),
+				nullableFloat32FieldWithValue: this.#toPlainJSON(this.#nullableFloat32FieldWithValue),
+				float64Field: this.#toPlainJSON(this.#float64Field),
+				float64FieldWithValue: this.#toPlainJSON(this.#float64FieldWithValue),
+				nullableFloat64Field: this.#toPlainJSON(this.#nullableFloat64Field),
+				nullableFloat64FieldWithValue: this.#toPlainJSON(this.#nullableFloat64FieldWithValue),
+		} as AnonymouseType;
   	}
+	/**
+	* Resolves value into a plain, JSON-serializable value: recurses into
+	* arrays, and - the case JSON.stringify's own recursion would only get to
+	* after this method already returned - calls a nested value's own
+	* toJSON() (a dto instance, or an emigo Array/One/Collection wrapper)
+	* rather than leaving it as-is. A plain value (string, number, a map's
+	* own plain object, ...) is returned unchanged.
+	**/
+	#toPlainJSON(value: unknown): unknown {
+		if (value === null || value === undefined) {
+			return value;
+		}
+		if (Array.isArray(value)) {
+			return value.map((item) => this.#toPlainJSON(item));
+		}
+		const asAny = value as any;
+		if (typeof asAny.toJSON === "function") {
+			return this.#toPlainJSON(asAny.toJSON());
+		}
+		return value;
+	}
 	toString() {
 		return JSON.stringify(this);
 	}

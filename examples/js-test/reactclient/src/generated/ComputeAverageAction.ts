@@ -1,5 +1,5 @@
-import { AverageDto } from "./AverageDto";
-import { ComputeDto } from "./ComputeDto";
+import { AverageDto, type AverageDtoType } from "./AverageDto";
+import { ComputeDto, type ComputeDtoType } from "./ComputeDto";
 import { buildUrl } from "./sdk/common/buildUrl";
 import {
   fetchx,

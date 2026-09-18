@@ -39,16 +39,32 @@ func (x fieldVariable) Compile() string {
 		sequence = append(sequence, x.GoDoc)
 	}
 
-	// defaultStatement := ""
-	// if x.DefaultValue != "" {
-	// 	defaultStatement = " = " + x.DefaultValue
-	// }
+	// A defaulted field has to render as `var`, not `let`: Swift drops a `let`
+	// property with an initial-value default from Codable's synthesized decoding
+	// *and* from the memberwise initializer entirely once it has an initializer
+	// expression - confirmed empirically (Xcode 27 / Swift 6.4): `Foo(a: "x")` fails
+	// to compile ("argument passed to call that takes no arguments") for
+	// `struct Foo: Codable { let a: String = "" }`, and the compiler even warns
+	// "immutable property will not be decoded". `var` keeps both working. Note this
+	// default does NOT, by itself, make a non-Optional field tolerate a missing JSON
+	// key - Swift's synthesis only ever falls back to a property's default via
+	// `decodeIfPresent` for a genuinely Optional (`T?`) property; forcing that
+	// Optional-ness for a field the server can legitimately omit is
+	// alwaysOptionalOnTheWire's job (swift-type-resolver.go), not this default
+	// value's.
+	defaultStatement := ""
+	keyword := "let"
+	if x.DefaultValue != "" {
+		defaultStatement = " = " + x.DefaultValue
+		keyword = "var"
+	}
 
 	sequence = append(sequence, fmt.Sprintf(
-		`let %v: %v`,
+		`%v %v: %v%v`,
+		keyword,
 		core.ToLower(x.Name),
-
 		x.ComputedType,
+		defaultStatement,
 	))
 
 	return strings.Join(sequence, " ")
@@ -59,12 +75,25 @@ func renderField(
 	parentChain string,
 	fieldDepth string,
 	ctx core.MicroGenContext,
+	rootClassName string,
 ) renderedField {
-	computedType := goFieldTypeOnNestedClasses(field, parentChain)
+	computedType := goFieldTypeOnNestedClasses(field, parentChain, rootClassName)
 	isFieldNullable := core.IsNullable(string(field.Type))
 
 	GoDoc := NewDocC("  ")
 	GoDoc.Add(field.Description)
+
+	// alwaysOptionalOnTheWire (see swift-type-resolver.go) can make computedType
+	// Optional even when field.Type itself isn't nullable (json:"-", or an
+	// array/slice/collection/map) - SwiftSafeDefaultValue only looks at field.Type,
+	// so without this override a forced-Optional field would get a bare, non-nil
+	// default (e.g. `var password: String? = ""` - harmless, since decode leniency
+	// only ever came from the Optional-ness, not the literal default, but "unset"
+	// should still read as nil, not an arbitrary empty value).
+	defaultValue := SwiftSafeDefaultValue(field)
+	if !isFieldNullable && alwaysOptionalOnTheWire(field) {
+		defaultValue = "nil"
+	}
 
 	privateFieldToken := fieldVariable{
 		Name:         field.PublicName(),
@@ -73,7 +102,7 @@ func renderField(
 		Type:         string(field.Type),
 		ComputedType: computedType,
 		IsNumeric:    core.IsNumericDataType(string(field.Type)),
-		DefaultValue: KotlinSafeDefaultValue(field),
+		DefaultValue: defaultValue,
 	}
 
 	if field.Complex != "" {
@@ -106,7 +135,7 @@ func renderFieldsShallow(
 	out := make([]renderedField, 0, len(fields))
 	for _, f := range fields {
 		if f != nil {
-			out = append(out, renderField(f, parentChain, fieldDepth, ctx))
+			out = append(out, renderField(f, parentChain, fieldDepth, ctx, goctx.RootClassName))
 		}
 	}
 	return out

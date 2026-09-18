@@ -1,15 +1,25 @@
-# Compiles docs/latex/*.tex (the Emi Compiler documentation) into a
-# single docs/latex/main.pdf. Requires tectonic on PATH
-# (`brew install tectonic` or see https://tectonic-typesetting.github.io).
-# Tectonic fetches any needed LaTeX packages on demand, so no separate
-# TeX distribution or package install is required. Re-run after editing
-# any file under docs/latex/sections/.
-docs-pdf:
+# Compiles docs/latex/*.tex (the Emi Compiler documentation) into
+# docs/latex/main.pdf (light) and docs/latex/dark.pdf (dark). Requires
+# tectonic on PATH (`brew install tectonic` or see
+# https://tectonic-typesetting.github.io). Tectonic fetches any needed
+# LaTeX packages on demand, so no separate TeX distribution or package
+# install is required.
+# Both palettes share one body (docs/latex/main-body.tex); main.tex and
+# dark.tex are thin wrappers that pick light/dark before including it.
+# Re-run after editing any file under docs/latex/sections/ or main-body.tex.
+docs-pdf: docs-pdf-light docs-pdf-dark
+
+# Light-palette PDF only.
+docs-pdf-light:
 	cd docs/latex && tectonic main.tex
 
-# Removes LaTeX build artifacts (keeps main.pdf).
+# Dark-palette PDF only.
+docs-pdf-dark:
+	cd docs/latex && tectonic dark.tex
+
+# Removes LaTeX build artifacts (keeps main.pdf / dark.pdf).
 docs-pdf-clean:
-	cd docs/latex && rm -f main.aux main.log main.out main.toc
+	cd docs/latex && rm -f main.aux main.log main.out main.toc dark.aux dark.log dark.out dark.toc
 
 build:
 	make build-js-sdks && \

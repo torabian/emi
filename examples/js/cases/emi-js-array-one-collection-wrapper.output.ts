@@ -1,5 +1,5 @@
 import { MArray, MCollection, MOne } from './sdk/common/operators';
-import { User } from './User';
+import { User, type UserType } from './User';
 import { type PartialDeep } from './sdk/common/fetchx';
 import { withPrefix } from './sdk/common/withPrefix';
 /**
@@ -283,12 +283,39 @@ static ArrayField = class ArrayField {
 	}
 	/**
 	*	Special toJSON override, since the field are private,
-	*	Json stringify won't see them unless we mention it explicitly.
+	*	Json stringify won't see them unless we mention it explicitly. Each
+	*	field goes through #toPlainJSON rather than a bare this.#field: a
+	*	nested dto instance, or an emigo Array/One/Collection wrapper, has its
+	*	own toJSON that JSON.stringify would only reach on a *second* pass -
+	*	calling it here means toJSON()'s own return value is already the same
+	*	plain shape a consumer choosing the exported type instead of this
+	*	class gets, rather than a shallow object still holding class instances.
 	**/
-	toJSON() {
-    	return { 
-		};
+	toJSON(): AnonymouseType.ArrayFieldType {
+    	return {
+		} as AnonymouseType.ArrayFieldType;
   	}
+	/**
+	* Resolves value into a plain, JSON-serializable value: recurses into
+	* arrays, and - the case JSON.stringify's own recursion would only get to
+	* after this method already returned - calls a nested value's own
+	* toJSON() (a dto instance, or an emigo Array/One/Collection wrapper)
+	* rather than leaving it as-is. A plain value (string, number, a map's
+	* own plain object, ...) is returned unchanged.
+	**/
+	#toPlainJSON(value: unknown): unknown {
+		if (value === null || value === undefined) {
+			return value;
+		}
+		if (Array.isArray(value)) {
+			return value.map((item) => this.#toPlainJSON(item));
+		}
+		const asAny = value as any;
+		if (typeof asAny.toJSON === "function") {
+			return this.#toPlainJSON(asAny.toJSON());
+		}
+		return value;
+	}
 	toString() {
 		return JSON.stringify(this);
 	}
@@ -371,18 +398,45 @@ static ArrayField = class ArrayField {
 	}
 	/**
 	*	Special toJSON override, since the field are private,
-	*	Json stringify won't see them unless we mention it explicitly.
+	*	Json stringify won't see them unless we mention it explicitly. Each
+	*	field goes through #toPlainJSON rather than a bare this.#field: a
+	*	nested dto instance, or an emigo Array/One/Collection wrapper, has its
+	*	own toJSON that JSON.stringify would only reach on a *second* pass -
+	*	calling it here means toJSON()'s own return value is already the same
+	*	plain shape a consumer choosing the exported type instead of this
+	*	class gets, rather than a shallow object still holding class instances.
 	**/
-	toJSON() {
-    	return { 
-				arrayField: this.#arrayField,
-				arrayNullableField: this.#arrayNullableField,
-				collectionField: this.#collectionField,
-				collectionNullableField: this.#collectionNullableField,
-				oneField: this.#oneField,
-				oneNullableField: this.#oneNullableField,
-		};
+	toJSON(): AnonymouseType {
+    	return {
+				arrayField: this.#toPlainJSON(this.#arrayField),
+				arrayNullableField: this.#toPlainJSON(this.#arrayNullableField),
+				collectionField: this.#toPlainJSON(this.#collectionField),
+				collectionNullableField: this.#toPlainJSON(this.#collectionNullableField),
+				oneField: this.#toPlainJSON(this.#oneField),
+				oneNullableField: this.#toPlainJSON(this.#oneNullableField),
+		} as AnonymouseType;
   	}
+	/**
+	* Resolves value into a plain, JSON-serializable value: recurses into
+	* arrays, and - the case JSON.stringify's own recursion would only get to
+	* after this method already returned - calls a nested value's own
+	* toJSON() (a dto instance, or an emigo Array/One/Collection wrapper)
+	* rather than leaving it as-is. A plain value (string, number, a map's
+	* own plain object, ...) is returned unchanged.
+	**/
+	#toPlainJSON(value: unknown): unknown {
+		if (value === null || value === undefined) {
+			return value;
+		}
+		if (Array.isArray(value)) {
+			return value.map((item) => this.#toPlainJSON(item));
+		}
+		const asAny = value as any;
+		if (typeof asAny.toJSON === "function") {
+			return this.#toPlainJSON(asAny.toJSON());
+		}
+		return value;
+	}
 	toString() {
 		return JSON.stringify(this);
 	}
@@ -462,24 +516,24 @@ export abstract class AnonymouseFactory {
  arrayNullableField : any;
 			/**
   * collection field, non-nullable
-  * @type {User[]}
+  * @type {UserType[]}
   **/
- collectionField : User[];
+ collectionField : UserType[];
 			/**
   * collectionNullable field, non-nullable
-  * @type {User[]}
+  * @type {UserType[]}
   **/
- collectionNullableField ?: User[];
+ collectionNullableField ?: UserType[];
 			/**
   * one field, non-nullable
-  * @type {User}
+  * @type {UserType}
   **/
- oneField : User;
+ oneField : UserType;
 			/**
   * oneNullable field, non-nullable
-  * @type {User}
+  * @type {UserType}
   **/
- oneNullableField ?: User;
+ oneNullableField ?: UserType;
 	}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace AnonymouseType {

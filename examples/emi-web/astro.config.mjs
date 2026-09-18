@@ -58,6 +58,10 @@ export default defineConfig({
           items: [{ autogenerate: { directory: "kotlin" } }],
         },
         {
+          label: "Vsql",
+          items: [{ autogenerate: { directory: "vsql" } }],
+        },
+        {
           label: "Query Predict",
           items: [{ autogenerate: { directory: "query-predict" } }],
         },

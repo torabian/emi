@@ -1,0 +1,153 @@
+---
+title: "Vsql: Hand-Written SQL with Typed Bindings"
+sidebar:
+  order: 1
+---
+
+A `vsql` entry pairs a hand-written SQL query with a typed parameter shape — the same governing idea as
+[Query Predict](/emi/query-predict/query-predict-intro/), reworked as a first-class part of the module instead of a
+separate command-line tool, and extended well past what Query Predict ever did: array/object/complex parameters, an
+optional caller-controlled column projection, and a debugging command.
+
+The philosophy carries over unchanged: **no schema introspection, no auto-migration, no SQL synthesis**. Emi never
+looks at a live database and never writes a query for you — it only makes the boundary between the SQL you wrote and
+the Go code that calls it type-safe. Entries live in a top-level `vsqls` list.
+
+```yaml
+vsqls:
+  - name: insertUser
+    description: Inserts one user and returns the new row's id.
+    params:
+      - { name: email, type: string }
+      - { name: role, type: enum, of: [{ k: Admin }, { k: Member }] }
+    columns:
+      - { name: id, type: int64, selected: true }
+      - { name: email, type: string, selected: false }
+    query: |
+      INSERT INTO users (email, user_role) VALUES ({{ sql .Email }}, {{ sql .Role }})
+      RETURNING {{ .Columns.Cols }};
+```
+
+`emi go` compiles this into `InsertUserVsqlParams` (the same struct generator dtos and actions already use, so nested
+objects, arrays, enums and `complex` fields all work identically here), an `InsertUserVsqlQuery` constant holding the
+SQL verbatim — template syntax and all — and `PrepareInsertUserVsql(params, columns)`, which just hands back
+`(query, args)` unrendered.
+
+Rendering the template and executing it against a real driver is left to the caller — `examples/vsql/vsql` ships a
+reference renderer (`sql`, `deref`, `sqlFields`/`sqlFieldsExcept` template helpers) worth copying wholesale into a
+real project rather than reinventing.
+
+## Params and In
+
+`params` is the quick, inline way to declare input — most queries only need it. `in` is an action-shaped alternative,
+**alongside** `params` rather than instead of it: the exact type `EmiAction.in` uses, so it can reference an existing
+dto by name (`in: { dto: userFilterDto }`) or carry typed headers, instead of repeating fields inline.
+
+Preprocessing resolves `in` and merges it into `params` before any generator runs — `params` wins on a field-name
+collision, since it's the more specific, local declaration. Declare either one, or both; the merge is what makes a
+vsql's input shape reusable as an action's request body later, without a second, differently-shaped declaration.
+
+## Captures
+
+`captures` pulls fields from an existing dto, template dto, or action body into `params` at preprocessing time — the
+same mechanism and shape used elsewhere in the module, with finer-grained `include`/`exclude` control than `in.dto`'s
+whole-dto reference. By the time a generator runs, captured fields have already been flattened into `params` and
+`captures` itself is cleared.
+
+```yaml
+vsqls:
+  - name: searchUsersByFilter
+    captures:
+      - dto: userFilterDto
+    query: |
+      SELECT id, email FROM users WHERE 1 = 1
+      {{ if .Email.IsSet }} AND email = {{ sql .Email }}{{ end }}
+      {{ if .Role.IsSet }} AND user_role = {{ sql .Role }}{{ end }};
+```
+
+## Query text: inline, or read from a file
+
+`query` compiles the SQL in as a Go string constant. As an alternative, `queryName` names a file to be read from a
+caller-supplied `fs.FS` **at runtime** instead — typically a real `.sql` file under `go:embed`, so the SQL gets real
+editor syntax highlighting and no YAML string-escaping.
+
+The two are mutually exclusive — declaring both is a compile-time error, not a silent "one wins". Setting `queryName`
+changes `Prepare{Name}Vsql` to take an `fs.FS` as its first argument and return an extra `error` (the file read can
+fail):
+
+```go
+func PrepareSelectUsersPagedVsql(
+    fsys fs.FS, params SelectUsersPagedVsqlParams, columns SelectUsersPagedVsqlColumns,
+) (query string, args interface{}, err error)
+```
+
+## Debugging a query: `emi vsql:debug`
+
+Renders one vsql's final SQL against caller-supplied values and prints it, with no compiled project, no generated Go
+code, and no database — useful while writing a definition, to check the template even parses and the projection comes
+out right.
+
+```bash
+emi vsql:debug --path queries.emi.yml --name insertUsers \
+  --params '{"users":[{"email":"a@x.com"}]}' --select "id,email,money"
+```
+
+<table>
+  <thead>
+    <tr>
+      <th>Flag</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>--path</code></td>
+      <td>Emi module yaml file declaring the vsql.</td>
+    </tr>
+    <tr>
+      <td><code>--name</code></td>
+      <td>Name of the vsql query to render.</td>
+    </tr>
+    <tr>
+      <td><code>--params</code></td>
+      <td>JSON object of parameter values, keyed by field name.</td>
+    </tr>
+    <tr>
+      <td><code>--in</code></td>
+      <td>
+        JSON object of values for fields declared under <code>in:</code> — merged with <code>--params</code>{" "}
+        (<code>--params</code> wins on a name collision, same precedence Preprocess gives Params over In).
+      </td>
+    </tr>
+    <tr>
+      <td><code>--select</code></td>
+      <td>
+        Comma-separated column names to mark selected, replacing every column's own default entirely. Omit to use
+        each column's own <code>selected:</code> default instead.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+The command builds the same template-data shape (`.Field`, `.Array.Items`, `.Columns.Cols`, `.Columns.X.Selected`)
+real generated Go code would, directly off the parsed schema plus the given JSON — no compiled struct in the loop at
+all.
+
+## A recurring template gotcha
+
+Go's `text/template` truthiness rules only treat `0`, empty strings, `nil`, and zero-length arrays/slices/maps as
+false — a `struct` is never false, regardless of its fields. That means `{{ if .Email }}` on an
+`emigo.Nullable[string]` param is **always** true, whether or not it was actually set.
+
+Guard a nullable field's presence with `{{ if .Email.IsSet }}` instead. `{{ sql .Email }}` on its own already renders
+correctly either way (the reference renderer's `sql` helper duck-types `Nullable[T]` and omits/nulls it
+appropriately), but a whole conditional clause built around one needs the explicit `.IsSet` check.
+
+## Where to look next
+
+See [Columns: an optional, typed projection](/emi/vsql/vsql-columns/) for `columns`, the row DTO, nullability and
+complex columns, and [Predict: detecting columns from SQL](/emi/vsql/vsql-predict/) for `predict: true`.
+
+`examples/vsql`, `examples/vsql-columns` and `examples/vsql-sqlite` show the whole surface end to end — the last one
+running ten queries (batch inserts, optional filters, partial updates, a predicted join) for real against an
+in-memory SQLite database.

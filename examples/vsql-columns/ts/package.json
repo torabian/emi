@@ -1,0 +1,16 @@
+{
+  "name": "vsql-columns-ts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TS SDK generated from batch_insert_users.emi.yml, plus a compile-time demonstration that a vsql's JSON-Logic filter type only accepts real, allow-listed fields.",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.14.0",
+    "@types/react": "^18.3.0",
+    "qs": "^6.14.0",
+    "react": "^18.3.0",
+    "typescript": "^5.9.2"
+  }
+}

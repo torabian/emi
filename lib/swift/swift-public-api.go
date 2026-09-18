@@ -102,20 +102,24 @@ var SwiftPrimaryAction = core.ActionFile{
 	},
 }
 
-// Finds the ts/js compatible types.
+// DiscoverComplexes finds every module-level `complexes:` entry meant for the swift
+// compiler (compiler: swift), mirroring lib/kotlin/kotlin-public-api.go's own
+// DiscoverComplexes - previously always returned empty here ("Not implemented for
+// swift yet"), so a `type: complex` field's usedComplexes lookup
+// (findComplexLocation, swift-class-generator.go) never found a match and silently
+// skipped adding any import for it. Harmless when the complex's Swift counterpart
+// lives in the same module (Swift needs no import for a same-target type), but left
+// genuinely unresolved for a cross-module complex declared with a real import path.
 func DiscoverComplexes(module *core.Emi) []RecognizedComplex {
-
-	// Not implemented for swift yet.
-
 	items := []RecognizedComplex{}
-	// for _, complex := range module.Complexes {
-	// 	if complex.Compiler == "go" {
-	// 		items = append(items, RecognizedComplex{
-	// 			Symbol:         complex.Name,
-	// 			ImportLocation: complex.Location,
-	// 		})
-	// 	}
-	// }
+	for _, complex := range module.Complexes {
+		if complex.Compiler == "swift" {
+			items = append(items, RecognizedComplex{
+				Symbol:         complex.Name,
+				ImportLocation: complex.Location,
+			})
+		}
+	}
 
 	return items
 }

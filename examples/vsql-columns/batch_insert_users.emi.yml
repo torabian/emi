@@ -1,0 +1,113 @@
+complexes:
+  # Registered for JS/TS only (compiler: js) - the Go side already has its
+  # own hand-written sdkgen/money.go, matched by same-package convention
+  # instead of a complexes entry (see that file's own doc comment). Without
+  # this, the generated TS classes would reference a bare, unimported
+  # `Money` type and fail to compile - see ts/complexes/Money.ts.
+  - name: Money
+    location: ../complexes/Money
+    compiler: js
+
+vsqls:
+  - name: insertUsers
+    description: Batch-inserts users in one round trip and returns a
+      caller-controlled projection of the inserted rows via RETURNING. `users`
+      is an array param (each entry email/firstName/lastName) - the query
+      loops over it with a plain {{ range }}. `columns` declares what
+      RETURNING can hand back; toggle them through the generated column
+      picker instead of hand-writing the RETURNING list.
+    params:
+      - name: users
+        type: array
+        fields:
+          - name: email
+            type: string
+          - name: firstName
+            type: string
+          - name: lastName
+            type: string
+
+    columns:
+      - name: id
+        type: int64
+        description: Primary key. Selected by default - stays a plain int64.
+        selected: true
+      - name: balanceCents
+        type: int64
+        description: Off by default - becomes emigo.Nullable[int64] in the row DTO.
+        selected: false
+      - name: email
+        type: string
+        description: Selected by default - stays a plain string.
+        selected: true
+      - name: firstName
+        type: string
+        selected: false
+      - name: isVerified
+        type: bool
+        description: Selected by default - stays a plain bool.
+        selected: true
+      - name: isSuspended
+        type: bool
+        selected: false
+      - name: rating
+        type: float64
+        description: Off by default - becomes emigo.Nullable[float64].
+        selected: false
+      - name: status
+        type: enum
+        of:
+          - k: Active
+          - k: Suspended
+        description: Selected by default - enums render as plain string. The
+          real column is named account_status, not status - `column:`
+          overrides the default snake_cased-Name projection for exactly this
+          kind of mismatch.
+        selected: true
+        column: account_status
+      - name: role
+        type: enum
+        of:
+          - k: Admin
+          - k: Member
+        description: Off by default - becomes emigo.Nullable[string], same as
+          any other nullable enum.
+        selected: false
+      - name: profile
+        type: object
+        description: Selected by default - stays the plain nested struct.
+        selected: true
+        fields:
+          - name: bio
+            type: string
+      - name: preferences
+        type: object
+        description: Off by default - becomes
+          emigo.Nullable[InsertUsersVsqlRowPreferences], not just a plain
+          nested struct with zero values, so "not fetched" is distinguishable
+          from "fetched, all fields empty".
+        selected: false
+        fields:
+          - name: theme
+            type: string
+          - name: locale
+            type: string
+      - name: money
+        type: complex
+        complex: Money
+        description: Demonstrates a complex column spanning two physical SQL
+          columns under one projection/selection toggle - see
+          sdkgen/money.go. `complex` has no wire-level nullability of its own
+          (unlike a primitive or object), so being off by default only flips
+          its type to `complex?`, a no-op for the Go backend - Money is
+          responsible for its own optionality (see Money.SQLValue).
+        selected: false
+        column: "amount_cents, currency"
+
+    query: |
+      INSERT INTO users (email, first_name, last_name)
+      VALUES
+      {{- range $i, $u := .Users.Items }}{{ if $i }},{{ end }}
+        ({{ sql $u.Email }}, {{ sql $u.FirstName }}, {{ sql $u.LastName }})
+      {{- end }}
+      RETURNING {{ .Columns.Cols }};
