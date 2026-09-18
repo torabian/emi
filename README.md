@@ -27,6 +27,11 @@ Good fit for:
 - Keeping a shared API contract in sync across a polyglot team without hand-syncing
   types.
 
+### Enterprise usage
+
+Usage of emi as-is is out of cost. If you need extra features, you are always welcome to hire maintainers on hourly basis,
+for further information write to ali-torabian@outlook.com
+
 <img src="./emi-languages.png" style="max-width: 600px" />
 
 Beyond basic DTO/action generation, Emi's goal is to cover the topics that usually get
