@@ -906,7 +906,8 @@
               "go-client",
               "go-cli",
               "go-gin",
-              "go-wasm"
+              "go-wasm",
+              "go-mcp"
             ]
           },
           "type": "array",

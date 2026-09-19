@@ -5,6 +5,7 @@ import {
   handleFetchResponse,
   type FetchxContext,
   type PartialDeep,
+  type PlainOf,
   type TypedRequestInit,
   type TypedResponse,
 } from "./sdk/common/fetchx";
@@ -484,7 +485,6 @@ export class GetSinglePostActionRes {
 export abstract class GetSinglePostActionResFactory {
   abstract create(data: unknown): GetSinglePostActionRes;
 }
-type PlainOf<T> = T extends { toJSON(): infer R } ? R : T;
 /**
  * The base type definition for getSinglePostActionRes
  **/
