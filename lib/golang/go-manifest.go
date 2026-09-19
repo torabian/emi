@@ -17,6 +17,18 @@ type manifestRender struct {
 	IsReactive bool
 }
 
+// mcpManifestRender is one module intent a go-mcp manifest bundles: GoName names the
+// Register<GoName>IntentTool function GoIntentsGenerate already generated for it (see
+// go-intent-render.go), and ActionName is the resolved source action's own Go name
+// (e.g. "RoleUpdateAction") - the exact handler function name
+// Register<GoName>IntentTool's own signature expects, assumed already implemented in
+// this same package, the same convention {{Name}}CliManifest/{{Name}}GinServerSetup
+// already assume for {{.ActionName}} itself.
+type mcpManifestRender struct {
+	GoName     string
+	ActionName string
+}
+
 func GoManifest(manifest core.EmiManifest, module *core.Emi, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
 	const tmpl = `	
@@ -75,6 +87,23 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 }
 {{ end }}
 
+{{ if .goMcp }}
+// {{ upper .manifest.Name }}McpToolManifest registers this module's own intents (see
+// Abac.emi.yml-style intents: blocks) onto reg as real emigo.Tool/emigo.ToolHandlerFn
+// pairs, combining every Register<Name>IntentTool GoIntentsGenerate already generated
+// for them (see Intents.go) - the same "just wire it all up" role
+// {{ upper .manifest.Name }}CliManifest plays for CLI commands. Each intent's own
+// resolved action handler (e.g. {{$.location}}RoleUpdateAction) is assumed already
+// implemented in this package, same convention as every other bundle above. An
+// intent with no From (no resolved action, so no Register...IntentTool was generated
+// for it at all) is skipped here the same way GoIntentsGenerate itself skips it.
+func {{ upper .manifest.Name }}McpToolManifest(reg *emigo.ToolRegistry) {
+	{{ range .mcpIntents }}
+	{{$.location}}Register{{ .GoName }}IntentTool(reg, {{ .ActionName }})
+	{{ end }}
+}
+{{ end }}
+
 `
 
 	f := GetCommonFlags(ctx)
@@ -107,6 +136,35 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 		})
 	}
 
+	mcpRendered := []mcpManifestRender{}
+
+	for _, it := range module.Intents {
+		if it == nil || it.Name == "" {
+			continue
+		}
+
+		// No From means no resolved action, which means GoIntentsGenerate never
+		// generated a Register<Name>IntentTool for it in the first place (see its
+		// own doc comment) - nothing here to bundle.
+		src := it.GetResolvedFrom()
+		if src == nil {
+			continue
+		}
+
+		if !shouldRenderAction(
+			it.Name,
+			manifest.Includes,
+			manifest.Excludes,
+		) {
+			continue
+		}
+
+		mcpRendered = append(mcpRendered, mcpManifestRender{
+			GoName:     it.Upper(),
+			ActionName: src.GetName(),
+		})
+	}
+
 	t := template.Must(template.New("go_manifest").Funcs(core.CommonMap).Parse(tmpl))
 	res := &core.CodeChunkCompiled{
 		Tokens: []core.GeneratedScriptToken{
@@ -134,6 +192,7 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 	goClient := slices.Contains(manifest.Types, "go-client")
 	goCli := slices.Contains(manifest.Types, "go-cli")
 	goGin := slices.Contains(manifest.Types, "go-gin")
+	goMcp := slices.Contains(manifest.Types, "go-mcp")
 
 	if goClient || goCli {
 		res.CodeChunkDependensies = append(
@@ -163,15 +222,29 @@ func {{ upper .manifest.Name }}CliManifest() []*cli.Command {
 		)
 	}
 
+	// emigo.ToolRegistry is only referenced by the go-mcp bundle function's own
+	// signature - added even when mcpRendered ends up empty (an intent-less module
+	// with go-mcp declared still gets a valid, if empty, McpToolManifest function).
+	if goMcp {
+		res.CodeChunkDependensies = append(
+			res.CodeChunkDependensies,
+			core.CodeChunkDependency{
+				Location: f.Emigo,
+			},
+		)
+	}
+
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
 		"actions":      rendered,
+		"mcpIntents":   mcpRendered,
 		"location":     location,
 		"sameLocation": sameLocation,
 		"manifest":     manifest,
 		"goClient":     goClient,
 		"goCli":        goCli,
 		"goGin":        goGin,
+		"goMcp":        goMcp,
 		"mm":           mm,
 		"f":            f,
 		"ctx":          ctx,

@@ -36,6 +36,32 @@ type EmiIntent struct {
 	// Ties into the existing EmiPermission tree; unauthorized callers don't see the
 	// tool listed.
 	Permission string `yaml:"permission,omitempty" json:"permission,omitempty" jsonschema:"description=Permission key from this module's Permissions tree required to see/call this tool."`
+
+	// resolvedFrom is the EmiAction this intent was derived from (via From),
+	// stashed here by preprocessIntents purely so a compiler backend can pull
+	// its own Query/Url path params into the tool's combined input schema
+	// alongside In's body fields - see GetResolvedFrom and
+	// EmiIntentInputSchema/EmiIntentOutputSchema. Unexported: never
+	// yaml/json-marshaled, never settable from a module's own yaml.
+	resolvedFrom *EmiAction
+}
+
+// SetResolvedFrom records which EmiAction this intent was derived from -
+// called once by preprocessIntents, never by hand-authored code.
+func (x *EmiIntent) SetResolvedFrom(a *EmiAction) {
+	if x != nil {
+		x.resolvedFrom = a
+	}
+}
+
+// GetResolvedFrom returns the EmiAction this intent was derived from via
+// From (nil for a standalone intent that declared its own In/Out, or before
+// preprocessIntents has run).
+func (x *EmiIntent) GetResolvedFrom() *EmiAction {
+	if x == nil {
+		return nil
+	}
+	return x.resolvedFrom
 }
 
 // EmiIntentAnnotations mirrors the MCP spec's standard tool annotation hints

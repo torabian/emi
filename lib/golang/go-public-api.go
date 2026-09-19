@@ -309,7 +309,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 	}
 	files = append(files, vsqlFiles...)
 
-	intentsOutputs, err := GoIntentsGenerate(module.Intents, ctx, f.Emigo, complexes)
+	intentsOutputs, err := GoIntentsGenerate(module, ctx, f.Emigo, complexes)
 	if err != nil {
 		return nil, err
 	}

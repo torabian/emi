@@ -1,5 +1,5 @@
 import { Decimal } from "decimal";
-import { type PartialDeep } from "./sdk/common/fetchx";
+import { type PartialDeep, type PlainOf } from "./sdk/common/fetchx";
 /**
  * The base class definition for computeDto
  **/
@@ -207,7 +207,6 @@ export class ComputeDto {
 export abstract class ComputeDtoFactory {
   abstract create(data: unknown): ComputeDto;
 }
-type PlainOf<T> = T extends { toJSON(): infer R } ? R : T;
 /**
  * The base type definition for computeDto
  **/

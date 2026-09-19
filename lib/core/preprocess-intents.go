@@ -54,6 +54,7 @@ func (m *Emi) preprocessIntents() error {
 		if !ok {
 			return fmt.Errorf("intent %q: from action %q not found", it.Name, it.From)
 		}
+		it.SetResolvedFrom(src)
 
 		if it.Name == "" {
 			it.Name = src.Name
