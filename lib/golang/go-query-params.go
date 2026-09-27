@@ -71,8 +71,28 @@ func GoActionQueryParams(action core.EmiRpcAction, ctx core.MicroGenContext) (*c
 
 		{{ if (eq .Type "slice") }}
 			{{ upper .Name }} []{{ .Primitive}} ` + "`json:\"{{ .Name }}\"`" + `
-		{{ end }} 
-		 
+		{{ end }}
+
+	{{ end }}
+{{ end }}
+
+{{ define "printgetters" }}
+	{{ range .qs }}
+
+	 	{{ if or (eq .Type "string") (eq .Type "float64") (eq .Type "float32") (eq .Type "bool") (eq .Type "int") (eq .Type "int8") (eq .Type "int16") (eq .Type "int32") (eq .Type "int64")}}
+func (q {{ $.goqctx.ActionName }}Query) Get{{ upper .Name }}() {{ .Type }} { return q.{{ upper .Name }} }
+		{{ end }}
+
+		{{ if or (eq .Type "string?") (eq .Type "text?") (eq .Type "html?") (eq .Type "enum?") (eq .Type "float64?") (eq .Type "float32?") (eq .Type "bool?") (eq .Type "int?") (eq .Type "int8?") (eq .Type "int16?") (eq .Type "int32?") (eq .Type "int64?") (eq .Type "uint?") (eq .Type "uint8?") (eq .Type "uint16?") (eq .Type "uint32?") (eq .Type "uint64?") }}
+func (q {{ $.goqctx.ActionName }}Query) Get{{ upper .Name }}() {{ nullablePrimitive .Type }} { return q.{{ upper .Name }} }
+		{{ end }}
+
+		{{ if (eq .Type "slice") }}
+func (q {{ $.goqctx.ActionName }}Query) Get{{ upper .Name }}() []{{ .Primitive}} { return q.{{ upper .Name }} }
+		{{ end }}
+
+		{{/* object/array fields are nested anonymous structs - no getter emitted for those */}}
+
 	{{ end }}
 {{ end }}
 
@@ -84,6 +104,8 @@ type {{ .goqctx.ActionName }}Query struct {
 	// Typesafe fields
 	{{ template "printthem" .qs}}
 }
+
+{{ template "printgetters" . }}
 
 
 func {{ .goqctx.ActionName }}QueryFromString(rawQuery string) {{ .goqctx.ActionName }}Query {

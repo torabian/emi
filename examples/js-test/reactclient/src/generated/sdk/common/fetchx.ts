@@ -152,6 +152,24 @@ export class FetchxContext {
       input: RequestInfo | URL,
       init?: TypedRequestInit,
     ) => Promise<Response>,
+    /**
+     * Called fresh on every request (unlike `defaultHeaders`, a plain object
+     * a caller like WithFireback.tsx re-assigns once per render) - for
+     * headers whose source of truth can change *synchronously*, mid-event-
+     * handler, before React has re-rendered to pick it up. Workspace
+     * switching is the motivating case: selectWorkspace() persists the new
+     * workspace to localStorage synchronously, but only *schedules* the
+     * React state update that WithFireback.tsx's render reads to rebuild
+     * `defaultHeaders` - if the same click handler then calls
+     * queryClient.invalidateQueries(), react-query refetches every mounted
+     * query immediately, synchronously, before that re-render has happened,
+     * so every one of those requests still carried the *old* workspace-id
+     * header (e.g. showing root's capabilitiesTree while switching into a
+     * workspace with no access to it). A function read at actual fetch time
+     * has no such gap - by the time any request goes out, whatever wrote to
+     * localStorage synchronously has already been observed.
+     */
+    public dynamicHeaders?: () => Record<string, string | undefined>,
   ) {}
   async apply(
     url: string,
@@ -168,6 +186,7 @@ export class FetchxContext {
     // the header value "undefined", which a workspace-scoped endpoint reads
     // as a real, if bogus, workspace id).
     const merged: Record<string, unknown> = {
+      ...(this.dynamicHeaders ? this.dynamicHeaders() : {}),
       ...this.defaultHeaders,
       ...((init.headers as object) || {}),
     };
@@ -195,6 +214,8 @@ export class FetchxContext {
       { ...this.defaultHeaders, ...(overrides?.defaultHeaders || {}) },
       overrides?.requestInterceptor ?? this.requestInterceptor,
       overrides?.responseInterceptor ?? this.responseInterceptor,
+      overrides?.fetchOverrideFn ?? this.fetchOverrideFn,
+      overrides?.dynamicHeaders ?? this.dynamicHeaders,
     );
   }
 }

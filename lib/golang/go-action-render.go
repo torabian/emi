@@ -184,6 +184,10 @@ func (x {{ .realms.ActionName }}Response) GetPayload() interface{} {
 	return x.Payload
 }
 
+func (x *{{ .realms.ActionName }}Response) SetPayload(payload interface{}) {
+	x.Payload = payload
+}
+
 // Request signature, which is here for refernece. Now it's inlined, so auto completions suggest the function body.
 type {{ .realms.ActionName }}RequestSig = func(c {{ .realms.ActionName }}Request) (*{{ .realms.ActionName }}Response, error)
 

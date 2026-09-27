@@ -900,6 +900,66 @@ export class ResponseDto<T> {
       return this;
     }
     /**
+     * Placeholder values interpolated into the translated message server-side
+     * (see modules/fireback/ferror/Error.go's MessageParams) - e.g. a
+     * NotEnoughPermission error's `{ list: string[] }` naming the missing
+     * capabilities. Not folded into messageTranslated itself, so a caller
+     * that wants to show them (QueryError.tsx's getQueryErrorString) reads
+     * this separately.
+     * @type {Record<string, any>}
+     **/
+    #messageParams?: Record<string, any> | null = undefined;
+    /**
+     * Placeholder values interpolated into the translated message server-side.
+     * @returns {Record<string, any>}
+     **/
+    get messageParams() {
+      return this.#messageParams;
+    }
+    /**
+     * Placeholder values interpolated into the translated message server-side.
+     * @type {Record<string, any>}
+     **/
+    set messageParams(value: Record<string, any> | null | undefined) {
+      const correctType =
+        (typeof value === "object" && value !== null && !Array.isArray(value)) ||
+        value === undefined ||
+        value === null;
+      this.#messageParams = correctType ? value : undefined;
+    }
+    setMessageParams(value: Record<string, any> | null | undefined) {
+      this.messageParams = value;
+      return this;
+    }
+    /**
+     * HTTP status code the error was raised with.
+     * @type {number}
+     **/
+    #httpCode?: number | null = undefined;
+    /**
+     * HTTP status code the error was raised with.
+     * @returns {number}
+     **/
+    get httpCode() {
+      return this.#httpCode;
+    }
+    /**
+     * HTTP status code the error was raised with.
+     * @type {number}
+     **/
+    set httpCode(value: number | null | undefined) {
+      if (value === undefined || value === null) {
+        this.#httpCode = value;
+        return;
+      }
+      const parsedValue = typeof value === "number" ? value : Number(value);
+      this.#httpCode = Number.isNaN(parsedValue) ? undefined : parsedValue;
+    }
+    setHttpCode(value: number | null | undefined) {
+      this.httpCode = value;
+      return this;
+    }
+    /**
      * Detailed list of error objects.
      * @type {ResponseDto.Error.Errors}
      **/
@@ -1298,6 +1358,12 @@ export class ResponseDto<T> {
       if (d.messageTranslated !== undefined) {
         this.messageTranslated = d.messageTranslated;
       }
+      if (d.messageParams !== undefined) {
+        this.messageParams = d.messageParams;
+      }
+      if (d.httpCode !== undefined) {
+        this.httpCode = d.httpCode;
+      }
       if (d.errors !== undefined) {
         this.errors = d.errors;
       }
@@ -1311,6 +1377,8 @@ export class ResponseDto<T> {
         code: this.#code,
         message: this.#message,
         messageTranslated: this.#messageTranslated,
+        messageParams: this.#messageParams,
+        httpCode: this.#httpCode,
         errors: this.#errors,
       };
     }
@@ -1322,6 +1390,8 @@ export class ResponseDto<T> {
         code: "code",
         message: "message",
         messageTranslated: "messageTranslated",
+        messageParams: "messageParams",
+        httpCode: "httpCode",
         errors$: "errors",
         get errors() {
           return withPrefix(
@@ -1656,6 +1726,16 @@ export namespace ResponseDtoType {
      * @type {string}
      **/
     messageTranslated: string;
+    /**
+     * Placeholder values interpolated into the translated message server-side.
+     * @type {Record<string, any>}
+     **/
+    messageParams?: Record<string, any> | null;
+    /**
+     * HTTP status code the error was raised with.
+     * @type {number}
+     **/
+    httpCode?: number | null;
     /**
      * Detailed list of error objects.
      * @type {ResponseDtoType.ErrorType.ErrorsType[]}
