@@ -9,7 +9,7 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
-var _ResponseDto_instances, _a, _ResponseDto_apiVersion, _ResponseDto_context, _ResponseDto_id, _ResponseDto_method, _ResponseDto_params, _ResponseDto_data, _ResponseDto_error, _ResponseDto_isJsonAppliable, _ResponseDto_lateInitFields, _Data_instances, _Data_item, _Data_items, _Data_editLink, _Data_selfLink, _Data_kind, _Data_fields, _Data_etag, _Data_cursor, _Data_id, _Data_lang, _Data_updated, _Data_currentItemCount, _Data_itemsPerPage, _Data_startIndex, _Data_totalItems, _Data_totalAvailableItems, _Data_pageIndex, _Data_totalPages, _Data_isJsonAppliable, _b, _Error_instances, _Error_code, _Error_message, _Error_messageTranslated, _Error_errors, _Error_isJsonAppliable, _c, _Errors_instances, _Errors_domain, _Errors_reason, _Errors_message, _Errors_messageTranslated, _Errors_location, _Errors_locationType, _Errors_extendedHelp, _Errors_sendReport, _Errors_isJsonAppliable, _d;
+var _ResponseDto_instances, _a, _ResponseDto_apiVersion, _ResponseDto_context, _ResponseDto_id, _ResponseDto_method, _ResponseDto_params, _ResponseDto_data, _ResponseDto_error, _ResponseDto_isJsonAppliable, _ResponseDto_lateInitFields, _Data_instances, _Data_item, _Data_items, _Data_editLink, _Data_selfLink, _Data_kind, _Data_fields, _Data_etag, _Data_cursor, _Data_id, _Data_lang, _Data_updated, _Data_currentItemCount, _Data_itemsPerPage, _Data_startIndex, _Data_totalItems, _Data_totalAvailableItems, _Data_pageIndex, _Data_totalPages, _Data_isJsonAppliable, _b, _Error_instances, _Error_code, _Error_message, _Error_messageTranslated, _Error_messageParams, _Error_httpCode, _Error_errors, _Error_isJsonAppliable, _c, _Errors_instances, _Errors_domain, _Errors_reason, _Errors_message, _Errors_messageTranslated, _Errors_location, _Errors_locationType, _Errors_extendedHelp, _Errors_sendReport, _Errors_isJsonAppliable, _d;
 import { withPrefix } from "./sdk/common/withPrefix";
 /**
  * The base class definition for responseDto
@@ -1017,6 +1017,50 @@ ResponseDto.Error = (_c = class Error {
             return this;
         }
         /**
+         * Placeholder values interpolated into the translated message server-side.
+         * @returns {Record<string, any>}
+         **/
+        get messageParams() {
+            return __classPrivateFieldGet(this, _Error_messageParams, "f");
+        }
+        /**
+         * Placeholder values interpolated into the translated message server-side.
+         * @type {Record<string, any>}
+         **/
+        set messageParams(value) {
+            const correctType = (typeof value === "object" && value !== null && !Array.isArray(value)) ||
+                value === undefined ||
+                value === null;
+            __classPrivateFieldSet(this, _Error_messageParams, correctType ? value : undefined, "f");
+        }
+        setMessageParams(value) {
+            this.messageParams = value;
+            return this;
+        }
+        /**
+         * HTTP status code the error was raised with.
+         * @returns {number}
+         **/
+        get httpCode() {
+            return __classPrivateFieldGet(this, _Error_httpCode, "f");
+        }
+        /**
+         * HTTP status code the error was raised with.
+         * @type {number}
+         **/
+        set httpCode(value) {
+            if (value === undefined || value === null) {
+                __classPrivateFieldSet(this, _Error_httpCode, value, "f");
+                return;
+            }
+            const parsedValue = typeof value === "number" ? value : Number(value);
+            __classPrivateFieldSet(this, _Error_httpCode, Number.isNaN(parsedValue) ? undefined : parsedValue, "f");
+        }
+        setHttpCode(value) {
+            this.httpCode = value;
+            return this;
+        }
+        /**
          * Detailed list of error objects.
          * @returns {ResponseDto.Error.Errors}
          **/
@@ -1061,6 +1105,21 @@ ResponseDto.Error = (_c = class Error {
              **/
             _Error_messageTranslated.set(this, "");
             /**
+             * Placeholder values interpolated into the translated message server-side
+             * (see modules/fireback/ferror/Error.go's MessageParams) - e.g. a
+             * NotEnoughPermission error's `{ list: string[] }` naming the missing
+             * capabilities. Not folded into messageTranslated itself, so a caller
+             * that wants to show them (QueryError.tsx's getQueryErrorString) reads
+             * this separately.
+             * @type {Record<string, any>}
+             **/
+            _Error_messageParams.set(this, undefined);
+            /**
+             * HTTP status code the error was raised with.
+             * @type {number}
+             **/
+            _Error_httpCode.set(this, undefined);
+            /**
              * Detailed list of error objects.
              * @type {ResponseDto.Error.Errors}
              **/
@@ -1093,6 +1152,12 @@ ResponseDto.Error = (_c = class Error {
             if (d.messageTranslated !== undefined) {
                 this.messageTranslated = d.messageTranslated;
             }
+            if (d.messageParams !== undefined) {
+                this.messageParams = d.messageParams;
+            }
+            if (d.httpCode !== undefined) {
+                this.httpCode = d.httpCode;
+            }
             if (d.errors !== undefined) {
                 this.errors = d.errors;
             }
@@ -1106,6 +1171,8 @@ ResponseDto.Error = (_c = class Error {
                 code: __classPrivateFieldGet(this, _Error_code, "f"),
                 message: __classPrivateFieldGet(this, _Error_message, "f"),
                 messageTranslated: __classPrivateFieldGet(this, _Error_messageTranslated, "f"),
+                messageParams: __classPrivateFieldGet(this, _Error_messageParams, "f"),
+                httpCode: __classPrivateFieldGet(this, _Error_httpCode, "f"),
                 errors: __classPrivateFieldGet(this, _Error_errors, "f"),
             };
         }
@@ -1117,6 +1184,8 @@ ResponseDto.Error = (_c = class Error {
                 code: "code",
                 message: "message",
                 messageTranslated: "messageTranslated",
+                messageParams: "messageParams",
+                httpCode: "httpCode",
                 errors$: "errors",
                 get errors() {
                     return withPrefix("error.errors[:i]", _a.Error.Errors.Fields);
@@ -1149,6 +1218,8 @@ ResponseDto.Error = (_c = class Error {
     _Error_code = new WeakMap(),
     _Error_message = new WeakMap(),
     _Error_messageTranslated = new WeakMap(),
+    _Error_messageParams = new WeakMap(),
+    _Error_httpCode = new WeakMap(),
     _Error_errors = new WeakMap(),
     _Error_instances = new WeakSet(),
     _Error_isJsonAppliable = function _Error_isJsonAppliable(obj) {

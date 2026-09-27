@@ -106,12 +106,31 @@ export class FetchxContext {
      * Overrides the browser fetch function, for different purposes. It would recieve the same first 2 arguments as fetch,
      * as well as third one of fetchx context. If you pass the fetch itself to override, it should have no effect.
      */
-    fetchOverrideFn) {
+    fetchOverrideFn, 
+    /**
+     * Called fresh on every request (unlike `defaultHeaders`, a plain object
+     * a caller like WithFireback.tsx re-assigns once per render) - for
+     * headers whose source of truth can change *synchronously*, mid-event-
+     * handler, before React has re-rendered to pick it up. Workspace
+     * switching is the motivating case: selectWorkspace() persists the new
+     * workspace to localStorage synchronously, but only *schedules* the
+     * React state update that WithFireback.tsx's render reads to rebuild
+     * `defaultHeaders` - if the same click handler then calls
+     * queryClient.invalidateQueries(), react-query refetches every mounted
+     * query immediately, synchronously, before that re-render has happened,
+     * so every one of those requests still carried the *old* workspace-id
+     * header (e.g. showing root's capabilitiesTree while switching into a
+     * workspace with no access to it). A function read at actual fetch time
+     * has no such gap - by the time any request goes out, whatever wrote to
+     * localStorage synchronously has already been observed.
+     */
+    dynamicHeaders) {
         this.baseUrl = baseUrl;
         this.defaultHeaders = defaultHeaders;
         this.requestInterceptor = requestInterceptor;
         this.responseInterceptor = responseInterceptor;
         this.fetchOverrideFn = fetchOverrideFn;
+        this.dynamicHeaders = dynamicHeaders;
     }
     async apply(url, init) {
         // prefix baseUrl
@@ -125,6 +144,7 @@ export class FetchxContext {
         // the header value "undefined", which a workspace-scoped endpoint reads
         // as a real, if bogus, workspace id).
         const merged = {
+            ...(this.dynamicHeaders ? this.dynamicHeaders() : {}),
             ...this.defaultHeaders,
             ...(init.headers || {}),
         };
@@ -147,7 +167,7 @@ export class FetchxContext {
         return res;
     }
     clone(overrides) {
-        var _a, _b, _c;
-        return new FetchxContext((_a = overrides === null || overrides === void 0 ? void 0 : overrides.baseUrl) !== null && _a !== void 0 ? _a : this.baseUrl, { ...this.defaultHeaders, ...((overrides === null || overrides === void 0 ? void 0 : overrides.defaultHeaders) || {}) }, (_b = overrides === null || overrides === void 0 ? void 0 : overrides.requestInterceptor) !== null && _b !== void 0 ? _b : this.requestInterceptor, (_c = overrides === null || overrides === void 0 ? void 0 : overrides.responseInterceptor) !== null && _c !== void 0 ? _c : this.responseInterceptor);
+        var _a, _b, _c, _d, _e;
+        return new FetchxContext((_a = overrides === null || overrides === void 0 ? void 0 : overrides.baseUrl) !== null && _a !== void 0 ? _a : this.baseUrl, { ...this.defaultHeaders, ...((overrides === null || overrides === void 0 ? void 0 : overrides.defaultHeaders) || {}) }, (_b = overrides === null || overrides === void 0 ? void 0 : overrides.requestInterceptor) !== null && _b !== void 0 ? _b : this.requestInterceptor, (_c = overrides === null || overrides === void 0 ? void 0 : overrides.responseInterceptor) !== null && _c !== void 0 ? _c : this.responseInterceptor, (_d = overrides === null || overrides === void 0 ? void 0 : overrides.fetchOverrideFn) !== null && _d !== void 0 ? _d : this.fetchOverrideFn, (_e = overrides === null || overrides === void 0 ? void 0 : overrides.dynamicHeaders) !== null && _e !== void 0 ? _e : this.dynamicHeaders);
     }
 }
