@@ -1,25 +1,55 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useGoWasm } from "./wasm-brige";
 import type { VirtualFile } from "../definitions";
+import { examplesForTarget, getExample } from "../examples";
+
+// How long to wait after the last keystroke before recompiling.
+const RECOMPILE_DEBOUNCE_MS = 400;
 
 export const usePlaygroundPresenter = () => {
   const { ready } = useGoWasm({ wasmPath: "emi-compiler.wasm" });
-  const [value, setValue$] = useState(sampleDocument);
   const [assemblyFunction, setAssemblyFunction$] = useState("jsGenModule");
+  const [definitionId, setDefinitionId] = useState(
+    examplesForTarget("jsGenModule")[0].id,
+  );
+  // Edits made to each example, so switching between them keeps your changes.
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+
+  const contentOf = (id: string) => drafts[id] ?? getExample(id).content;
+  const value = contentOf(definitionId);
 
   const setAssemblyFunction = (play: string) => {
     setAssemblyFunction$(play);
-    const newValue = play === "sqlQueryPredict" ? sampleSql : sampleDocument;
 
-    setValue$(newValue);
-    rerender(newValue, play);
+    // Keep the current definition if it still fits the new target, otherwise
+    // fall back to the first example of the matching kind (yaml vs sql).
+    const available = examplesForTarget(play);
+    const next = available.find((e) => e.id === definitionId) ?? available[0];
+    setDefinitionId(next.id);
+
+    cancelPendingRerender();
+    rerender(contentOf(next.id), play);
+  };
+
+  const selectDefinition = (id: string) => {
+    setDefinitionId(id);
+    cancelPendingRerender();
+    rerender(contentOf(id), assemblyFunction);
   };
 
   const [features, setFeatures] = useState<string[]>(["nestjs", "react"]);
   const [files, setOutput] = useState<VirtualFile[]>([]);
 
+  // Recompiles run asynchronously (prettier); only the latest one may publish.
+  const runId = useRef(0);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const latestRerender = useRef<(data: string, func: string) => void>(() => {});
+
+  const cancelPendingRerender = () => clearTimeout(debounceTimer.current);
+
   const rerender = (data: any, func = "") => {
+    const currentRun = ++runId.current;
     try {
       console.log("Using function:", func);
       const res = (window as any)[func](data, {
@@ -54,7 +84,9 @@ export const usePlaygroundPresenter = () => {
 
       // Wait for all formatting to finish
       Promise.all(formattedPromises).then((formattedRes) => {
-        setOutput(formattedRes);
+        if (currentRun === runId.current) {
+          setOutput(formattedRes);
+        }
       });
 
       // for (const item of res) {
@@ -75,10 +107,20 @@ export const usePlaygroundPresenter = () => {
     }
   };
 
+  // Always call the newest closure (it sees the current features) when the
+  // debounce timer fires.
+  latestRerender.current = rerender;
+
   const setValue = (data: string) => {
-    rerender(data, assemblyFunction);
-    setValue$(data);
+    setDrafts((prev) => ({ ...prev, [definitionId]: data }));
+    cancelPendingRerender();
+    debounceTimer.current = setTimeout(
+      () => latestRerender.current(data, assemblyFunction),
+      RECOMPILE_DEBOUNCE_MS,
+    );
   };
+
+  useEffect(() => cancelPendingRerender, []);
 
   useEffect(() => {
     if (ready) {
@@ -91,6 +133,8 @@ export const usePlaygroundPresenter = () => {
   return {
     files,
     value,
+    definitionId,
+    selectDefinition,
     setFeatures,
     ready,
     setAssemblyFunction,
@@ -99,107 +143,3 @@ export const usePlaygroundPresenter = () => {
     setValue,
   };
 };
-
-const sampleDocument = `name: sampleModule
-entities:
-  - name: entity1
-    fields:
-    - name: field1
-      type: string
-    - name: users
-      type: array
-      fields:
-      - name: firstname1
-        type: string
-actions:
-  - name: getSinglePost
-    url: https://jsonplaceholder.typicode.com/posts/1
-    cliName: get-single-post
-    method: post
-    description: Get's an specific post from the endpoint
-    in:
-      headers:
-        - name: accept-language
-          type: string
-    out:
-      headers:
-        - name: content-type
-          type: string
-      fields:
-        - name: userId
-          type: int64?
-        - name: id
-          type: int64
-        - name: title
-          type: string
-        - name: body
-          type: string
-        - name: user
-          type: object
-          fields:
-          - name: firstName
-            type: string?
-          - name: age
-            type: int64
-        - name: histories
-          type: array
-          fields:
-          - name: firstName
-            type: string?
-          - name: age
-            type: int64
-          - name: info
-            type: object
-            fields:
-            - name: memorySize
-              type: int64
-        `;
-
-const sampleSql = `SELECT 
-        u.user_id as user_id,
-        field(u.user_name, 'string') as UserName,
-        u.user_email,
-        field(COUNT(o.order_id), 'int64') AS total_orders,
-        COALESCE(SUM(o.total), 0) AS total_spent,
-        MAX(o.total) AS max_order,
-        (
-            SELECT COUNT(*) 
-            FROM (
-                SELECT 101 AS order_id, 1 AS user_id, 120.5 AS total
-                UNION ALL
-                SELECT 102, 1, 50.0
-                UNION ALL
-                SELECT 103, 2, 75.0
-                UNION ALL
-                SELECT 104, 3, 200.0
-                UNION ALL
-                SELECT 105, 3, 25.0
-            ) o2
-            WHERE o2.user_id = u.user_id AND o2.total > 50
-        ) AS big_orders_count
-    FROM (
-        SELECT 1 AS user_id, 'Alice' AS user_name, 'alice@example.com' AS user_email
-        UNION ALL
-        SELECT 2, 'Bob', 'bob@example.com'
-        UNION ALL
-        SELECT 3, 'Carol', 'carol@example.com'
-    ) u
-    LEFT JOIN (
-        SELECT 101 AS order_id, 1 AS user_id, 120.5 AS total
-        UNION ALL
-        SELECT 102, 1, 50.0
-        UNION ALL
-        SELECT 103, 2, 75.0
-        UNION ALL
-        SELECT 104, 3, 200.0
-        UNION ALL
-        SELECT 105, 3, 25.0
-    ) o
-    ON u.user_id = o.user_id
-    -- WHERE  u.user_name != 'Alice'        -- filter rows before aggregation
-    WHERE filter()
-    GROUP BY u.user_id, u.user_name, u.user_email
-    HAVING MAX(o.total) > 100        -- filter groups after aggregation
-    ORDER BY total_spent DESC
-    limit useval('limit')
-`;
