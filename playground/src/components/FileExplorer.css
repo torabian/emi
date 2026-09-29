@@ -1,0 +1,75 @@
+.file-explorer {
+  --fx-bg: #f6f6f6;
+  --fx-fg: #333;
+  --fx-hover: #e8e8e8;
+  --fx-active: #dcdcdc;
+  --fx-border: #ccc;
+
+  height: calc(100vh - 125px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 4px 0;
+  background: var(--fx-bg);
+  color: var(--fx-fg);
+  border-right: 1px solid var(--fx-border);
+  font-size: 13px;
+  user-select: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .file-explorer {
+    --fx-bg: #252526;
+    --fx-fg: #ccc;
+    --fx-hover: #2a2d2e;
+    --fx-active: #37373d;
+    --fx-border: #333;
+  }
+}
+
+.fx-row {
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  height: 22px;
+  line-height: 22px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fx-row:hover {
+  background: var(--fx-hover);
+}
+
+.fx-definition {
+  font-weight: 700;
+}
+
+.fx-section {
+  padding: 6px 8px 2px;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* Separates the predefined examples from the generated output. */
+.fx-divider {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--fx-border);
+}
+
+.fx-row.active {
+  background: var(--fx-active);
+}
+
+.fx-file.active {
+  font-weight: 600;
+}
+
+.fx-chevron {
+  display: inline-block;
+  width: 14px;
+  flex-shrink: 0;
+  font-size: 10px;
+}

@@ -4,8 +4,13 @@ import "react-dropdown/style.css";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import "./App.css";
 import FeatureSelector from "./components/FeatureSelector";
-import TypescriptEditor from "./components/YamlEditor/TypescriptEditor";
+import CodeViewer from "./components/CodeViewer";
+import FileExplorer, {
+  DEFINITION_KEY,
+  fileKey,
+} from "./components/FileExplorer";
 import YamlEditor from "./components/YamlEditor/YamlEditor";
+import { examplesForTarget } from "./examples";
 import { usePlaygroundPresenter } from "./helpers/usePlaygroundPresenter";
 import { downloadZip } from "./helpers/zipTools";
 import SQLEditor from "./components/YamlEditor/SQLEditor";
@@ -34,6 +39,8 @@ function App() {
     files: generatedFiles,
     setValue,
     value,
+    definitionId,
+    selectDefinition,
     setFeatures,
     features,
     ready,
@@ -42,15 +49,12 @@ function App() {
   } = usePlaygroundPresenter();
 
   const files = generatedFiles || [];
-  const [activeTab, setActiveTab] = useState(files?.[0]?.Name || "");
-  const [direction, setDirection] = useState<any>("horizontal");
-
-  // Update active tab if files change
-  if (files?.length && !files.find((f) => f.Name === activeTab)) {
-    setActiveTab(files[0].Name);
-  }
-
-  const activeFile = files?.find((f) => f.Name === activeTab);
+  // DEFINITION_KEY shows the Monaco editor, anything else a generated file.
+  const [selectedKey, setSelectedKey] = useState(DEFINITION_KEY);
+  const activeFile = files.find((f) => fileKey(f) === selectedKey);
+  const showEditor = !activeFile;
+  const isSql = assemblyFunction === "sqlQueryPredict";
+  const definitions = examplesForTarget(assemblyFunction);
 
   return (
     <>
@@ -101,16 +105,6 @@ function App() {
             onClick={() => void downloadZip(files)}
           >
             Download ({files?.length || 0})
-          </button>
-          <button
-            style={{ borderRadius: 0, height: "41px", marginLeft: "5px" }}
-            onClick={() =>
-              setDirection((direction: string) =>
-                direction === "horizontal" ? "vertical" : "horizontal",
-              )
-            }
-          >
-            {direction === "horizontal" ? "V" : "H"}
           </button>
           <div style={{ display: "flex" }}>
             {assemblyFunction === "goGen" ? (
@@ -178,50 +172,49 @@ function App() {
         </div>
       </header>
       <PanelGroup
-        direction={direction}
+        direction="horizontal"
         style={{ height: "calc(100vh - 100px)" }}
       >
-        <Panel defaultSize={50} minSize={10}>
-          {"sqlQueryPredict" === assemblyFunction ? (
-            <SQLEditor value={value} onChange={setValue} />
-          ) : (
-            <YamlEditor value={value} onChange={setValue} />
-          )}
+        <Panel defaultSize={22} minSize={10}>
+          <FileExplorer
+            files={files}
+            selectedKey={selectedKey}
+            onSelect={setSelectedKey}
+            definitions={definitions}
+            selectedDefinitionId={definitionId}
+            onSelectDefinition={(id) => {
+              selectDefinition(id);
+              setSelectedKey(DEFINITION_KEY);
+            }}
+          />
         </Panel>
         <PanelResizeHandle>
-          <div style={{ width: 5, background: "gray", cursor: "col-resize" }} />
+          <div style={{ width: 3, height: "100%", cursor: "col-resize" }} />
         </PanelResizeHandle>
-        <Panel defaultSize={50} minSize={10}>
-          <div className="tabs">
-            {files.map((file) => (
-              <div
-                key={file.Name}
-                className={`tab ${file.Name === activeTab ? "active" : ""}`}
-                onClick={() => setActiveTab(file.Name)}
-              >
-                {file.Location ? file.Location + "/" : ""}
-                {file.Name}
-                {file.Extension ? "" + file.Extension : ""}
-              </div>
-            ))}
+        <Panel defaultSize={78} minSize={20}>
+          {/* Kept mounted (just hidden) so undo history and cursor survive
+              switching to a generated file. */}
+          <div style={{ display: showEditor ? "block" : "none" }}>
+            {isSql ? (
+              <SQLEditor
+                path={definitionId}
+                value={value}
+                onChange={setValue}
+              />
+            ) : (
+              <YamlEditor
+                path={definitionId}
+                value={value}
+                onChange={setValue}
+              />
+            )}
           </div>
           {activeFile ? (
-            <>
-              {activeFile.Extension === ".md" ? (
-                <MarkdownPreview source={activeFile.ActualScript} />
-              ) : (
-                <TypescriptEditor
-                  key={activeFile.Name + activeFile.ActualScript} // force remount when content changes
-                  allFiles={files}
-                  value={activeFile.ActualScript}
-                  onChange={(newValue) => {
-                    // Update the corresponding file content
-                    activeFile.ActualScript = newValue;
-                  }}
-                  file={activeFile}
-                />
-              )}
-            </>
+            activeFile.Extension === ".md" ? (
+              <MarkdownPreview source={activeFile.ActualScript} />
+            ) : (
+              <CodeViewer file={activeFile} />
+            )
           ) : null}
         </Panel>
       </PanelGroup>

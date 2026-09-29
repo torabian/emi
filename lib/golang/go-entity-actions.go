@@ -60,6 +60,30 @@ func isScalarLikeFieldType(t core.FieldType) bool {
 // object containers) isn't picked up here; each array item is still persisted as a
 // single flat unit via Save().
 func walkCreateFields(fields []*core.EmiField, accessPrefix string, structPrefix string, oneResolve, afterCreate *strings.Builder) {
+	walkCreateFieldsAt(fields, accessPrefix, structPrefix, oneResolve, afterCreate, 0)
+}
+
+// walkCreateFieldsAt is walkCreateFields' real body, plus depth - the nesting depth of
+// `fields` below the entity's own top level (0 there). Only FieldTypeObjectNullable
+// reads it, to name each level's own Get()-bound variable "v0"/"v1"/... instead of the
+// same bare "v" at every depth.
+//
+// Bug fix: two (or more) object?-in-object? levels used to reuse the literal name "v"
+// for every level's `if v, ok := ...Get(); ok && v != nil` binding. That's harmless one
+// level deep (each such block is a standalone, self-closing statement - see the
+// FieldTypeObjectNullable case's own first fmt.Fprintf, still just "v" below), but the
+// *second* level's own block is emitted *nested inside* the first's (via subOne being
+// spliced into the parent's own wrapping `if v, ok := ...; ok && v != nil { %s }`) - so
+// its `if v, ok := inner.Get(); ok && v != nil { ... }` re-declares "v" via `:=`,
+// shadowing the outer level's "v" for the rest of that block. The row-sync assignment
+// inside it (`{parent}Row = v`) needs BOTH names at once - the outer level's own
+// variable as the assignment's receiver, the inner level's as the value being assigned
+// - and with both named "v" it silently assigned the inner struct onto *itself*
+// (`v.WastegateRow = v` where v is the inner Wastegate value, which has no such field
+// at all - a compile error, not a silent bug, but only once a project actually nests
+// object? two levels deep - see e2e/telemetry-demo's own README.md for a worked
+// example this was found against). Depth-qualified names close the gap at any depth.
+func walkCreateFieldsAt(fields []*core.EmiField, accessPrefix string, structPrefix string, oneResolve, afterCreate *strings.Builder, depth int) {
 	for _, field := range fields {
 		if field == nil {
 			continue
@@ -126,7 +150,7 @@ func walkCreateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 `, accessPath, rowField, createCollectionTarget)
 
 		case core.FieldTypeObject:
-			walkCreateFields(field.Fields, accessPath+".", structPrefix+goName, oneResolve, afterCreate)
+			walkCreateFieldsAt(field.Fields, accessPath+".", structPrefix+goName, oneResolve, afterCreate, depth+1)
 
 		case core.FieldTypeObjectNullable:
 			// object? can't get gorm:"embedded" directly (see ApplyEntityGormTags) -
@@ -134,16 +158,26 @@ func walkCreateFields(fields []*core.EmiField, accessPrefix string, structPrefix
 			// Create touches it. Get() returns the same pointer Nullable[T] stores
 			// internally, so any nested writes below (relations resolved inside this
 			// container) land in the exact same memory gorm reads from at Create time.
+			//
+			// bindVar ("v" at the top level, "v1"/"v2"/... once nested inside another
+			// object?) is this field's own Get()-bound variable name - see
+			// walkCreateFieldsAt's own doc comment for why depth 0 alone can safely
+			// stay "v" while every deeper level needs a name distinct from its
+			// parent's.
+			bindVar := "v"
+			if depth > 0 {
+				bindVar = fmt.Sprintf("v%d", depth)
+			}
 			rowField := entityRowFieldName(field)
-			fmt.Fprintf(oneResolve, "\n\tif v, ok := %[1]s.Get(); ok && v != nil {\n\t\t%[2]s%[3]s = v\n\t}\n", accessPath, accessPrefix, rowField)
+			fmt.Fprintf(oneResolve, "\n\tif %[4]s, ok := %[1]s.Get(); ok && %[4]s != nil {\n\t\t%[2]s%[3]s = %[4]s\n\t}\n", accessPath, accessPrefix, rowField, bindVar)
 
 			var subOne, subAfter strings.Builder
-			walkCreateFields(field.Fields, "v.", structPrefix+goName, &subOne, &subAfter)
+			walkCreateFieldsAt(field.Fields, bindVar+".", structPrefix+goName, &subOne, &subAfter, depth+1)
 			if subOne.Len() > 0 {
-				fmt.Fprintf(oneResolve, "\n\tif v, ok := %s.Get(); ok && v != nil {%s\t}\n", accessPath, subOne.String())
+				fmt.Fprintf(oneResolve, "\n\tif %[3]s, ok := %[1]s.Get(); ok && %[3]s != nil {%[2]s\t}\n", accessPath, subOne.String(), bindVar)
 			}
 			if subAfter.Len() > 0 {
-				fmt.Fprintf(afterCreate, "\n\tif v, ok := %s.Get(); ok && v != nil {%s\t}\n", accessPath, subAfter.String())
+				fmt.Fprintf(afterCreate, "\n\tif %[3]s, ok := %[1]s.Get(); ok && %[3]s != nil {%[2]s\t}\n", accessPath, subAfter.String(), bindVar)
 			}
 		}
 	}
@@ -665,6 +699,75 @@ func %[1]sGetFn(tx *gorm.DB, uniqueId string) (*%[1]s, error) {
 `, className)
 }
 
+// walkAfterFindFields is buildAfterFindFn's real body: for every object/object? field
+// (recursing into both, at any depth - object has no Row/Nullable pair of its own, so
+// it just recurses transparently), emits the statement(s) that copy its {field}Row
+// sibling (populated directly by gorm's Find/First/Scan, since it's a real
+// gorm:"embedded" column - see ApplyEntityGormTags) into the field's own Nullable[T]
+// wrapper (gorm:"-" - gorm never touches it on read).
+//
+// bindVar naming mirrors walkCreateFieldsAt exactly, and for the identical reason: two
+// (or more) object?-in-object? levels must not all bind their own bind var to the
+// literal "v" once one such block is spliced inside another, or the inner Get() would
+// shadow the outer one for the rest of that block, corrupting whichever statement
+// needs both at once - see walkCreateFieldsAt's own doc comment for the full
+// explanation (found and fixed against the exact same object?-in-object? shape this
+// function handles on the read side).
+func walkAfterFindFields(fields []*core.EmiField, accessPrefix string, depth int, b *strings.Builder) {
+	for _, field := range fields {
+		if field == nil {
+			continue
+		}
+		goName := core.ToUpper(field.Name)
+
+		switch field.Type {
+		case core.FieldTypeObject:
+			walkAfterFindFields(field.Fields, accessPrefix, depth, b)
+
+		case core.FieldTypeObjectNullable:
+			bindVar := "v"
+			if depth > 0 {
+				bindVar = fmt.Sprintf("v%d", depth)
+			}
+			rowField := accessPrefix + goName + "Row"
+			fmt.Fprintf(b, "\tif %[1]s != nil {\n\t\t%[2]s := *%[1]s\n", rowField, bindVar)
+			walkAfterFindFields(field.Fields, bindVar+".", depth+1, b)
+			fmt.Fprintf(b, "\t\t%[1]s%[2]s = emigo.NullableOf(%[3]s)\n\t}\n", accessPrefix, goName, bindVar)
+		}
+	}
+}
+
+// buildAfterFindFn renders a gorm AfterFind hook - called automatically after every
+// Find/First/Scan gorm runs against %[1]s, never by hand - that rehydrates every
+// object/object? field's Nullable[T] wrapper from its {field}Row sibling.
+//
+// Bug this fixes: {field}Row is a real column (gorm:"embedded"), correctly populated
+// by any read; {field} itself is tagged gorm:"-" specifically so Create/Update's own
+// walkCreateFieldsAt/walkUpdateFields logic can own it without gorm second-guessing
+// them - but that also means a plain read never touched it at all. Every object/
+// object? field silently read back nil (and so serialized as `null` in any generated
+// action's JSON response) on every single Get/Browse, for every entity using one, until
+// this hook - found and fixed against e2e/telemetry-demo's own nested engineTelemetry
+// entity (see its README.md), but the gap was general, not specific to that shape.
+// Returns "" (rendering nothing) when the entity has no object/object? field at all.
+func buildAfterFindFn(className string, fields []*core.EmiField) string {
+	var body strings.Builder
+	walkAfterFindFields(fields, "x.", 0, &body)
+	if body.Len() == 0 {
+		return ""
+	}
+	return fmt.Sprintf(`
+// %[1]sAfterFind is a gorm hook (gorm's own AfterFind callback convention - see
+// https://gorm.io/docs/hooks.html) that rehydrates every object/object? field's
+// Nullable[T] wrapper from its {field}Row sibling once gorm has populated the
+// embedded columns via Find/First/Scan. Runs automatically after every such read
+// against %[1]s; nothing calls it directly.
+func (x *%[1]s) AfterFind(tx *gorm.DB) error {
+%[2]s	return nil
+}
+`, className, body.String())
+}
+
 // entityBrowseActionQueryClassName computes the same class name emi's own action
 // codegen (lib/golang/go-query-params.go's GoActionQueryParams) generates for the
 // Browse action's querystring-bound struct: {ActionName}Query, where ActionName is
@@ -867,6 +970,15 @@ func GoEntityActionsRender(
 		buf.WriteString(buildAwareDeleteFns(className, entity.Fields))
 	}
 
+	// Unconditional (not gated on any entity.Features flag): AfterFind is a gorm hook
+	// triggered by gorm itself on every Find/First/Scan against this struct, from
+	// anywhere - not just the Get/Browse functions this same file may or may not have
+	// generated above - so it has to exist whenever the entity has an object/object?
+	// field at all, regardless of which actions are enabled. buildAfterFindFn itself
+	// renders nothing (returns "") when there's no such field.
+	afterFindFn := buildAfterFindFn(className, entity.Fields)
+	buf.WriteString(afterFindFn)
+
 	var sigFields, sigInit strings.Builder
 	if createEnabled {
 		fmt.Fprintf(&sigFields, "\tCreate func(tx *gorm.DB, dto *%[1]s) (*%[1]s, error)\n", className)
@@ -904,7 +1016,7 @@ var %[1]sActions %[1]sActionsSig = %[1]sActionsSig{
 `, className, sigFields.String(), sigInit.String())
 
 	deps := []core.CodeChunkDependency{}
-	if createEnabled || updateEnabled || getEnabled || browseEnabled || deleteEnabled {
+	if createEnabled || updateEnabled || getEnabled || browseEnabled || deleteEnabled || afterFindFn != "" {
 		deps = append(deps, core.CodeChunkDependency{Location: "gorm.io/gorm"})
 	}
 	// Only Create/Update actually call into emigorm's reconcile helpers, and only when
@@ -914,8 +1026,9 @@ var %[1]sActions %[1]sActionsSig = %[1]sActionsSig{
 	if browseEnabled || ((createEnabled || updateEnabled) && hasRelationField(entity.Fields)) {
 		deps = append(deps, core.CodeChunkDependency{Location: "github.com/torabian/emi/emigorm"})
 	}
-	// Browse's meta return value is a emigo.QueryResultMeta.
-	if browseEnabled {
+	// Browse's meta return value is a emigo.QueryResultMeta; AfterFind (when rendered
+	// at all - see afterFindFn) uses emigo.NullableOf.
+	if browseEnabled || afterFindFn != "" {
 		deps = append(deps, core.CodeChunkDependency{Location: "github.com/torabian/emi/emigo"})
 	}
 	// The fallback qs struct rendered above (browseQueryChunk) uses url.Values/

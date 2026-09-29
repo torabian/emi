@@ -43,6 +43,10 @@ func (m *Emi) Preprocess() error {
 		return nil
 	}
 
+	if err := m.validateNoNilEntries(); err != nil {
+		return err
+	}
+
 	dtoByName := make(map[string]*EmiDto, len(m.Dto))
 	for i := range m.Dto {
 		dtoByName[m.Dto[i].Name] = &m.Dto[i]
@@ -129,6 +133,34 @@ func (m *Emi) Preprocess() error {
 // action (e.g. "go", "kotlin") via RegisterPreprocessHookForAction. Compiler backends
 // that want expansions scoped to just their own output should call this - with their
 // own core.BaseAction.Name - instead of Preprocess directly.
+// validateNoNilEntries rejects null items in the module's pointer lists. A bare
+// "- " under e.g. `actions:` unmarshals to a nil pointer, which every backend
+// would otherwise dereference and panic on.
+func (m *Emi) validateNoNilEntries() error {
+	check := func(section string, n int, isNil func(i int) bool) error {
+		for i := 0; i < n; i++ {
+			if isNil(i) {
+				return fmt.Errorf("%s[%d] is empty; remove the item or fill it in", section, i)
+			}
+		}
+		return nil
+	}
+
+	for _, err := range []error{
+		check("entities", len(m.Entities), func(i int) bool { return m.Entities[i] == nil }),
+		check("actions", len(m.Actions), func(i int) bool { return m.Actions[i] == nil }),
+		check("remotes", len(m.Remotes), func(i int) bool { return m.Remotes[i] == nil }),
+		check("permissions", len(m.Permissions), func(i int) bool { return m.Permissions[i] == nil }),
+		check("intents", len(m.Intents), func(i int) bool { return m.Intents[i] == nil }),
+		check("events", len(m.Events), func(i int) bool { return m.Events[i] == nil }),
+	} {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (m *Emi) PreprocessForAction(action string) error {
 	if err := m.Preprocess(); err != nil {
 		return err

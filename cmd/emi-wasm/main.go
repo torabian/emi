@@ -145,11 +145,22 @@ func main() {
 	select {}
 }
 
+// recoverGeneration turns a panic inside a compiler backend into a logged error.
+// In wasm an unrecovered panic kills the Go runtime, so every later call from the
+// playground would fail until the page is reloaded.
+func recoverGeneration(result *any) {
+	if r := recover(); r != nil {
+		fmt.Println("Generation error: the compiler crashed on this input:", r)
+		*result = nil
+	}
+}
+
 func VirtualFilesFactory(
 	callback func(ctx core.MicroGenContext) ([]core.VirtualFile, error),
 ) func(this js.Value, args []js.Value) any {
 
-	return func(this js.Value, args []js.Value) any {
+	return func(this js.Value, args []js.Value) (result any) {
+		defer recoverGeneration(&result)
 
 		var flags map[string]string = map[string]string{}
 		json.Unmarshal([]byte(args[1].Get("Flags").String()), &flags)
@@ -189,7 +200,9 @@ func StringOutFactory(
 	callback func(ctx core.MicroGenContext) (string, error),
 ) func(this js.Value, args []js.Value) any {
 
-	return func(this js.Value, args []js.Value) any {
+	return func(this js.Value, args []js.Value) (result any) {
+		defer recoverGeneration(&result)
+
 		content := args[0].String()
 		var flags map[string]string = map[string]string{}
 		json.Unmarshal([]byte(args[1].Get("Flags").String()), &flags)
