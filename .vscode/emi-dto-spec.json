@@ -13,6 +13,13 @@
           "type": "string",
           "description": "Name of the dto in camel case the rest of the code related to this dto is being generated based on this"
         },
+        "implements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Names of interfaces (see interfaces) this dto implements. Their fields are included and the generated code satisfies the interface."
+        },
         "fields": {
           "items": {
             "$ref": "#/definitions/EmiField"

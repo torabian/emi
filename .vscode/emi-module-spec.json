@@ -116,6 +116,13 @@
           "type": "array",
           "description": "Facts this module can emit through the event system"
         },
+        "interfaces": {
+          "items": {
+            "$ref": "#/definitions/EmiInterface"
+          },
+          "type": "array",
+          "description": "Named sets of fields that dtos can implement. Generates an interface type per target language."
+        },
         "extends": {
           "items": {
             "$ref": "#/definitions/EmiExtends"
@@ -566,6 +573,13 @@
         "name": {
           "type": "string",
           "description": "Name of the dto in camel case the rest of the code related to this dto is being generated based on this"
+        },
+        "implements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Names of interfaces (see interfaces) this dto implements. Their fields are included and the generated code satisfies the interface."
         },
         "fields": {
           "items": {
@@ -1132,6 +1146,51 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "EmiInterface": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the interface in camel case. The generated type is the PascalCase form (purchasable -\u003e Purchasable)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What implementing this interface means. Used in generated documentation."
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "Fields every implementing dto gets. Same shape as dto fields."
+        },
+        "context": {
+          "type": "string",
+          "enum": [
+            "dto",
+            "entity"
+          ],
+          "description": "Where the fields' use: templates resolve. Fields built from a template only fit owners of the same kind. Defaults to dto."
+        },
+        "mutable": {
+          "type": "boolean",
+          "description": "Also generate setters in the interface. Getters only by default."
+        },
+        "module": {
+          "type": "string",
+          "description": "Go package alias of the package declaring the interface (like module on a relation field)."
+        },
+        "provider": {
+          "type": "string",
+          "description": "Go import path of the package declaring the interface. When set the interface is referenced instead of generated."
+        },
+        "jsProvider": {
+          "type": "string",
+          "description": "Import path (including the file name) of the TypeScript file declaring the interface. When set the interface is imported instead of generated."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "EmiManifest": {
       "properties": {
         "name": {
@@ -1439,6 +1498,13 @@
         "gormMap": {
           "$ref": "#/definitions/GormOverrideMap",
           "description": "Override the some default Fireback generated fields gorm configuration."
+        },
+        "implements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Names of interfaces (see interfaces) whose fields this entity includes."
         },
         "fields": {
           "items": {

@@ -256,6 +256,7 @@ func mergeEmi(dst, src *Emi) {
 	dst.Vsqls = mergeByKey(dst.Vsqls, src.Vsqls, func(x EmiVsql) string { return x.Name })
 	dst.Permissions = mergeByKey(dst.Permissions, src.Permissions, func(x *EmiPermission) string { return x.Key })
 	dst.Intents = mergeByKey(dst.Intents, src.Intents, func(x *EmiIntent) string { return x.Name })
+	dst.Interfaces = mergeByKey(dst.Interfaces, src.Interfaces, func(x EmiInterface) string { return x.Name })
 	dst.Events = mergeByKey(dst.Events, src.Events, func(x *EmiEvent) string { return x.Key })
 
 	if src.Templates != nil {

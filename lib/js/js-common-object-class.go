@@ -46,6 +46,12 @@ func jsRenderDataClasses(fields []*core.EmiField, className, treeLocation string
 	signature := fmt.Sprintf("export class %v", core.ToUpper(className))
 	if !isFirst {
 		signature = fmt.Sprintf("static %v = class %v", className, className)
+	} else if isTypeScript && len(jsctx.Implements) > 0 {
+		names := make([]string, 0, len(jsctx.Implements))
+		for _, ref := range jsctx.Implements {
+			names = append(names, ref.Name)
+		}
+		signature += " implements " + strings.Join(names, ", ")
 	}
 
 	lateInitFields := []jsRenderedField{}
@@ -345,6 +351,10 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 			Objects:  []string{"type PartialDeep"},
 			Location: getSdkAwareLocation(ctx, INTERNAL_SDK_JS_LOCATION, "fetchx"),
 		})
+	}
+
+	if isTypeScript {
+		res.CodeChunkDependensies = append(res.CodeChunkDependensies, jsInterfaceImports(jsctx.Implements)...)
 	}
 
 	usedComplexes := CollectComplexClasses(fields)

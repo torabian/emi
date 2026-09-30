@@ -202,6 +202,27 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		actionsRendered = append(actionsRendered, actionRendered)
 	}
 
+	// Interfaces declared here become their own TypeScript files. One declared in another
+	// module (JsProvider set) is imported by the dtos implementing it instead.
+	for i := range module.Interfaces {
+		iface := &module.Interfaces[i]
+		if iface.IsJsReference() {
+			continue
+		}
+		rendered, err := JsInterfaceGenerate(iface, ctx, JsCommonObjectContext{RecognizedComplexes: complexes})
+		if err != nil {
+			return nil, err
+		}
+		if rendered == nil {
+			continue
+		}
+		files = append(files, core.VirtualFile{
+			Name:         rendered.SuggestedFileName,
+			Extension:    rendered.SuggestedExtension,
+			ActualScript: AsFullDocument(rendered, ctx),
+		})
+	}
+
 	var dtos []*core.CodeChunkCompiled
 
 	for _, dto := range module.Dto {
@@ -213,6 +234,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 			RootClassName:       dto.GetClassName(),
 			RecognizedComplexes: complexes,
 			Description:         dto.Description,
+			Implements:          JsInterfaceRefs(module, ctx, dto.Implements),
 		})
 		if err != nil {
 			return nil, err

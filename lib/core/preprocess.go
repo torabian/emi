@@ -56,6 +56,10 @@ func (m *Emi) Preprocess() error {
 		return err
 	}
 
+	if err := m.resolveInterfaces(); err != nil {
+		return err
+	}
+
 	dtoByName := make(map[string]*EmiDto, len(m.Dto))
 	for i := range m.Dto {
 		dtoByName[m.Dto[i].Name] = &m.Dto[i]

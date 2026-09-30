@@ -74,6 +74,14 @@ type Module3Entity struct {
 	GormMap GormOverrideMap `yaml:"gormMap,omitempty" json:"gormMap,omitempty" jsonschema:"description=Override the some default Fireback generated fields gorm configuration."`
 
 	// Define the fields that this entity will have both in golang and database columns.
+	// Implements lists the interfaces (Emi.Interfaces) this entity implements: it gets the
+	// fields as columns and - where the target language has interfaces - the generated
+	// accessors, computed from the entity's own final types. The plain dto derived from the
+	// entity implements them too whenever its types match (an interface with relations
+	// stays on the entity alone). Interface fields can't be inline object/array here: an
+	// entity keeps those in child tables of its own.
+	Implements []string `yaml:"implements,omitempty" json:"implements,omitempty" jsonschema:"description=Names of interfaces (see interfaces) whose fields this entity includes."`
+
 	Fields []*EmiField `yaml:"fields,omitempty" json:"fields,omitempty" jsonschema:"description=Define the fields that this entity will have both in golang and database columns."`
 
 	// The name of the entity which will appear in CLI. By default the name of the entity will be used with dashes.

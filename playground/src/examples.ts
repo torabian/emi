@@ -91,6 +91,108 @@ actions:
 `,
   },
   {
+    id: "interfaces",
+    label: "interfaces.yml",
+    kind: "yaml",
+    content: `name: interfacesModule
+
+# An interface is a named set of fields. Every dto that lists it under
+# \`implements\` gets those fields, and the compiler also generates an interface
+# type (Go: an interface of Get<Field>() methods, TypeScript: an \`interface\`)
+# that all of those dtos satisfy - so one function can accept any of them.
+
+# A complex is a type you provide yourself (here TString: one text per language)
+# and tell each compiler where to import it from.
+complexes:
+  - compiler: go
+    name: TString
+    namespace: complexes
+    location: github.com/torabian/fireback/modules/fireback/complexes
+  - compiler: ts
+    name: TString
+    location: "@fireback/complexes"
+
+interfaces:
+  - name: titlable
+    description: Anything that has a title and some content.
+    fields:
+      - name: title
+        type: string
+        description: Short title shown in lists.
+      - name: displayName
+        type: complex
+        complex: TString
+        description: Localized name - one text per language, not a single string.
+      - name: content
+        type: object
+        description: The body. Its type belongs to the interface, so it is shared.
+        fields:
+          - name: text
+            type: string
+          - name: language
+            type: string
+
+dtos:
+  # Both dtos get title + content from the interface, plus their own fields.
+  - name: cloth
+    implements:
+      - titlable
+    fields:
+      - name: size
+        type: int64
+
+  - name: shoe
+    implements:
+      - titlable
+    fields:
+      - name: color
+        type: string
+`,
+  },
+  {
+    id: "interface-entity",
+    label: "interface-entity.yml",
+    kind: "yaml",
+    content: `name: interfaceEntityModule
+
+# Entities can implement interfaces too. The interface's fields become columns of
+# the entity (ahead of its own). In Go the entity also gets the Get<Field>() methods,
+# so InvoiceEntity satisfies Auditable - as does the plain InvoiceDto derived from it
+# and the hand-written dto below. One function taking Auditable accepts all of them,
+# and the audit fields are written once instead of on every record type.
+interfaces:
+  - name: auditable
+    description: Who created a record, and an optional note about it.
+    fields:
+      - name: createdBy
+        type: string
+        description: Id of the user who created the record.
+      - name: note
+        type: string?
+        description: Optional free text about the record.
+
+entities:
+  - name: invoice
+    description: A billed invoice. createdBy and note come from auditable.
+    implements:
+      - auditable
+    fields:
+      - name: number
+        type: string
+      - name: total
+        type: int64
+
+dtos:
+  # A dto implementing the same interface, next to the entity.
+  - name: invoiceSummary
+    implements:
+      - auditable
+    fields:
+      - name: number
+        type: string
+`,
+  },
+  {
     id: "query",
     label: "query.sql",
     kind: "sql",

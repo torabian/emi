@@ -380,7 +380,11 @@ func (m *Emi) preprocessEntityDtos() {
 		if existing[name] {
 			continue
 		}
-		m.Dto = append(m.Dto, *BuildEntityDto(e))
+		dto := BuildEntityDto(e)
+		// The entity's interface fields are already part of its fields, so the dto has them;
+		// it also implements the interfaces it can honestly satisfy - see interfacesForDerivedDto.
+		dto.Implements = m.interfacesForDerivedDto(e)
+		m.Dto = append(m.Dto, *dto)
 		existing[name] = true
 	}
 }

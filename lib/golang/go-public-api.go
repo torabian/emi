@@ -187,6 +187,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 			RootClassName:       dto.GetClassName(),
 			RecognizedComplexes: complexes,
 			EmiLocation:         f.Emigo,
+			Aliases:             goInterfaceAliases(dto.GetClassName(), module.FindInterfaces(dto.Implements)),
 		})
 
 		if err != nil {
@@ -194,6 +195,19 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		}
 
 		dtoItem := actionRendered.MainClass
+
+		if len(dto.Implements) > 0 {
+			methods, deps, err := GoInterfaceImplementation(core.ToUpper(dto.GetClassName()), dto.Fields, module.FindInterfaces(dto.Implements), GoCommonStructContext{
+				RootClassName:       dto.GetClassName(),
+				RecognizedComplexes: complexes,
+				EmiLocation:         f.Emigo,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("dto %s: %w", dto.Name, err)
+			}
+			dtoItem.ActualScript = append(dtoItem.ActualScript, []byte("\n"+methods)...)
+			dtoItem.CodeChunkDependensies = append(dtoItem.CodeChunkDependensies, deps...)
+		}
 
 		files = append(files, core.VirtualFile{
 			Name:         dtoItem.SuggestedFileName,
@@ -208,6 +222,28 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 				ActualScript: AsFullDocument(actionRendered.CliHelpers, f.PackageName),
 			})
 		}
+	}
+
+	// An interface declared in another module (Provider set) is only referenced by the
+	// dtos implementing it - generating it again here would be a second, unrelated type.
+	for i := range module.Interfaces {
+		iface := &module.Interfaces[i]
+		if iface.IsGoReference() {
+			continue
+		}
+		output, err := GoInterfaceGenerate(iface, ctx, GoCommonStructContext{
+			RootClassName:       iface.GetClassName(),
+			RecognizedComplexes: complexes,
+			EmiLocation:         f.Emigo,
+		})
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, core.VirtualFile{
+			Name:         output.SuggestedFileName,
+			Extension:    output.SuggestedExtension,
+			ActualScript: AsFullDocument(output, f.PackageName),
+		})
 	}
 
 	for _, entity := range module.Entities {
@@ -270,6 +306,21 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 
 		appendChunk(entityRendered.MainClass)
 		appendChunk(actionsRendered)
+
+		// The entity satisfies its interfaces from its own *final* struct: GoEntityRender
+		// has just rewritten entity.Fields in place (one -> class, array -> list, ...), so
+		// the accessors are typed exactly as the struct's fields are.
+		if len(entity.Implements) > 0 {
+			methods, deps, err := GoInterfaceImplementation(core.ToUpper(entity.GetClassName()), entity.Fields, module.FindInterfaces(entity.Implements), GoCommonStructContext{
+				RootClassName:       entity.GetClassName(),
+				RecognizedComplexes: complexes,
+				EmiLocation:         f.Emigo,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("entity %s: %w", entity.Name, err)
+			}
+			appendChunk(&core.CodeChunkCompiled{ActualScript: []byte("\n" + methods), CodeChunkDependensies: deps})
+		}
 
 		files = append(files, core.VirtualFile{
 			Name:         combined.SuggestedFileName,

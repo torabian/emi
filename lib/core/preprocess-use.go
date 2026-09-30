@@ -27,6 +27,11 @@ func (m *Emi) resolveFieldUses() error {
 		templates = m.Templates.Fields
 	}
 
+	// Interfaces resolve their own fields in their own context, see resolveInterfaces.
+	savedInterfaces := m.Interfaces
+	m.Interfaces = nil
+	defer func() { m.Interfaces = savedInterfaces }()
+
 	// The templates themselves are definitions, not usages - keep them out of the walk.
 	var saved []EmiFieldTemplate
 	if m.Templates != nil {

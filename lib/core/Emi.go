@@ -70,6 +70,11 @@ type Emi struct {
 	// (currently Go only - see lib/golang/go-events.go).
 	Events []*EmiEvent `yaml:"events,omitempty" json:"events,omitempty" jsonschema:"description=Facts this module can emit through the event system, each with the permission combinations that grant visibility into it. Compiled into a usable Events catalog per target language."`
 
+	// Interfaces are named sets of fields. A dto that implements one gets those fields and,
+	// in the target languages that support it, a generated interface type the dto is
+	// guaranteed to satisfy - so code can accept any dto implementing it.
+	Interfaces []EmiInterface `yaml:"interfaces,omitempty" json:"interfaces,omitempty" jsonschema:"description=Named sets of fields that dtos can implement. Generates an interface type per target language."`
+
 	// Extends lists other emi definition files this module is built on top of. They are
 	// merged in order of declaration (a later file overrides an earlier one), and this
 	// module's own content is merged last, so it always wins. Each extended file may
