@@ -390,3 +390,54 @@ func TestBuildJSONSchema_UnaffectedByTranslationKeysMode(t *testing.T) {
 		t.Errorf("expected literal field title/description, got %v", fullName)
 	}
 }
+
+// A field's label/description written as locale maps: the schema's own title/description
+// stay translation keys, DefaultTranslations carries the default text, and Localized
+// carries the per-locale text under the same keys.
+func TestBuildJSONSchemaWithTranslationKeys_LocalizedLabelAndDescription(t *testing.T) {
+	fields := []*core.EmiField{
+		{
+			Name:         "fullName",
+			Type:         core.FieldTypeString,
+			Label:        "Full name",
+			Labels:       map[string]string{"en": "Full name", "pl": "Imię i nazwisko"},
+			Description:  "Legal name",
+			Descriptions: map[string]string{"en": "Legal name", "pl": "Nazwa prawna"},
+		},
+		{Name: "plain", Type: core.FieldTypeString, Label: "Own label"},
+		{Name: "derived", Type: core.FieldTypeString},
+	}
+	schema, tr := BuildJSONSchemaWithTranslationKeys("Customer", "", fields)
+
+	byKey := map[string]string{}
+	for _, e := range tr.Entries {
+		byKey[e.Key] = e.Value
+	}
+	if byKey["full_name_title"] != "Full name" || byKey["full_name_description"] != "Legal name" ||
+		byKey["plain_title"] != "Own label" || byKey["derived_title"] != "Derived" {
+		t.Fatalf("default entries: %v", byKey)
+	}
+	if schema.Properties[0].Schema.Title != "full_name_title" {
+		t.Fatalf("schema title should stay a key: %+v", schema.Properties[0].Schema)
+	}
+
+	pl := tr.Localized["pl"]
+	if pl == nil || len(pl.Entries) != 2 ||
+		pl.Entries[0] != (SchemaLocaleEntry{Key: "full_name_title", Value: "Imię i nazwisko"}) ||
+		pl.Entries[1] != (SchemaLocaleEntry{Key: "full_name_description", Value: "Nazwa prawna"}) {
+		t.Fatalf("pl bucket: %+v", pl)
+	}
+	if en := tr.Localized["en"]; en == nil || len(en.Entries) != 2 {
+		t.Fatalf("en bucket: %+v", en)
+	}
+	// Fields without a map contribute nothing to any locale.
+	if len(tr.Localized) != 2 {
+		t.Fatalf("locales: %v", tr.Localized)
+	}
+
+	// Plain (non-key) schema uses the label as its title.
+	plainSchema := BuildJSONSchema("Customer", "", fields)
+	if plainSchema.Properties[1].Schema.Title != "Own label" {
+		t.Fatalf("plain title: %+v", plainSchema.Properties[1].Schema)
+	}
+}

@@ -3,6 +3,7 @@ package formgen
 import (
 	"bytes"
 	"encoding/json"
+	"sort"
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
@@ -233,6 +234,36 @@ type SchemaLocaleEntry struct {
 // on every run.
 type SchemaLocaleBucket struct {
 	Entries []SchemaLocaleEntry
+
+	// Localized holds, per locale, the key -> text entries fields wrote as a locale map
+	// (`label:`/`description:` given as {en: ..., pl: ...}) - only keys that have text
+	// in that locale, so a consumer falls back to Entries for the rest. Empty when no
+	// field is localized. Not part of the bucket's own JSON (see MarshalJSON): callers
+	// emit it separately.
+	Localized map[string]*SchemaLocaleBucket
+}
+
+// addLocalized records text for key under each locale in texts.
+func (b *SchemaLocaleBucket) addLocalized(key string, texts map[string]string) {
+	if b == nil || len(texts) == 0 {
+		return
+	}
+	if b.Localized == nil {
+		b.Localized = map[string]*SchemaLocaleBucket{}
+	}
+	locales := make([]string, 0, len(texts))
+	for locale := range texts {
+		locales = append(locales, locale)
+	}
+	sort.Strings(locales)
+	for _, locale := range locales {
+		bucket := b.Localized[locale]
+		if bucket == nil {
+			bucket = &SchemaLocaleBucket{}
+			b.Localized[locale] = bucket
+		}
+		bucket.Entries = append(bucket.Entries, SchemaLocaleEntry{Key: key, Value: texts[locale]})
+	}
 }
 
 func (b *SchemaLocaleBucket) MarshalJSON() ([]byte, error) {
@@ -311,7 +342,7 @@ func collectSchemaLocaleEntries(fields []*FieldPlan, pathPrefix string, bucket *
 
 		bucket.Entries = append(bucket.Entries, SchemaLocaleEntry{
 			Key:   key + "_title",
-			Value: HumanizeLabel(f.Name),
+			Value: FieldLabel(f.Field, f.Name),
 		})
 		if f.Field != nil && f.Field.Description != "" {
 			bucket.Entries = append(bucket.Entries, SchemaLocaleEntry{
@@ -384,13 +415,16 @@ func fieldSchema(f *FieldPlan, key string, translations *SchemaLocaleBucket) *JS
 		s = &JSONSchema{}
 	}
 
-	label := HumanizeLabel(f.Name)
+	label := FieldLabel(f.Field, f.Name)
 	if translations == nil {
 		s.Title = label
 	} else {
 		titleKey := key + "_title"
 		s.Title = titleKey
 		translations.Entries = append(translations.Entries, SchemaLocaleEntry{Key: titleKey, Value: label})
+		if f.Field != nil {
+			translations.addLocalized(titleKey, f.Field.Labels)
+		}
 	}
 
 	if f.Field != nil && f.Field.Description != "" {
@@ -400,6 +434,7 @@ func fieldSchema(f *FieldPlan, key string, translations *SchemaLocaleBucket) *JS
 			descriptionKey := key + "_description"
 			s.Description = descriptionKey
 			translations.Entries = append(translations.Entries, SchemaLocaleEntry{Key: descriptionKey, Value: f.Field.Description})
+			translations.addLocalized(descriptionKey, f.Field.Descriptions)
 		}
 	}
 

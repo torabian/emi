@@ -43,7 +43,16 @@ func (m *Emi) Preprocess() error {
 		return nil
 	}
 
+	// First, so every step below sees the fully merged module.
+	if err := m.resolveExtends(); err != nil {
+		return err
+	}
+
 	if err := m.validateNoNilEntries(); err != nil {
+		return err
+	}
+
+	if err := m.resolveFieldUses(); err != nil {
 		return err
 	}
 

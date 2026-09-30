@@ -184,7 +184,7 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		}
 
 		files = append(files, core.VirtualFile{
-			Name:         permissionsRendered.SuggestedFileName,
+			Name:         ctx.ModuleFileName(module, permissionsRendered.SuggestedFileName),
 			Extension:    permissionsRendered.SuggestedExtension,
 			ActualScript: AsFullDocument(permissionsRendered, ctx),
 		})

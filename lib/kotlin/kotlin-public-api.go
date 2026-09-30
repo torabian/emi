@@ -232,7 +232,7 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 
 	if permissionsOutput != nil {
 		files = append(files, core.VirtualFile{
-			Name:         permissionsOutput.SuggestedFileName,
+			Name:         ctx.ModuleFileName(module, permissionsOutput.SuggestedFileName),
 			Extension:    permissionsOutput.SuggestedExtension,
 			ActualScript: AsFullDocument(permissionsOutput, pkgName),
 		})

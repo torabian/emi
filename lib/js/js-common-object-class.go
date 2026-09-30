@@ -418,12 +418,35 @@ func JsCommonObjectClassGenerator(fields []*core.EmiField, ctx core.MicroGenCont
 			renderedClasses[0].ClassStaticFunctions = append(renderedClasses[0].ClassStaticFunctions,
 				fmt.Sprintf("static DefaultTranslations = %s%s", translationsJSON, defaultTranslationsSuffix))
 
+			// Fields whose label/description were written as a locale map ({en: ..., pl:
+			// ...}) get their per-locale text here, keyed by locale then by the same
+			// translation keys as DefaultTranslations. A locale only holds the keys that
+			// have text in it, so a consumer resolves `LocaleTranslations[locale]?.[key]
+			// ?? DefaultTranslations[key]`. Omitted entirely when nothing is localized, so
+			// existing output stays byte-identical.
+			hasLocaleTranslations := len(translations.Localized) > 0
+			if hasLocaleTranslations {
+				localeJSON, err := json.MarshalIndent(translations.Localized, "", "  ")
+				if err != nil {
+					return nil, fmt.Errorf("js: failed marshaling LocaleTranslations for %v: %w", jsctx.RootClassName, err)
+				}
+				localeType := ""
+				if isTypeScript {
+					localeType = fmt.Sprintf(": Record<string, Partial<Record<keyof typeof %s.DefaultTranslations, string>>>", core.ToUpper(jsctx.RootClassName))
+				}
+				renderedClasses[0].ClassStaticFunctions = append(renderedClasses[0].ClassStaticFunctions,
+					fmt.Sprintf("static LocaleTranslations%s = %s", localeType, localeJSON))
+			}
+
 			if isTypeScript {
 				className := core.ToUpper(jsctx.RootClassName)
 				translationTypeDeclaration = fmt.Sprintf(
 					"export type %sTranslationKey = keyof typeof %s.DefaultTranslations;\nexport type %sTranslations = Record<%sTranslationKey, string>;",
 					className, className, className, className,
 				)
+				if hasLocaleTranslations {
+					translationTypeDeclaration += fmt.Sprintf("\nexport type %sLocaleTranslations = Partial<%sTranslations>;", className, className)
+				}
 			}
 		}
 	}

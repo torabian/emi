@@ -18,6 +18,7 @@ const JsonSchema core.CTag = "json-schema"     // opt-in: also generate {Dto}.sc
 // CompilerTags lists every tag this package understands, for `emi tags` to
 // display. Keep in sync with the const list above.
 var CompilerTags = []core.CompilerTagDoc{
+	core.ModuleScopedFilesDoc,
 	{Tag: Typescript, Description: "Generate TypeScript (.ts) output - typed classes/interfaces - instead of plain JavaScript"},
 	{Tag: IncludeExt, Description: "Append the file extension (.js or .ts) to generated import paths"},
 	{Tag: React, Description: "Also generate React Query hooks (useQuery/useMutation) for each action"},

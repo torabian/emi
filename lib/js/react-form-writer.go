@@ -312,7 +312,7 @@ func (b *reactFormBuilder) renderLeaf(f *formgen.FieldPlan) string {
 
 	path := "value." + f.Name
 	props := []string{
-		"label=" + strconv.Quote(formgen.HumanizeLabel(f.Name)),
+		"label=" + strconv.Quote(formgen.FieldLabel(f.Field, f.Name)),
 		fmt.Sprintf("value={%s}", path),
 		fmt.Sprintf("onChange={(next) => onChange({ ...value, %s: next })}", f.Name),
 	}

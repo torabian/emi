@@ -356,7 +356,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 
 	if permissionsOutput != nil {
 		files = append(files, core.VirtualFile{
-			Name:         permissionsOutput.SuggestedFileName,
+			Name:         ctx.ModuleFileName(module, permissionsOutput.SuggestedFileName),
 			Extension:    permissionsOutput.SuggestedExtension,
 			ActualScript: AsFullDocument(permissionsOutput, f.PackageName),
 		})
@@ -369,7 +369,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 
 	if eventsOutput != nil {
 		files = append(files, core.VirtualFile{
-			Name:         eventsOutput.SuggestedFileName,
+			Name:         ctx.ModuleFileName(module, eventsOutput.SuggestedFileName),
 			Extension:    eventsOutput.SuggestedExtension,
 			ActualScript: AsFullDocument(eventsOutput, f.PackageName),
 		})

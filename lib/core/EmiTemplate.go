@@ -15,4 +15,21 @@ type EmiTemplate struct {
 	// but never compiled into routes, CLI commands, or client bindings. Their
 	// in/out body fields can be sourced via EmiCapture.Action.
 	Actions []*EmiAction `yaml:"actions,omitempty" json:"actions,omitempty" jsonschema:"description=Actions defined for reuse only. Never compiled; in/out fields are available as capture sources."`
+
+	// Fields defined for reuse only: named field shapes that any field can pull in with
+	// `use: <name>`. See EmiFieldTemplate.
+	Fields []EmiFieldTemplate `yaml:"fields,omitempty" json:"fields,omitempty" jsonschema:"description=Reusable field shapes. Any field can build itself from one with use: <name>."`
+}
+
+// EmiFieldTemplate is a reusable field definition. Name is the template's own name (what
+// `use:` refers to), not the name of the fields built from it.
+type EmiFieldTemplate struct {
+	EmiField `yaml:",inline"`
+
+	// Context restricts the template to fields declared inside an entity ("entity") or
+	// anywhere else - dtos and action bodies ("dto"). Leave it empty to match both. When a
+	// name has both a context-specific and a general template, the specific one wins - so
+	// one name can describe a relation as PurchasableEntity in entities and as
+	// PurchasableDto in dtos.
+	Context string `yaml:"context,omitempty" json:"context,omitempty" jsonschema:"enum=entity,enum=dto,description=Limit the template to fields inside entities or inside dtos and action bodies. Empty matches both."`
 }

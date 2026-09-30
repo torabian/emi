@@ -5,6 +5,11 @@ import "strings"
 type EmiField struct {
 
 	// Name of the field in camel case. Will be upper case automatically when necessary
+	// Use names a field template (Emi.Templates.Fields) this field is built from. Every
+	// property the template sets becomes this field's own, except the ones this field sets
+	// itself, which win. Resolved during preprocessing and cleared afterwards.
+	Use string `yaml:"use,omitempty" json:"use,omitempty" jsonschema:"description=Name of a field template (templates.fields) to build this field from. Properties set on this field override the template's."`
+
 	Name string `yaml:"name,omitempty" json:"name,omitempty" jsonschema:"description=Name of the field in camel case. Will be upper case automatically when necessary"`
 
 	// The field name apperance on the cli tools, such as --field-name. If empty, computed automatically
@@ -13,8 +18,23 @@ type EmiField struct {
 	// Recommended field will be asked upon an interactive cli operation.
 	Recommended bool `yaml:"recommended,omitempty" json:"recommended,omitempty" jsonschema:"description=Recommended field will be asked upon an interactive cli operation."`
 
+	// Label is the short, human-facing name of the field (form labels, JSON schema titles).
+	// Left empty, generators derive one from Name (firstName -> First Name). Like
+	// Description it can be a plain string or a locale -> text map; Label carries the single
+	// string generators use (the map's en entry, else its first locale alphabetically).
+	Label string `yaml:"-" json:"label,omitempty" jsonschema:"oneof_type=string;object,description=Short human-facing name of the field. Either a plain string or a map of locale to text (en: ... pl: ...). Left empty the label is derived from the field name."`
+
+	// Labels holds the locale -> text map when `label:` was written as a map (nil for a
+	// plain string). See Label.
+	Labels map[string]string `yaml:"-" json:"-"`
+
 	// Description about the field for developers and generated documents.
-	Description string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Description about the field for developers and generated documents."`
+	Description string `yaml:"-" json:"description,omitempty" jsonschema:"oneof_type=string;object,description=Description about the field for developers and generated documents. Either a plain string or a map of locale to text (en: ... pl: ...). Code generators use the en entry or else the first locale alphabetically."`
+
+	// Descriptions holds the locale -> text map when `description:` was written as a map
+	// (nil for a plain string). Description always carries the single string generators
+	// use: the map's "en" entry, else its first locale alphabetically.
+	Descriptions map[string]string `yaml:"-" json:"-"`
 
 	// Type of the field based on Emi types.
 	Type FieldType `yaml:"type,omitempty" json:"type,omitempty" jsonschema:"enum=array,enum=_list,enum=map?,enum=map,enum=slice,enum=one,enum=class,enum=collection,enum=object,enum=enum,enum=string,enum=bool,enum=int,enum=int32,enum=int64,enum=float32,enum=float64,enum=array?,enum=_list?,enum=slice?,enum=one?,enum=class?,enum=collection?,enum=object?,enum=enum?,enum=string?,enum=bool?,enum=int?,enum=int32?,enum=int64?,enum=float32?,enum=float64?,enum=any,enum=complex,enum=complex?,description=Type of the field based on Emi types."`
