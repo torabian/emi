@@ -38,6 +38,9 @@ type Module3Entity struct {
 	// Exposes every action generated for this entity (create, update, get, browse and the aware delete pair) as an intent, i.e. an MCP tool
 	Intent bool `yaml:"intent,omitempty" json:"intent,omitempty" jsonschema:"description=When true every action generated for this entity (create/update/get/browse/delete preview/delete) is also exposed as an intent (MCP tool) named listBooks/getBook/createBook/updateBook/previewDeleteBooks/deleteBooks for an entity named book. A hand-declared intent of the same name wins."`
 
+	// Adds a standard permission group for the entity (query/create/update/delete) to the module permissions at preprocess time
+	DefaultPermissions bool `yaml:"defaultPermissions,omitempty" json:"defaultPermissions,omitempty" jsonschema:"description=When true (default false) the compiler adds a permission group named after the entity to the module permissions: <entity>.* with children <entity>.query / .create / .update / .delete. A hand-declared permission of the same name wins."`
+
 	// Customize the features generated for entity, less common changes goes to this object
 	Features *Module3EntityFeatures `yaml:"features,omitempty" json:"features,omitempty" jsonschema:"description=Customize the features generated for entity, less common changes goes to this object"`
 

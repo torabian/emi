@@ -114,14 +114,44 @@ func buildEntityBrowseAction(entity *Module3Entity) *EmiAction {
 		Method:      "get",
 		Url:         "/" + entity.Name + "/browse",
 		Query: []*EmiQueryField{
-			{Name: "filter", Type: FieldTypeString},
-			{Name: "sort", Type: FieldTypeString},
-			{Name: "startIndex", Type: FieldTypeInt},
-			{Name: "itemsPerPage", Type: FieldTypeInt},
+			// These descriptions are read by humans, generated docs and (via the
+			// intent/MCP tool input schema) by models, which only see the schema - so
+			// they carry the real syntax and a worked example, not just a label. Keep
+			// them in sync with emigorm.ApplyQueryFilter/Sort/Page/Cursor.
+			{
+				Name: "filter",
+				Type: FieldTypeString,
+				Description: "JSON Logic filter (https://jsonlogic.com), sent as a JSON-encoded string. " +
+					"Empty means no filtering. Evaluated server-side in the database, so prefer it over fetching rows and filtering them yourself - " +
+					"including for counting: filter with itemsPerPage=1 and read totalItems. " +
+					"Example: {\"and\":[{\">=\":[{\"var\":\"amount\"},100]},{\"<\":[{\"var\":\"amount\"},500]}]}. " +
+					"{\"var\":\"...\"} is the database column name in snake_case (e.g. unique_id, not uniqueId). " +
+					"Operators: ==, !=, >, >=, <, <=, and, or, in, plus \"contains\" (case-insensitive substring match, e.g. {\"contains\":[{\"var\":\"title\"},\"hello\"]}).",
+			},
+			{
+				Name: "sort",
+				Type: FieldTypeString,
+				Description: "SQL ORDER BY expression over column names (snake_case), e.g. \"amount desc\" or \"created_at asc\". " +
+					"Empty defaults to \"id asc\". Note that cursor paging resumes after the last id, so it is only reliable with the default ascending order.",
+			},
+			{
+				Name:        "startIndex",
+				Type:        FieldTypeInt,
+				Description: "Zero-based row offset to start from (offset paging). Values <= 0 mean no offset. Use cursor instead for stable paging through a large list.",
+			},
+			{
+				Name:        "itemsPerPage",
+				Type:        FieldTypeInt,
+				Description: "Maximum number of rows to return in this page. Values <= 0 mean no limit. The response always carries totalItems (the count of all rows matching filter), so itemsPerPage=1 is enough when only a count is needed.",
+			},
 			// Resumes a previous page - always exactly what a prior call's own
 			// "cursor" response field returned (see emigorm.ApplyQueryCursor/
 			// BuildQueryCursor); empty means "start from the beginning".
-			{Name: "cursor", Type: FieldTypeString},
+			{
+				Name:        "cursor",
+				Type:        FieldTypeString,
+				Description: "Opaque paging token: pass the cursor value returned by the previous response to get the next page. Empty starts from the beginning. Never construct one by hand.",
+			},
 		},
 		// Out is the entity's own optional dto (BuildEntityOptionalDto) - not a
 		// hand-rolled {items, total, cursor} wrapper - so it's the exact same type

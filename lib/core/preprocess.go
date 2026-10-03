@@ -123,6 +123,7 @@ func (m *Emi) Preprocess() error {
 		v.Captures = nil
 	}
 
+	m.addDefaultEntityPermissions()
 	ResolvePermissionFullKeys(m.Permissions, "")
 	if err := ValidatePermissionIdentifiers(m.Permissions); err != nil {
 		return err
