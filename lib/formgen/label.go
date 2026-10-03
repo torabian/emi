@@ -3,6 +3,8 @@ package formgen
 import (
 	"regexp"
 	"strings"
+
+	"github.com/torabian/emi/lib/core"
 )
 
 var humanizeLabelRe = regexp.MustCompile(`([a-z0-9])([A-Z])`)
@@ -22,4 +24,13 @@ func HumanizeLabel(name string) string {
 		words[i] = strings.ToUpper(w[:1]) + w[1:]
 	}
 	return strings.Join(words, " ")
+}
+
+// FieldLabel is the label to show for a field: its own `label:` when set, otherwise
+// the humanized field name. field may be nil.
+func FieldLabel(field *core.EmiField, name string) string {
+	if field != nil && field.Label != "" {
+		return field.Label
+	}
+	return HumanizeLabel(name)
 }

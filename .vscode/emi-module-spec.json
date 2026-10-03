@@ -115,6 +115,20 @@
           },
           "type": "array",
           "description": "Facts this module can emit through the event system"
+        },
+        "interfaces": {
+          "items": {
+            "$ref": "#/definitions/EmiInterface"
+          },
+          "type": "array",
+          "description": "Named sets of fields that dtos can implement. Generates an interface type per target language."
+        },
+        "extends": {
+          "items": {
+            "$ref": "#/definitions/EmiExtends"
+          },
+          "type": "array",
+          "description": "Other emi definition files to merge into this module"
         }
       },
       "additionalProperties": false,
@@ -208,6 +222,13 @@
         "dto": {
           "type": "string"
         },
+        "implements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Names of interfaces (see interfaces) the generated type implements. Their fields are included and the generated code satisfies the interface. Honored for event params/payload and permission params; requires fields."
+        },
         "primitive": {
           "type": "string",
           "enum": [
@@ -264,6 +285,10 @@
     },
     "EmiColumn": {
       "properties": {
+        "use": {
+          "type": "string",
+          "description": "Name of a field template (templates.fields) to build this field from. Properties set on this field override the template's."
+        },
         "name": {
           "type": "string",
           "description": "Name of the field in camel case. Will be upper case automatically when necessary"
@@ -276,9 +301,27 @@
           "type": "boolean",
           "description": "Recommended field will be asked upon an interactive cli operation."
         },
+        "label": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Short human-facing name of the field. Either a plain string or a map of locale to text (en: ... pl: ...). Left empty the label is derived from the field name."
+        },
         "description": {
-          "type": "string",
-          "description": "Description about the field for developers and generated documents."
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Description about the field for developers and generated documents. Either a plain string or a map of locale to text (en: ... pl: ...). Code generators use the en entry or else the first locale alphabetically."
         },
         "type": {
           "type": "string",
@@ -538,6 +581,13 @@
           "type": "string",
           "description": "Name of the dto in camel case the rest of the code related to this dto is being generated based on this"
         },
+        "implements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Names of interfaces (see interfaces) this dto implements. Their fields are included and the generated code satisfies the interface."
+        },
         "fields": {
           "items": {
             "$ref": "#/definitions/EmiField"
@@ -610,6 +660,10 @@
         "payload": {
           "$ref": "#/definitions/EmiActionBody",
           "description": "Shape of data this event carries when it fires. Compiled the same way an action's request/response body is: fields becomes a typed DTO"
+        },
+        "params": {
+          "$ref": "#/definitions/EmiActionBody",
+          "description": "Parameters that scope or qualify this event (e.g. the workspaceId it fired in)"
         }
       },
       "additionalProperties": false,
@@ -628,8 +682,29 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "EmiExtends": {
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "Path of the emi definition file to merge in. Relative paths resolve against the file declaring this entry."
+        },
+        "params": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Values for {{name}} placeholders in string values of the extended file; {{name|fallback}} sets a default. {{extends.dir}} is built in - the extended file directory relative to the extending module. Unmatched placeholders are left as written."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "EmiField": {
       "properties": {
+        "use": {
+          "type": "string",
+          "description": "Name of a field template (templates.fields) to build this field from. Properties set on this field override the template's."
+        },
         "name": {
           "type": "string",
           "description": "Name of the field in camel case. Will be upper case automatically when necessary"
@@ -642,9 +717,27 @@
           "type": "boolean",
           "description": "Recommended field will be asked upon an interactive cli operation."
         },
+        "label": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Short human-facing name of the field. Either a plain string or a map of locale to text (en: ... pl: ...). Left empty the label is derived from the field name."
+        },
         "description": {
-          "type": "string",
-          "description": "Description about the field for developers and generated documents."
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Description about the field for developers and generated documents. Either a plain string or a map of locale to text (en: ... pl: ...). Code generators use the en entry or else the first locale alphabetically."
         },
         "type": {
           "type": "string",
@@ -790,6 +883,188 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "EmiFieldTemplate": {
+      "properties": {
+        "use": {
+          "type": "string",
+          "description": "Name of a field template (templates.fields) to build this field from. Properties set on this field override the template's."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the field in camel case. Will be upper case automatically when necessary"
+        },
+        "cli": {
+          "type": "string",
+          "description": "The field name apperance on the cli tools"
+        },
+        "recommended": {
+          "type": "boolean",
+          "description": "Recommended field will be asked upon an interactive cli operation."
+        },
+        "label": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Short human-facing name of the field. Either a plain string or a map of locale to text (en: ... pl: ...). Left empty the label is derived from the field name."
+        },
+        "description": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Description about the field for developers and generated documents. Either a plain string or a map of locale to text (en: ... pl: ...). Code generators use the en entry or else the first locale alphabetically."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "array",
+            "_list",
+            "map?",
+            "map",
+            "slice",
+            "one",
+            "class",
+            "collection",
+            "object",
+            "enum",
+            "string",
+            "bool",
+            "int",
+            "int32",
+            "int64",
+            "float32",
+            "float64",
+            "array?",
+            "_list?",
+            "slice?",
+            "one?",
+            "class?",
+            "collection?",
+            "object?",
+            "enum?",
+            "string?",
+            "bool?",
+            "int?",
+            "int32?",
+            "int64?",
+            "float32?",
+            "float64?",
+            "any",
+            "complex",
+            "complex?"
+          ],
+          "description": "Type of the field based on Emi types."
+        },
+        "mapKeyOf": {
+          "type": "string",
+          "enum": [
+            "string",
+            "int",
+            "any"
+          ],
+          "description": "In case of type map this is the map key type"
+        },
+        "mapPairOf": {
+          "type": "string",
+          "enum": [
+            "string",
+            "int",
+            "any",
+            "object",
+            "slice"
+          ],
+          "description": "In case of type map this is the map key type"
+        },
+        "primitive": {
+          "type": "string",
+          "enum": [
+            "string",
+            "bool",
+            "int",
+            "int32",
+            "int64",
+            "float32",
+            "float64",
+            "bytes"
+          ],
+          "description": "The primitve that is allowed for the slice is limited to following values"
+        },
+        "target": {
+          "type": "string",
+          "description": "The entity in golang which will be operated on in case of type: one or type: collection"
+        },
+        "default": {
+          "description": "Default value of the field which will be added to the meta tags"
+        },
+        "module": {
+          "type": "string",
+          "description": "When using one or collection types you need to set the module name here to import tha"
+        },
+        "provider": {
+          "type": "string",
+          "description": "The go project module of the important target for one or collection fields if its from exte"
+        },
+        "providerAlias": {
+          "type": "string",
+          "description": "You can set an alias for the provider so the import will be done using that name instead of auto detection. Useful ingolang implementation."
+        },
+        "jsProvider": {
+          "type": "string",
+          "description": "Full JS/TS import path (including the target's own class name) for a one/one?/collection/collection? field whose target lives in another module's js output directory - see Provider's own doc comment for the Go equivalent this fills the gap for."
+        },
+        "of": {
+          "items": {
+            "$ref": "#/definitions/EmiEnumInline"
+          },
+          "type": "array",
+          "description": "List of enum values in case of enum type for the field. Check EmiEnumInline for more d"
+        },
+        "complex": {
+          "type": "string",
+          "description": "In case of complex data type"
+        },
+        "matches": {
+          "items": {
+            "$ref": "#/definitions/EmiFieldMatch"
+          },
+          "type": "array",
+          "description": "On the json type this field will generate necessary code to cast it into different dtos"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "For types such as array or object children fields can be defined and will separate struct with name prefixed to parent"
+        },
+        "tags": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Tags are key/pair values which might be useful in some languages - such as golang. There you can specifiy extra tags for language."
+        },
+        "context": {
+          "type": "string",
+          "enum": [
+            "entity",
+            "dto"
+          ],
+          "description": "Limit the template to fields inside entities or inside dtos and action bodies. Empty matches both."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "EmiHeader": {
       "properties": {
         "name": {
@@ -877,6 +1152,51 @@
         "openWorldHint": {
           "type": "boolean",
           "description": "Tool interacts with an open-ended external world (e.g. web search) rather than a closed enumerable domain."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "EmiInterface": {
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the interface in camel case. The generated type is the PascalCase form (purchasable -\u003e Purchasable)."
+        },
+        "description": {
+          "type": "string",
+          "description": "What implementing this interface means. Used in generated documentation."
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiField"
+          },
+          "type": "array",
+          "description": "Fields every implementing dto gets. Same shape as dto fields."
+        },
+        "context": {
+          "type": "string",
+          "enum": [
+            "dto",
+            "entity"
+          ],
+          "description": "Where the fields' use: templates resolve. Fields built from a template only fit owners of the same kind. Defaults to dto."
+        },
+        "mutable": {
+          "type": "boolean",
+          "description": "Also generate setters in the interface. Getters only by default."
+        },
+        "module": {
+          "type": "string",
+          "description": "Go package alias of the package declaring the interface (like module on a relation field)."
+        },
+        "provider": {
+          "type": "string",
+          "description": "Go import path of the package declaring the interface. When set the interface is referenced instead of generated."
+        },
+        "jsProvider": {
+          "type": "string",
+          "description": "Import path (including the file name) of the TypeScript file declaring the interface. When set the interface is imported instead of generated."
         }
       },
       "additionalProperties": false,
@@ -977,6 +1297,10 @@
           },
           "type": "array",
           "description": "Permissions nested under this one"
+        },
+        "params": {
+          "$ref": "#/definitions/EmiActionBody",
+          "description": "Parameters that scope this permission (e.g. the workspaceId a grant applies within). fields becomes a typed DTO named \u003cFullKey\u003ePermissionParams in go"
         }
       },
       "additionalProperties": false,
@@ -1088,6 +1412,13 @@
           },
           "type": "array",
           "description": "Actions defined for reuse only. Never compiled; in/out fields are available as capture sources."
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/definitions/EmiFieldTemplate"
+          },
+          "type": "array",
+          "description": "Reusable field shapes. Any field can build itself from one with use: \u003cname\u003e."
         }
       },
       "additionalProperties": false,
@@ -1171,6 +1502,10 @@
           "type": "string",
           "description": "The entity name is crucial as it determines database table names and is used by Fireback's Go and code generation tools; note that changing an entity name does not delete previously created entities requiring manual file deletion and only camelCase naming is supported."
         },
+        "intent": {
+          "type": "boolean",
+          "description": "When true every action generated for this entity (create/update/get/browse/delete preview/delete) is also exposed as an intent (MCP tool) named listBooks/getBook/createBook/updateBook/previewDeleteBooks/deleteBooks for an entity named book. A hand-declared intent of the same name wins."
+        },
         "features": {
           "$ref": "#/definitions/Module3EntityFeatures",
           "description": "Customize the features generated for entity"
@@ -1182,6 +1517,13 @@
         "gormMap": {
           "$ref": "#/definitions/GormOverrideMap",
           "description": "Override the some default Fireback generated fields gorm configuration."
+        },
+        "implements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Names of interfaces (see interfaces) whose fields this entity includes."
         },
         "fields": {
           "items": {

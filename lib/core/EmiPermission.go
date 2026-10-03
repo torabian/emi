@@ -37,6 +37,17 @@ type EmiPermission struct {
 	// Children are permissions nested under this one, inheriting its FullKey as their prefix.
 	Children []*EmiPermission `yaml:"children,omitempty" json:"children,omitempty" jsonschema:"description=Permissions nested under this one, inheriting its FullKey as their prefix."`
 
+	// Params defines parameters that scope this permission. Like an action's in/out it
+	// takes either inline `fields` (compiled into a new type) or `dto` (an existing dto,
+	// the params type becomes an alias of it) - e.g. a workspaceId a
+	// "post.publish" grant only applies within. Compiled through the same Common
+	// struct builder as event params and action bodies in Go, JS/TS, Kotlin and
+	// Swift: Fields becomes a typed DTO named after the permission's FullKey +
+	// "PermissionParams" (see PermissionParamsClassName); `dto` instead makes that name an alias of the
+	// existing dto. In JS/TS with
+	// --tags json-schema it also carries static JsonSchema/DefaultTranslations.
+	Params *EmiActionBody `yaml:"params,omitempty" json:"params,omitempty" jsonschema:"description=Parameters that scope this permission (e.g. the workspaceId a grant applies within). fields becomes a typed DTO named <FullKey>PermissionParams in go, js/ts, kotlin and swift, dto makes that name an alias of an existing dto (use one of them, like an action's in/out); js/ts also embeds its JSON Schema with --tags json-schema."`
+
 	// autoFullKey records whether FullKey was left for the compiler to derive (true),
 	// as opposed to set explicitly in yaml (false). Set by ResolvePermissionFullKeys,
 	// consumed by EffectiveKey's wildcard-suffix decision. Unexported: internal
@@ -174,4 +185,37 @@ func FlattenPermissions(permissions []*EmiPermission) []*EmiPermission {
 		items = append(items, p.Flatten()...)
 	}
 	return items
+}
+
+// HasParamsFields reports whether the permission declared params inline via fields,
+// to be compiled into a typed DTO.
+func (x *EmiPermission) HasParamsFields() bool {
+	return x != nil && x.Params != nil && len(x.Params.Fields) > 0
+}
+
+// HasParamsDto reports whether the permission's params reference an existing dto by
+// name rather than declaring fields inline - mirrors EmiEvent.HasParamsDto.
+func (x *EmiPermission) HasParamsDto() bool {
+	return x != nil && x.Params != nil && x.Params.Dto != ""
+}
+
+// GetParamsDto returns the name of the dto the permission's params reference.
+func (x *EmiPermission) GetParamsDto() string {
+	return x.Params.Dto
+}
+
+// GetParamsFields returns the permission's params fields, or an empty slice.
+func (x *EmiPermission) GetParamsFields() []*EmiField {
+	if !x.HasParamsFields() {
+		return []*EmiField{}
+	}
+	return x.Params.Fields
+}
+
+// PermissionParamsClassName is the generated class/struct name of a permission's
+// params shape in every target language (e.g. FullKey "post.publish" ->
+// PostPublishPermissionParams). Derived from FullKey, which ResolvePermissionFullKeys
+// must have already populated, so it's unique across the whole tree.
+func PermissionParamsClassName(p *EmiPermission) string {
+	return NormaliseKey(p.FullKey) + "PermissionParams"
 }

@@ -35,6 +35,9 @@ type Module3Entity struct {
 	// and it will do the job
 	// DistinctBy string `yaml:"distinctBy,omitempty" json:"distinctBy,omitempty" jsonschema:"enum=workspace,enum=user,description=You can ensure there is only one record of the entity per user or workspace using this option for example if you want only one credit card per workspace set distinctBy: workspace and it will do the job"`
 
+	// Exposes every action generated for this entity (create, update, get, browse and the aware delete pair) as an intent, i.e. an MCP tool
+	Intent bool `yaml:"intent,omitempty" json:"intent,omitempty" jsonschema:"description=When true every action generated for this entity (create/update/get/browse/delete preview/delete) is also exposed as an intent (MCP tool) named listBooks/getBook/createBook/updateBook/previewDeleteBooks/deleteBooks for an entity named book. A hand-declared intent of the same name wins."`
+
 	// Customize the features generated for entity, less common changes goes to this object
 	Features *Module3EntityFeatures `yaml:"features,omitempty" json:"features,omitempty" jsonschema:"description=Customize the features generated for entity, less common changes goes to this object"`
 
@@ -74,6 +77,14 @@ type Module3Entity struct {
 	GormMap GormOverrideMap `yaml:"gormMap,omitempty" json:"gormMap,omitempty" jsonschema:"description=Override the some default Fireback generated fields gorm configuration."`
 
 	// Define the fields that this entity will have both in golang and database columns.
+	// Implements lists the interfaces (Emi.Interfaces) this entity implements: it gets the
+	// fields as columns and - where the target language has interfaces - the generated
+	// accessors, computed from the entity's own final types. The plain dto derived from the
+	// entity implements them too whenever its types match (an interface with relations
+	// stays on the entity alone). Interface fields can't be inline object/array here: an
+	// entity keeps those in child tables of its own.
+	Implements []string `yaml:"implements,omitempty" json:"implements,omitempty" jsonschema:"description=Names of interfaces (see interfaces) whose fields this entity includes."`
+
 	Fields []*EmiField `yaml:"fields,omitempty" json:"fields,omitempty" jsonschema:"description=Define the fields that this entity will have both in golang and database columns."`
 
 	// The name of the entity which will appear in CLI. By default the name of the entity will be used with dashes.

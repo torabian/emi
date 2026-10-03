@@ -21,6 +21,8 @@ export default defineConfig({
       "prettier/plugins/yaml",
     ],
   },
+  // The Allegro SDK sample definitions are imported from ../examples.
+  server: { fs: { allow: [".."] } },
   define: {
     "process.env": {},
   },

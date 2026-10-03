@@ -76,7 +76,7 @@ export default function FileExplorer({
   /** DEFINITION_KEY while the editor is shown, otherwise a generated file's key. */
   selectedKey: string;
   onSelect: (key: string) => void;
-  definitions: { id: string; label: string }[];
+  definitions: { id: string; label: string; detail?: string }[];
   selectedDefinitionId: string;
   onSelectDefinition: (id: string) => void;
 }) {
@@ -141,7 +141,12 @@ export default function FileExplorer({
           onClick={() => onSelectDefinition(definition.id)}
         >
           <span className="fx-chevron" />
-          {definition.label}
+          <span className="fx-def-text">
+            {definition.label}
+            {definition.detail ? (
+              <span className="fx-detail">{definition.detail}</span>
+            ) : null}
+          </span>
         </div>
       ))}
       {tree.length ? (

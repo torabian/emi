@@ -23,12 +23,17 @@ func GoCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenContext, 
 
 {{ $item := index . 0 }}
 
+{{ if $item.AliasOf }}
+{{ $item.GoDoc }}
+type {{ $item.FullClassName }} = {{ $item.AliasOf }}
+{{ else }}
 {{ $item.GoDoc }}
 {{ $item.Signature  }} {
 	{{ range $item.Fields }}
 		{{ .PrivateField }}
 	{{ end }}
 }
+{{ end }}
 
 {{ range $item.SubClasses }}
 	{{ template "printClass" (arr . ) }}

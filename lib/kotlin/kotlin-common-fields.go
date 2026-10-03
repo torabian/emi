@@ -25,6 +25,10 @@ type fieldVariable struct {
 	IsNumeric        bool
 	GoDoc            string
 	Modifier         string
+	// Override marks the field as implementing an interface property; Mutable makes
+	// it a `var` (the interface declares a setter).
+	Override bool
+	Mutable  bool
 }
 
 func (x fieldVariable) Upper() string {
@@ -54,10 +58,19 @@ func (x fieldVariable) Compile() string {
 		defaultStatement = " = " + x.DefaultValue
 	}
 
+	keyword := "val"
+	if x.Mutable {
+		keyword = "var"
+	}
+	if x.Override {
+		keyword = "override " + keyword
+	}
+
 	sequence = append(sequence, fmt.Sprintf(
-		`@SerialName("%v") %v val %v: %v %v`,
+		`@SerialName("%v") %v %v %v: %v %v`,
 		core.ToLower(x.Name),
 		otherFlags,
+		keyword,
 		core.ToLower(x.Name),
 		x.ComputedType,
 		defaultStatement,
@@ -72,6 +85,7 @@ func renderField(
 	fieldDepth string,
 	ctx core.MicroGenContext,
 	rootClassName string,
+	overrides map[string]bool,
 ) renderedField {
 	computedType := goFieldTypeOnNestedClasses(field, parentChain, rootClassName)
 	isFieldNullable := core.IsNullable(string(field.Type))
@@ -87,6 +101,10 @@ func renderField(
 		ComputedType: computedType,
 		IsNumeric:    core.IsNumericDataType(string(field.Type)),
 		DefaultValue: KotlinSafeDefaultValue(field),
+	}
+	if mutable, ok := overrides[field.Name]; ok {
+		privateFieldToken.Override = true
+		privateFieldToken.Mutable = mutable
 	}
 
 	if field.Complex != "" {
@@ -115,11 +133,12 @@ func renderFieldsShallow(
 	fieldDepth string,
 	ctx core.MicroGenContext,
 	goctx commonClassContext,
+	overrides map[string]bool,
 ) []renderedField {
 	out := make([]renderedField, 0, len(fields))
 	for _, f := range fields {
 		if f != nil {
-			out = append(out, renderField(f, parentChain, fieldDepth, ctx, goctx.RootClassName))
+			out = append(out, renderField(f, parentChain, fieldDepth, ctx, goctx.RootClassName, overrides))
 		}
 	}
 	return out

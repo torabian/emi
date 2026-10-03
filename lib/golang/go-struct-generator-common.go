@@ -18,6 +18,9 @@ type RecognizedComplex struct {
 }
 
 type goRenderedStruct struct {
+	// AliasOf, when set, renders `type <FullClassName> = <AliasOf>` instead of a struct.
+	AliasOf string
+
 	ClassName       string
 	Fields          []goRenderedField
 	LateInitFields  []goRenderedField
@@ -52,6 +55,13 @@ type GoCommonStructContext struct {
 	// the package location of the emi runtime.
 	// If the project wants to copy that and override we use this
 	EmiLocation string
+
+	// Aliases makes a nested class render as a type alias instead of a struct: the key
+	// is the class's own generated name (e.g. ClothDtoContent), the value the type it
+	// aliases (e.g. TitlableContent). Used for the nested types of a field that comes from
+	// an interface - the interface declares the struct once, and every implementer's
+	// nested type is an alias of it, so the accessor of the interface returns one type.
+	Aliases map[string]string
 }
 
 func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx GoCommonStructContext) []goRenderedStruct {
@@ -69,6 +79,10 @@ func goRenderStructs(fields []*core.EmiField, className, treeLocation string, fi
 		GoDoc:           GoDoc.String(),
 		FullClassName:   prefixName,
 		Signature:       signature,
+	}
+
+	if target, ok := goctx.Aliases[prefixName]; ok {
+		currentClass.AliasOf = target
 	}
 
 	for _, f := range fields {

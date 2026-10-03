@@ -16,6 +16,18 @@ func (x *MicroGenContext) HasTag(tag CTag) bool {
 	return false
 }
 
+// ModuleFileName returns base prefixed with the module's name (upper-cased first
+// letter, abac -> AbacPermissions), or base unchanged when the module has no name.
+// Every language that writes module-level singleton files (Permissions, Events,
+// Intents, ...) names them through this, so several modules can be generated into
+// the same folder without overwriting each other's.
+func (x *MicroGenContext) ModuleFileName(module *Emi, base string) string {
+	if module == nil || module.Name == "" {
+		return base
+	}
+	return ToUpper(module.Name) + base
+}
+
 // CompilerTagDoc documents a single --tags value a target compiler
 // understands: the literal string passed on the CLI, and a human-readable
 // explanation of what it does. Every language package that supports tags

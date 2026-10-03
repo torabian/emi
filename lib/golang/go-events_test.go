@@ -40,6 +40,10 @@ events:
     permissions:
       - with: ["post.publish"]
       - with: ["post.*"]
+    params:
+      fields:
+        - name: workspaceId
+          type: string
     payload:
       fields:
         - name: postId
@@ -74,7 +78,7 @@ func TestEventsGenerate(t *testing.T) {
 
 	var eventsFile *core.VirtualFile
 	for i := range files {
-		if files[i].Name == "Events" {
+		if files[i].Name == "BlogEvents" {
 			eventsFile = &files[i]
 			break
 		}
@@ -88,6 +92,9 @@ func TestEventsGenerate(t *testing.T) {
 	wantContains := []string{
 		// postPublished: payload fields compiled into a real struct - one field per
 		// declared payload field, PascalCase, JSON/yaml tags matching the yaml name.
+		"type PostPublishedEventParams struct {",
+		"WorkspaceId string `json:\"workspaceId\" yaml:\"workspaceId\"`",
+		"type PostArchivedEventParams = interface{}",
 		"type PostPublishedEventPayload struct {",
 		"PostId      string `json:\"postId\" yaml:\"postId\"`",
 		"Title       string `json:\"title\" yaml:\"title\"`",
@@ -129,5 +136,78 @@ func TestEventsGenerate(t *testing.T) {
 		if !strings.Contains(got, want) {
 			t.Errorf("expected generated Events file to contain:\n%s\n\ngot:\n%s", want, got)
 		}
+	}
+}
+
+func TestPermissionParamsGenerate(t *testing.T) {
+	module, err := core.StringToEmi(`
+name: blog
+namespace: blog
+permissions:
+  - name: post
+    key: post
+    children:
+      - name: publish
+        key: publish
+        params:
+          fields:
+            - name: workspaceId
+              type: string
+`)
+	if err != nil {
+		t.Fatalf("StringToEmi error: %v", err)
+	}
+
+	files, err := GoModuleFull(&module, core.MicroGenContext{})
+	if err != nil {
+		t.Fatalf("GoModuleFull error: %v", err)
+	}
+
+	for _, f := range files {
+		if f.Name == "BlogPermissionParams" {
+			if !strings.Contains(f.ActualScript, "type PostPublishPermissionParams struct {") {
+				t.Fatalf("missing params struct:\n%s", f.ActualScript)
+			}
+			return
+		}
+	}
+	t.Fatalf("expected a PermissionParams file, got: %+v", fileNames(files))
+}
+
+func TestParamsDtoAliasesGo(t *testing.T) {
+	module, err := core.StringToEmi(`
+name: blog
+namespace: blog
+dtos:
+  - name: scope
+    fields:
+      - name: workspaceId
+        type: string
+permissions:
+  - name: post
+    key: post
+    params:
+      dto: ScopeDto
+events:
+  - key: postPublished
+    params:
+      dto: ScopeDto
+`)
+	if err != nil {
+		t.Fatalf("StringToEmi error: %v", err)
+	}
+	files, err := GoModuleFull(&module, core.MicroGenContext{})
+	if err != nil {
+		t.Fatalf("GoModuleFull error: %v", err)
+	}
+	got := map[string]string{}
+	for _, f := range files {
+		got[f.Name] = f.ActualScript
+	}
+	if !strings.Contains(got["BlogPermissionParams"], "type PostPermissionParams = ScopeDto") {
+		t.Errorf("permission params alias missing:\n%s", got["BlogPermissionParams"])
+	}
+	if !strings.Contains(got["BlogEvents"], "type PostPublishedEventParams = ScopeDto") {
+		t.Errorf("event params alias missing:\n%s", got["BlogEvents"])
 	}
 }

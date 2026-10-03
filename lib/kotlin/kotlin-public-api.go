@@ -160,6 +160,24 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 
 	var entitiesAndDtos []*core.CodeChunkCompiled
 
+	// Interfaces declared here become their own Kotlin files. One declared in another
+	// package (Provider set) is imported by the dtos implementing it instead.
+	for i := range module.Interfaces {
+		iface := &module.Interfaces[i]
+		if iface.IsGoReference() {
+			continue
+		}
+		rendered, err := KotlinInterfaceGenerate(iface, ctx, commonClassContext{RecognizedComplexes: complexes})
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, core.VirtualFile{
+			Name:         rendered.SuggestedFileName,
+			Extension:    rendered.SuggestedExtension,
+			ActualScript: AsFullDocument(rendered, pkgName),
+		})
+	}
+
 	for _, dto := range module.Dto {
 		if config.Dtos != nil && len(*config.Dtos) > 0 && !slices.Contains(config.GetDtos(), dto.Name) {
 			continue
@@ -168,6 +186,7 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 		actionRendered, err := KotlinCommonStructGenerator(dto.Fields, ctx, commonClassContext{
 			RootClassName:       dto.GetClassName(),
 			RecognizedComplexes: complexes,
+			Interfaces:          module.FindInterfaces(dto.Implements),
 		})
 		if err != nil {
 			return nil, err
@@ -187,6 +206,42 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 				ActualScript: AsFullDocument(formState, pkgName),
 			})
 		}
+	}
+
+	// An event's inline params compile into a <EventName>Params class through the
+	// same common struct generator dtos use.
+	for _, event := range module.Events {
+		if event == nil || !event.HasParamsFields() {
+			continue
+		}
+
+		paramsRendered, err := KotlinCommonStructGenerator(event.GetParamsFields(), ctx, commonClassContext{
+			RootClassName:       core.EventParamsClassName(event),
+			RecognizedComplexes: complexes,
+			Interfaces:          module.FindInterfaces(event.Params.Implements),
+		})
+		if err != nil {
+			return nil, err
+		}
+		entitiesAndDtos = append(entitiesAndDtos, paramsRendered)
+	}
+
+	// Same for permissions: every node (at any depth) declaring params compiles into
+	// a <FullKey>PermissionParams class.
+	for _, permission := range core.FlattenPermissions(module.Permissions) {
+		if !permission.HasParamsFields() {
+			continue
+		}
+
+		paramsRendered, err := KotlinCommonStructGenerator(permission.GetParamsFields(), ctx, commonClassContext{
+			RootClassName:       core.PermissionParamsClassName(permission),
+			RecognizedComplexes: complexes,
+			Interfaces:          module.FindInterfaces(permission.Params.Implements),
+		})
+		if err != nil {
+			return nil, err
+		}
+		entitiesAndDtos = append(entitiesAndDtos, paramsRendered)
 	}
 
 	// internalUsage := []string{}
@@ -232,9 +287,22 @@ func KotlinModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtua
 
 	if permissionsOutput != nil {
 		files = append(files, core.VirtualFile{
-			Name:         permissionsOutput.SuggestedFileName,
+			Name:         ctx.ModuleFileName(module, permissionsOutput.SuggestedFileName),
 			Extension:    permissionsOutput.SuggestedExtension,
 			ActualScript: AsFullDocument(permissionsOutput, pkgName),
+		})
+	}
+
+	aliasesOutput, err := KotlinParamsDtoAliasesGenerate(module)
+	if err != nil {
+		return nil, err
+	}
+
+	if aliasesOutput != nil {
+		files = append(files, core.VirtualFile{
+			Name:         ctx.ModuleFileName(module, aliasesOutput.SuggestedFileName),
+			Extension:    aliasesOutput.SuggestedExtension,
+			ActualScript: AsFullDocument(aliasesOutput, pkgName),
 		})
 	}
 

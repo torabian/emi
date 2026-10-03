@@ -27,6 +27,10 @@ type JsCommonObjectContext struct {
 	// - typically an EmiDto.Description or EmiAction.Description. Purely
 	// cosmetic; leaving it empty just omits JSON Schema's "description" key.
 	Description string
+
+	// Interfaces the dto implements (TypeScript only): its class declares `implements`
+	// for each and imports them - see js-interfaces.go.
+	Implements []JsInterfaceRef
 }
 
 // This function can be used in different locations of the code generation,

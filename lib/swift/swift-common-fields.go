@@ -25,6 +25,8 @@ type fieldVariable struct {
 	IsNumeric        bool
 	GoDoc            string
 	Modifier         string
+	// Mutable forces `var`: the protocol this property implements declares a setter.
+	Mutable bool
 }
 
 func (x fieldVariable) Upper() string {
@@ -58,6 +60,9 @@ func (x fieldVariable) Compile() string {
 		defaultStatement = " = " + x.DefaultValue
 		keyword = "var"
 	}
+	if x.Mutable {
+		keyword = "var"
+	}
 
 	sequence = append(sequence, fmt.Sprintf(
 		`%v %v: %v%v`,
@@ -76,6 +81,7 @@ func renderField(
 	fieldDepth string,
 	ctx core.MicroGenContext,
 	rootClassName string,
+	mutables map[string]bool,
 ) renderedField {
 	computedType := goFieldTypeOnNestedClasses(field, parentChain, rootClassName)
 	isFieldNullable := core.IsNullable(string(field.Type))
@@ -103,6 +109,7 @@ func renderField(
 		ComputedType: computedType,
 		IsNumeric:    core.IsNumericDataType(string(field.Type)),
 		DefaultValue: defaultValue,
+		Mutable:      mutables[field.Name],
 	}
 
 	if field.Complex != "" {
@@ -131,11 +138,12 @@ func renderFieldsShallow(
 	fieldDepth string,
 	ctx core.MicroGenContext,
 	goctx commonClassContext,
+	mutables map[string]bool,
 ) []renderedField {
 	out := make([]renderedField, 0, len(fields))
 	for _, f := range fields {
 		if f != nil {
-			out = append(out, renderField(f, parentChain, fieldDepth, ctx, goctx.RootClassName))
+			out = append(out, renderField(f, parentChain, fieldDepth, ctx, goctx.RootClassName, mutables))
 		}
 	}
 	return out

@@ -184,9 +184,19 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		}
 
 		files = append(files, core.VirtualFile{
-			Name:         permissionsRendered.SuggestedFileName,
+			Name:         ctx.ModuleFileName(module, permissionsRendered.SuggestedFileName),
 			Extension:    permissionsRendered.SuggestedExtension,
 			ActualScript: AsFullDocument(permissionsRendered, ctx),
+		})
+	}
+
+	if aliases, err := JsParamsDtoAliasesGenerate(module, ctx); err != nil {
+		return nil, err
+	} else if aliases != nil {
+		files = append(files, core.VirtualFile{
+			Name:         ctx.ModuleFileName(module, aliases.SuggestedFileName),
+			Extension:    aliases.SuggestedExtension,
+			ActualScript: AsFullDocument(aliases, ctx),
 		})
 	}
 
@@ -202,6 +212,27 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		actionsRendered = append(actionsRendered, actionRendered)
 	}
 
+	// Interfaces declared here become their own TypeScript files. One declared in another
+	// module (JsProvider set) is imported by the dtos implementing it instead.
+	for i := range module.Interfaces {
+		iface := &module.Interfaces[i]
+		if iface.IsJsReference() {
+			continue
+		}
+		rendered, err := JsInterfaceGenerate(iface, ctx, JsCommonObjectContext{RecognizedComplexes: complexes})
+		if err != nil {
+			return nil, err
+		}
+		if rendered == nil {
+			continue
+		}
+		files = append(files, core.VirtualFile{
+			Name:         rendered.SuggestedFileName,
+			Extension:    rendered.SuggestedExtension,
+			ActualScript: AsFullDocument(rendered, ctx),
+		})
+	}
+
 	var dtos []*core.CodeChunkCompiled
 
 	for _, dto := range module.Dto {
@@ -213,11 +244,49 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 			RootClassName:       dto.GetClassName(),
 			RecognizedComplexes: complexes,
 			Description:         dto.Description,
+			Implements:          JsInterfaceRefs(module, ctx, dto.Implements),
 		})
 		if err != nil {
 			return nil, err
 		}
 		dtos = append(dtos, actionRendered)
+	}
+
+	// An event's inline params compile into a <EventName>Params class through the
+	// same common object generator dtos use. Events that reference a dto by name
+	// (or declare no params) need no class of their own.
+	for _, event := range module.Events {
+		if event == nil || !event.HasParamsFields() {
+			continue
+		}
+
+		paramsRendered, err := JsCommonObjectGenerator(event.GetParamsFields(), ctx, JsCommonObjectContext{
+			RootClassName:       core.EventParamsClassName(event),
+			RecognizedComplexes: complexes,
+			Implements:          JsInterfaceRefs(module, ctx, event.Params.Implements),
+		})
+		if err != nil {
+			return nil, err
+		}
+		dtos = append(dtos, paramsRendered)
+	}
+
+	// Same for permissions: every node (at any depth) declaring params compiles into
+	// a <FullKey>PermissionParams class.
+	for _, permission := range core.FlattenPermissions(module.Permissions) {
+		if !permission.HasParamsFields() {
+			continue
+		}
+
+		paramsRendered, err := JsCommonObjectGenerator(permission.GetParamsFields(), ctx, JsCommonObjectContext{
+			RootClassName:       core.PermissionParamsClassName(permission),
+			RecognizedComplexes: complexes,
+			Implements:          JsInterfaceRefs(module, ctx, permission.Params.Implements),
+		})
+		if err != nil {
+			return nil, err
+		}
+		dtos = append(dtos, paramsRendered)
 	}
 
 	// A vsql compiles into up to two more classes (Params always, Row when

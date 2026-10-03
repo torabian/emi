@@ -319,7 +319,13 @@ func renderIntentToolRegistration(goName string, it *core.EmiIntent, ctx core.Mi
 			continue
 		}
 		fmt.Fprintf(&b, "\t\tif v, ok := args[%q]; ok {\n", q.Name)
-		fmt.Fprintf(&b, "\t\t\tqueryParams.Set(%q, fmt.Sprintf(\"%%v\", v))\n", q.Name)
+		fmt.Fprintf(&b, "\t\t\tif list, isList := v.([]interface{}); isList {\n")
+		fmt.Fprintf(&b, "\t\t\t\tfor _, item := range list {\n")
+		fmt.Fprintf(&b, "\t\t\t\t\tqueryParams.Add(%q, fmt.Sprintf(\"%%v\", item))\n", q.Name+"[]")
+		fmt.Fprintf(&b, "\t\t\t\t}\n")
+		fmt.Fprintf(&b, "\t\t\t} else {\n")
+		fmt.Fprintf(&b, "\t\t\t\tqueryParams.Set(%q, fmt.Sprintf(\"%%v\", v))\n", q.Name)
+		fmt.Fprintf(&b, "\t\t\t}\n")
 		fmt.Fprintf(&b, "\t\t}\n")
 		fmt.Fprintf(&b, "\t\tdelete(args, %q)\n", q.Name)
 	}
