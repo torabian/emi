@@ -15,6 +15,12 @@ permissions:
   - {name: thing, key: thing, title: {en: Thing}, description: {en: Thing}}
 events:
   - {key: thingHappened, name: {en: Happened}, description: {en: Happened}}
+intents:
+  - name: findThing
+    description: Finds a thing.
+    in:
+      fields:
+        - {name: query, type: string}
 `)
 	if err != nil {
 		t.Fatal(err)
@@ -31,18 +37,20 @@ events:
 }
 
 func TestModuleScopedFiles(t *testing.T) {
-	plain := moduleFileNames(t, "clicktobuy", "")
-	if !plain["Permissions.go"] || !plain["Events.go"] {
-		t.Fatalf("default names changed: %v", plain)
+	scoped := moduleFileNames(t, "clicktobuy", "")
+	for _, name := range []string{"ClicktobuyPermissions.go", "ClicktobuyEvents.go", "ClicktobuyIntents.go"} {
+		if !scoped[name] {
+			t.Fatalf("missing %s: %v", name, scoped)
+		}
 	}
-
-	scoped := moduleFileNames(t, "clicktobuy", string(core.ModuleScopedFiles))
-	if !scoped["ClicktobuyPermissions.go"] || !scoped["ClicktobuyEvents.go"] || scoped["Permissions.go"] || scoped["Events.go"] {
-		t.Fatalf("scoped names: %v", scoped)
+	for _, name := range []string{"Permissions.go", "Events.go", "Intents.go"} {
+		if scoped[name] {
+			t.Fatalf("unprefixed %s still generated: %v", name, scoped)
+		}
 	}
 
 	// Two modules generated into one folder must not produce the same file names.
-	other := moduleFileNames(t, "score", string(core.ModuleScopedFiles))
+	other := moduleFileNames(t, "score", "")
 	for name := range scoped {
 		if strings.HasSuffix(name, "Permissions.go") && other[name] {
 			t.Fatalf("collision on %s", name)
@@ -50,7 +58,7 @@ func TestModuleScopedFiles(t *testing.T) {
 	}
 
 	// A module without a name keeps the plain names instead of producing "Permissions" prefixed by nothing odd.
-	if n := moduleFileNames(t, "\"\"", string(core.ModuleScopedFiles)); !n["Permissions.go"] {
+	if n := moduleFileNames(t, "\"\"", ""); !n["Permissions.go"] {
 		t.Fatalf("nameless module: %v", n)
 	}
 }

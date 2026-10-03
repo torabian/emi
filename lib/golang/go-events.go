@@ -31,6 +31,7 @@ import (
 // events.
 func GoEventsGenerate(
 	events []*core.EmiEvent,
+	module *core.Emi,
 	ctx core.MicroGenContext,
 	emigoImportPath string,
 	complexes []RecognizedComplex,
@@ -41,7 +42,7 @@ func GoEventsGenerate(
 	}
 
 	vars := &strings.Builder{}
-	deps, err := renderEventVars(vars, events, ctx, complexes)
+	deps, err := renderEventVars(vars, events, module, ctx, complexes)
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +73,101 @@ func GoEventsGenerate(
 	res.CodeChunkDependensies = append(res.CodeChunkDependensies, deps...)
 
 	return res, nil
+}
+
+// goBodyStruct compiles an event/permission body's inline fields into a Go struct
+// through the Common struct builder. When the body implements interfaces, the struct
+// also gets their accessor methods plus the compile-time assertion, and its nested
+// classes alias the interface's own, exactly like a dto's `implements`
+// (see GoInterfaceImplementation). Returns an empty script when nothing was generated.
+func goBodyStruct(
+	fields []*core.EmiField,
+	className string,
+	implements []string,
+	module *core.Emi,
+	ctx core.MicroGenContext,
+	complexes []RecognizedComplex,
+) (script string, deps []core.CodeChunkDependency, err error) {
+	ifaces := module.FindInterfaces(implements)
+
+	generated, err := GoCommonStructGenerator(fields, ctx, GoCommonStructContext{
+		RootClassName:       className,
+		RecognizedComplexes: complexes,
+		Aliases:             goInterfaceAliases(className, ifaces),
+	})
+	if err != nil {
+		return "", nil, err
+	}
+	if generated.MainClass == nil {
+		return "", nil, nil
+	}
+
+	script = string(generated.MainClass.ActualScript)
+	deps = generated.MainClass.CodeChunkDependensies
+
+	if len(ifaces) > 0 {
+		methods, ifaceDeps, err := GoInterfaceImplementation(core.ToUpper(className), fields, ifaces, GoCommonStructContext{
+			RootClassName:       className,
+			RecognizedComplexes: complexes,
+		})
+		if err != nil {
+			return "", nil, fmt.Errorf("%s: %w", className, err)
+		}
+		script += "\n" + methods
+		deps = append(deps, ifaceDeps...)
+	}
+
+	return script, deps, nil
+}
+
+// GoPermissionParamsGenerate renders, for every permission in the tree declaring
+// params fields, a <FullKey>PermissionParams struct compiled through the same Common
+// struct builder events and actions use. Returns (nil, nil) when none do.
+func GoPermissionParamsGenerate(
+	permissions []*core.EmiPermission,
+	module *core.Emi,
+	ctx core.MicroGenContext,
+	complexes []RecognizedComplex,
+) (*core.CodeChunkCompiled, error) {
+	var script strings.Builder
+	var deps []core.CodeChunkDependency
+
+	for _, p := range core.FlattenPermissions(permissions) {
+		if p.HasParamsDto() && !p.HasParamsFields() {
+			typeName := p.GetParamsDto()
+			if token := core.FindTokenByName(castDtoNameToCodeChunk(typeName).Tokens, TOKEN_ROOT_CLASS); token != nil {
+				typeName = token.Value
+			}
+			fmt.Fprintf(&script, "// %s is the params type for the %q permission.\n", core.PermissionParamsClassName(p), p.FullKey)
+			fmt.Fprintf(&script, "type %s = %s\n\n", core.PermissionParamsClassName(p), typeName)
+			continue
+		}
+		if !p.HasParamsFields() {
+			continue
+		}
+
+		structScript, structDeps, err := goBodyStruct(p.GetParamsFields(), core.PermissionParamsClassName(p), p.Params.Implements, module, ctx, complexes)
+		if err != nil {
+			return nil, err
+		}
+		if structScript == "" {
+			continue
+		}
+		script.WriteString(structScript)
+		script.WriteString("\n")
+		deps = append(deps, structDeps...)
+	}
+
+	if script.Len() == 0 {
+		return nil, nil
+	}
+
+	return &core.CodeChunkCompiled{
+		SuggestedFileName:     "PermissionParams",
+		SuggestedExtension:    ".go",
+		ActualScript:          []byte(script.String()),
+		CodeChunkDependensies: deps,
+	}, nil
 }
 
 // goEventVarName turns an event's Key into its exported var name: UpperCamelCase
@@ -137,25 +233,56 @@ func goEventLiteral(e *core.EmiEvent) string {
 func goEventPayloadTypeName(
 	e *core.EmiEvent,
 	payloadClassName string,
+	module *core.Emi,
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 ) (typeName string, structScript string, deps []core.CodeChunkDependency, err error) {
 	switch {
 	case e.HasPayloadFields():
-		fields, genErr := GoCommonStructGenerator(e.GetPayloadFields(), ctx, GoCommonStructContext{
-			RootClassName:       payloadClassName,
-			RecognizedComplexes: complexes,
-		})
+		structScript, structDeps, genErr := goBodyStruct(e.GetPayloadFields(), payloadClassName, e.Payload.Implements, module, ctx, complexes)
 		if genErr != nil {
 			return "", "", nil, genErr
 		}
-		if fields.MainClass == nil {
+		if structScript == "" {
 			return "interface{}", "", nil, nil
 		}
-		return payloadClassName, string(fields.MainClass.ActualScript), fields.MainClass.CodeChunkDependensies, nil
+		return payloadClassName, structScript, structDeps, nil
 
 	case e.HasPayloadDto():
 		typeName := e.GetPayloadDto()
+		chunk := castDtoNameToCodeChunk(typeName)
+		if token := core.FindTokenByName(chunk.Tokens, TOKEN_ROOT_CLASS); token != nil {
+			typeName = token.Value
+		}
+		return typeName, "", nil, nil
+
+	default:
+		return "interface{}", "", nil, nil
+	}
+}
+
+// goEventParamsTypeName is the params counterpart of goEventPayloadTypeName: fields
+// compiled through the Common struct builder, an existing dto by name, or interface{}.
+func goEventParamsTypeName(
+	e *core.EmiEvent,
+	paramsClassName string,
+	module *core.Emi,
+	ctx core.MicroGenContext,
+	complexes []RecognizedComplex,
+) (typeName string, structScript string, deps []core.CodeChunkDependency, err error) {
+	switch {
+	case e.HasParamsFields():
+		structScript, structDeps, genErr := goBodyStruct(e.GetParamsFields(), paramsClassName, e.Params.Implements, module, ctx, complexes)
+		if genErr != nil {
+			return "", "", nil, genErr
+		}
+		if structScript == "" {
+			return "interface{}", "", nil, nil
+		}
+		return paramsClassName, structScript, structDeps, nil
+
+	case e.HasParamsDto():
+		typeName := e.GetParamsDto()
 		chunk := castDtoNameToCodeChunk(typeName)
 		if token := core.FindTokenByName(chunk.Tokens, TOKEN_ROOT_CLASS); token != nil {
 			typeName = token.Value
@@ -181,6 +308,7 @@ func goEventPayloadTypeName(
 func renderEventVars(
 	w *strings.Builder,
 	events []*core.EmiEvent,
+	module *core.Emi,
 	ctx core.MicroGenContext,
 	complexes []RecognizedComplex,
 ) ([]core.CodeChunkDependency, error) {
@@ -196,7 +324,7 @@ func renderEventVars(
 		names = append(names, name)
 
 		payloadClassName := name + "Payload"
-		typeName, structScript, payloadDeps, err := goEventPayloadTypeName(e, payloadClassName, ctx, complexes)
+		typeName, structScript, payloadDeps, err := goEventPayloadTypeName(e, payloadClassName, module, ctx, complexes)
 		if err != nil {
 			return nil, err
 		}
@@ -208,6 +336,21 @@ func renderEventVars(
 		} else {
 			fmt.Fprintf(w, "// %s is the payload type for the %q event.\n", payloadClassName, e.Key)
 			fmt.Fprintf(w, "type %s = %s\n\n", payloadClassName, typeName)
+		}
+
+		paramsClassName := name + "Params"
+		paramsType, paramsScript, paramsDeps, err := goEventParamsTypeName(e, paramsClassName, module, ctx, complexes)
+		if err != nil {
+			return nil, err
+		}
+		deps = append(deps, paramsDeps...)
+
+		if paramsScript != "" {
+			w.WriteString(paramsScript)
+			w.WriteString("\n")
+		} else {
+			fmt.Fprintf(w, "// %s is the params type for the %q event.\n", paramsClassName, e.Key)
+			fmt.Fprintf(w, "type %s = %s\n\n", paramsClassName, paramsType)
 		}
 
 		fmt.Fprintf(w, "// %s mirrors the %q event declared in this module's events list.\n", name, e.Key)

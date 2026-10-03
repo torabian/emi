@@ -20,7 +20,9 @@ Good fit for:
 - Generating a **CLI** straight from the same action definitions the HTTP API exposes.
 - Defining **MCP tools** for AI agents (`intents:`) — standalone, or derived from an
   existing action with `from:`/`intent: true` — compiled into typed Go signatures ready
-  to wire into an MCP server.
+  to wire into an MCP server. An entity with `intent: true` exposes all of its generated
+  actions at once (`listBooks`, `getBook`, `createBook`, `updateBook`, `previewDeleteBooks`,
+  `deleteBooks` for a `book` entity).
 - Node.js **microservices**, including **NestJS** — the same generated JS/TS client that
   ships to the browser runs equally well server-side, so one client codegen covers both.
 - Running codegen in-browser via **WASM** — no server round trip, same compiler as the CLI.

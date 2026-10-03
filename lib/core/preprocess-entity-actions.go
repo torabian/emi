@@ -1,5 +1,7 @@
 package core
 
+import "strings"
+
 // This file turns each entity's generated operations (Create/Update/Get/Browse/
 // AwareDelete - see lib/golang/go-entity-actions.go and go-entity-delete.go) into
 // regular, portable EmiAction definitions appended to m.Actions, so they're exposed via
@@ -216,6 +218,77 @@ func (m *Emi) preprocessEntityActions() {
 			add(buildEntityAwareDeletePreviewAction(e))
 			add(buildEntityAwareDeleteAction(e))
 		}
+		if e.Intent {
+			m.addEntityIntents(e)
+		}
+	}
+}
+
+// entityPlural pluralizes an entity name for tool names such as listBooks/deleteBooks.
+func entityPlural(name string) string {
+	switch {
+	case strings.HasSuffix(name, "y") && len(name) > 1 && !strings.ContainsAny(name[len(name)-2:len(name)-1], "aeiou"):
+		return name[:len(name)-1] + "ies"
+	case strings.HasSuffix(name, "s"), strings.HasSuffix(name, "x"), strings.HasSuffix(name, "ch"), strings.HasSuffix(name, "sh"):
+		return name + "es"
+	}
+	return name + "s"
+}
+
+// addEntityIntents appends an intent for every entity action that was actually generated
+// (see Module3Entity.Intent), skipping names a hand-declared intent already uses.
+func (m *Emi) addEntityIntents(e *Module3Entity) {
+	actions := make(map[string]bool, len(m.Actions))
+	for _, a := range m.Actions {
+		if a != nil {
+			actions[a.Name] = true
+		}
+	}
+	existing := make(map[string]bool, len(m.Intents))
+	for _, it := range m.Intents {
+		if it != nil {
+			existing[it.Name] = true
+		}
+	}
+
+	upper := ToUpper(e.Name)
+	words := humanizeCamel(e.Name)
+	pluralWords := humanizeCamel(entityPlural(e.Name))
+	plural := ToUpper(entityPlural(e.Name))
+	readOnly := &EmiIntentAnnotations{ReadOnlyHint: true, IdempotentHint: true}
+	destructive := &EmiIntentAnnotations{DestructiveHint: true}
+
+	for _, spec := range []struct {
+		suffix, name, title, description string
+		annotations                      *EmiIntentAnnotations
+	}{
+		{"Create", "create" + upper, "Create " + words, "Creates a new " + words + ".", nil},
+		{"Update", "update" + upper, "Update " + words,
+			"Applies a partial update to a " + words + " by uniqueId. Only send the fields that should change.",
+			&EmiIntentAnnotations{DestructiveHint: true, IdempotentHint: true}},
+		{"Get", "get" + upper, "Get " + words, "Returns one " + words + " by uniqueId.", readOnly},
+		{"Browse", "list" + plural, "List " + pluralWords,
+			"Returns the " + pluralWords + ", paged, with a total count. Use it to look up or list them, and to find a row's uniqueId before getting, updating or deleting it. When presenting results as a table always include the raw uniqueId column.",
+			readOnly},
+		{"AwareDeletePreview", "previewDelete" + plural, "Preview deleting " + pluralWords,
+			"Reports what deleting the given " + pluralWords + " by uniqueId would affect, without deleting anything. Call it before " + "delete" + plural + ".",
+			readOnly},
+		{"AwareDelete", "delete" + plural, "Delete " + pluralWords,
+			"Permanently deletes the given " + pluralWords + " by uniqueId, along with what previewDelete" + plural + " reports.",
+			destructive},
+	} {
+		from := entityActionName(e, spec.suffix)
+		if !actions[from] || existing[spec.name] {
+			continue
+		}
+		m.Intents = append(m.Intents, &EmiIntent{
+			Name:        spec.name,
+			From:        from,
+			Title:       spec.title,
+			Description: spec.description,
+			Annotations: spec.annotations,
+		})
+		existing[spec.name] = true
 	}
 }
 
@@ -227,4 +300,16 @@ func (m *Emi) preprocessEntityActions() {
 func PreprocessEntityActions(m *Emi) error {
 	m.preprocessEntityActions()
 	return nil
+}
+
+// humanizeCamel turns "sellableInstruments" into "sellable instruments".
+func humanizeCamel(name string) string {
+	var b strings.Builder
+	for i, r := range name {
+		if i > 0 && r >= 'A' && r <= 'Z' {
+			b.WriteByte(' ')
+		}
+		b.WriteString(strings.ToLower(string(r)))
+	}
+	return b.String()
 }

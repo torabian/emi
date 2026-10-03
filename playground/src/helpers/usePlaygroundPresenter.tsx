@@ -3,42 +3,58 @@ import { useEffect, useRef, useState } from "react";
 import { useGoWasm } from "./wasm-brige";
 import type { VirtualFile } from "../definitions";
 import { examplesForTarget, getExample } from "../examples";
+import type { CompilerTag } from "../components/OptionsModal";
 
 // How long to wait after the last keystroke before recompiling.
 const RECOMPILE_DEBOUNCE_MS = 400;
 
 export const usePlaygroundPresenter = () => {
   const { ready } = useGoWasm({ wasmPath: "emi-compiler.wasm" });
-  const [assemblyFunction, setAssemblyFunction$] = useState("jsGenModule");
-  const [definitionId, setDefinitionId] = useState(
-    examplesForTarget("jsGenModule")[0].id,
-  );
+  const initial = examplesForTarget("jsGenModule")[0];
+  const [assemblyFunction, setAssemblyFunction$] = useState(initial.target);
+  const [definitionId, setDefinitionId] = useState(initial.id);
+  // Options (tags) each compiler reports, loaded from the wasm module.
+  const [compilerTags, setCompilerTags] = useState<
+    Record<string, CompilerTag[]>
+  >({});
   // Edits made to each example, so switching between them keeps your changes.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   const contentOf = (id: string) => drafts[id] ?? getExample(id).content;
   const value = contentOf(definitionId);
 
+  const [features, setFeatures] = useState<string[]>(initial.tags);
+
+  // Changing the compiler keeps the current definition if it still fits the new
+  // target, otherwise falls back to the first example of the matching kind (yaml
+  // vs sql). Options the new compiler doesn't know are dropped. Recompiling is
+  // done by the effect below.
   const setAssemblyFunction = (play: string) => {
     setAssemblyFunction$(play);
 
-    // Keep the current definition if it still fits the new target, otherwise
-    // fall back to the first example of the matching kind (yaml vs sql).
     const available = examplesForTarget(play);
     const next = available.find((e) => e.id === definitionId) ?? available[0];
     setDefinitionId(next.id);
 
+    const known = compilerTags[play];
+    const sampleTags = getExample(next.id).tagsByTarget?.[play];
+    if (sampleTags) {
+      setFeatures(sampleTags);
+    } else if (known) {
+      setFeatures((prev) => prev.filter((f) => known.some((t) => t.Tag === f)));
+    }
     cancelPendingRerender();
-    rerender(contentOf(next.id), play);
   };
 
+  // Selecting an example switches to the compiler and options it is meant for.
   const selectDefinition = (id: string) => {
+    const example = getExample(id);
     setDefinitionId(id);
+    setAssemblyFunction$(example.target);
+    setFeatures(example.tags);
     cancelPendingRerender();
-    rerender(contentOf(id), assemblyFunction);
   };
 
-  const [features, setFeatures] = useState<string[]>(["nestjs", "react"]);
   const [files, setOutput] = useState<VirtualFile[]>([]);
 
   // Recompiles run asynchronously (prettier); only the latest one may publish.
@@ -122,13 +138,32 @@ export const usePlaygroundPresenter = () => {
 
   useEffect(() => cancelPendingRerender, []);
 
+  // `ready` flips as soon as the wasm module is instantiated, but the Go program
+  // only registers its globals (getCompilerTags, the generators) once it starts
+  // running a moment later - so poll until the function shows up.
+  useEffect(() => {
+    if (!ready) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const load = () => {
+      const getTags = (window as any).getCompilerTags;
+      if (typeof getTags === "function") {
+        setCompilerTags(getTags());
+      } else {
+        timer = setTimeout(load, 50);
+      }
+    };
+    load();
+    return () => clearTimeout(timer);
+  }, [ready]);
+
   useEffect(() => {
     if (ready) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         rerender(value, assemblyFunction);
       }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [ready, features]);
+  }, [ready, features, assemblyFunction, definitionId]);
 
   return {
     files,
@@ -140,6 +175,7 @@ export const usePlaygroundPresenter = () => {
     setAssemblyFunction,
     assemblyFunction,
     features,
+    compilerTags,
     setValue,
   };
 };

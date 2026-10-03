@@ -42,6 +42,16 @@
 
 .fx-definition {
   font-weight: 700;
+  height: auto;
+  min-height: 22px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.fx-def-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
 }
 
 .fx-section {
@@ -72,4 +82,11 @@
   width: 14px;
   flex-shrink: 0;
   font-size: 10px;
+}
+
+.fx-detail {
+  display: block;
+  font-weight: 400;
+  font-size: 11px;
+  opacity: 0.65;
 }

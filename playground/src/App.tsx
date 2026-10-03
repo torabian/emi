@@ -3,7 +3,8 @@ import Dropdown from "react-dropdown";
 import "react-dropdown/style.css";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import "./App.css";
-import FeatureSelector from "./components/FeatureSelector";
+import OptionsModal from "./components/OptionsModal";
+import { targetLabel, targets } from "./targets";
 import CodeViewer from "./components/CodeViewer";
 import FileExplorer, {
   DEFINITION_KEY,
@@ -15,24 +16,6 @@ import { usePlaygroundPresenter } from "./helpers/usePlaygroundPresenter";
 import { downloadZip } from "./helpers/zipTools";
 import SQLEditor from "./components/YamlEditor/SQLEditor";
 import MarkdownPreview from "./components/MarkdownPreview";
-const options = [
-  { value: "goGen", label: "Golang" },
-  { value: "kotlinGen", label: "Kotlin" },
-  { value: "jsGenModule", label: "JavaScript" },
-  { value: "pythonGenModule", label: "Python" },
-  { value: "dartGenModule", label: "Dart" },
-  { value: "csharpGenModule", label: "C#" },
-  { value: "javaGenModule", label: "Java" },
-  { value: "phpGenModule", label: "PHP" },
-  { value: "cGenModule", label: "C" },
-  { value: "cppGenModule", label: "C++" },
-  { value: "sqlQueryPredict", label: "QueryPredict(SQL)" },
-  { value: "preprocessorGen", label: "Preprocessor" },
-  { value: "postmanGen", label: "Postman" },
-  { value: "openapiGen", label: "OpenApi" },
-  { value: "mdGen", label: "Markdown" },
-  { value: "swiftGen", label: "Swift(All)" },
-];
 
 function App() {
   const {
@@ -43,18 +26,24 @@ function App() {
     selectDefinition,
     setFeatures,
     features,
+    compilerTags,
     ready,
     setAssemblyFunction,
     assemblyFunction,
   } = usePlaygroundPresenter();
 
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const files = generatedFiles || [];
   // DEFINITION_KEY shows the Monaco editor, anything else a generated file.
   const [selectedKey, setSelectedKey] = useState(DEFINITION_KEY);
   const activeFile = files.find((f) => fileKey(f) === selectedKey);
   const showEditor = !activeFile;
   const isSql = assemblyFunction === "sqlQueryPredict";
-  const definitions = examplesForTarget(assemblyFunction);
+  const definitions = examplesForTarget(assemblyFunction).map((e) => ({
+    id: e.id,
+    label: e.label,
+    detail: `${targetLabel(e.target)}${e.tags.length ? " · " + e.tags.join(", ") : ""}`,
+  }));
 
   return (
     <>
@@ -92,7 +81,7 @@ function App() {
         >
           <div style={{ width: "170px" }}>
             <Dropdown
-              options={options}
+              options={targets}
               onChange={(value) => {
                 setAssemblyFunction(value.value);
               }}
@@ -106,71 +95,36 @@ function App() {
           >
             Download ({files?.length || 0})
           </button>
-          <div style={{ display: "flex" }}>
-            {assemblyFunction === "goGen" ? (
-              <FeatureSelector
-                options={[
-                  "no-client",
-                  "skip-gin",
-                  "split-gin",
-                  "skip-cli",
-                  "split-cli",
-                  "skip-http",
-                  "split-http",
-                ]}
-                setSelected={(value) => setFeatures(value)}
-                selected={features}
-              />
-            ) : null}
-            {assemblyFunction === "jsGenModule" ? (
-              <FeatureSelector
-                options={[
-                  "typescript",
-                  "react",
-                  "nestjs",
-                  "no-class",
-                  "no-jsdoc",
-                  "no-definition",
-                  "no-sdk",
-                  "no-package",
-                  "no-envelope",
-                  "include-ext",
-                  "json-schema",
-                ]}
-                setSelected={(value) => setFeatures(value)}
-                selected={features}
-              />
-            ) : null}
-            {assemblyFunction === "pythonGenModule" ? (
-              <FeatureSelector
-                options={["async", "no-sdk"]}
-                setSelected={(value) => setFeatures(value)}
-                selected={features}
-              />
-            ) : null}
-            {[
-              "dartGenModule",
-              "csharpGenModule",
-              "javaGenModule",
-              "phpGenModule",
-              "cGenModule",
-            ].includes(assemblyFunction) ? (
-              <FeatureSelector
-                options={["no-sdk", "no-pkg"]}
-                setSelected={(value) => setFeatures(value)}
-                selected={features}
-              />
-            ) : null}
-            {assemblyFunction === "cppGenModule" ? (
-              <FeatureSelector
-                options={["unreal", "no-sdk", "no-pkg"]}
-                setSelected={(value) => setFeatures(value)}
-                selected={features}
-              />
-            ) : null}
-          </div>
+          <button
+            style={{ borderRadius: 0, height: "41px", marginLeft: "5px" }}
+            onClick={() => setOptionsOpen(true)}
+            disabled={!ready || Object.keys(compilerTags).length === 0}
+          >
+            Compiler tags ({features.length})
+          </button>
+          <span
+            style={{
+              marginLeft: "10px",
+              fontSize: "12px",
+              maxWidth: "340px",
+              lineHeight: 1.3,
+              color: "#f0f0f0",
+            }}
+          >
+            Switches that change what the {targetLabel(assemblyFunction)}{" "}
+            compiler generates.
+          </span>
         </div>
       </header>
+      {optionsOpen ? (
+        <OptionsModal
+          language={targetLabel(assemblyFunction)}
+          tags={compilerTags[assemblyFunction] ?? []}
+          selected={features}
+          onChange={setFeatures}
+          onClose={() => setOptionsOpen(false)}
+        />
+      ) : null}
       <PanelGroup
         direction="horizontal"
         style={{ height: "calc(100vh - 100px)" }}

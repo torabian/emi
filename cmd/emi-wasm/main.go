@@ -29,6 +29,7 @@ import (
 func main() {
 
 	js.Global().Set("getPublicActions", js.FuncOf(getPublicActions))
+	js.Global().Set("getCompilerTags", js.FuncOf(getCompilerTags))
 
 	for _, textAction := range emijs.GetJsPublicActions().TextActions {
 		js.Global().Set(textAction.WasmFunctionName, js.FuncOf(StringOutFactory(textAction.Run)))
@@ -221,6 +222,43 @@ func StringOutFactory(
 
 		return compiledChunk
 	}
+}
+
+// compilerTagsByTarget maps each playground target (the WasmFunctionName of the
+// language's module-level action) to the --tags values its compiler understands.
+// The descriptions come straight from each language package's CompilerTags, so the
+// playground never keeps its own copy of the list. Languages without compiler tags
+// (e.g. swift) are simply absent.
+func compilerTagsByTarget() map[string][]core.CompilerTagDoc {
+	return map[string][]core.CompilerTagDoc{
+		"goGen":           golang.CompilerTags,
+		"jsGenModule":     emijs.CompilerTags,
+		"kotlinGen":       kotlin.CompilerTags,
+		"pythonGenModule": python.CompilerTags,
+		"dartGenModule":   dart.CompilerTags,
+		"csharpGenModule": csharp.CompilerTags,
+		"javaGenModule":   java.CompilerTags,
+		"phpGenModule":    php.CompilerTags,
+		"cGenModule":      c.CompilerTags,
+		"cppGenModule":    cpp.CompilerTags,
+	}
+}
+
+// getCompilerTags returns { [target]: [{ Tag, Description }] } for the playground's
+// compiler options dialog.
+func getCompilerTags(this js.Value, args []js.Value) any {
+	obj := js.Global().Get("Object").New()
+	for target, tags := range compilerTagsByTarget() {
+		arr := js.Global().Get("Array").New()
+		for _, t := range tags {
+			item := js.Global().Get("Object").New()
+			item.Set("Tag", string(t.Tag))
+			item.Set("Description", t.Description)
+			arr.Call("push", item)
+		}
+		obj.Set(target, arr)
+	}
+	return obj
 }
 
 // Converts Go PublicAPIActions into a JS-friendly object

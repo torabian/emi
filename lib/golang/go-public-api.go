@@ -367,7 +367,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 
 	for _, output := range intentsOutputs {
 		files = append(files, core.VirtualFile{
-			Name:         output.SuggestedFileName,
+			Name:         ctx.ModuleFileName(module, output.SuggestedFileName),
 			Extension:    output.SuggestedExtension,
 			ActualScript: AsFullDocument(output, f.PackageName),
 		})
@@ -413,7 +413,20 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		})
 	}
 
-	eventsOutput, err := GoEventsGenerate(module.Events, ctx, f.Emigo, complexes)
+	permissionParamsOutput, err := GoPermissionParamsGenerate(module.Permissions, module, ctx, complexes)
+	if err != nil {
+		return nil, err
+	}
+
+	if permissionParamsOutput != nil {
+		files = append(files, core.VirtualFile{
+			Name:         ctx.ModuleFileName(module, permissionParamsOutput.SuggestedFileName),
+			Extension:    permissionParamsOutput.SuggestedExtension,
+			ActualScript: AsFullDocument(permissionParamsOutput, f.PackageName),
+		})
+	}
+
+	eventsOutput, err := GoEventsGenerate(module.Events, module, ctx, f.Emigo, complexes)
 	if err != nil {
 		return nil, err
 	}

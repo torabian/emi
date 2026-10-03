@@ -20,10 +20,13 @@ type renderedClass struct {
 	Fields         []renderedField
 	LateInitFields []renderedField
 	Signature      string
-	GoDoc          string
-	SubClasses     []renderedClass
-	ClassTypePath  string
-	ClassNamePath  string
+	// Supertypes is the `: A, B` clause after the constructor, listing the interfaces
+	// the class implements (root class only).
+	Supertypes    string
+	GoDoc         string
+	SubClasses    []renderedClass
+	ClassTypePath string
+	ClassNamePath string
 }
 
 // Is is a bit weird function I am adding to capture type.
@@ -48,13 +51,26 @@ type commonClassContext struct {
 	// the package location of the emi runtime.
 	// If the project wants to copy that and override we use this
 	EmiLocation string
+
+	// Interfaces the root class implements. Their fields are already part of the dto
+	// (preprocessing included them); the root class marks them `override` and lists the
+	// interfaces as supertypes. Nested classes are never affected.
+	Interfaces []*core.EmiInterface
 }
 
 func renderClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx commonClassContext) []renderedClass {
 
 	GoDoc := NewGoDoc("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 
-	fieldsRendered := renderFieldsShallow(fields, treeLocation, fieldDepth, ctx, goctx)
+	isRoot := treeLocation == goctx.RootClassName
+	overrides := map[string]bool{}
+	supertypes := ""
+	if isRoot {
+		overrides = interfaceFieldOverrides(goctx.Interfaces)
+		supertypes = interfaceSupertypes(goctx.Interfaces)
+	}
+
+	fieldsRendered := renderFieldsShallow(fields, treeLocation, fieldDepth, ctx, goctx, overrides)
 
 	// Kotlin data classes require at least one constructor parameter - a dto with zero
 	// fields (e.g. OkayResponseDto, a bodyless marker response used as `out: {}`)
@@ -74,6 +90,7 @@ func renderClasses(fields []*core.EmiField, className, treeLocation string, fiel
 		ClassTypePath: treeAsType(treeLocation),
 		GoDoc:         GoDoc.String(),
 		Signature:     signature,
+		Supertypes:    supertypes,
 	}
 
 	for _, f := range fields {
@@ -217,6 +234,8 @@ func KotlinCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenConte
 
 	res.CodeChunkDependensies = append(res.CodeChunkDependensies, kotlinCollectTargetDeps(fields, goctx.RootClassName)...)
 
+	res.CodeChunkDependensies = append(res.CodeChunkDependensies, kotlinInterfaceImports(goctx.Interfaces)...)
+
 	renderedClasses := renderClasses(fields, goctx.RootClassName, goctx.RootClassName, "", core.ToUpper(goctx.RootClassName), ctx, goctx)
 	if len(renderedClasses) > 0 {
 		res.Tokens = append(res.Tokens, core.GeneratedScriptToken{Name: TOKEN_ROOT_CLASS, Value: renderedClasses[0].ClassName})
@@ -235,7 +254,7 @@ func KotlinCommonStructGenerator(fields []*core.EmiField, ctx core.MicroGenConte
 	{{ range .Fields }}
 		{{ .PrivateField }},
 	{{ end }}
-)
+){{ if .Supertypes }} : {{ .Supertypes }}{{ end }}
 
 	{{ range .SubClasses }}
 		{{ template "printClass" . }}

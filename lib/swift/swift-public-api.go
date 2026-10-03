@@ -148,6 +148,20 @@ func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtual
 
 	var entitiesAndDtos []*core.CodeChunkCompiled
 
+	// Interfaces declared here become their own Swift protocols. One declared in another
+	// package (Provider set) is already visible to the module, so it is not generated again.
+	for i := range module.Interfaces {
+		iface := &module.Interfaces[i]
+		if iface.IsGoReference() {
+			continue
+		}
+		rendered, err := SwiftInterfaceGenerate(iface, ctx, commonClassContext{RecognizedComplexes: complexes})
+		if err != nil {
+			return nil, err
+		}
+		entitiesAndDtos = append(entitiesAndDtos, rendered)
+	}
+
 	for _, dto := range module.Dto {
 		if config.Dtos != nil && len(*config.Dtos) > 0 && !slices.Contains(config.GetDtos(), dto.Name) {
 			continue
@@ -156,11 +170,48 @@ func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtual
 		actionRendered, err := SwiftCommonStructGenerator(dto.Fields, ctx, commonClassContext{
 			RootClassName:       dto.GetClassName(),
 			RecognizedComplexes: complexes,
+			Interfaces:          module.FindInterfaces(dto.Implements),
 		})
 		if err != nil {
 			return nil, err
 		}
 		entitiesAndDtos = append(entitiesAndDtos, actionRendered)
+	}
+
+	// An event's inline params compile into a <EventName>Params class through the
+	// same common struct generator dtos use.
+	for _, event := range module.Events {
+		if event == nil || !event.HasParamsFields() {
+			continue
+		}
+
+		paramsRendered, err := SwiftCommonStructGenerator(event.GetParamsFields(), ctx, commonClassContext{
+			RootClassName:       core.EventParamsClassName(event),
+			RecognizedComplexes: complexes,
+			Interfaces:          module.FindInterfaces(event.Params.Implements),
+		})
+		if err != nil {
+			return nil, err
+		}
+		entitiesAndDtos = append(entitiesAndDtos, paramsRendered)
+	}
+
+	// Same for permissions: every node (at any depth) declaring params compiles into
+	// a <FullKey>PermissionParams class.
+	for _, permission := range core.FlattenPermissions(module.Permissions) {
+		if !permission.HasParamsFields() {
+			continue
+		}
+
+		paramsRendered, err := SwiftCommonStructGenerator(permission.GetParamsFields(), ctx, commonClassContext{
+			RootClassName:       core.PermissionParamsClassName(permission),
+			RecognizedComplexes: complexes,
+			Interfaces:          module.FindInterfaces(permission.Params.Implements),
+		})
+		if err != nil {
+			return nil, err
+		}
+		entitiesAndDtos = append(entitiesAndDtos, paramsRendered)
 	}
 
 	// internalUsage := []string{}
@@ -209,6 +260,19 @@ func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtual
 			Name:         ctx.ModuleFileName(module, permissionsOutput.SuggestedFileName),
 			Extension:    permissionsOutput.SuggestedExtension,
 			ActualScript: AsFullDocument(permissionsOutput, "unknownpackage"),
+		})
+	}
+
+	aliasesOutput, err := SwiftParamsDtoAliasesGenerate(module)
+	if err != nil {
+		return nil, err
+	}
+
+	if aliasesOutput != nil {
+		files = append(files, core.VirtualFile{
+			Name:         ctx.ModuleFileName(module, aliasesOutput.SuggestedFileName),
+			Extension:    aliasesOutput.SuggestedExtension,
+			ActualScript: AsFullDocument(aliasesOutput, "unknownpackage"),
 		})
 	}
 

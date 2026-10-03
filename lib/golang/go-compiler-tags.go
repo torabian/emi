@@ -15,7 +15,6 @@ const NoClient core.CTag = "no-client"
 // CompilerTags lists every tag this package understands, for `emi tags` to
 // display. Keep in sync with the const list above.
 var CompilerTags = []core.CompilerTagDoc{
-	core.ModuleScopedFilesDoc,
 	{Tag: SkipWasmGin, Description: "Wrap the Gin route file in a `//go:build !wasm` constraint, excluding it from wasm builds"},
 	{Tag: SkipCli, Description: "Skip generating CLI (urfave-style) route/flag helpers"},
 	{Tag: SplitCli, Description: "Emit CLI helpers into their own *Cli.go file instead of appending them to the main file"},

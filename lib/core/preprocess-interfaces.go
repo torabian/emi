@@ -22,6 +22,11 @@ import (
 // already present with the same type and adds nothing.
 func (m *Emi) resolveInterfaces() error {
 	if len(m.Interfaces) == 0 {
+		for _, body := range m.interfaceBodies() {
+			if len(body.body.Implements) > 0 {
+				return fmt.Errorf("%s implements %v, but the module declares no interfaces", body.owner, body.body.Implements)
+			}
+		}
 		for _, dto := range m.Dto {
 			if len(dto.Implements) > 0 {
 				return fmt.Errorf("dto %q implements %v, but the module declares no interfaces", dto.Name, dto.Implements)
@@ -58,6 +63,14 @@ func (m *Emi) resolveInterfaces() error {
 	for i := range m.Dto {
 		dto := &m.Dto[i] // m.Dto holds values: index it, or Fields would be edited on a copy
 		if err := m.includeInterfaces("dto", dto.Name, fieldContextDto, dto.Implements, &dto.Fields); err != nil {
+			return err
+		}
+	}
+	for _, item := range m.interfaceBodies() {
+		if len(item.body.Implements) > 0 && len(item.body.Fields) == 0 && item.body.Dto != "" {
+			return fmt.Errorf("%s implements %v, but references dto %q: implements needs inline fields", item.owner, item.body.Implements, item.body.Dto)
+		}
+		if err := m.includeInterfaces(item.kind, item.name, fieldContextDto, item.body.Implements, &item.body.Fields); err != nil {
 			return err
 		}
 	}
@@ -290,4 +303,35 @@ func interfaceHasOnlyPlainFields(iface *EmiInterface) bool {
 		}
 	}
 	return true
+}
+
+// interfaceBody is an event/permission body that may declare `implements`.
+type interfaceBody struct {
+	kind  string // "event" or "permission", for messages
+	name  string
+	owner string // e.g. `event "postPublished" params`
+	body  *EmiActionBody
+}
+
+// interfaceBodies collects every event params/payload and permission params body of the
+// module, the places besides dtos and entities where `implements` is honored.
+func (m *Emi) interfaceBodies() []interfaceBody {
+	var items []interfaceBody
+	for _, e := range m.Events {
+		if e == nil {
+			continue
+		}
+		if e.Params != nil {
+			items = append(items, interfaceBody{"event", e.Key + " params", fmt.Sprintf("event %q params", e.Key), e.Params})
+		}
+		if e.Payload != nil {
+			items = append(items, interfaceBody{"event", e.Key + " payload", fmt.Sprintf("event %q payload", e.Key), e.Payload})
+		}
+	}
+	for _, p := range FlattenPermissions(m.Permissions) {
+		if p.Params != nil {
+			items = append(items, interfaceBody{"permission", p.FullKey + " params", fmt.Sprintf("permission %q params", p.FullKey), p.Params})
+		}
+	}
+	return items
 }

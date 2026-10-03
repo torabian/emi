@@ -190,6 +190,16 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 		})
 	}
 
+	if aliases, err := JsParamsDtoAliasesGenerate(module, ctx); err != nil {
+		return nil, err
+	} else if aliases != nil {
+		files = append(files, core.VirtualFile{
+			Name:         ctx.ModuleFileName(module, aliases.SuggestedFileName),
+			Extension:    aliases.SuggestedExtension,
+			ActualScript: AsFullDocument(aliases, ctx),
+		})
+	}
+
 	for _, remote := range module.Remotes {
 		if config.Remotes != nil && len(*config.Remotes) > 0 && !slices.Contains(config.GetRemotes(), remote.Name) {
 			continue
@@ -240,6 +250,43 @@ func JsModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]cor
 			return nil, err
 		}
 		dtos = append(dtos, actionRendered)
+	}
+
+	// An event's inline params compile into a <EventName>Params class through the
+	// same common object generator dtos use. Events that reference a dto by name
+	// (or declare no params) need no class of their own.
+	for _, event := range module.Events {
+		if event == nil || !event.HasParamsFields() {
+			continue
+		}
+
+		paramsRendered, err := JsCommonObjectGenerator(event.GetParamsFields(), ctx, JsCommonObjectContext{
+			RootClassName:       core.EventParamsClassName(event),
+			RecognizedComplexes: complexes,
+			Implements:          JsInterfaceRefs(module, ctx, event.Params.Implements),
+		})
+		if err != nil {
+			return nil, err
+		}
+		dtos = append(dtos, paramsRendered)
+	}
+
+	// Same for permissions: every node (at any depth) declaring params compiles into
+	// a <FullKey>PermissionParams class.
+	for _, permission := range core.FlattenPermissions(module.Permissions) {
+		if !permission.HasParamsFields() {
+			continue
+		}
+
+		paramsRendered, err := JsCommonObjectGenerator(permission.GetParamsFields(), ctx, JsCommonObjectContext{
+			RootClassName:       core.PermissionParamsClassName(permission),
+			RecognizedComplexes: complexes,
+			Implements:          JsInterfaceRefs(module, ctx, permission.Params.Implements),
+		})
+		if err != nil {
+			return nil, err
+		}
+		dtos = append(dtos, paramsRendered)
 	}
 
 	// A vsql compiles into up to two more classes (Params always, Row when

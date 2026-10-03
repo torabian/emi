@@ -81,7 +81,7 @@ func TestIntentsGenerate_MergesBodyQueryAndPathParams(t *testing.T) {
 
 	var intentsFile *core.VirtualFile
 	for i := range files {
-		if files[i].Name == "Intents" {
+		if files[i].Name == "BillingIntents" {
 			intentsFile = &files[i]
 			break
 		}
@@ -156,7 +156,7 @@ func TestIntentsGenerate_ToolRegistration(t *testing.T) {
 
 	var intentsFile *core.VirtualFile
 	for i := range files {
-		if files[i].Name == "Intents" {
+		if files[i].Name == "BillingIntents" {
 			intentsFile = &files[i]
 			break
 		}

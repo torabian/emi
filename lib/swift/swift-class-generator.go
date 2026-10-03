@@ -48,6 +48,10 @@ type commonClassContext struct {
 	// the package location of the emi runtime.
 	// If the project wants to copy that and override we use this
 	EmiLocation string
+
+	// Interfaces (Swift protocols) the root struct conforms to. Their fields are already
+	// part of the dto (preprocessing included them). Nested structs are never affected.
+	Interfaces []*core.EmiInterface
 }
 
 func renderClasses(fields []*core.EmiField, className, treeLocation string, fieldDepth string, prefixName string, ctx core.MicroGenContext, goctx commonClassContext) []renderedClass {
@@ -55,7 +59,14 @@ func renderClasses(fields []*core.EmiField, className, treeLocation string, fiel
 	GoDoc := NewDocC("  ").Add(fmt.Sprintf("The base class definition for %v", core.ToLower(className)))
 	signature := fmt.Sprintf("struct %v: Codable", prefixName)
 
-	fieldsRendered := renderFieldsShallow(fields, treeLocation, fieldDepth, ctx, goctx)
+	// Only the root struct conforms; a mutable protocol needs `var` properties.
+	mutables := map[string]bool{}
+	if treeLocation == goctx.RootClassName {
+		signature += protocolConformances(goctx.Interfaces)
+		mutables = interfaceMutableFields(goctx.Interfaces)
+	}
+
+	fieldsRendered := renderFieldsShallow(fields, treeLocation, fieldDepth, ctx, goctx, mutables)
 
 	currentClass := renderedClass{
 		ClassName:     core.ToUpper(className),

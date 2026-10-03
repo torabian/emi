@@ -3,7 +3,15 @@
 // To add an example, append an entry to `examples` below - nothing else is
 // needed. `kind: "yaml"` examples are listed for every compiler target except
 // QueryPredict(SQL); `kind: "sql"` examples only for that target. The first
-// example of each kind is the default.
+// example of each kind is the default. Selecting an example switches the
+// playground to the example's `target` compiler and `tags` options (the tag names
+// and descriptions themselves come from the wasm compiler, see getCompilerTags).
+// The Allegro SDK definitions live in the repo's examples/allegro-sdk and are pulled
+// in as raw text, so the playground always shows the real files.
+import allegroOfferManagement from "../../examples/allegro-sdk/definitions/offer/offer-management.emi.yml?raw";
+import allegroOfferTranslations from "../../examples/allegro-sdk/definitions/offer/offer-translations.emi.yml?raw";
+import allegroUserOfferInformation from "../../examples/allegro-sdk/definitions/offer/user-offer-information.emi.yml?raw";
+
 export type ExampleKind = "yaml" | "sql";
 
 export interface Example {
@@ -12,6 +20,12 @@ export interface Example {
   /** File name shown in the explorer. */
   label: string;
   kind: ExampleKind;
+  /** Compiler (playground target) this example is meant to be compiled with. */
+  target: string;
+  /** Compiler options (--tags) the example is meant to be compiled with. */
+  tags: string[];
+  /** Options to apply instead of `tags` when the example is viewed with another compiler. */
+  tagsByTarget?: Record<string, string[]>;
   content: string;
 }
 
@@ -20,6 +34,8 @@ export const examples: Example[] = [
     id: "definition",
     label: "definition.yml",
     kind: "yaml",
+    target: "jsGenModule",
+    tags: ["typescript", "react", "nestjs", "no-sdk", "no-package"],
     content: `name: sampleModule
 entities:
   - name: entity1
@@ -79,6 +95,8 @@ actions:
     id: "minimal",
     label: "minimal.yml",
     kind: "yaml",
+    target: "goGen",
+    tags: [],
     content: `name: minimalModule
 actions:
   - name: getGreeting
@@ -94,6 +112,8 @@ actions:
     id: "interfaces",
     label: "interfaces.yml",
     kind: "yaml",
+    target: "jsGenModule",
+    tags: ["typescript", "no-sdk", "no-package"],
     content: `name: interfacesModule
 
 # An interface is a named set of fields. Every dto that lists it under
@@ -153,6 +173,8 @@ dtos:
     id: "interface-entity",
     label: "interface-entity.yml",
     kind: "yaml",
+    target: "goGen",
+    tags: [],
     content: `name: interfaceEntityModule
 
 # Entities can implement interfaces too. The interface's fields become columns of
@@ -193,9 +215,284 @@ dtos:
 `,
   },
   {
+    id: "purchasable",
+    label: "purchasable.yml",
+    kind: "yaml",
+    target: "goGen",
+    tags: [],
+    content: `name: shopModule
+
+# Three different products, each with fields of its own, that all implement the
+# \`purchasable\` interface. The interface's fields (sku, title, priceCents,
+# currency) become columns of every product, and in Go each entity gets the
+# Get<Field>() methods - so one function taking Purchasable can put a book, a
+# laptop or a subscription in a cart, without knowing which one it is.
+interfaces:
+  - name: purchasable
+    description: Anything a customer can put in a cart and pay for.
+    fields:
+      - name: sku
+        type: string
+        description: Stock keeping unit, unique per product.
+      - name: title
+        type: string
+        description: Name shown in the shop.
+      - name: priceCents
+        type: int64
+        description: Price in the smallest currency unit.
+      - name: currency
+        type: string
+        description: ISO 4217 currency code, e.g. EUR.
+
+entities:
+  - name: book
+    description: A physical or digital book.
+    implements:
+      - purchasable
+    fields:
+      - name: author
+        type: string
+      - name: isbn
+        type: string
+      - name: pageCount
+        type: int64
+
+  - name: laptop
+    description: A laptop with hardware specs and a warranty.
+    implements:
+      - purchasable
+    fields:
+      - name: cpu
+        type: string
+      - name: ramGb
+        type: int64
+      - name: screenInches
+        type: float64
+      - name: warrantyMonths
+        type: int64
+
+  - name: subscription
+    description: A recurring plan, billed every period.
+    implements:
+      - purchasable
+    fields:
+      - name: billingPeriod
+        type: string
+        description: For example monthly or yearly.
+      - name: trialDays
+        type: int64
+      - name: autoRenew
+        type: bool
+`,
+  },
+  {
+    id: "mcp-server-tool",
+    label: "mcp-server-tool.yml",
+    kind: "yaml",
+    target: "goGen",
+    tags: [],
+    tagsByTarget: { jsGenModule: ["typescript", "no-sdk", "no-package"] },
+    content: `name: billingModule
+namespace: billing
+
+# An invoice entity plus one extra action, exposed to AI agents as MCP tools.
+#
+# \`intent: true\` on the entity turns every action generated for it into an intent
+# (an MCP tool): createInvoice, updateInvoice, getInvoice, listInvoices,
+# previewDeleteInvoices and deleteInvoices. The compiler generates the typed tool
+# signatures (name, description, input/output schema, behavior hints) to wire into
+# an MCP server.
+entities:
+  - name: invoice
+    intent: true
+    description: A billed invoice.
+    fields:
+      - name: number
+        type: string
+      - name: customer
+        type: string
+      - name: total
+        type: int64
+
+actions:
+  # A hand-written action next to the entity's own ones: renders an invoice.
+  - name: printInvoice
+    method: post
+    url: /invoices/:uniqueId/print
+    description: Renders an invoice as a printable document.
+    in:
+      fields:
+        - name: format
+          type: string?
+          description: Output format, pdf (default) or html.
+    out:
+      fields:
+        - name: downloadUrl
+          type: string
+        - name: pageCount
+          type: int64
+
+# Actions are not tools by themselves: an intent derives its input and output
+# schema from the action it names in \`from\`, and carries the text the model
+# reads to decide when to call it.
+intents:
+  - name: printInvoice
+    from: printInvoice
+    title: Print invoice
+    description: Renders one invoice, by uniqueId, as a printable document and returns where to download it. Find the uniqueId with listInvoices first.
+    annotations:
+      readOnlyHint: true
+      idempotentHint: true
+`,
+  },
+  {
+    id: "events-permissions",
+    label: "events-permissions.yml",
+    kind: "yaml",
+    target: "jsGenModule",
+    tags: ["typescript", "no-sdk", "no-package"],
+    content: `name: blogModule
+
+# The minimal version: one permission and one event, each with typed \`params\`
+# that scope it. Params compile like a dto (TypeScript class, Go struct, ...).
+# See events-permissions-full.yml for complexes, interfaces and JSON Schema.
+
+permissions:
+  - name: post
+    key: post
+    children:
+      # Generates PostPublishPermissionParams
+      - name: publish
+        key: publish
+        params:
+          fields:
+            - name: workspaceId
+              type: string
+
+events:
+  # Generates PostPublishedEventParams
+  - key: postPublished
+    permissions:
+      - with: ["post.publish"]
+    params:
+      fields:
+        - name: workspaceId
+          type: string
+`,
+  },
+  {
+    id: "events-permissions-full",
+    label: "events-permissions-full.yml",
+    kind: "yaml",
+    target: "jsGenModule",
+    tags: ["typescript", "json-schema", "no-sdk", "no-package"],
+    content: `name: blogModule
+
+# Full version of events-permissions.yml: complexes and interfaces inside params,
+# nested objects, a payload, and (with the json-schema tag) JSON Schema.
+#
+# Permissions and events can both declare \`params\`: a typed shape that scopes
+# them (e.g. the workspace a grant applies within, or an event fired in). Each is
+# compiled like a dto - Go struct, TypeScript class, Kotlin/Swift class - and with
+# the json-schema tag the TypeScript class also carries its JSON Schema.
+# Params can use any field type, including a complex you provide yourself.
+
+complexes:
+  - compiler: go
+    name: TString
+    namespace: complexes
+    location: github.com/torabian/fireback/modules/fireback/complexes
+  - compiler: ts
+    name: TString
+    location: "@fireback/complexes"
+
+# Params can implement interfaces just like dtos: the interface's fields are
+# included, and the generated type satisfies the interface (Go: Get<Field>()
+# methods, TypeScript: an \`implements\` clause).
+interfaces:
+  - name: scoped
+    description: Anything that applies within one workspace.
+    fields:
+      - name: workspaceId
+        type: string
+        description: The workspace this applies within.
+
+permissions:
+  - name: post
+    key: post
+    title:
+      en: Posts
+    children:
+      # Generates PostPublishPermissionParams
+      - name: publish
+        key: publish
+        title:
+          en: Publish posts
+        params:
+          implements:
+            - scoped
+          fields:
+            - name: label
+              type: complex
+              complex: TString
+              description: Localized label - one text per language.
+
+events:
+  # Generates PostPublishedEventParams (plus the payload type)
+  - key: postPublished
+    name:
+      en: Post published
+    permissions:
+      - with: ["post.publish"]
+    params:
+      implements:
+        - scoped
+      fields:
+        - name: channel
+          type: object
+          fields:
+            - name: name
+              type: string
+            - name: title
+              type: complex
+              complex: TString
+              description: Localized channel title.
+    payload:
+      fields:
+        - name: postId
+          type: string
+`,
+  },
+  {
+    id: "allegro-offer-management",
+    label: "allegro-offer-management.yml",
+    kind: "yaml",
+    target: "jsGenModule",
+    tags: ["typescript", "no-sdk"],
+    content: allegroOfferManagement,
+  },
+  {
+    id: "allegro-offer-translations",
+    label: "allegro-offer-translations.yml",
+    kind: "yaml",
+    target: "jsGenModule",
+    tags: ["typescript", "no-sdk"],
+    content: allegroOfferTranslations,
+  },
+  {
+    id: "allegro-user-offer-information",
+    label: "allegro-user-offer-information.yml",
+    kind: "yaml",
+    target: "jsGenModule",
+    tags: ["typescript", "no-sdk"],
+    content: allegroUserOfferInformation,
+  },
+  {
     id: "query",
     label: "query.sql",
     kind: "sql",
+    target: "sqlQueryPredict",
+    tags: [],
     content: `SELECT 
         u.user_id as user_id,
         field(u.user_name, 'string') as UserName,

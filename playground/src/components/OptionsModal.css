@@ -1,0 +1,76 @@
+.om-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.om-dialog {
+  background: Canvas;
+  color: CanvasText;
+  width: min(640px, 92vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+.om-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.om-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.om-close {
+  border: none;
+  background: none;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+}
+
+.om-body {
+  overflow-y: auto;
+  padding: 8px 16px 14px;
+}
+
+.om-option {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.15);
+  cursor: pointer;
+}
+
+.om-option input {
+  margin-top: 4px;
+}
+
+.om-name {
+  display: block;
+  font-weight: 700;
+}
+
+.om-desc {
+  display: block;
+  font-size: 13px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.om-empty {
+  opacity: 0.7;
+}
