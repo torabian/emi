@@ -13,6 +13,13 @@
           "type": "string",
           "description": "Name of the dto in camel case the rest of the code related to this dto is being generated based on this"
         },
+        "implements": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array",
+          "description": "Names of interfaces (see interfaces) this dto implements. Their fields are included and the generated code satisfies the interface."
+        },
         "fields": {
           "items": {
             "$ref": "#/definitions/EmiField"
@@ -40,6 +47,10 @@
     },
     "EmiField": {
       "properties": {
+        "use": {
+          "type": "string",
+          "description": "Name of a field template (templates.fields) to build this field from. Properties set on this field override the template's."
+        },
         "name": {
           "type": "string",
           "description": "Name of the field in camel case. Will be upper case automatically when necessary"
@@ -52,9 +63,27 @@
           "type": "boolean",
           "description": "Recommended field will be asked upon an interactive cli operation."
         },
+        "label": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Short human-facing name of the field. Either a plain string or a map of locale to text (en: ... pl: ...). Left empty the label is derived from the field name."
+        },
         "description": {
-          "type": "string",
-          "description": "Description about the field for developers and generated documents."
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ],
+          "description": "Description about the field for developers and generated documents. Either a plain string or a map of locale to text (en: ... pl: ...). Code generators use the en entry or else the first locale alphabetically."
         },
         "type": {
           "type": "string",
