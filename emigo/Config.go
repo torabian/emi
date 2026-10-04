@@ -15,6 +15,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -54,6 +55,16 @@ func structToEnvMap(config interface{}) (map[string]string, error) {
 	return envMap, nil
 }
 
+// SaveEnvFile writes config's `envconfig`-tagged fields into filename.
+//
+// Several independent config structs (the app's own, each module's, ...) share one .env file,
+// and each only knows its own keys - so this MERGES into whatever the file already holds
+// rather than recreating it: keys of other structs are kept exactly as they are, this
+// struct's non-empty values are written, and its empty ones are removed (an empty value
+// means "unset"; the file never holds "KEY="). Before this was a merge, saving one module's
+// config (e.g. `fakepayment config base-url set`) silently dropped every other key from
+// .env - the database DSN, the CLI token, the port, ... Keys are written sorted, so saving
+// twice produces byte-identical files.
 func SaveEnvFile(config interface{}, filename string) error {
 
 	envMap, err := structToEnvMap(config)
@@ -62,24 +73,33 @@ func SaveEnvFile(config interface{}, filename string) error {
 		return err
 	}
 
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
+	merged := map[string]string{}
+	if existing, readErr := godotenv.Read(filename); readErr == nil {
+		merged = existing
+	} else if !errors.Is(readErr, os.ErrNotExist) {
+		return readErr
 	}
-	defer file.Close()
 
 	for key, value := range envMap {
 		if value == "" {
+			delete(merged, key)
 			continue
 		}
-
-		_, err := file.WriteString(fmt.Sprintf("%s=%s\n", key, value))
-		if err != nil {
-			return err
-		}
+		merged[key] = value
 	}
 
-	return nil
+	keys := make([]string, 0, len(merged))
+	for key := range merged {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	var out strings.Builder
+	for _, key := range keys {
+		out.WriteString(fmt.Sprintf("%s=%s\n", key, merged[key]))
+	}
+
+	return os.WriteFile(filename, []byte(out.String()), 0o644)
 }
 
 func HandleEnvVars(spec interface{}) {

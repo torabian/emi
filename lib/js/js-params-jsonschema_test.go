@@ -39,7 +39,7 @@ events:
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, class := range []string{"PostPublishedEventParams", "PostPublishPermissionParams"} {
+		for _, class := range []string{"PostPublishedEventParams", "PostPermissionsPublishParams"} {
 			found := false
 			for _, f := range files {
 				if strings.Contains(f.ActualScript, "class "+class) {
@@ -92,7 +92,7 @@ events:
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, class := range []string{"PostPermissionParams", "PostPublishedEventParams"} {
+	for _, class := range []string{"PostPermissionsParams", "PostPublishedEventParams"} {
 		found := false
 		for _, f := range files {
 			if strings.Contains(f.ActualScript, "class "+class+" implements Scoped") {
@@ -136,7 +136,7 @@ events:
 	}
 	for _, f := range files {
 		if f.Name == "BlogParamsAliases" {
-			for _, want := range []string{`import { ScopeDto as _ScopeDto } from "./ScopeDto"`, "export { _ScopeDto as PostPermissionParams };", "export { _ScopeDto as PostPublishedEventParams };"} {
+			for _, want := range []string{`import { ScopeDto as _ScopeDto } from "./ScopeDto"`, "export { _ScopeDto as PostPermissionsParams };", "export { _ScopeDto as PostPublishedEventParams };"} {
 				if !strings.Contains(f.ActualScript, want) {
 					t.Errorf("missing %q:\n%s", want, f.ActualScript)
 				}

@@ -361,7 +361,7 @@ permissions:
   - name: post
     key: post
     children:
-      # Generates PostPublishPermissionParams
+      # Generates PostPermissionsPublishParams
       - name: publish
         key: publish
         params:
@@ -423,7 +423,7 @@ permissions:
     title:
       en: Posts
     children:
-      # Generates PostPublishPermissionParams
+      # Generates PostPermissionsPublishParams
       - name: publish
         key: publish
         title:

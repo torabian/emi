@@ -165,7 +165,7 @@ permissions:
 
 	for _, f := range files {
 		if f.Name == "BlogPermissionParams" {
-			if !strings.Contains(f.ActualScript, "type PostPublishPermissionParams struct {") {
+			if !strings.Contains(f.ActualScript, "type PostPermissionsPublishParams struct {") {
 				t.Fatalf("missing params struct:\n%s", f.ActualScript)
 			}
 			return
@@ -204,10 +204,64 @@ events:
 	for _, f := range files {
 		got[f.Name] = f.ActualScript
 	}
-	if !strings.Contains(got["BlogPermissionParams"], "type PostPermissionParams = ScopeDto") {
+	if !strings.Contains(got["BlogPermissionParams"], "type PostPermissionsParams = ScopeDto") {
 		t.Errorf("permission params alias missing:\n%s", got["BlogPermissionParams"])
 	}
 	if !strings.Contains(got["BlogEvents"], "type PostPublishedEventParams = ScopeDto") {
 		t.Errorf("event params alias missing:\n%s", got["BlogEvents"])
 	}
+}
+
+// A permission's params are also embedded as JSON Schema text on the emigo.Permission
+// literal (ParamsSchema), for inline fields and for dto references, and absent otherwise.
+func TestPermissionParamsSchemaEmbedded(t *testing.T) {
+	module, err := core.StringToEmi(`
+name: blog
+namespace: blog
+dtos:
+  - name: scope
+    fields:
+      - name: channel
+        type: string
+permissions:
+  - name: post
+    key: post
+    children:
+      - name: publish
+        key: publish
+        params:
+          fields:
+            - name: workspaceId
+              type: string
+      - name: archive
+        key: archive
+        params:
+          dto: ScopeDto
+      - name: view
+        key: view
+`)
+	if err != nil {
+		t.Fatalf("StringToEmi error: %v", err)
+	}
+
+	files, err := GoModuleFull(&module, core.MicroGenContext{})
+	if err != nil {
+		t.Fatalf("GoModuleFull error: %v", err)
+	}
+
+	for _, f := range files {
+		if f.Name != "BlogPermissions" {
+			continue
+		}
+		if got := strings.Count(f.ActualScript, "ParamsSchema:"); got != 2 {
+			t.Fatalf("want ParamsSchema on exactly the 2 permissions with params, got %d:\n%s", got, f.ActualScript)
+		}
+		for _, want := range []string{`workspaceId`, `channel`} {
+			if !strings.Contains(f.ActualScript, want) {
+				t.Fatalf("schema lacks %q:\n%s", want, f.ActualScript)
+			}
+		}
+		return
+	}
+	t.Fatalf("no permissions file in %+v", fileNames(files))
 }
