@@ -10,7 +10,7 @@ import (
 // JsParamsDtoAliasesGenerate declares the params type of every event/permission that
 // uses `params.dto` (see core.Emi.ParamsDtoAliases): the referenced dto is imported
 // and re-exported under the params class name (`export { PostDto as
-// PostPublishPermissionParams }`), which works for both the class and, in TypeScript,
+// PostPermissionsPublishParams }`), which works for both the class and, in TypeScript,
 // its type. Returns (nil, nil) when no params reference a dto.
 func JsParamsDtoAliasesGenerate(module *core.Emi, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 	aliases := module.ParamsDtoAliases()

@@ -400,7 +400,7 @@ func GoModuleFull(module *core.Emi, ctx core.MicroGenContext) ([]core.VirtualFil
 		})
 	}
 
-	permissionsOutput, err := GoPermissionsGenerate(module.Permissions, ctx, f.Emigo)
+	permissionsOutput, err := GoPermissionsGenerate(module.Permissions, module, ctx, f.Emigo)
 	if err != nil {
 		return nil, err
 	}

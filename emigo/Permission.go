@@ -19,6 +19,12 @@ type Permission struct {
 	Title       map[string]string
 	Description map[string]string
 	Children    map[string]*Permission
+
+	// ParamsSchema is the JSON Schema (as JSON text) of the permission's `params:`
+	// block, or "" when the permission declares none. Lets a consumer (e.g. a role
+	// editor that stores per-grant configuration) render a form for the params and
+	// persist the schema without needing the generated PermissionParams type at runtime.
+	ParamsSchema string
 }
 
 func (x Permission) GetTitle() map[string]string {

@@ -67,8 +67,8 @@ func TestEventAndPermissionParamsImplementInterfaces(t *testing.T) {
 			"func (x *PostPublishedEventPayload) GetWorkspaceId()",
 		},
 		"BlogPermissionParams": {
-			"type PostPublishPermissionParams struct {",
-			"func (x *PostPublishPermissionParams) GetWorkspaceId()",
+			"type PostPermissionsPublishParams struct {",
+			"func (x *PostPermissionsPublishParams) GetWorkspaceId()",
 		},
 	}
 	for file, wants := range checks {

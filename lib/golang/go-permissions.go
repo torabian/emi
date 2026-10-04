@@ -2,12 +2,14 @@ package golang
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
+	"github.com/torabian/emi/lib/formgen"
 )
 
 // GoPermissionsGenerate renders the module's `permissions:` tree into a single
@@ -45,6 +47,7 @@ import (
 // FullKey populated. Returns (nil, nil) when the module declares no permissions.
 func GoPermissionsGenerate(
 	permissions []*core.EmiPermission,
+	module *core.Emi,
 	ctx core.MicroGenContext,
 	emigoImportPath string,
 ) (*core.CodeChunkCompiled, error) {
@@ -54,7 +57,7 @@ func GoPermissionsGenerate(
 	}
 
 	rootVars := &strings.Builder{}
-	renderPermissionRootVars(rootVars, permissions)
+	renderPermissionRootVars(rootVars, permissions, module)
 
 	const tmpl = `/**
 * Permission keys generated from the module's permissions tree.
@@ -107,11 +110,45 @@ func permissionFieldName(p *core.EmiPermission) string {
 // so with Title/Description often being multi-entry maps, keeping this on one line
 // would leave some of these unreadably long once AsFullDocument's gofmt pass runs
 // over the file.
-func goPermissionLiteral(p *core.EmiPermission) string {
+func goPermissionLiteral(p *core.EmiPermission, module *core.Emi) string {
+	schema := ""
+	if s := permissionParamsSchemaOrEmpty(p, module); s != "" {
+		schema = fmt.Sprintf("ParamsSchema: %q,\n", s)
+	}
 	return fmt.Sprintf(
-		"emigo.Permission{\nKey: %q,\nName: %q,\nTitle: %s,\nDescription: %s,\n}",
-		p.EffectiveKey(), p.Name, goStringMapLiteral(p.Title), goStringMapLiteral(p.Description),
+		"emigo.Permission{\nKey: %q,\nName: %q,\nTitle: %s,\nDescription: %s,\n%s}",
+		p.EffectiveKey(), p.Name, goStringMapLiteral(p.Title), goStringMapLiteral(p.Description), schema,
 	)
+}
+
+// permissionParamsSchemaOrEmpty renders the permission's `params:` as JSON Schema text
+// for emigo.Permission.ParamsSchema, so it can be persisted/served at runtime (the
+// typed <FullKey>PermissionParams struct only exists at compile time). Inline `fields`
+// (interfaces already merged in by preprocess) are used directly; `dto` references are
+// resolved against the module's own dtos. A dto that lives in another module can't be
+// resolved here and yields "" - same as a permission without params.
+func permissionParamsSchemaOrEmpty(p *core.EmiPermission, module *core.Emi) string {
+	var fields []*core.EmiField
+	switch {
+	case p.HasParamsFields():
+		fields = p.GetParamsFields()
+	case p.HasParamsDto() && module != nil:
+		for i := range module.Dto {
+			if module.Dto[i].GetClassName() == p.GetParamsDto() {
+				fields = module.Dto[i].Fields
+				break
+			}
+		}
+	}
+	if len(fields) == 0 {
+		return ""
+	}
+
+	raw, err := json.Marshal(formgen.BuildJSONSchema(core.PermissionParamsClassName(p), "", fields))
+	if err != nil {
+		return ""
+	}
+	return string(raw)
 }
 
 // selfPermissionFieldName returns the field name a node's own emigo.Permission
@@ -163,9 +200,9 @@ func goPermissionNodeType(p *core.EmiPermission, indent string) string {
 
 // goPermissionNodeValue renders the composite literal for a permission node,
 // matching whatever goPermissionNodeType returned for it.
-func goPermissionNodeValue(p *core.EmiPermission, indent string) string {
+func goPermissionNodeValue(p *core.EmiPermission, indent string, module *core.Emi) string {
 	if len(p.Children) == 0 {
-		return goPermissionLiteral(p)
+		return goPermissionLiteral(p, module)
 	}
 
 	selfField := "Permission"
@@ -175,12 +212,12 @@ func goPermissionNodeValue(p *core.EmiPermission, indent string) string {
 
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s{\n", goPermissionNodeType(p, indent))
-	fmt.Fprintf(&b, "%s\t%s: %s,\n", indent+"\t", selfField, goPermissionLiteral(p))
+	fmt.Fprintf(&b, "%s\t%s: %s,\n", indent+"\t", selfField, goPermissionLiteral(p, module))
 	for _, c := range p.Children {
 		if c == nil {
 			continue
 		}
-		fmt.Fprintf(&b, "%s\t%s: %s,\n", indent+"\t", permissionFieldName(c), goPermissionNodeValue(c, indent+"\t"))
+		fmt.Fprintf(&b, "%s\t%s: %s,\n", indent+"\t", permissionFieldName(c), goPermissionNodeValue(c, indent+"\t", module))
 	}
 	fmt.Fprintf(&b, "%s}", indent)
 
@@ -208,7 +245,7 @@ func goRootPermissionName(p *core.EmiPermission) string {
 // everything nested under it) into its own []emigo.Permission, by referencing the
 // var's own fields rather than re-declaring separate literals, so it can never
 // drift out of sync with it.
-func renderPermissionRootVars(w *strings.Builder, permissions []*core.EmiPermission) {
+func renderPermissionRootVars(w *strings.Builder, permissions []*core.EmiPermission, module *core.Emi) {
 	for _, p := range permissions {
 		if p == nil {
 			continue
@@ -217,7 +254,7 @@ func renderPermissionRootVars(w *strings.Builder, permissions []*core.EmiPermiss
 		name := goRootPermissionName(p)
 		fmt.Fprintf(w, "// %s mirrors the %q permission node (and everything nested under it),\n", name, permissionIdentifier(p))
 		fmt.Fprintf(w, "// so it can be navigated directly, e.g. %s.Key.\n", name)
-		fmt.Fprintf(w, "var %s = %s\n\n", name, goPermissionNodeValue(p, ""))
+		fmt.Fprintf(w, "var %s = %s\n\n", name, goPermissionNodeValue(p, "", module))
 
 		fmt.Fprintf(w, "// %sList flattens %s (and everything nested under it) into a single slice,\n", name, name)
 		fmt.Fprintf(w, "// for anything that wants to walk them all at once (seeding an ACL table,\n")

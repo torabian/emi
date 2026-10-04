@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 // EmiPermission describes a single node in a module's permission tree. It is purely
@@ -213,9 +214,12 @@ func (x *EmiPermission) GetParamsFields() []*EmiField {
 }
 
 // PermissionParamsClassName is the generated class/struct name of a permission's
-// params shape in every target language (e.g. FullKey "post.publish" ->
-// PostPublishPermissionParams). Derived from FullKey, which ResolvePermissionFullKeys
-// must have already populated, so it's unique across the whole tree.
+// params shape in every target language: <Root>Permissions<Rest>Params, where Root is
+// the first FullKey segment and Rest the remaining ones (e.g. FullKey "post.publish" ->
+// PostPermissionsPublishParams; a root permission "post" -> PostPermissionsParams).
+// Derived from FullKey, which ResolvePermissionFullKeys must have already populated,
+// so it's unique across the whole tree.
 func PermissionParamsClassName(p *EmiPermission) string {
-	return NormaliseKey(p.FullKey) + "PermissionParams"
+	root, rest, _ := strings.Cut(p.FullKey, ".")
+	return NormaliseKey(root) + "Permissions" + NormaliseKey(rest) + "Params"
 }
