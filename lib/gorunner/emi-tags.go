@@ -11,6 +11,7 @@ import (
 	"github.com/torabian/emi/lib/cpp"
 	"github.com/torabian/emi/lib/csharp"
 	"github.com/torabian/emi/lib/dart"
+	"github.com/torabian/emi/lib/entitysql"
 	"github.com/torabian/emi/lib/golang"
 	"github.com/torabian/emi/lib/java"
 	"github.com/torabian/emi/lib/js"
@@ -39,6 +40,7 @@ var languageCompilerTags = []struct {
 	{"c", c.CompilerTags},
 	{"cpp", cpp.CompilerTags},
 	{"kotlin", kotlin.CompilerTags},
+	{"entity-sql", entitysql.CompilerTags},
 }
 
 // renderCompilerTags formats every registered language's compiler tags into

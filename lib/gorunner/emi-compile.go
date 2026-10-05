@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/torabian/emi/lib/core"
+	"github.com/torabian/emi/lib/entitysql"
 	"github.com/torabian/emi/lib/golang"
 	"github.com/torabian/emi/lib/js"
 	"github.com/torabian/emi/lib/kotlin"
@@ -82,6 +83,9 @@ var CompileCommand = cli.Command{
 					action = swift.SwiftPrimaryAction
 				case "js":
 					action = js.JsPrimaryAction
+				case "entity-sql":
+					// tags: [sqlite] picks the database, postgres without it
+					action = entitysql.EntitySqlAction
 				default:
 					continue
 				}

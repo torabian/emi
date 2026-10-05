@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/h22rana/jsonlogic2sql"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	gormtests "gorm.io/gorm/utils/tests"
 )
@@ -14,7 +15,7 @@ func TestRegisterQueryOperators_ContainsTranspilesToCaseInsensitiveLike(t *testi
 	if err != nil {
 		t.Fatalf("NewTranspiler error: %v", err)
 	}
-	registerQueryOperators(tr)
+	registerQueryOperators(tr, "postgres")
 
 	sql, err := tr.TranspileCondition(`{"contains":[{"var":"title"},"hello"]}`)
 	if err != nil {
@@ -46,7 +47,7 @@ func TestRegisterQueryOperators_ContainsDoesNotDoubleEscapeQuotes(t *testing.T) 
 	if err != nil {
 		t.Fatalf("NewTranspiler error: %v", err)
 	}
-	registerQueryOperators(tr)
+	registerQueryOperators(tr, "postgres")
 
 	sql, err := tr.TranspileCondition(`{"contains":[{"var":"title"},"o'brien' OR '1'='1"]}`)
 	if err != nil {
@@ -140,5 +141,41 @@ func TestBuildQueryCursor_EncodesLastItemsIdOrNilWhenEmpty(t *testing.T) {
 	cursor := BuildQueryCursor(items)
 	if cursor == nil || *cursor != "id(42)" {
 		t.Fatalf("expected cursor \"id(42)\" (the last item's Id), got %v", cursor)
+	}
+}
+
+// On sqlite the same filter runs for real: contains is a LIKE over the column cast to text, since
+// ILIKE and :: are postgres only.
+func TestApplyQueryFilter_ContainsRunsOnSQLite(t *testing.T) {
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Skipf("sqlite unavailable: %v", err)
+	}
+	if err := db.Exec(`CREATE TABLE people (id integer primary key, name text, age integer)`).Error; err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { db.Exec(`DROP TABLE people`) })
+	db.Exec(`INSERT INTO people (name, age) VALUES ('Alice', 30), ('Bob', 25), ('malice', 41)`)
+
+	count := func(filter string) int64 {
+		t.Helper()
+		q, err := ApplyQueryFilter(db.Table("people"), filter)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var n int64
+		if err := q.Count(&n).Error; err != nil {
+			t.Fatalf("%s: %v", filter, err)
+		}
+		return n
+	}
+	if n := count(`{"contains":[{"var":"name"},"ALICE"]}`); n != 2 {
+		t.Errorf("contains is case insensitive: %d rows, want 2", n)
+	}
+	if n := count(`{"contains":[{"var":"age"},"4"]}`); n != 1 {
+		t.Errorf("a number column is searched as text: %d rows, want 1", n)
+	}
+	if n := count(`{"and":[{">=":[{"var":"age"},30]},{"==":[{"var":"name"},"Alice"]}]}`); n != 1 {
+		t.Errorf("the standard operators: %d rows, want 1", n)
 	}
 }

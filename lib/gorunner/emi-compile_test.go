@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/urfave/cli/v3"
@@ -136,5 +137,51 @@ dtos:
 	}
 	if _, err := os.Stat(filepath.Join(outB, "preprocessed.yml")); err != nil {
 		t.Fatalf("expected out-b/preprocessed.yml to have been generated too: %v", err)
+	}
+}
+
+// A module compiles to the sql of both databases through its own targets: the same compiler,
+// told which database by the tags of the target.
+func TestCompile_EntitySqlTargetPicksTheDatabaseByTag(t *testing.T) {
+	dir := t.TempDir()
+	fixture := `name: shop
+targets:
+  - compiler: entity-sql
+    output: ./sql
+  - compiler: entity-sql
+    output: ./sql
+    tags:
+      - sqlite
+entities:
+  - name: product
+    fields:
+      - name: title
+        type: string
+      - name: tags
+        type: array
+        fields:
+          - name: label
+            type: string
+`
+	path := filepath.Join(dir, "shop.emi.yml")
+	if err := os.WriteFile(path, []byte(fixture), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	runCompile(t, path)
+
+	pg, err := os.ReadFile(filepath.Join(dir, "sql", "shop.sql"))
+	if err != nil {
+		t.Fatalf("the postgres file: %v", err)
+	}
+	lite, err := os.ReadFile(filepath.Join(dir, "sql", "shop.sqlite.sql"))
+	if err != nil {
+		t.Fatalf("the sqlite file: %v", err)
+	}
+	if !strings.Contains(string(pg), "bigserial") || !strings.Contains(string(pg), "ADD COLUMN IF NOT EXISTS") {
+		t.Errorf("not postgres:\n%s", pg)
+	}
+	if !strings.Contains(string(lite), "AUTOINCREMENT") || strings.Contains(string(lite), "bigserial") {
+		t.Errorf("not sqlite:\n%s", lite)
 	}
 }

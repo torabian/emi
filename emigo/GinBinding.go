@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -56,7 +58,7 @@ import (
 * example of that translation layer.
 **/
 
-// BindGinFormData, when non-nil, is consulted by BindGinRequestBody for a
+// ConvertMultipartFile, when non-nil, is consulted by BindGinMultipartForm for a
 // multipart/form-data upload's file fields. Representing an uploaded file
 // (storage, mime handling, size limits, ...) is usually application-specific
 // - fireback, for instance, wants a complexes.XFile - so this is left as a
@@ -178,28 +180,65 @@ func ginBodyToBytes(c *gin.Context) ([]byte, error) {
 	return bodyBytes, nil
 }
 
-// BindGinMultipartForm parses c's multipart/form-data body into target: each
-// non-file field round-trips through JSON (so it lands in whatever struct
-// tags a JSON body would use), and each uploaded file becomes a
-// BindMultipartFile unless ConvertMultipartFile is set. Exported (rather than
-// folded privately into BindGinRequestBody) so a caller that already knows
-// its content-type can invoke it directly.
+// BindGinMultipartForm parses c's multipart/form-data body into target.
+//
+// Non-file fields round-trip through JSON (so they land in whatever struct
+// tags a JSON body would use). A part name ending in "[]" ("attachments[]")
+// always means a list, and the suffix is dropped from the field name; a name
+// sent more than once is a list too - every value is kept, in order.
+//
+// Uploaded files depend on ConvertMultipartFile:
+//   - Left nil, each file becomes a BindMultipartFile (name, mime, base64
+//     bytes) and goes through the same JSON round trip as text fields.
+//   - When set, each file is converted by the hook and the result is assigned
+//     straight into the target struct's field with the matching json name -
+//     never through JSON, so the converted value (typically one holding the
+//     file's raw bytes) arrives intact whatever its own marshaling does. The
+//     field must be able to hold the converted value, or a slice of it for a
+//     list; a file for a field the struct doesn't have is ignored, like an
+//     unknown JSON key.
+//
+// Note the 10MB below is only how much of the request is buffered in memory
+// before the rest spills to temporary files; it is not a limit on the upload.
+// Cap the size where the request enters (http.MaxBytesReader) or in the hook.
+//
+// Exported (rather than folded privately into BindGinRequestBody) so a caller
+// that already knows its content-type can invoke it directly.
 func BindGinMultipartForm(c *gin.Context, target any) error {
-	if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB limit
+	if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
 		return &BindDecodingError{Format: "form", Err: err}
 	}
 
 	formData := c.Request.MultipartForm
 	formMap := make(map[string]any)
 
+	// parts collects every value of a name, remembering whether it must be
+	// presented as a list even if only one value showed up.
+	type parts struct {
+		values []any
+		list   bool
+	}
+	jsonFiles := map[string]*parts{}
+	converted := map[string]*parts{}
+	add := func(into map[string]*parts, fieldName string, v any) {
+		name := strings.TrimSuffix(fieldName, "[]")
+		p := into[name]
+		if p == nil {
+			p = &parts{}
+			into[name] = p
+		}
+		p.values = append(p.values, v)
+		p.list = p.list || name != fieldName
+	}
+
 	for fieldName, files := range formData.File {
 		for _, fileHeader := range files {
 			if ConvertMultipartFile != nil {
-				converted, err := ConvertMultipartFile(fileHeader)
+				value, err := ConvertMultipartFile(fileHeader)
 				if err != nil {
 					return &BindDecodingError{Format: "form", Err: err}
 				}
-				formMap[fieldName] = converted
+				add(converted, fieldName, value)
 				continue
 			}
 
@@ -213,23 +252,115 @@ func BindGinMultipartForm(c *gin.Context, target any) error {
 				return &BindDecodingError{Format: "form", Err: err}
 			}
 
-			formMap[fieldName] = BindMultipartFile{
+			add(jsonFiles, fieldName, BindMultipartFile{
 				Filename: fileHeader.Filename,
 				Mime:     fileHeader.Header.Get("Content-Type"),
 				Data:     data,
-			}
+			})
+		}
+	}
+	for name, p := range jsonFiles {
+		if p.list || len(p.values) > 1 {
+			formMap[name] = p.values
+		} else {
+			formMap[name] = p.values[0]
 		}
 	}
 
 	for key, values := range formData.Value {
-		if len(values) > 1 {
-			formMap[key] = values
+		name := strings.TrimSuffix(key, "[]")
+		if name != key || len(values) > 1 {
+			formMap[name] = values
 		} else {
-			formMap[key] = values[0]
+			formMap[name] = values[0]
 		}
 	}
 
-	return bindFormMap(formMap, target)
+	if err := bindFormMap(formMap, target); err != nil {
+		return err
+	}
+
+	for name, p := range converted {
+		if err := assignConvertedFiles(target, name, p.values); err != nil {
+			return &BindDecodingError{Format: "form", Err: err}
+		}
+	}
+	return nil
+}
+
+// assignConvertedFiles stores the hook-converted values of one file field into
+// the struct target points to, see BindGinMultipartForm.
+func assignConvertedFiles(target any, name string, values []any) error {
+	rv := reflect.ValueOf(target)
+	if rv.Kind() != reflect.Ptr || rv.IsNil() || rv.Elem().Kind() != reflect.Struct {
+		return fmt.Errorf("file field %q: body must be a pointer to a struct", name)
+	}
+	st := rv.Elem()
+
+	var field reflect.Value
+	for i := 0; i < st.NumField(); i++ {
+		sf := st.Type().Field(i)
+		if !sf.IsExported() {
+			continue
+		}
+		jsonName := strings.Split(sf.Tag.Get("json"), ",")[0]
+		if jsonName == "" {
+			jsonName = sf.Name
+		}
+		if jsonName == name {
+			field = st.Field(i)
+			break
+		}
+		if !field.IsValid() && strings.EqualFold(jsonName, name) {
+			field = st.Field(i)
+		}
+	}
+	if !field.IsValid() {
+		return nil
+	}
+
+	if field.Kind() == reflect.Slice {
+		out := reflect.MakeSlice(field.Type(), 0, len(values))
+		for _, v := range values {
+			ev, err := convertFileValue(v, field.Type().Elem())
+			if err != nil {
+				return fmt.Errorf("file field %q: %w", name, err)
+			}
+			out = reflect.Append(out, ev)
+		}
+		field.Set(out)
+		return nil
+	}
+
+	if len(values) > 1 {
+		return fmt.Errorf("file field %q accepts a single file, got %d", name, len(values))
+	}
+	ev, err := convertFileValue(values[0], field.Type())
+	if err != nil {
+		return fmt.Errorf("file field %q: %w", name, err)
+	}
+	field.Set(ev)
+	return nil
+}
+
+// convertFileValue adapts a hook result to t, allowing the hook to return
+// either a value or a pointer to it whichever way the field is declared.
+func convertFileValue(v any, t reflect.Type) (reflect.Value, error) {
+	if v == nil {
+		return reflect.Zero(t), nil
+	}
+	rv := reflect.ValueOf(v)
+	switch {
+	case rv.Type().AssignableTo(t):
+		return rv, nil
+	case rv.Kind() == reflect.Ptr && !rv.IsNil() && rv.Elem().Type().AssignableTo(t):
+		return rv.Elem(), nil
+	case t.Kind() == reflect.Ptr && rv.Type().AssignableTo(t.Elem()):
+		p := reflect.New(t.Elem())
+		p.Elem().Set(rv)
+		return p, nil
+	}
+	return reflect.Value{}, fmt.Errorf("cannot store a %s in a %s", rv.Type(), t)
 }
 
 // BindGinUrlEncoded parses c's application/x-www-form-urlencoded body into

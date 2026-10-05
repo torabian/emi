@@ -542,6 +542,165 @@ events:
     limit useval('limit')
 `,
   },
+  {
+    id: "entity-postgres",
+    label: "entity-postgres.yml",
+    kind: "yaml",
+    target: "entitySqlGen",
+    tags: [],
+    content: `name: shopModule
+
+# Run the compiler as often as you like: the generated sql only creates what is
+# missing (create table if not exists, add column if not exists, constraints added
+# only when absent). Postgres is the default - pick the "sqlite" tag in the compiler
+# options for the sqlite version of the same tables. Check the output for:
+#   object      -> flattened columns        (address_street, address_geo_lat)
+#   array       -> child table + linker_id  (order_entity_items, nested ..._items_discounts)
+#   collection  -> many2many join table     (product_tags)
+#   one         -> foreign key constraint,  one? -> column + index only
+#   enum        -> CHECK constraint
+entities:
+  - name: category
+    description: Categories form a tree, a category may have a parent.
+    fields:
+      - name: title
+        type: string
+      - name: parent
+        type: one?
+        target: CategoryEntity
+
+  - name: tag
+    fields:
+      - name: label
+        type: string
+
+  - name: customer
+    fields:
+      - name: email
+        type: string
+      - name: tier
+        type: enum
+        of:
+          - k: standard
+          - k: silver
+          - k: gold
+      - name: birthYear
+        type: int?
+      # object nested in an object: address_street, address_city, address_geo_lat, ...
+      - name: address
+        type: object
+        fields:
+          - name: street
+            type: string
+          - name: city
+            type: string
+          - name: geo
+            type: object?
+            fields:
+              - name: lat
+                type: float64
+              - name: lng
+                type: float64
+      # array: every customer owns any number of phones
+      - name: phones
+        type: array
+        fields:
+          - name: number
+            type: string
+          - name: primary
+            type: bool
+            default: false
+
+  - name: product
+    fields:
+      - name: title
+        type: string
+      - name: description
+        type: string?
+      - name: status
+        type: enum
+        of:
+          - k: draft
+          - k: published
+          - k: archived
+      - name: category
+        type: one
+        target: CategoryEntity
+      - name: dimensions
+        type: object?
+        fields:
+          - name: width
+            type: float64
+          - name: height
+            type: float64
+      - name: attributes
+        type: map
+      # array inside an array: product -> variants -> prices
+      - name: variants
+        type: array
+        fields:
+          - name: sku
+            type: string
+          - name: stock
+            type: int
+            default: 0
+          - name: prices
+            type: array
+            fields:
+              - name: currency
+                type: string
+              - name: amountCents
+                type: int64
+      - name: tags
+        type: collection
+        target: TagEntity
+      # a collection pointing to the entity itself
+      - name: relatedProducts
+        type: collection?
+        target: ProductEntity
+
+  - name: order
+    fields:
+      - name: number
+        type: string
+      - name: status
+        type: enum
+        of:
+          - k: pending
+          - k: paid
+          - k: shipped
+          - k: cancelled
+      - name: customer
+        type: one
+        target: CustomerEntity
+      # one?: nullable reference, indexed but without a constraint
+      - name: referrer
+        type: one?
+        target: CustomerEntity
+      - name: shipping
+        type: object
+        fields:
+          - name: method
+            type: string
+          - name: costCents
+            type: int64
+      - name: items
+        type: array
+        fields:
+          - name: quantity
+            type: int
+          - name: product
+            type: one
+            target: ProductEntity
+          - name: discounts
+            type: array?
+            fields:
+              - name: code
+                type: string
+              - name: percent
+                type: float32
+`,
+  },
 ];
 
 export const kindForTarget = (target: string): ExampleKind =>

@@ -12,6 +12,7 @@ export const targets = [
   { value: "cGenModule", label: "C" },
   { value: "cppGenModule", label: "C++" },
   { value: "sqlQueryPredict", label: "QueryPredict(SQL)" },
+  { value: "entitySqlGen", label: "Entity(SQL)" },
   { value: "preprocessorGen", label: "Preprocessor" },
   { value: "postmanGen", label: "Postman" },
   { value: "openapiGen", label: "OpenApi" },

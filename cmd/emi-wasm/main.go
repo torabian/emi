@@ -12,6 +12,7 @@ import (
 	"github.com/torabian/emi/lib/cpp"
 	"github.com/torabian/emi/lib/csharp"
 	"github.com/torabian/emi/lib/dart"
+	"github.com/torabian/emi/lib/entitysql"
 	"github.com/torabian/emi/lib/golang"
 	"github.com/torabian/emi/lib/java"
 	emijs "github.com/torabian/emi/lib/js"
@@ -56,6 +57,10 @@ func main() {
 	}
 
 	for _, fileAction := range preprocessor.GetPreprocessorPublicActions().FileActions {
+		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
+	}
+
+	for _, fileAction := range entitysql.GetEntitySqlPublicActions().FileActions {
 		js.Global().Set(fileAction.WasmFunctionName, js.FuncOf(VirtualFilesFactory(fileAction.Run)))
 	}
 
@@ -241,6 +246,7 @@ func compilerTagsByTarget() map[string][]core.CompilerTagDoc {
 		"phpGenModule":    php.CompilerTags,
 		"cGenModule":      c.CompilerTags,
 		"cppGenModule":    cpp.CompilerTags,
+		"entitySqlGen":    entitysql.CompilerTags,
 	}
 }
 

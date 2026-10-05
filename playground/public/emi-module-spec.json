@@ -1506,6 +1506,10 @@
           "type": "boolean",
           "description": "When true every action generated for this entity (create/update/get/browse/delete preview/delete) is also exposed as an intent (MCP tool) named listBooks/getBook/createBook/updateBook/previewDeleteBooks/deleteBooks for an entity named book. A hand-declared intent of the same name wins."
         },
+        "defaultPermissions": {
+          "type": "boolean",
+          "description": "When true (default false) the compiler adds a permission group named after the entity to the module permissions: \u003centity\u003e.* with children \u003centity\u003e.query / .create / .update / .delete. A hand-declared permission of the same name wins."
+        },
         "features": {
           "$ref": "#/definitions/Module3EntityFeatures",
           "description": "Customize the features generated for entity"

@@ -18,6 +18,7 @@ import (
 	"github.com/torabian/emi/lib/cpp"
 	"github.com/torabian/emi/lib/csharp"
 	"github.com/torabian/emi/lib/dart"
+	"github.com/torabian/emi/lib/entitysql"
 	"github.com/torabian/emi/lib/golang"
 	"github.com/torabian/emi/lib/java"
 	"github.com/torabian/emi/lib/js"
@@ -462,6 +463,9 @@ func BuildCommands() []*cli.Command {
 
 	commands = append(commands,
 		cliCommandFromFileActions(querypredict.GetQPPublicActions().FileActions)...)
+
+	commands = append(commands,
+		cliCommandFromFileActions(entitysql.GetEntitySqlPublicActions().FileActions)...)
 
 	commands = append(commands,
 		cliCommandFromFileActions(md.GetMdPublicActions().FileActions)...)
