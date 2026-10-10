@@ -372,6 +372,23 @@ func (c column) definition() string {
 // scalarColumn maps the field types which are a single column of their own. A non
 // nullable column gets a zero value default, so it can be added to a table which
 // already has rows.
+// complexStorage says how a complex is stored in a column of its own. The listed ones are written
+// down on purpose - a translated text, a free json document and a multi-currency price are
+// documents kept whole in a jsonb column - and a complex which is not listed here is a jsonb column too.
+// This is the one place to say that a complex is something else: a time is a real timestamp, a date
+// a real date.
+var complexStorage = map[string]struct {
+	sqlType string
+	kind    Kind
+}{
+	"PlainTime": {"timestamptz", KindTime},
+	"XDateTime": {"timestamptz", KindTime},
+	"XDate":     {"date", KindDate},
+	"TString":   {"jsonb", KindJSON},
+	"MJson":     {"jsonb", KindJSON},
+	"TMoney":    {"jsonb", KindJSON},
+}
+
 func scalarColumn(f *core.EmiField, base core.FieldType, nullable bool) (column, error) {
 	col := column{notNull: !nullable}
 
@@ -405,13 +422,11 @@ func scalarColumn(f *core.EmiField, base core.FieldType, nullable bool) (column,
 	case core.FieldTypeAny:
 		col.sqlType, col.kind, col.notNull = "jsonb", KindJSON, false
 	case core.FieldTypeComplex:
-		// emi's time complexes are real timestamps, every other complex is a json document.
+		// What a complex is stored as is looked up in complexStorage; one which is not listed there is a
+		// json document, which every complex can be.
 		col.sqlType, col.kind, col.notNull = "jsonb", KindJSON, false
-		switch f.Complex {
-		case "PlainTime", "XDateTime":
-			col.sqlType, col.kind = "timestamptz", KindTime
-		case "XDate":
-			col.sqlType, col.kind = "date", KindDate
+		if storage, ok := complexStorage[f.Complex]; ok {
+			col.sqlType, col.kind = storage.sqlType, storage.kind
 		}
 	default:
 		return col, fmt.Errorf("unsupported type %q", f.Type)

@@ -7,8 +7,6 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
 // EmiExtends is one entry of Emi.Extends: a definition file to merge in, plus the
@@ -163,7 +161,7 @@ func loadExtended(ext EmiExtends, baseDir string, rootDir string, chain map[stri
 		return nil, fmt.Errorf("extends: reading %q: %w", path, err)
 	}
 	var base Emi
-	if err := yaml.Unmarshal(content, &base); err != nil {
+	if err := unmarshalLenient(content, &base); err != nil {
 		return nil, fmt.Errorf("extends: parsing %q: %w", path, err)
 	}
 	applyParams(&base, withImplicitParams(ext.Params, abs, rootDir))

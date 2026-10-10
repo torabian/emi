@@ -60,21 +60,29 @@ func KotlinPermissionsGenerate(
 	const tmpl = `/**
 * Permission keys generated from the module's permissions tree.
 */
+{{ .permissionClass }}
+{{ .rootVars }}`
 
+	// The Permission class is package-global in Kotlin, so a sibling target that sets
+	// no-sdk relies on the one the primary target already emitted.
+	permissionClass := `
 data class Permission(
 	val key: String,
 	val name: String,
 	val title: Map<String, String>? = null,
 	val description: Map<String, String>? = null
 )
-
-{{ .rootVars }}`
+`
+	if ctx.HasTag(NoSdk) {
+		permissionClass = ""
+	}
 
 	t := template.Must(template.New("permissions").Funcs(core.CommonMap).Parse(tmpl))
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"rootVars": rootVars.String(),
+		"rootVars":        rootVars.String(),
+		"permissionClass": permissionClass,
 	}); err != nil {
 		return nil, err
 	}

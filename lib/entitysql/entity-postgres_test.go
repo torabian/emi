@@ -287,3 +287,37 @@ func TestStatementsRunOneByOneInPhaseOrder(t *testing.T) {
 		}
 	}
 }
+
+func TestComplexesAreStoredByTheirDeclaredStorage(t *testing.T) {
+	entity := &core.Module3Entity{Name: "product", Fields: []*core.EmiField{
+		{Name: "title", Type: core.FieldTypeComplex, Complex: "TString"},
+		{Name: "extra", Type: core.FieldTypeComplex, Complex: "MJson"},
+		{Name: "price", Type: core.FieldTypeComplex, Complex: "TMoney"},
+		{Name: "unknown", Type: core.FieldTypeComplex, Complex: "SomethingElse"},
+		{Name: "born", Type: core.FieldTypeComplex, Complex: "XDate"},
+	}}
+	result, err := Generate([]*core.Module3Entity{entity}, Options{Dialect: Postgres})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]struct {
+		sql  string
+		kind Kind
+	}{
+		"title": {"jsonb", KindJSON}, "extra": {"jsonb", KindJSON}, "price": {"jsonb", KindJSON},
+		"unknown": {"jsonb", KindJSON}, "born": {"date", KindDate},
+	}
+	for _, column := range result.Layouts[0].Columns {
+		w, ok := want[column.Path[0]]
+		if !ok {
+			continue
+		}
+		if column.SqlType != w.sql || column.Kind != w.kind {
+			t.Errorf("%s: stored as %s (%s), want %s (%s)", column.Path[0], column.SqlType, column.Kind, w.sql, w.kind)
+		}
+		delete(want, column.Path[0])
+	}
+	for name := range want {
+		t.Errorf("%s has no column in the layout", name)
+	}
+}

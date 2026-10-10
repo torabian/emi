@@ -221,6 +221,11 @@ func parseDtoPath(input string) (path string, className string) {
 		path = "./" + base
 	} else {
 		path = filepath.ToSlash(filepath.Join(dir, base))
+		// Join cleans a leading "./" away, which turns a relative sibling-folder
+		// import into a bare package specifier.
+		if strings.HasPrefix(input, "./") {
+			path = "./" + path
+		}
 	}
 
 	className = base

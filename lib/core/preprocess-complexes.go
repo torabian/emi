@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"gopkg.in/yaml.v2"
 )
 
 func init() {
@@ -92,7 +90,7 @@ func loadIncludedComplexes(includePath string, baseDir string, visited map[strin
 	var included struct {
 		Complexes []EmiComplex `yaml:"complexes,omitempty"`
 	}
-	if err := yaml.Unmarshal(content, &included); err != nil {
+	if err := unmarshalLenient(content, &included); err != nil {
 		return nil, fmt.Errorf("complexes: parsing include %q: %w", includePath, err)
 	}
 

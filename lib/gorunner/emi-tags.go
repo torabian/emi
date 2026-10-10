@@ -18,6 +18,7 @@ import (
 	"github.com/torabian/emi/lib/kotlin"
 	"github.com/torabian/emi/lib/php"
 	"github.com/torabian/emi/lib/python"
+	"github.com/torabian/emi/lib/swift"
 	"github.com/urfave/cli/v3"
 )
 
@@ -25,7 +26,7 @@ import (
 // target's supported --tags values and what they do. Each entry's Tags
 // comes from that language package's own CompilerTags var (see
 // lib/<lang>/<lang>-compiler-tags.go) - add a row here whenever a language
-// package gains one. Swift is omitted: it doesn't read any compiler tags today.
+// package gains one.
 var languageCompilerTags = []struct {
 	Name string
 	Tags []core.CompilerTagDoc
@@ -40,6 +41,7 @@ var languageCompilerTags = []struct {
 	{"c", c.CompilerTags},
 	{"cpp", cpp.CompilerTags},
 	{"kotlin", kotlin.CompilerTags},
+	{"swift", swift.CompilerTags},
 	{"entity-sql", entitysql.CompilerTags},
 }
 
