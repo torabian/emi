@@ -650,6 +650,13 @@
           "type": "object",
           "description": "Explains what this event represents"
         },
+        "message": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "The sentence shown to a user when this event has happened. Write it in the past tense and address the user: You have been invited to join a workspace. It is a Go template: payload fields and the params of the firing call are available by name as {{.firstName}}. Quote the message in yaml when it starts with a brace. Notifications say this while description only documents the event itself. A firing call may override it for one occurrence."
+        },
         "permissions": {
           "items": {
             "$ref": "#/definitions/EmiEventPermission"

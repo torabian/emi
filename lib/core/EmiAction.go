@@ -55,6 +55,12 @@ func (x EmiAction) GetName() string {
 	return ToUpper(x.Name) + "Action"
 }
 
+// GetBinaryType is the websocket frame type a reactive action exchanges: ""/"text"
+// (JSON dtos) or "arraybuffer"/"blob" (raw binary frames).
+func (x EmiAction) GetBinaryType() string {
+	return x.BinaryType
+}
+
 func (x EmiAction) GetQuery() []*EmiQueryField {
 	return x.Query
 }

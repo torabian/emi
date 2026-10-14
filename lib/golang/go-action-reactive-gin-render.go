@@ -140,10 +140,11 @@ func {{ .realms.ActionName }}ReactiveHandler(factory func(
 
 		go func() {
 			for {
-				_, data, err := c.ReadMessage()
+				messageType, data, err := c.ReadMessage()
 				read <- {{ .realms.ActionName }}ReadChan{
-					Data:  data,
-					Error: err,
+					Data:        data,
+					Error:       err,
+					MessageType: messageType,
 				}
 
 				if err != nil {
@@ -277,10 +278,11 @@ func {{ .realms.ActionName }}Client(baseURL string, opts *{{ .realms.ActionName 
 	// forwards the error frame, signals Done, and exits.
 	go func() {
 		for {
-			_, data, err := c.ReadMessage()
+			messageType, data, err := c.ReadMessage()
 			session.Read <- {{ .realms.ActionName }}ReadChan{
-				Data:  data,
-				Error: err,
+				Data:        data,
+				Error:       err,
+				MessageType: messageType,
 			}
 			if err != nil {
 				select {

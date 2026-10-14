@@ -1,0 +1,81 @@
+// ESP-IDF sketch (v5.x) - NOT compiled or run in this repo: there is no ESP-IDF
+// toolchain or hardware here. The generated emi/ headers are the same ones the
+// host build in main.cpp exercises end to end; only the capture calls below are
+// ESP-specific, so treat those as the part to verify on your board.
+//
+// Project layout:
+//   main/main.cpp                 <- this file
+//   main/emi/                     <- `make gen` output (device/emi), cJSON.c included
+//   main/CMakeLists.txt           idf_component_register(SRCS "main.cpp" "emi/cjson/cJSON.c"
+//                                     INCLUDE_DIRS "." "emi" REQUIRES esp_wifi esp_event nvs_flash
+//                                     driver esp32-camera)
+#include "StreamMediaAction.hpp"
+#include "EmiByteStreamPosix.hpp"   // lwIP exposes the BSD socket API this uses
+#include "EmiMediaFrame.hpp"
+
+#include "driver/i2s_std.h"
+#include "esp_camera.h"
+#include "esp_timer.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
+
+static emi::EmiByteStreamPosix gStream;
+static std::unique_ptr<emi::EmiWebSocketX> gSocket;
+static std::unique_ptr<emi::EmiMediaSender> gSender;
+static SemaphoreHandle_t gSendLock;          // one websocket, two producer tasks
+static i2s_chan_handle_t gMic;
+
+static uint32_t NowMs() { return (uint32_t) (esp_timer_get_time() / 1000); }
+
+static void AudioTask(void*) {
+    static int16_t pcm[320];                 // 20 ms @ 16 kHz mono
+    while (true) {
+        size_t got = 0;
+        if (i2s_channel_read(gMic, pcm, sizeof(pcm), &got, 1000) != ESP_OK || got == 0) continue;
+        xSemaphoreTake(gSendLock, portMAX_DELAY);
+        bool ok = gSender->SendAudio((const uint8_t*) pcm, got, NowMs());
+        xSemaphoreGive(gSendLock);
+        if (!ok) break;                      // connection lost: reconnect from app_main's supervisor
+    }
+    vTaskDelete(nullptr);
+}
+
+static void VideoTask(void*) {
+    while (true) {
+        camera_fb_t* fb = esp_camera_fb_get();   // configure PIXFORMAT_JPEG in camera_config_t
+        if (!fb) { vTaskDelay(pdMS_TO_TICKS(50)); continue; }
+        xSemaphoreTake(gSendLock, portMAX_DELAY);
+        // Zero-copy: header + frame buffer go out as one websocket frame.
+        bool ok = gSender->SendVideo(fb->buf, fb->len, NowMs());
+        xSemaphoreGive(gSendLock);
+        esp_camera_fb_return(fb);
+        if (!ok) break;
+        vTaskDelay(pdMS_TO_TICKS(200));      // ~5 fps
+    }
+    vTaskDelete(nullptr);
+}
+
+extern "C" void app_main() {
+    // 1. Wi-Fi (station) connect + i2s_new_channel/i2s_channel_init_std_mode/
+    //    i2s_channel_enable for gMic + esp_camera_init(): standard ESP-IDF setup, omitted.
+
+    emi::EmiClientConfig& config = emi::EmiClientConfig::Default();
+    config.baseUrl = "http://192.168.1.10:8080";
+
+    StreamMediaActionPathParameters path;
+    path.deviceId = "esp32-kitchen";
+    StreamMediaActionQueryParams query;
+    query.sampleRate = 16000;
+    query.channels = 1;
+    query.audioCodec = "pcm16";
+    query.videoCodec = "mjpeg";
+
+    gSocket = StreamMediaActionSocket::Create(gStream, path, query, config);
+    if (!gSocket->IsOpen()) return;
+
+    gSendLock = xSemaphoreCreateMutex();
+    gSender = std::make_unique<emi::EmiMediaSender>(*gSocket);
+    xTaskCreate(AudioTask, "audio", 4096, nullptr, 6, nullptr);
+    xTaskCreate(VideoTask, "video", 6144, nullptr, 5, nullptr);
+}

@@ -16,6 +16,9 @@ type cActionRealms struct {
 	Url          string
 	HasUrl       bool
 	IsReactive   bool
+	// IsBinaryReactive: `method: reactive` + `binaryType: arraybuffer|blob` - a
+	// websocket exchanging raw frames (emiws.h) instead of SSE over libcurl.
+	IsBinaryReactive bool
 
 	PathParameter *core.CodeChunkCompiled
 	QueryStruct   *core.CodeChunkCompiled
@@ -48,6 +51,9 @@ func cGetActionRealms(
 	realms.Url = core.RemoveTypeAnnotations(action.GetUrl())
 	realms.HasUrl = realms.Url != ""
 	realms.IsReactive = realms.HttpMethod == "REACTIVE"
+	if a, ok := action.(interface{ GetBinaryType() string }); ok && realms.IsReactive {
+		realms.IsBinaryReactive = a.GetBinaryType() != "" && a.GetBinaryType() != "text"
+	}
 
 	pathParameter, err := CActionPathParams(action)
 	if err != nil {

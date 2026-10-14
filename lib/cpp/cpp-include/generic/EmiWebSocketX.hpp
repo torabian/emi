@@ -6,11 +6,14 @@
  * Speaks over any IEmiByteStream (see EmiByteStream.hpp), so the exact same
  * handshake/framing code here runs unmodified on desktop, ESP-IDF, and Arduino.
  *
+ * Text frames carry the JSON dtos of a `method: reactive` action; binary frames
+ * (SendBinary / onBinary) carry raw bytes such as microphone/camera data - see
+ * EmiMediaFrame.hpp.
+ *
  * Scope boundary (documented, not an oversight - mirrors the C target's own
  * fetchx.h note on SSE not being truly streaming): only single-frame text/binary
- * messages are handled (no fragmentation, no permessage-deflate) - more than
- * enough for the small, single JSON-object payloads a `method: reactive` action
- * exchanges, but not a general-purpose WebSocket client. `wss://` needs a
+ * messages are handled (no fragmentation, no permessage-deflate), and incoming
+ * messages are buffered whole - not a general-purpose WebSocket client. `wss://` needs a
  * TLS-capable IEmiByteStream (e.g. WiFiClientSecure via EmiByteStreamArduino) -
  * EmiByteStreamPosix is plain TCP only.
  *
@@ -33,6 +36,7 @@ enum class EmiWebSocketState { Closed, Connecting, Open };
 class EmiWebSocketX {
 public:
     using MessageHandler = std::function<void(const std::string&)>;
+    using BinaryHandler = std::function<void(const uint8_t*, size_t)>;
     using ErrorHandler = std::function<void(const std::string&)>;
     using CloseHandler = std::function<void()>;
 
@@ -40,6 +44,9 @@ public:
     explicit EmiWebSocketX(IEmiByteStream& stream) : stream_(stream) {}
 
     MessageHandler onMessage;
+    // Binary (opcode 0x2) frames. When unset they fall back to onMessage, so
+    // code written before binary support keeps working unchanged.
+    BinaryHandler onBinary;
     ErrorHandler onError;
     CloseHandler onClose;
 
@@ -70,7 +77,21 @@ public:
     // round-trips through. Client-to-server frames are always masked (RFC 6455 5.1).
     bool Send(const std::string& text) {
         if (state_ != EmiWebSocketState::Open) return false;
-        return SendFrame(0x1, (const uint8_t*) text.data(), text.size());
+        return SendFrame(0x1, nullptr, 0, (const uint8_t*) text.data(), text.size());
+    }
+
+    // Sends one binary frame - raw audio/video/sensor bytes, no base64, no JSON.
+    bool SendBinary(const uint8_t* data, size_t length) {
+        if (state_ != EmiWebSocketState::Open) return false;
+        return SendFrame(0x2, nullptr, 0, data, length);
+    }
+
+    // Sends `prefix` + `data` as ONE binary frame without concatenating them
+    // first - lets a small per-frame header (see EmiMediaFrame.hpp) go in front
+    // of a large camera buffer without a second copy of that buffer in RAM.
+    bool SendBinary(const uint8_t* prefix, size_t prefixLength, const uint8_t* data, size_t length) {
+        if (state_ != EmiWebSocketState::Open) return false;
+        return SendFrame(0x2, prefix, prefixLength, data, length);
     }
 
     // Blocks until exactly one frame has been read and dispatched (via onMessage/
@@ -136,8 +157,11 @@ public:
 
         switch (opcode) {
             case 0x1: // text
-            case 0x2: // binary
                 if (onMessage) onMessage(payload);
+                break;
+            case 0x2: // binary
+                if (onBinary) onBinary((const uint8_t*) payload.data(), payload.size());
+                else if (onMessage) onMessage(payload);
                 break;
             case 0x8: // close
                 stream_.Close();
@@ -145,7 +169,7 @@ public:
                 if (onClose) onClose();
                 break;
             case 0x9: // ping - answer with pong, per RFC 6455 5.5.2
-                SendFrame(0xA, (const uint8_t*) payload.data(), payload.size());
+                SendFrame(0xA, nullptr, 0, (const uint8_t*) payload.data(), payload.size());
                 break;
             case 0xA: // pong - nothing to do
                 break;
@@ -158,7 +182,7 @@ public:
 
     void Close() {
         if (state_ == EmiWebSocketState::Open) {
-            SendFrame(0x8, nullptr, 0);
+            SendFrame(0x8, nullptr, 0, nullptr, 0);
         }
         stream_.Close();
         state_ = EmiWebSocketState::Closed;
@@ -186,32 +210,53 @@ private:
         return true;
     }
 
-    bool SendFrame(uint8_t opcode, const uint8_t* payload, size_t length) {
-        std::string frame;
-        frame.push_back((char) (0x80 | opcode)); // FIN=1, single-frame only
+    // Writes one masked frame whose payload is `prefix` followed by `data`. The
+    // frame header and the first payload bytes share one write (a lone few-byte
+    // write would sit behind Nagle/delayed-ACK for tens of ms on Wi-Fi); the rest
+    // is masked and written in 512 byte chunks, so a big camera frame never needs
+    // a second full-size copy in RAM (matters on an ESP32).
+    bool SendFrame(uint8_t opcode, const uint8_t* prefix, size_t prefixLength, const uint8_t* data, size_t dataLength) {
+        const size_t length = prefixLength + dataLength;
+
+        uint8_t buf[14 + 512];
+        size_t bl = 0;
+        buf[bl++] = (uint8_t) (0x80 | opcode); // FIN=1, single-frame only
+
+        if (length < 126) {
+            buf[bl++] = (uint8_t) (0x80 | length); // MASK=1
+        } else if (length <= 0xFFFF) {
+            buf[bl++] = (uint8_t) (0x80 | 126);
+            buf[bl++] = (uint8_t) ((length >> 8) & 0xFF);
+            buf[bl++] = (uint8_t) (length & 0xFF);
+        } else {
+            buf[bl++] = (uint8_t) (0x80 | 127);
+            for (int i = 7; i >= 0; i--) buf[bl++] = (uint8_t) (((uint64_t) length >> (8 * i)) & 0xFF);
+        }
 
         uint8_t maskKey[4];
         for (auto& b : maskKey) b = (uint8_t) (std::rand() & 0xFF);
+        for (auto b : maskKey) buf[bl++] = b;
 
-        if (length < 126) {
-            frame.push_back((char) (0x80 | length)); // MASK=1
-        } else if (length <= 0xFFFF) {
-            frame.push_back((char) (0x80 | 126));
-            frame.push_back((char) ((length >> 8) & 0xFF));
-            frame.push_back((char) (length & 0xFF));
-        } else {
-            frame.push_back((char) (0x80 | 127));
-            for (int i = 7; i >= 0; i--) frame.push_back((char) ((length >> (8 * i)) & 0xFF));
-        }
-        frame.append((const char*) maskKey, 4);
+        size_t index = 0; // position inside the logical payload, drives the mask rotation
+        auto writeMasked = [&](const uint8_t* src, size_t n) {
+            size_t done = 0;
+            while (done < n) {
+                size_t room = sizeof(buf) - bl;
+                size_t take = n - done < room ? n - done : room;
+                for (size_t i = 0; i < take; i++) buf[bl + i] = src[done + i] ^ maskKey[(index + i) % 4];
+                bl += take;
+                done += take;
+                index += take;
+                if (bl == sizeof(buf)) {
+                    if (!stream_.Write(buf, bl)) return false;
+                    bl = 0;
+                }
+            }
+            return true;
+        };
 
-        size_t offset = frame.size();
-        frame.resize(offset + length);
-        for (size_t i = 0; i < length; i++) {
-            frame[offset + i] = (char) (payload[i] ^ maskKey[i % 4]);
-        }
-
-        return stream_.Write((const uint8_t*) frame.data(), frame.size());
+        if (!writeMasked(prefix, prefixLength) || !writeMasked(data, dataLength)) return false;
+        return bl == 0 || stream_.Write(buf, bl);
     }
 
     static bool ParseUrl(const std::string& url, std::string& host, uint16_t& port, std::string& path) {

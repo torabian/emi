@@ -304,6 +304,11 @@ minimal RFC 6455 client over ` + "`emi::IEmiByteStream`" + ` - EmiByteStreamPosi
 (desktop + ESP-IDF) or EmiByteStreamArduino.hpp back it. See the doc comment on
 EmiWebSocketX for its documented scope boundary (no fragmentation/permessage-deflate).
 
+Raw binary (microphone / camera / sensor bytes): ` + "`socket->SendBinary(data, len)`" + ` and
+` + "`socket->onBinary`" + ` send/receive binary websocket frames, and EmiMediaFrame.hpp adds a
+12 byte header (kind, seq, timestamp) plus ` + "`emi::EmiMediaSender`" + ` to multiplex audio and
+video on one socket - the Go twin is ` + "`emigo.MediaFrame`" + `. See examples/media-stream.
+
 Build against the vendored cJSON (compile ` + "`cjson/cJSON.c`" + ` once into your program) -
 same library the C target uses.
 `

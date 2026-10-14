@@ -29,10 +29,8 @@ func cQueryFieldType(query *core.EmiQueryField) (ctype string, isString bool, fo
 		if t == "" {
 			return "char*", true, ""
 		}
-		f := `"%d"`
+		f := `"%lld"`
 		switch t {
-		case "int64_t":
-			f = `"%lld"`
 		case "float", "double":
 			f = `"%f"`
 		case "bool":
@@ -41,6 +39,9 @@ func cQueryFieldType(query *core.EmiQueryField) (ctype string, isString bool, fo
 		return t, false, f
 	}
 }
+
+// Arg is the snprintf argument for this field, see cPrintfArg.
+func (f cQueryField) Arg() string { return cPrintfArg(f.Format, "self->"+f.Name) }
 
 var cQueryTmpl = template.Must(template.New("cqs").Parse(`
 typedef struct {{ .className }} {
@@ -92,7 +93,7 @@ static inline char* {{ .className }}_apply(const {{ .className }}* self, const c
 {{- else }}
     if (self->{{ .Name }}_set) {
         char value_buf[64];
-        snprintf(value_buf, sizeof(value_buf), {{ .Format }}, self->{{ .Name }});
+        snprintf(value_buf, sizeof(value_buf), {{ .Format }}, {{ .Arg }});
         char* next = fetchx_url_append_query(out, "{{ .Name }}", value_buf);
         free(out);
         out = next;

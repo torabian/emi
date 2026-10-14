@@ -15,6 +15,40 @@ import (
 type manifestRender struct {
 	ActionName string
 	IsReactive bool
+	// CliGroup is the kebab-case entity an entity-style action belongs to ("role" for
+	// RoleBrowseAction), empty for actions that stand on their own. See cliGroupOf.
+	CliGroup string
+}
+
+// crudSuffixes are the generated entity action verbs. Every entity has the same ones, so
+// their command names (create, get, browse, ...) collide when many entities are bundled
+// flat - ClientCliGroups nests them under the entity instead. Longest first.
+var crudSuffixes = []string{"AwareDeletePreview", "AwareDelete", "Browse", "Create", "Update", "Get"}
+
+// cliGroupOf returns the entity group of an action Go name such as "RoleBrowseAction"
+// ("role"), or "" when the name is not an entity verb.
+func cliGroupOf(actionName string) string {
+	name := strings.TrimSuffix(actionName, "Action")
+	for _, suffix := range crudSuffixes {
+		if strings.HasSuffix(name, suffix) && len(name) > len(suffix) {
+			return kebabCase(strings.TrimSuffix(name, suffix))
+		}
+	}
+	return ""
+}
+
+func kebabCase(s string) string {
+	var b strings.Builder
+	for i, r := range s {
+		if r >= 'A' && r <= 'Z' {
+			if i > 0 {
+				b.WriteByte('-')
+			}
+			r += 'a' - 'A'
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }
 
 // mcpManifestRender is one module intent a go-mcp manifest bundles: GoName names the
@@ -31,7 +65,7 @@ type mcpManifestRender struct {
 
 func GoManifest(manifest core.EmiManifest, module *core.Emi, ctx core.MicroGenContext) (*core.CodeChunkCompiled, error) {
 
-	const tmpl = `	
+	const tmpl = `{{ if .cliOnly }}//go:build !wasm{{ end }}
 /**
 * Go manifest
 */
@@ -65,6 +99,35 @@ func {{ upper .manifest.Name }}ClientCliBundle(client emigo.APIClient) []*cli.Co
 		{{ end }}
 		{{ end }}
 	}
+}
+
+// {{ upper .manifest.Name }}ClientCliGroups is {{ upper .manifest.Name }}ClientCliBundle with the entity
+// actions nested under their entity (role get, role browse, ...), since the same verbs
+// exist for every entity and cannot sit side by side in one flat command list.
+func {{ upper .manifest.Name }}ClientCliGroups(client emigo.APIClient) []*cli.Command {
+	var out []*cli.Command
+	groups := map[string]*cli.Command{}
+	add := func(group string, cmd *cli.Command) {
+		if group == "" {
+			out = append(out, cmd)
+			return
+		}
+		g, ok := groups[group]
+		if !ok {
+			g = &cli.Command{Name: group, Usage: "Actions of " + group}
+			groups[group] = g
+			out = append(out, g)
+		}
+		g.Commands = append(g.Commands, cmd)
+	}
+	{{ range .actions }}
+	{{ if not .IsReactive }}
+	add("{{ .CliGroup }}", {{$.location}} {{ .ActionName }}CliHandler(func(c {{$.location}} {{ .ActionName }}Request) (*{{$.location}} {{ .ActionName }}Response, error) {
+		return {{$.location}} {{ .ActionName }}Call(c, &client)
+	}))
+	{{ end }}
+	{{ end }}
+	return out
 }
 {{ end }}
 
@@ -133,6 +196,7 @@ func {{ upper .manifest.Name }}McpToolManifest(reg *emigo.ToolRegistry) {
 		rendered = append(rendered, manifestRender{
 			ActionName: actionName,
 			IsReactive: action.GetMethod() == "reactive",
+			CliGroup:   cliGroupOf(actionName),
 		})
 	}
 
@@ -245,9 +309,12 @@ func {{ upper .manifest.Name }}McpToolManifest(reg *emigo.ToolRegistry) {
 		"goCli":        goCli,
 		"goGin":        goGin,
 		"goMcp":        goMcp,
-		"mm":           mm,
-		"f":            f,
-		"ctx":          ctx,
+		// urfave/cli (and the generated {Action}CliHandler functions) are not built for wasm,
+		// so a manifest with nothing but cli/client bundles is excluded there as a whole.
+		"cliOnly": (goClient || goCli) && !goGin && !goMcp,
+		"mm":      mm,
+		"f":       f,
+		"ctx":     ctx,
 	}); err != nil {
 		return nil, err
 	}

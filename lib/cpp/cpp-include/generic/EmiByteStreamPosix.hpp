@@ -13,6 +13,8 @@
 
 #include <cstring>
 #include <netdb.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -38,6 +40,8 @@ public:
             fd_ = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
             if (fd_ < 0) continue;
             if (connect(fd_, rp->ai_addr, rp->ai_addrlen) == 0) {
+                int one = 1; // small audio frames must not wait for Nagle
+                setsockopt(fd_, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
                 freeaddrinfo(result);
                 return true;
             }

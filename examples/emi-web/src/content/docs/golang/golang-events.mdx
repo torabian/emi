@@ -7,8 +7,29 @@ sidebar:
 A module can declare an `events:` list — flat, unlike `permissions:`, since an event
 is a single fact ("a post got published"), not a tree. Each event has a `key` (its
 wire name, and the basis its generated Go identifier is derived from), an optional
-localized `name`/`description`, a `payload`, and `permissions` describing who's
+localized `name`/`description`/`message`, a `payload`, and `permissions` describing who's
 allowed to know it happened.
+
+`description` documents the event for whoever configures notifications; `message` is
+what a person is actually told when it happened — a sentence in the **past tense**,
+addressed to the user ("Your post was published."), per locale. Notifications, emails and
+SMS send the `message`, never the `description`. A firing call can replace it for one
+occurrence with `evt.WithMessage(...)`; without that, the declared one goes out.
+
+Each locale's `message` is a Go [`text/template`](https://pkg.go.dev/text/template), so it
+can say who and what. The event's payload fields are available under the name they have
+in the definition, and the firing call can pass extra params, which win over a payload
+field of the same name. Quote the message in yaml when it starts with a brace:
+
+```yaml
+message:
+  en: "{{.firstName}} was invited to {{default \"your workspace\" .workspaceName}}."
+```
+
+`evt.RenderMessage(params)` fills the templates in. A key the data does not have renders
+as nothing (use `default` for a fallback; `upper` and `lower` exist too), and a locale
+whose template is broken keeps its text as written while the others still render — the
+problems come back in the error, so a typo never stops an event from going out.
 
 `payload` is compiled through the exact same machinery an action's `in`/`out` body
 uses (the Common struct builder): declare `fields` inline and they're compiled into a
@@ -34,6 +55,8 @@ events:
       en: Post published
     description:
       en: Fires once a post moves from draft to published.
+    message:
+      en: Your post was published.
     permissions:
       - with: ["post.publish"]
       - with: ["post.*"]
@@ -126,6 +149,7 @@ var PostPublishedEvent = emigo.Event{
 	Key:         "postPublished",
 	Name:        map[string]string{"en": "Post published"},
 	Description: map[string]string{"en": "Fires once a post moves from draft to published."},
+	Message:     map[string]string{"en": "Your post was published."},
 	Permissions: [][]string{
 		{"post.publish"},
 		{"post.*"},
@@ -134,7 +158,7 @@ var PostPublishedEvent = emigo.Event{
 
 // NewPostPublishedEvent returns a copy of PostPublishedEvent with Payload set to payload - the usual way to
 // build the event instance a caller actually fires, without repeating its
-// Key/Name/Description/Permissions metadata at every call site.
+// Key/Name/Description/Message/Permissions metadata at every call site.
 func NewPostPublishedEvent(payload PostPublishedEventPayload) emigo.Event {
 	evt := PostPublishedEvent
 	evt.Payload = payload
@@ -149,12 +173,13 @@ var CommentAddedEvent = emigo.Event{
 	Key:         "commentAdded",
 	Name:        nil,
 	Description: nil,
+	Message:     nil,
 	Permissions: nil,
 }
 
 // NewCommentAddedEvent returns a copy of CommentAddedEvent with Payload set to payload - the usual way to
 // build the event instance a caller actually fires, without repeating its
-// Key/Name/Description/Permissions metadata at every call site.
+// Key/Name/Description/Message/Permissions metadata at every call site.
 func NewCommentAddedEvent(payload CommentAddedEventPayload) emigo.Event {
 	evt := CommentAddedEvent
 	evt.Payload = payload
@@ -169,12 +194,13 @@ var PostArchivedEvent = emigo.Event{
 	Key:         "postArchived",
 	Name:        nil,
 	Description: nil,
+	Message:     nil,
 	Permissions: nil,
 }
 
 // NewPostArchivedEvent returns a copy of PostArchivedEvent with Payload set to payload - the usual way to
 // build the event instance a caller actually fires, without repeating its
-// Key/Name/Description/Permissions metadata at every call site.
+// Key/Name/Description/Message/Permissions metadata at every call site.
 func NewPostArchivedEvent(payload PostArchivedEventPayload) emigo.Event {
 	evt := PostArchivedEvent
 	evt.Payload = payload

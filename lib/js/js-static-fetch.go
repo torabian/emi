@@ -38,6 +38,10 @@ type fetchStaticFunctionContext struct {
 	// by default, we assume it's a classic http call, since there might be non-standard http methods.
 	IsClassicHttpCall bool
 
+	// "arraybuffer" or "blob" for a websocket exchanging raw binary frames
+	// (EmiAction.BinaryType); empty keeps the browser default.
+	BinaryType string
+
 	// If it's a server side event endpoint
 	IsSSE bool
 

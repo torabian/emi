@@ -218,8 +218,8 @@ func goEventPermissionSetsLiteral(sets []core.EmiEventPermission) string {
 // <EventName>Payload type callers assign/cast it through.
 func goEventLiteral(e *core.EmiEvent) string {
 	return fmt.Sprintf(
-		"emigo.Event{\nKey: %q,\nName: %s,\nDescription: %s,\nPermissions: %s,\n}",
-		e.Key, goStringMapLiteral(e.Name), goStringMapLiteral(e.Description), goEventPermissionSetsLiteral(e.Permissions),
+		"emigo.Event{\nKey: %q,\nName: %s,\nDescription: %s,\nMessage: %s,\nPermissions: %s,\n}",
+		e.Key, goStringMapLiteral(e.Name), goStringMapLiteral(e.Description), goStringMapLiteral(e.Message), goEventPermissionSetsLiteral(e.Permissions),
 	)
 }
 
@@ -359,7 +359,7 @@ func renderEventVars(
 		ctorName := "New" + name
 		fmt.Fprintf(w, "// %s returns a copy of %s with Payload set to payload - the usual way to\n", ctorName, name)
 		fmt.Fprintf(w, "// build the event instance a caller actually fires, without repeating its\n")
-		fmt.Fprintf(w, "// Key/Name/Description/Permissions metadata at every call site.\n")
+		fmt.Fprintf(w, "// Key/Name/Description/Message/Permissions metadata at every call site.\n")
 		fmt.Fprintf(w, "func %s(payload %s) emigo.Event {\n", ctorName, payloadClassName)
 		fmt.Fprintf(w, "\tevt := %s\n", name)
 		fmt.Fprintf(w, "\tevt.Payload = payload\n")

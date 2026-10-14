@@ -16,6 +16,9 @@ type cPathParam struct {
 	Format   string // printf-style format used to render a numeric value into a replacement string
 }
 
+// Arg is the snprintf argument for this parameter, see cPrintfArg.
+func (p cPathParam) Arg() string { return cPrintfArg(p.Format, "self->"+p.Field) }
+
 var cPathParamTmpl = template.Must(template.New("cpathparams").Parse(`
 typedef struct {{ .TypeName }} {
 {{- range .Params }}
@@ -53,7 +56,7 @@ static inline char* {{ .TypeName }}_apply(const {{ .TypeName }}* self, const cha
         char* next = fetchx_url_replace(url, ":{{ .WireName }}", self->{{ .Field }} ? self->{{ .Field }} : "");
 {{- else }}
         char value_buf[64];
-        snprintf(value_buf, sizeof(value_buf), {{ .Format }}, self->{{ .Field }});
+        snprintf(value_buf, sizeof(value_buf), {{ .Format }}, {{ .Arg }});
         char* next = fetchx_url_replace(url, ":{{ .WireName }}", value_buf);
 {{- end }}
         free(url);
@@ -79,10 +82,8 @@ func CActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error
 	for _, p := range placeholders {
 		t := extractPrimitive(p.Type)
 		isString := t == ""
-		format := `"%d"`
+		format := `"%lld"`
 		switch t {
-		case "int64_t":
-			format = `"%lld"`
 		case "float", "double":
 			format = `"%f"`
 		case "bool":

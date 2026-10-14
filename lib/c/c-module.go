@@ -217,6 +217,12 @@ like, and compile ` + "`cjson/cJSON.c`" + ` into your program once:
 cc -I. your_program.c cjson/cJSON.c -lcurl -o your_program
 ` + "```" + `
 
+Without libcurl (ESP-IDF, bare metal): compile with ` + "`-DFETCHX_NO_CURL`" + `. That keeps the url helpers
+and ` + "`FetchxContext`" + ` and drops the http/SSE helpers. ` + "`method: reactive`" + ` actions with
+` + "`binaryType: arraybuffer`" + ` need no libcurl at all: they generate a websocket opener over
+` + "`emiws.h`" + ` (RFC 6455 client, BSD sockets or your own ` + "`EmiStream`" + `) and ` + "`emimedia.h`" + `
+(microphone/camera frame header, ` + "`EmiMediaSender`" + `). See examples/media-stream.
+
 Every generated struct ` + "`Type`" + ` gets: ` + "`Type_new()`" + `/` + "`Type_free()`" + ` (heap
 alloc/dealloc, always safe to call), ` + "`Type_from_json(const cJSON*)`" + ` /
 ` + "`Type_to_json(const Type*)`" + ` for (de)serialization, and - since every field

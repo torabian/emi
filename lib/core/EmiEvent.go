@@ -28,6 +28,20 @@ type EmiEvent struct {
 	// Description explains, for a human, what this event represents, keyed by locale.
 	Description map[string]string `yaml:"description,omitempty" json:"description,omitempty" jsonschema:"description=Explains what this event represents, keyed by locale."`
 
+	// Message is the sentence a person is shown when this event has happened, keyed by
+	// locale - written in the PAST TENSE and addressed to the user, e.g. "You have been
+	// invited to join a workspace." or "Your password was changed.". It is what a
+	// notification, an email or an SMS says. Description (above) is the other thing:
+	// documentation of what the event is, for whoever configures notifications. A firing
+	// call can override Message for one occurrence (emigo.Event.WithMessage); when it does
+	// not, this one goes out.
+	//
+	// Each locale's text is a Go text/template (emigo.Event.RenderMessage): the payload's
+	// fields are available by the name they have in the definition - "{{.firstName}} was
+	// invited." - and the firing call can pass more params. A text without "{{" is sent
+	// as written. Quote a message that starts with a brace in yaml.
+	Message map[string]string `yaml:"message,omitempty" json:"message,omitempty" jsonschema:"description=The sentence shown to a user when this event has happened. Write it in the past tense and address the user: You have been invited to join a workspace. It is a Go template: payload fields and the params of the firing call are available by name as {{.firstName}}. Quote the message in yaml when it starts with a brace. Notifications say this while description only documents the event itself. A firing call may override it for one occurrence."`
+
 	// Permissions is a list of permission combinations that grant visibility into this
 	// event: the outer list is OR'd together, and each entry's With list of permission
 	// full keys is AND'd - e.g. [{with: [A, B]}, {with: [C, D]}] means "(A and B) or
