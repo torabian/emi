@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 
+	"github.com/goccy/go-yaml"
 	"github.com/urfave/cli/v3"
 )
 
@@ -186,8 +188,57 @@ type CliActionResponse interface {
 }
 
 // HandleActionInCli is the CLI-side counterpart of what the Gin/http handlers do with an
-// action's response: it prints the payload as JSON to stdout and turns a returned error
+// action's response: it prints the payload as YAML (JSON when EMI_CLI_OUTPUT=json) to stdout and turns a returned error
 // (or a >=400 status code) into a non-nil error so urfave reports a non-zero exit code.
+// CliOutputFormat tells which format the cli prints results and errors in: "yaml"
+// (default) or "json". An application sets it to read its own configuration (fireback
+// keeps CLI_OUTPUT next to the cli token and language); the EMI_CLI_OUTPUT environment
+// variable always wins, for one-off use such as piping into jq.
+var CliOutputFormat = func() string { return "" }
+
+func cliOutputIsJSON() bool {
+	if env := os.Getenv("EMI_CLI_OUTPUT"); env != "" {
+		return strings.EqualFold(env, "json")
+	}
+	return strings.EqualFold(strings.TrimSpace(CliOutputFormat()), "json")
+}
+
+// FormatCliPayload renders an action's payload for the terminal: YAML by default,
+// JSON when CliOutputFormat (or the EMI_CLI_OUTPUT environment variable) says "json". The YAML is produced from the JSON encoding, so keys, their order and
+// omitempty behaviour are exactly the ones the JSON output has.
+func FormatCliPayload(payload interface{}) (string, error) {
+	out, err := json.MarshalIndent(payload, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	if cliOutputIsJSON() {
+		return string(out), nil
+	}
+	y, err := yaml.JSONToYAML(out)
+	if err != nil {
+		return "", err
+	}
+	return cliBoldYamlKeys(strings.TrimRight(string(y), "\n"), os.Stdout), nil
+}
+
+// FormatCliErrorText prints an error for the terminal in the same format as
+// FormatCliPayload: many errors (validation, ferror.Error) carry their message as
+// a JSON document, which is converted to YAML. Plain text is returned untouched.
+func FormatCliErrorText(text string) string {
+	trimmed := strings.TrimSpace(text)
+	if trimmed == "" || (trimmed[0] != '{' && trimmed[0] != '[') || !json.Valid([]byte(trimmed)) {
+		return text
+	}
+	if cliOutputIsJSON() {
+		return text
+	}
+	y, err := yaml.JSONToYAML([]byte(trimmed))
+	if err != nil {
+		return text
+	}
+	return cliBoldYamlKeys(strings.TrimRight(string(y), "\n"), os.Stderr)
+}
+
 func HandleActionInCli(resp CliActionResponse, err error) error {
 	if err != nil {
 		return err
@@ -205,11 +256,11 @@ func HandleActionInCli(resp CliActionResponse, err error) error {
 	}
 
 	if payload := resp.GetPayload(); payload != nil {
-		out, encErr := json.MarshalIndent(payload, "", "  ")
+		out, encErr := FormatCliPayload(payload)
 		if encErr != nil {
 			return encErr
 		}
-		fmt.Println(string(out))
+		fmt.Println(out)
 	}
 
 	if status := resp.GetStatusCode(); status >= 400 {
