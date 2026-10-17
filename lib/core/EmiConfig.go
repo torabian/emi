@@ -33,6 +33,13 @@ type EmiConfig struct {
 	// generated from the Name field. Use this field if you want to manually specify the environment variable name.
 	Env string `yaml:"env,omitempty" json:"env,omitempty" jsonschema:"description=Env allows you to override the default environment variable name, which is automatically generated from the Name field. Use this field if you want to manually specify the environment variable name."`
 
+	// Min and Max bound an int config. Only the C target's kconfig output reads them (Kconfig `range`).
+	Min string `yaml:"min,omitempty" json:"min,omitempty" jsonschema:"description=Lower bound of an int config. Only used by the C kconfig output (Kconfig range). Needs max as well."`
+	Max string `yaml:"max,omitempty" json:"max,omitempty" jsonschema:"description=Upper bound of an int config. Only used by the C kconfig output (Kconfig range). Needs min as well."`
+
+	// Depends makes the config visible only while the expression holds. Only the C kconfig output reads it.
+	Depends string `yaml:"depends,omitempty" json:"depends,omitempty" jsonschema:"description=Kconfig expression (&&, ||, !, parentheses) which has to hold for this config to be offered. Names of other configs of the module are replaced with their symbols; anything else (like an ESP-IDF symbol) is kept as written. Only used by the C kconfig output."`
+
 	// Fields defines child configuration fields in case the current field represents an object
 	// or an array of subfields. Note that support for nested fields may be limited.
 	Fields []EmiConfig `yaml:"fields,omitempty" json:"fields,omitempty" jsonschema:"description=Fields defines child configuration fields in case the current field represents an object or an array of subfields. Note that support for nested fields may be limited."`

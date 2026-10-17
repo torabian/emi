@@ -3,20 +3,77 @@ package c
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/torabian/emi/lib/core"
 )
 
+// cQueryField is one scalar leaf of the query definition. Path is the C member
+// path inside the struct ("filter.status") and Key the query string name
+// ("filter[status]"); they are equal for a top level field.
 type cQueryField struct {
-	Name     string
+	Path     string
+	Key      string
 	Type     string
 	IsString bool
 	Format   string
 }
 
-func cQueryFieldType(query *core.EmiQueryField) (ctype string, isString bool, format string) {
-	switch query.Type {
+// cQueryNode is a member of the generated struct: a scalar leaf, or an object
+// holding more members.
+type cQueryNode struct {
+	Name     string
+	Leaf     *cQueryField
+	Children []*cQueryNode
+}
+
+// cQueryTree builds the member tree of a query definition and returns it with
+// its scalar leaves flattened, which is all the parse and apply code needs.
+func cQueryTree(query []*core.EmiQueryField) (nodes []*cQueryNode, leaves []*cQueryField) {
+	var build func(name string, typ core.FieldType, kids []*core.EmiField, path, key string) *cQueryNode
+	build = func(name string, typ core.FieldType, kids []*core.EmiField, path, key string) *cQueryNode {
+		if path != "" {
+			path, key = path+"."+name, key+"["+name+"]"
+		} else {
+			path, key = name, name
+		}
+		n := &cQueryNode{Name: name}
+		if typ == core.FieldTypeObject && len(kids) > 0 {
+			for _, k := range kids {
+				n.Children = append(n.Children, build(k.GetName(), k.GetType(), k.GetFields(), path, key))
+			}
+			return n
+		}
+		t, isString, format := cQueryFieldType(typ)
+		n.Leaf = &cQueryField{Path: path, Key: key, Type: t, IsString: isString, Format: format}
+		leaves = append(leaves, n.Leaf)
+		return n
+	}
+	for _, q := range query {
+		nodes = append(nodes, build(q.Name, q.Type, q.Fields, "", ""))
+	}
+	return nodes, leaves
+}
+
+// cQueryMembers renders the struct members of nodes.
+func cQueryMembers(nodes []*cQueryNode, indent string) string {
+	var b strings.Builder
+	for _, n := range nodes {
+		switch {
+		case n.Leaf == nil:
+			fmt.Fprintf(&b, "%sstruct {\n%s%s} %s;\n", indent, cQueryMembers(n.Children, indent+"    "), indent, n.Name)
+		case n.Leaf.IsString:
+			fmt.Fprintf(&b, "%schar* %s; /* NULL if unset */\n", indent, n.Name)
+		default:
+			fmt.Fprintf(&b, "%sbool %s_set;\n%s%s %s;\n", indent, n.Name, indent, n.Leaf.Type, n.Name)
+		}
+	}
+	return b.String()
+}
+
+func cQueryFieldType(typ core.FieldType) (ctype string, isString bool, format string) {
+	switch typ {
 	case core.FieldTypeArray, core.FieldTypeSlice:
 		// Arrays in a query string are a niche, non-scalar shape (bracket-
 		// or repeat-encoding conventions vary by server) - out of scope for
@@ -25,7 +82,7 @@ func cQueryFieldType(query *core.EmiQueryField) (ctype string, isString bool, fo
 		// unresolved type falls back below.
 		return "char*", true, ""
 	default:
-		t := extractPrimitive(string(query.Type))
+		t := extractPrimitive(string(typ))
 		if t == "" {
 			return "char*", true, ""
 		}
@@ -41,38 +98,22 @@ func cQueryFieldType(query *core.EmiQueryField) (ctype string, isString bool, fo
 }
 
 // Arg is the snprintf argument for this field, see cPrintfArg.
-func (f cQueryField) Arg() string { return cPrintfArg(f.Format, "self->"+f.Name) }
+func (f cQueryField) Arg() string { return cPrintfArg(f.Format, "self->"+f.Path) }
 
 var cQueryTmpl = template.Must(template.New("cqs").Parse(`
 typedef struct {{ .className }} {
-{{- range .fields }}
-{{- if .IsString }}
-    char* {{ .Name }}; /* NULL if unset */
-{{- else }}
-    bool {{ .Name }}_set;
-    {{ .Type }} {{ .Name }};
-{{- end }}
-{{- end }}
-} {{ .className }};
+{{ .members }}} {{ .className }};
 
 static inline void {{ .className }}_init({{ .className }}* self) {
-    if (!self) return;
-{{- range .fields }}
-{{- if .IsString }}
-    self->{{ .Name }} = NULL;
-{{- else }}
-    self->{{ .Name }}_set = false;
-    self->{{ .Name }} = ({{ .Type }}) 0;
-{{- end }}
-{{- end }}
+    if (self) memset(self, 0, sizeof(*self));
 }
 
 static inline void {{ .className }}_free_fields({{ .className }}* self) {
     if (!self) return;
 {{- range .fields }}
 {{- if .IsString }}
-    free(self->{{ .Name }});
-    self->{{ .Name }} = NULL;
+    free(self->{{ .Path }});
+    self->{{ .Path }} = NULL;
 {{- end }}
 {{- end }}
 }
@@ -85,16 +126,16 @@ static inline char* {{ .className }}_apply(const {{ .className }}* self, const c
     if (!self) return out;
 {{- range .fields }}
 {{- if .IsString }}
-    if (self->{{ .Name }}) {
-        char* next = fetchx_url_append_query(out, "{{ .Name }}", self->{{ .Name }});
+    if (self->{{ .Path }}) {
+        char* next = fetchx_url_append_query(out, "{{ .Key }}", self->{{ .Path }});
         free(out);
         out = next;
     }
 {{- else }}
-    if (self->{{ .Name }}_set) {
+    if (self->{{ .Path }}_set) {
         char value_buf[64];
         snprintf(value_buf, sizeof(value_buf), {{ .Format }}, {{ .Arg }});
-        char* next = fetchx_url_append_query(out, "{{ .Name }}", value_buf);
+        char* next = fetchx_url_append_query(out, "{{ .Key }}", value_buf);
         free(out);
         out = next;
     }
@@ -113,16 +154,12 @@ func CActionQueryStruct(action core.EmiRpcAction, ctx core.MicroGenContext) (*co
 		return nil, nil
 	}
 
-	fields := make([]cQueryField, 0, len(query))
-	for _, q := range query {
-		t, isString, format := cQueryFieldType(q)
-		fields = append(fields, cQueryField{Name: q.Name, Type: t, IsString: isString, Format: format})
-	}
+	nodes, fields := cQueryTree(query)
 
 	className := fmt.Sprintf("%vQueryParams", core.ToUpper(core.NormaliseKey(action.GetName())))
 
 	var buf bytes.Buffer
-	if err := cQueryTmpl.Execute(&buf, core.H{"className": className, "fields": fields}); err != nil {
+	if err := cQueryTmpl.Execute(&buf, core.H{"className": className, "fields": fields, "members": cQueryMembers(nodes, "    ")}); err != nil {
 		return nil, err
 	}
 

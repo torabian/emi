@@ -67,17 +67,10 @@ static inline char* {{ .TypeName }}_apply(const {{ .TypeName }}* self, const cha
 }
 `))
 
-// CActionPathParams extracts `/:id`-style placeholders out of an action's
-// url and renders a small struct to carry them, plus an `_apply` function
-// that substitutes them back into the template url (returning a newly
-// allocated string). Returns (nil, nil) when the url has no placeholders at
-// all.
-func CActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error) {
+// cBuildPathParams derives the ordered list of url placeholders of an action,
+// shared by the client (`_apply`) and server (`_from_captures`) renderers.
+func cBuildPathParams(action core.EmiRpcAction) []cPathParam {
 	placeholders := core.ExtractPlaceholdersInUrl(action.GetUrl())
-	if len(placeholders) == 0 {
-		return nil, nil
-	}
-
 	params := make([]cPathParam, 0, len(placeholders))
 	for _, p := range placeholders {
 		t := extractPrimitive(p.Type)
@@ -99,6 +92,19 @@ func CActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error
 			IsString: isString,
 			Format:   format,
 		})
+	}
+	return params
+}
+
+// CActionPathParams extracts `/:id`-style placeholders out of an action's
+// url and renders a small struct to carry them, plus an `_apply` function
+// that substitutes them back into the template url (returning a newly
+// allocated string). Returns (nil, nil) when the url has no placeholders at
+// all.
+func CActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error) {
+	params := cBuildPathParams(action)
+	if len(params) == 0 {
+		return nil, nil
 	}
 
 	className := core.ToUpper(core.NormaliseKey(action.GetName()))

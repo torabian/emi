@@ -30,6 +30,10 @@ func CActionRender(
 		return nil, err
 	}
 
+	if serverBackendHeader(ctx) != "" {
+		return cActionRenderServer(action, ctx, realms)
+	}
+
 	res := &core.CodeChunkCompiled{
 		Tokens: []core.GeneratedScriptToken{
 			{Name: TOKEN_ORIGINAL_NAME, Value: realms.ActionName},

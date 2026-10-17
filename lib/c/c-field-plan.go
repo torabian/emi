@@ -174,12 +174,28 @@ func cScalarField(name, key, ctype string) cFieldPlan {
 	if ctype == "bool" {
 		zero = "false"
 	}
+	// a bool must go over the wire as a JSON boolean, browsers/other clients
+	// of a device would otherwise see 1/0.
+	toJson := fmt.Sprintf("cJSON_AddNumberToObject(json, %s, (double) self->%s);", key, name)
+	toJsonLines := []string{toJson}
+	if ctype == "bool" {
+		toJsonLines = []string{fmt.Sprintf("cJSON_AddBoolToObject(json, %s, self->%s);", key, name)}
+	}
+	if ctype == "float" {
+		// a float widened to double prints as 22.027399063110352; round-trip it
+		// through 7 significant digits so the wire shows 22.0274.
+		toJsonLines = []string{
+			"{",
+			"    char float_buf[32];",
+			fmt.Sprintf("    snprintf(float_buf, sizeof(float_buf), \"%%.7g\", (double) self->%s);", name),
+			fmt.Sprintf("    cJSON_AddNumberToObject(json, %s, strtod(float_buf, NULL));", key),
+			"}",
+		}
+	}
 	return cFieldPlan{
-		Decl: []string{fmt.Sprintf("%s %s;", ctype, name)},
-		Init: []string{fmt.Sprintf("self->%s = %s;", name, zero)},
-		ToJson: []string{
-			fmt.Sprintf("cJSON_AddNumberToObject(json, %s, (double) self->%s);", key, name),
-		},
+		Decl:   []string{fmt.Sprintf("%s %s;", ctype, name)},
+		Init:   []string{fmt.Sprintf("self->%s = %s;", name, zero)},
+		ToJson: toJsonLines,
 		FromJson: []string{
 			"{",
 			fmt.Sprintf("    const cJSON *v = cJSON_GetObjectItemCaseSensitive(json, %s);", key),

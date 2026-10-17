@@ -1,0 +1,47 @@
+namespace: thermo
+actions:
+  - name: setTemperature
+    url: /api/ot/set-temp/:zone int
+    method: post
+    in:
+      fields:
+        - {name: target, type: float32}
+    out:
+      fields:
+        - {name: ok, type: bool}
+        - {name: applied, type: float32}
+  - name: getState
+    url: /api/state
+    method: get
+    qs:
+      - {name: verbose, type: bool}
+      - {name: prefix, type: string}
+      - name: filter
+        type: object
+        fields:
+          - {name: zone, type: string}
+          - name: page
+            type: object
+            fields:
+              - {name: n, type: int}
+              - {name: size, type: int}
+    out:
+      fields:
+        - {name: roomSetPoint, type: float32}
+        - {name: inside, type: float32}
+  - name: stateStream
+    url: /ws/state/:room
+    method: reactive
+    qs:
+      - {name: interval, type: int}
+    in:
+      fields:
+        - {name: setPoint, type: float32}
+    out:
+      fields:
+        - {name: inside, type: float32}
+        - {name: outside, type: float32}
+  - name: rawFrames
+    url: /ws/raw
+    method: reactive
+    binaryType: arraybuffer
