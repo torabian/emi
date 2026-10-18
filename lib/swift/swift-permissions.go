@@ -3,7 +3,9 @@ package swift
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -61,21 +63,29 @@ func SwiftPermissionsGenerate(
 	const tmpl = `/**
 * Permission keys generated from the module's permissions tree.
 */
+{{ .permissionStruct }}
+{{ .rootVars }}`
 
+	// The Permission struct is module-global in Swift, so a sibling target that sets
+	// no-sdk relies on the one the primary target already emitted.
+	permissionStruct := `
 struct Permission: Codable {
 	let key: String
 	let name: String
 	let title: [String: String]?
 	let description: [String: String]?
 }
-
-{{ .rootVars }}`
+`
+	if ctx.HasTag(NoSdk) {
+		permissionStruct = ""
+	}
 
 	t := template.Must(template.New("permissions").Funcs(core.CommonMap).Parse(tmpl))
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, core.H{
-		"rootVars": rootVars.String(),
+		"rootVars":         rootVars.String(),
+		"permissionStruct": permissionStruct,
 	}); err != nil {
 		return nil, err
 	}
@@ -120,9 +130,9 @@ func swiftRootPermissionName(p *core.EmiPermission) string {
 // lib/golang/go-permissions.go).
 func swiftPermissionLiteral(p *core.EmiPermission, indent string) string {
 	return fmt.Sprintf(
-		"Permission(\n%s\tkey: %q,\n%s\tname: %q,\n%s\ttitle: %s,\n%s\tdescription: %s\n%s)",
-		indent, p.EffectiveKey(),
-		indent, p.Name,
+		"Permission(\n%s\tkey: %s,\n%s\tname: %s,\n%s\ttitle: %s,\n%s\tdescription: %s\n%s)",
+		indent, swiftQuote(p.EffectiveKey()),
+		indent, swiftQuote(p.Name),
 		indent, swiftStringMapLiteral(p.Title),
 		indent, swiftStringMapLiteral(p.Description),
 		indent,
@@ -152,8 +162,8 @@ func renderSwiftPermissionNode(w *strings.Builder, name string, p *core.EmiPermi
 	fmt.Fprintf(w, "%senum %s {\n", indent, name)
 
 	childIndent := indent + "\t"
-	fmt.Fprintf(w, "%sstatic let key: String = %q\n", childIndent, p.EffectiveKey())
-	fmt.Fprintf(w, "%sstatic let name: String = %q\n", childIndent, p.Name)
+	fmt.Fprintf(w, "%sstatic let key: String = %s\n", childIndent, swiftQuote(p.EffectiveKey()))
+	fmt.Fprintf(w, "%sstatic let name: String = %s\n", childIndent, swiftQuote(p.Name))
 	fmt.Fprintf(w, "%sstatic let title: [String: String]? = %s\n", childIndent, swiftStringMapLiteral(p.Title))
 	fmt.Fprintf(w, "%sstatic let description: [String: String]? = %s\n", childIndent, swiftStringMapLiteral(p.Description))
 	fmt.Fprintf(w, "%sstatic let permission: Permission = Permission(key: key, name: name, title: title, description: description)\n", childIndent)
@@ -240,8 +250,17 @@ func swiftStringMapLiteral(m map[string]string) string {
 
 	pairs := make([]string, 0, len(keys))
 	for _, k := range keys {
-		pairs = append(pairs, fmt.Sprintf("%q: %q", k, m[k]))
+		pairs = append(pairs, fmt.Sprintf("%s: %s", swiftQuote(k), swiftQuote(m[k])))
 	}
 
 	return "[" + strings.Join(pairs, ", ") + "]"
+}
+
+var goUnicodeEscape = regexp.MustCompile(`\\u([0-9a-fA-F]{4})|\\U([0-9a-fA-F]{8})`)
+
+// swiftQuote is strconv.Quote with Go's \uXXXX / \UXXXXXXXX escapes rewritten to
+// Swift's \u{XXXX} form - Go escapes non-printable runes such as the zero width
+// non-joiner common in Persian text, and a bare \u is a compile error in Swift.
+func swiftQuote(s string) string {
+	return goUnicodeEscape.ReplaceAllString(strconv.Quote(s), `\u{$1$2}`)
 }

@@ -84,9 +84,11 @@ func CreateWebSocketStaticHelper(fetchctx fetchStaticFunctionContext, ctx core.M
 		)
 
 		const Cls = options?.SocketClass ? options.SocketClass : WebSocketX|@generic|;
-		return new Cls(url, undefined, {
+		const socket = new Cls(url, undefined, {
 			MessageFactoryClass: |@MessageFactoryClass|,
 		});
+		{{ if .fetchctx.BinaryType }}socket.binaryType = "{{ .fetchctx.BinaryType }}"; // raw binary frames, see MediaStreamer{{ end }}
+		return socket;
 	}
 	`
 

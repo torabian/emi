@@ -152,3 +152,81 @@ func TestSmokeGenericFixtureCompiles(t *testing.T) {
 		t.Logf("compiler output:\n%v", string(out))
 	}
 }
+
+// TestMediaStreamExampleCompilesAndFramesMatchGo compiles the media-stream
+// example's definition (a binary reactive action with path + query params) and
+// runs a small program asserting the C++ EmiMediaFrameHeader writes the exact
+// bytes emigo.MediaFrame expects (see emigo/MediaFrame_test.go for the Go side).
+func TestMediaStreamExampleCompilesAndFramesMatchGo(t *testing.T) {
+	if _, err := exec.LookPath("clang++"); err != nil {
+		t.Skip("clang++ not available")
+	}
+
+	content, err := os.ReadFile("../../examples/media-stream/media.emi.yml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	module, err := core.StringToEmi(string(content))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := core.MicroGenContext{Content: string(content), Flags: map[string]string{}}
+	files, err := CppModuleFullVirtualFiles(&module, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dir := t.TempDir()
+	var action string
+	for _, f := range files {
+		full := filepath.Join(dir, f.Location, f.Name+f.Extension)
+		if err := os.MkdirAll(filepath.Dir(full), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(full, []byte(f.ActualScript), 0644); err != nil {
+			t.Fatal(err)
+		}
+		if f.Name == "StreamMediaAction" {
+			action = string(f.ActualScript)
+		}
+	}
+	for _, want := range []string{"StreamMediaActionQueryParams", "url = query.Apply(url);", "const StreamMediaActionQueryParams& query", "SendBinary"} {
+		if !strings.Contains(action, want) {
+			t.Errorf("generated StreamMediaAction.hpp is missing %q", want)
+		}
+	}
+
+	program := `
+#include "StreamMediaAction.hpp"
+#include "EmiMediaFrame.hpp"
+#include <cstdio>
+int main() {
+    emi::EmiMediaFrameHeader h;
+    h.kind = emi::EmiMediaVideo; h.flags = emi::EmiMediaKeyframe;
+    h.seq = 0x01020304; h.timestampMs = 0xAABBCCDD;
+    uint8_t b[emi::kEmiMediaFrameHeaderSize];
+    h.Write(b);
+    const uint8_t want[12] = {2, 1, 0, 0, 1, 2, 3, 4, 0xAA, 0xBB, 0xCC, 0xDD};
+    for (int i = 0; i < 12; i++) if (b[i] != want[i]) { std::printf("byte %d: %02x\n", i, b[i]); return 1; }
+    emi::EmiMediaFrameHeader r;
+    if (!emi::EmiMediaFrameHeader::Read(b, 12, r) || r.seq != h.seq || r.timestampMs != h.timestampMs || r.kind != h.kind) return 2;
+    if (emi::EmiMediaFrameHeader::Read(b, 11, r)) return 3;
+    StreamMediaActionQueryParams q; q.sampleRate = 16000; q.audioCodec = "pcm16";
+    std::string u = q.Apply("ws://h/x");
+    if (u != "ws://h/x?sampleRate=16000&audioCodec=pcm16") { std::printf("%s\n", u.c_str()); return 4; }
+    return 0;
+}
+`
+	if err := os.WriteFile(filepath.Join(dir, "main.cpp"), []byte(program), 0644); err != nil {
+		t.Fatal(err)
+	}
+	bin := filepath.Join(dir, "frames")
+	out, err := exec.Command("clang++", "-std=c++17", "-Wall", "-Wextra", "-I", dir, "-I", dir+"/cjson",
+		filepath.Join(dir, "main.cpp"), filepath.Join(dir, "cjson", "cJSON.c"), "-o", bin).CombinedOutput()
+	if err != nil {
+		t.Fatalf("media example failed to compile:\n%v", string(out))
+	}
+	if out, err := exec.Command(bin).CombinedOutput(); err != nil {
+		t.Fatalf("frame layout check failed: %v\n%s", err, out)
+	}
+}

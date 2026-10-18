@@ -2,6 +2,8 @@ package c
 
 import (
 	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -283,5 +285,96 @@ func TestCModuleFullVirtualFiles_Fixture(t *testing.T) {
 	}
 	if !sawReadme {
 		t.Error("expected a README.md at the package root")
+	}
+}
+
+// TestBinaryReactiveWebsocket compiles the websocket flavour of a reactive
+// action (`binaryType: arraybuffer`) with a plain C compiler and no libcurl
+// (-DFETCHX_NO_CURL, as on ESP-IDF), then checks the pieces a device depends on:
+// the RFC 6455 accept-key vector, the media frame layout shared with the Go,
+// C++ and JS sides, typed query/path url building and the portable int format.
+func TestBinaryReactiveWebsocket(t *testing.T) {
+	cc, err := exec.LookPath("cc")
+	if err != nil {
+		t.Skip("no C compiler available")
+	}
+
+	module := &core.Emi{Actions: []*core.EmiAction{{
+		Name: "streamMedia", Url: "/media/stream/:deviceId", Method: "reactive", BinaryType: "arraybuffer",
+		Query: []*core.EmiQueryField{
+			{Name: "sampleRate", Type: core.FieldTypeInt},
+			{Name: "audioCodec", Type: core.FieldTypeString},
+		},
+	}}}
+	files, err := CModuleFullVirtualFiles(module, core.MicroGenContext{Flags: map[string]string{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	dir := t.TempDir()
+	var header string
+	for _, f := range files {
+		full := filepath.Join(dir, f.Location, f.Name+f.Extension)
+		if err := os.MkdirAll(filepath.Dir(full), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(full, []byte(f.ActualScript), 0644); err != nil {
+			t.Fatal(err)
+		}
+		if f.Name == "stream_media_action" {
+			header = string(f.ActualScript)
+		}
+	}
+	for _, want := range []string{"EmiWebSocket* ws, EmiStream* stream", `#include "emiws.h"`, "emiws_connect", `"%lld", (long long) self->sampleRate`} {
+		if !strings.Contains(header, want) {
+			t.Errorf("generated header is missing %q", want)
+		}
+	}
+	if strings.Contains(header, "FetchxEventList") {
+		t.Errorf("binary reactive action must not use the SSE/libcurl path")
+	}
+
+	program := `
+#include "stream_media_action.h"
+#include <stdio.h>
+int main(void) {
+    /* RFC 6455 section 1.3 example */
+    uint8_t digest[20]; char accept[32];
+    const char* in = "dGhlIHNhbXBsZSBub25jZQ==258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    emiws_sha1((const uint8_t*) in, strlen(in), digest);
+    emiws_base64(digest, 20, accept);
+    if (strcmp(accept, "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=") != 0) { printf("accept %s\n", accept); return 1; }
+
+    EmiMediaHeader h = { EMIMEDIA_VIDEO, EMIMEDIA_KEYFRAME, 0x01020304u, 0xAABBCCDDu };
+    uint8_t b[EMIMEDIA_HEADER_SIZE];
+    const uint8_t want[12] = {2, 1, 0, 0, 1, 2, 3, 4, 0xAA, 0xBB, 0xCC, 0xDD};
+    emimedia_header_write(&h, b);
+    if (memcmp(b, want, 12) != 0) return 2;
+    EmiMediaHeader r;
+    if (emimedia_header_read(b, 12, &r) != 0 || r.seq != h.seq || r.timestamp_ms != h.timestamp_ms) return 3;
+    if (emimedia_header_read(b, 11, &r) == 0) return 4;
+
+    StreamMediaActionPathParameters p; StreamMediaActionPathParameters_init(&p); p.deviceId = strdup("dev1");
+    StreamMediaActionQueryParams q; StreamMediaActionQueryParams_init(&q);
+    q.sampleRate_set = true; q.sampleRate = 16000; q.audioCodec = strdup("pcm16");
+    char* u = fetchx_build_url("http://h:1", "/media/stream/:deviceId");
+    char* u1 = StreamMediaActionPathParameters_apply(&p, u);
+    char* u2 = StreamMediaActionQueryParams_apply(&q, u1);
+    char* ws = emiws_http_to_ws(u2);
+    if (strcmp(ws, "ws://h:1/media/stream/dev1?sampleRate=16000&audioCodec=pcm16") != 0) { printf("%s\n", ws); return 5; }
+    return 0;
+}
+`
+	if err := os.WriteFile(filepath.Join(dir, "main.c"), []byte(program), 0644); err != nil {
+		t.Fatal(err)
+	}
+	bin := filepath.Join(dir, "ws")
+	out, err := exec.Command(cc, "-std=c99", "-D_POSIX_C_SOURCE=200809L", "-DFETCHX_NO_CURL", "-Wall", "-Wextra", "-Werror",
+		"-I", dir, filepath.Join(dir, "main.c"), filepath.Join(dir, "cjson", "cJSON.c"), "-o", bin).CombinedOutput()
+	if err != nil {
+		t.Fatalf("generated C failed to compile:\n%s", out)
+	}
+	if out, err := exec.Command(bin).CombinedOutput(); err != nil {
+		t.Fatalf("websocket/media checks failed: %v\n%s", err, out)
 	}
 }

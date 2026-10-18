@@ -16,6 +16,9 @@ type cActionRealms struct {
 	Url          string
 	HasUrl       bool
 	IsReactive   bool
+	// IsBinaryReactive: `method: reactive` + `binaryType: arraybuffer|blob` - a
+	// websocket exchanging raw frames (emiws.h) instead of SSE over libcurl.
+	IsBinaryReactive bool
 
 	PathParameter *core.CodeChunkCompiled
 	QueryStruct   *core.CodeChunkCompiled
@@ -24,10 +27,14 @@ type cActionRealms struct {
 	RequestTypeName    string
 	RequestIsAmbiguous bool
 
-	ResponseStruct       *core.CodeChunkCompiled
-	ResponseTypeName     string
-	ResponseIsAmbiguous  bool
-	HasResponseShape     bool
+	ResponseStruct      *core.CodeChunkCompiled
+	ResponseTypeName    string
+	ResponseIsAmbiguous bool
+	HasResponseShape    bool
+	// ResponseEnvelope is Out.Envelope; the server wraps the response in it (only GResponse is known). ResponseIsList:
+	// Out.List - the handler gives many items and the server sends them as data.items with the total.
+	ResponseEnvelope     string
+	ResponseIsList       bool
 	RequestHeadersStruct *core.CodeChunkCompiled
 }
 
@@ -48,6 +55,9 @@ func cGetActionRealms(
 	realms.Url = core.RemoveTypeAnnotations(action.GetUrl())
 	realms.HasUrl = realms.Url != ""
 	realms.IsReactive = realms.HttpMethod == "REACTIVE"
+	if a, ok := action.(interface{ GetBinaryType() string }); ok && realms.IsReactive {
+		realms.IsBinaryReactive = a.GetBinaryType() != "" && a.GetBinaryType() != "text"
+	}
 
 	pathParameter, err := CActionPathParams(action)
 	if err != nil {
@@ -91,6 +101,11 @@ func cGetActionRealms(
 	} else if action.HasResponseDto() {
 		realms.ResponseTypeName, realms.ResponseIsAmbiguous = firstDtoNameOrAmbiguous(action.GetResponseDto())
 		realms.HasResponseShape = true
+	}
+
+	realms.ResponseEnvelope = action.GetResponseEnvelopeClass()
+	if a, ok := action.(interface{ GetResponseIsList() bool }); ok {
+		realms.ResponseIsList = a.GetResponseIsList()
 	}
 
 	if action.HasRequestHeaders() {

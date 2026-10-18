@@ -16,6 +16,9 @@ type cPathParam struct {
 	Format   string // printf-style format used to render a numeric value into a replacement string
 }
 
+// Arg is the snprintf argument for this parameter, see cPrintfArg.
+func (p cPathParam) Arg() string { return cPrintfArg(p.Format, "self->"+p.Field) }
+
 var cPathParamTmpl = template.Must(template.New("cpathparams").Parse(`
 typedef struct {{ .TypeName }} {
 {{- range .Params }}
@@ -53,7 +56,7 @@ static inline char* {{ .TypeName }}_apply(const {{ .TypeName }}* self, const cha
         char* next = fetchx_url_replace(url, ":{{ .WireName }}", self->{{ .Field }} ? self->{{ .Field }} : "");
 {{- else }}
         char value_buf[64];
-        snprintf(value_buf, sizeof(value_buf), {{ .Format }}, self->{{ .Field }});
+        snprintf(value_buf, sizeof(value_buf), {{ .Format }}, {{ .Arg }});
         char* next = fetchx_url_replace(url, ":{{ .WireName }}", value_buf);
 {{- end }}
         free(url);
@@ -64,25 +67,16 @@ static inline char* {{ .TypeName }}_apply(const {{ .TypeName }}* self, const cha
 }
 `))
 
-// CActionPathParams extracts `/:id`-style placeholders out of an action's
-// url and renders a small struct to carry them, plus an `_apply` function
-// that substitutes them back into the template url (returning a newly
-// allocated string). Returns (nil, nil) when the url has no placeholders at
-// all.
-func CActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error) {
+// cBuildPathParams derives the ordered list of url placeholders of an action,
+// shared by the client (`_apply`) and server (`_from_captures`) renderers.
+func cBuildPathParams(action core.EmiRpcAction) []cPathParam {
 	placeholders := core.ExtractPlaceholdersInUrl(action.GetUrl())
-	if len(placeholders) == 0 {
-		return nil, nil
-	}
-
 	params := make([]cPathParam, 0, len(placeholders))
 	for _, p := range placeholders {
 		t := extractPrimitive(p.Type)
 		isString := t == ""
-		format := `"%d"`
+		format := `"%lld"`
 		switch t {
-		case "int64_t":
-			format = `"%lld"`
 		case "float", "double":
 			format = `"%f"`
 		case "bool":
@@ -98,6 +92,19 @@ func CActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error
 			IsString: isString,
 			Format:   format,
 		})
+	}
+	return params
+}
+
+// CActionPathParams extracts `/:id`-style placeholders out of an action's
+// url and renders a small struct to carry them, plus an `_apply` function
+// that substitutes them back into the template url (returning a newly
+// allocated string). Returns (nil, nil) when the url has no placeholders at
+// all.
+func CActionPathParams(action core.EmiRpcAction) (*core.CodeChunkCompiled, error) {
+	params := cBuildPathParams(action)
+	if len(params) == 0 {
+		return nil, nil
 	}
 
 	className := core.ToUpper(core.NormaliseKey(action.GetName()))

@@ -1,0 +1,44 @@
+menu "Emi mic stream"
+
+    config EMI_WIFI_SSID
+        string "Wi-Fi SSID"
+        default "myssid"
+
+    config EMI_WIFI_PASSWORD
+        string "Wi-Fi password"
+        default "mypassword"
+
+    config EMI_SERVER_URL
+        string "Server base url (the Go server of examples/media-stream)"
+        default "http://192.168.1.10:8080"
+
+    config EMI_DEVICE_ID
+        string "Device id (the :deviceId path parameter)"
+        default "esp32-mic"
+
+    config EMI_SAMPLE_RATE
+        int "Sample rate (Hz)"
+        default 16000
+
+    config EMI_I2S_BCLK
+        int "I2S bit clock GPIO"
+        default 26
+
+    config EMI_I2S_WS
+        int "I2S word select (LRCL) GPIO"
+        default 25
+
+    config EMI_I2S_DIN
+        int "I2S data in GPIO"
+        default 22
+
+    config EMI_MIC_SHIFT
+        int "Right shift from the 32 bit I2S slot to 16 bit PCM"
+        default 14
+        range 8 24
+        help
+            INMP441/SPH0645 style mics deliver 24 significant bits at the top of
+            a 32 bit slot. 16 keeps the 16 most significant bits (quiet); 14
+            adds about 12 dB of gain, 12 adds about 24 dB. Samples are clamped.
+
+endmenu

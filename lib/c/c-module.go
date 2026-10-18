@@ -170,7 +170,30 @@ func CModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core
 		})
 	}
 
+	if ctx.HasTag(Sqlite) || ctx.HasTag(Pack) {
+		entityFiles, err := CEntityVirtualFiles(module, ctx, complexes)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, entityFiles...)
+	}
+
+	if ctx.HasTag(Kconfig) {
+		kfile, err := CKconfigVirtualFile(module)
+		if err != nil {
+			return nil, err
+		}
+		if kfile != nil {
+			files = append(files, *kfile)
+		}
+	}
+
 	for _, remote := range module.Remotes {
+		// a remote is an outbound call to someone else's server; the esp-server
+		// target only generates what the device itself serves.
+		if serverBackendHeader(ctx) != "" {
+			break
+		}
 		if len(remoteFilter) > 0 && !slices.Contains(remoteFilter, remote.Name) {
 			continue
 		}
@@ -190,7 +213,28 @@ func CModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core
 
 	skipSdk := ctx.HasTag(NoSdk)
 	if !skipSdk {
-		files = append(files, core.FsEmbedToVirtualFile(&cInclude.Content, "")...)
+		backend := serverBackendHeader(ctx)
+		for _, f := range core.FsEmbedToVirtualFile(&cInclude.Content, "") {
+			// the server runtime comes as a core plus one backend per target;
+			// ship only the backend that was asked for (none for the client).
+			name := f.Name + f.Extension
+			if strings.HasPrefix(name, "emihttpd_") && name != "emihttpd_core.h" && name != backend {
+				continue
+			}
+			if name == "emihttpd_core.h" && backend == "" {
+				continue
+			}
+			if name == "emisql.h" && !ctx.HasTag(Sqlite) {
+				continue
+			}
+			if name == "emipack.h" && !ctx.HasTag(Pack) {
+				continue
+			}
+			if name == "emilayout.h" && !ctx.HasTag(Sqlite) && !ctx.HasTag(Pack) {
+				continue
+			}
+			files = append(files, f)
+		}
 	}
 
 	skipPackage := ctx.HasTag(NoPackage)
@@ -217,6 +261,12 @@ like, and compile ` + "`cjson/cJSON.c`" + ` into your program once:
 cc -I. your_program.c cjson/cJSON.c -lcurl -o your_program
 ` + "```" + `
 
+Without libcurl (ESP-IDF, bare metal): compile with ` + "`-DFETCHX_NO_CURL`" + `. That keeps the url helpers
+and ` + "`FetchxContext`" + ` and drops the http/SSE helpers. ` + "`method: reactive`" + ` actions with
+` + "`binaryType: arraybuffer`" + ` need no libcurl at all: they generate a websocket opener over
+` + "`emiws.h`" + ` (RFC 6455 client, BSD sockets or your own ` + "`EmiStream`" + `) and ` + "`emimedia.h`" + `
+(microphone/camera frame header, ` + "`EmiMediaSender`" + `). See examples/media-stream.
+
 Every generated struct ` + "`Type`" + ` gets: ` + "`Type_new()`" + `/` + "`Type_free()`" + ` (heap
 alloc/dealloc, always safe to call), ` + "`Type_from_json(const cJSON*)`" + ` /
 ` + "`Type_to_json(const Type*)`" + ` for (de)serialization, and - since every field
@@ -231,6 +281,25 @@ cJSON_Delete(json);
 /* ... use target ... */
 TargetDto_free(target);
 ` + "```" + `
+
+Server mode (` + "`--tags esp-server`" + `, ESP-IDF): instead of client functions every action header
+gets ` + "`<action>_register(server, handler, user)`" + ` plus a typed ` + "`<Action>Call`" + ` / ` + "`<Action>Handler`" + `
+that you implement; ` + "`method: reactive`" + ` actions get websocket sessions with ` + "`_send()`/`_broadcast()`" + `.
+Set ` + "`config.uri_match_fn = emihttpd_uri_match`" + ` on the ` + "`httpd_config_t`" + ` so ` + "`/users/:id`" + ` routes match,
+enable ` + "`CONFIG_HTTPD_WS_SUPPORT`" + ` for reactive actions (` + "`--tags mongoose-server`" + ` instead targets Mongoose: macOS/Linux/Windows/ESP-IDF, bring your own mongoose.c/.h), and add the ` + "`cjson`" + `/` + "`emihttpd.h`" + ` files to
+your component. Example: examples/esp-server.
+
+SQLite storage (` + "`--tags sqlite`" + `): every entity of the module also gets, in its own header, ` + "`Entity_insert/_get/_update/_patch/_delete/_list/_query`" + `
+over sqlite3 (` + "`_query`" + ` takes an ` + "`EmiSqlQuery`" + `: a json-logic filter, a sort, paging, and returns the total;
+` + "`_patch`" + ` changes only the fields of a json object), plus ` + "`<module>_schema_apply(db)`" + ` to create (and later extend) the tables - the same
+tables ` + "`emi entity-sql --tags sqlite`" + ` writes as a script. Link with ` + "`-lsqlite3`" + ` (ESP-IDF: a sqlite3 component).
+Scalars, flattened ` + "`object`" + ` fields and ` + "`array`" + `s of objects are stored; ` + "`one`/`collection`" + ` columns and
+join tables are created but not read or written by these functions.
+
+Packed entities (` + "`--tags pack`" + `, alone or with sqlite): every entity gets ` + "`Entity_pack(self, &buf, &len)`" + ` and
+` + "`Entity_unpack(buf, len)`" + ` (` + "`_unpack_prefix`" + ` for several in a row), a compact binary string (no field names, varints) for a
+file or an NVS blob where there is no SQLite; no sqlite3.h needed (` + "`-DEMI_NO_SQLITE`" + ` leaves the SQLite functions of a
+header out). Only append fields to an entity which has been stored: a newer program reads an older blob. See emipack.h.
 
 Action functions (` + "`create_widget_action(...)`" + ` etc.) return ` + "`NULL`" + ` on any
 failure (transport-level or a non-2xx status) - pass a ` + "`FetchxResponse*`" + ` as

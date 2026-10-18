@@ -276,9 +276,11 @@ func SwiftFullModule(module *core.Emi, ctx core.MicroGenContext) ([]core.Virtual
 		})
 	}
 
-	files = append(files, SwiftAnyCodableFile())
-	files = append(files, SwiftClientConfigFile())
-	files = append(files, SwiftWebSocketRuntimeFile())
+	if !ctx.HasTag(NoSdk) {
+		files = append(files, SwiftAnyCodableFile())
+		files = append(files, SwiftClientConfigFile())
+		files = append(files, SwiftWebSocketRuntimeFile())
+	}
 
 	return files, nil
 }

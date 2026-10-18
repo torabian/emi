@@ -37,6 +37,8 @@ events:
       en: Post published
     description:
       en: Fires once a post moves from draft to published.
+    message:
+      en: Your post was published.
     permissions:
       - with: ["post.publish"]
       - with: ["post.*"]
@@ -108,6 +110,8 @@ func TestEventsGenerate(t *testing.T) {
 		`Key:         "postPublished",`,
 		`Name:        map[string]string{"en": "Post published"},`,
 		`Description: map[string]string{"en": "Fires once a post moves from draft to published."},`,
+		// message: the past tense sentence for the user, a separate thing from description.
+		`Message:     map[string]string{"en": "Your post was published."},`,
 		"Permissions: [][]string{",
 		`{"post.publish"},`,
 		`{"post.*"},`,
@@ -121,6 +125,7 @@ func TestEventsGenerate(t *testing.T) {
 		"type CommentAddedEventPayload = CommentDto",
 		`var CommentAddedEvent = emigo.Event{`,
 		`Key:         "commentAdded",`,
+		`Message:     nil,`,
 		"func NewCommentAddedEvent(payload CommentAddedEventPayload) emigo.Event {",
 		// postArchived: no payload declared, aliased straight to interface{}.
 		"type PostArchivedEventPayload = interface{}",
@@ -264,4 +269,42 @@ permissions:
 		return
 	}
 	t.Fatalf("no permissions file in %+v", fileNames(files))
+}
+
+// A message is a Go template: braces and quotes in it must survive yaml -> Events.go intact, so
+// emigo.Event.RenderMessage sees exactly what the author wrote.
+func TestEventsGenerateKeepsTemplatedMessagesIntact(t *testing.T) {
+	module, err := core.StringToEmi(`
+name: blog
+namespace: blog
+events:
+  - key: postPublished
+    message:
+      en: "{{.title}} was published by {{default \"someone\" .author}}."
+      pl: "{{.title}} zostało opublikowane."
+    payload:
+      fields:
+        - name: title
+          type: string
+`)
+	if err != nil {
+		t.Fatalf("StringToEmi error: %v", err)
+	}
+
+	files, err := GoModuleFull(&module, core.MicroGenContext{})
+	if err != nil {
+		t.Fatalf("GoModuleFull error: %v", err)
+	}
+
+	var got string
+	for _, f := range files {
+		if f.Name == "BlogEvents" {
+			got = f.ActualScript
+		}
+	}
+
+	want := `Message:     map[string]string{"en": "{{.title}} was published by {{default \"someone\" .author}}.", "pl": "{{.title}} zostało opublikowane."},`
+	if !strings.Contains(got, want) {
+		t.Fatalf("expected the templated message verbatim:\n%s\n\ngot:\n%s", want, got)
+	}
 }

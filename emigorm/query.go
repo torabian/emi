@@ -14,9 +14,8 @@ import (
 // top of jsonlogic2sql's own built-ins (==, !=, >, <, and, or, in, ...). "contains" -
 // substring match via ILIKE - mirrors fireback's own JsonQueryTools.go exactly, since
 // json-logic has no native substring operator. ILIKE (rather than LIKE) is
-// Postgres-specific, but that's fine here - ApplyQueryFilter below always builds its
-// transpiler with DialectPostgreSQL, so this operator never runs against another
-// dialect. Case-insensitive on purpose: a column-header/search-box "contains" filter
+// Postgres-specific, so on sqlite (the one other database a query runs on, see dialect)
+// it is a LIKE, which is case-insensitive there for ascii. Case-insensitive on purpose: a column-header/search-box "contains" filter
 // (the only caller of this operator) is expected to match regardless of case.
 //
 // The generic mechanism for "the column's actual data type doesn't behave like plain
@@ -32,7 +31,7 @@ import (
 // specifically, casting renders its whole `{"en": "...", "fa": "..."}` object to text,
 // so the substring match runs across every language's value at once (and, incidentally,
 // the locale keys too - an acceptable false-positive rate for a free-text search box).
-func registerQueryOperators(tr *jsonlogic2sql.Transpiler) {
+func registerQueryOperators(tr *jsonlogic2sql.Transpiler, dialect string) {
 	tr.RegisterOperatorFunc("contains", func(op string, args []interface{}) (string, error) {
 		if len(args) != 2 {
 			return "", fmt.Errorf("contains requires 2 arguments")
@@ -47,6 +46,11 @@ func registerQueryOperators(tr *jsonlogic2sql.Transpiler) {
 		// corrupting the query - so this value is already safe to re-embed
 		// as-is inside the new `'%...%'` literal below.
 		value = strings.Trim(value, `"'`)
+		// sqlite has neither ILIKE nor ::, but its LIKE ignores case for ascii, and CAST does
+		// what ::text does.
+		if dialect == "sqlite" {
+			return fmt.Sprintf("CAST(%s AS TEXT) LIKE '%%%s%%'", column, value), nil
+		}
 		return fmt.Sprintf("%s::text ILIKE '%%%s%%'", column, value), nil
 	})
 }
@@ -71,7 +75,9 @@ func ApplyQueryFilter(tx *gorm.DB, filter string) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	registerQueryOperators(tr)
+	// The sql is the postgres dialect's; the one operator which is not standard sql (contains) is
+	// written for the database the query runs on.
+	registerQueryOperators(tr, tx.Dialector.Name())
 
 	sql, err := tr.TranspileCondition(filter)
 	if err != nil {

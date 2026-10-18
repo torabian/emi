@@ -31,6 +31,9 @@ func cHeaderType(headerType string) string {
 	}
 }
 
+// Arg is the snprintf argument for this header, see cPrintfArg.
+func (h cRenderedHeader) Arg() string { return cPrintfArg(h.SerializeFmt, "self->"+h.FieldName) }
+
 func renderCHeaders(columns []core.EmiHeader) []cRenderedHeader {
 	out := make([]cRenderedHeader, 0, len(columns))
 	for _, h := range columns {
@@ -38,10 +41,8 @@ func renderCHeaders(columns []core.EmiHeader) []cRenderedHeader {
 		typeHint := cHeaderType(h.Type)
 		isString := typeHint == "char*"
 
-		format := `"%d"`
+		format := `"%lld"`
 		switch typeHint {
-		case "int64_t":
-			format = `"%lld"`
 		case "double":
 			format = `"%f"`
 		case "bool":
@@ -115,7 +116,7 @@ static inline struct curl_slist* {{ .className }}_to_curl_slist(const {{ .classN
     }
 {{- else }}
     if (self->{{ .FieldName }}_set) {
-        snprintf(buf, sizeof(buf), "{{ .HeaderName }}: {{ .SerializeFmt | trimQuotes }}", self->{{ .FieldName }});
+        snprintf(buf, sizeof(buf), "{{ .HeaderName }}: {{ .SerializeFmt | trimQuotes }}", {{ .Arg }});
         list = curl_slist_append(list, buf);
     }
 {{- end }}

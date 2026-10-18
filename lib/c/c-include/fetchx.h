@@ -20,16 +20,28 @@
 #define EMISDK_FETCHX_H
 
 #include "cjson/cJSON.h"
+#ifndef FETCHX_NO_CURL
 #include <curl/curl.h>
+#endif
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* Define FETCHX_NO_CURL (e.g. on ESP-IDF, which has no libcurl) to use only the
+ * url helpers and FetchxContext below - enough for the websocket actions
+ * (`method: reactive` + `binaryType: arraybuffer`, see emiws.h). The http/SSE
+ * helpers that need libcurl are then compiled out. */
 
 /* ---- context: base url + default headers -------------------------------- */
 
 typedef struct FetchxContext {
     char* base_url;                     /* owned; "" if unset */
+#ifndef FETCHX_NO_CURL
     struct curl_slist* default_headers; /* owned linked list, may be NULL */
+#else
+    void* default_headers;              /* unused without libcurl */
+#endif
 } FetchxContext;
 
 static inline FetchxContext* FetchxContext_new(void) {
@@ -48,18 +60,25 @@ static inline void FetchxContext_set_base_url(FetchxContext* ctx, const char* ba
 /* Takes ownership of `value` is NOT done here - `key`/`value` are copied
  * into the curl_slist entry, so the caller keeps owning what it passed in. */
 static inline void FetchxContext_add_default_header(FetchxContext* ctx, const char* key, const char* value) {
+#ifdef FETCHX_NO_CURL
+    (void) ctx; (void) key; (void) value;
+    return;
+#else
     if (!ctx) return;
     size_t len = strlen(key) + 2 + strlen(value) + 1;
     char* line = (char*) malloc(len);
     snprintf(line, len, "%s: %s", key, value);
     ctx->default_headers = curl_slist_append(ctx->default_headers, line);
     free(line); /* curl_slist_append copies the string internally */
+#endif
 }
 
 static inline void FetchxContext_free(FetchxContext* ctx) {
     if (!ctx) return;
     free(ctx->base_url);
+#ifndef FETCHX_NO_CURL
     curl_slist_free_all(ctx->default_headers);
+#endif
     free(ctx);
 }
 
@@ -110,13 +129,23 @@ static inline char* fetchx_url_replace(const char* url, const char* placeholder,
 /* Percent-encodes `s` for safe use as a query string key/value. Returns a
  * newly allocated string - the caller must free() it. */
 static inline char* fetchx_url_encode(const char* s) {
-    CURL* curl = curl_easy_init();
-    char* encoded = curl_easy_escape(curl, s, 0);
-    char* out = strdup(encoded ? encoded : "");
-    if (encoded) {
-        curl_free(encoded);
+    /* RFC 3986: everything except ALPHA / DIGIT / "-" / "." / "_" / "~" is escaped. */
+    static const char hex[] = "0123456789ABCDEF";
+    size_t len = strlen(s);
+    char* out = (char*) malloc(len * 3 + 1);
+    size_t n = 0;
+    for (size_t i = 0; i < len; i++) {
+        unsigned char c = (unsigned char) s[i];
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+            c == '-' || c == '.' || c == '_' || c == '~') {
+            out[n++] = (char) c;
+        } else {
+            out[n++] = '%';
+            out[n++] = hex[c >> 4];
+            out[n++] = hex[c & 15];
+        }
     }
-    curl_easy_cleanup(curl);
+    out[n] = '\0';
     return out;
 }
 
@@ -134,6 +163,8 @@ static inline char* fetchx_url_append_query(const char* url, const char* key, co
     free(enc_value);
     return out;
 }
+
+#ifndef FETCHX_NO_CURL
 
 /* ---- request/response ------------------------------------------------------ */
 
@@ -371,5 +402,7 @@ static inline FetchxEventList fetchx_stream_events(
     }
     return list;
 }
+
+#endif /* FETCHX_NO_CURL */
 
 #endif /* EMISDK_FETCHX_H */

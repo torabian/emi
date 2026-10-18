@@ -54,6 +54,42 @@ Vendored \texttt{cJSON} (de)serialization and \texttt{libcurl} transport
 emi c --path module.emi.yml --output ./out/c
 \end{lstlisting}
 
+\paragraph{ESP-IDF server mode.} \texttt{--tags esp-server} flips the C target from
+client to \emph{server}: every action header then carries a typed handler
+the developer implements, plus \texttt{<action>\_register(server, ...)} on top of
+\texttt{esp\_http\_server} (routing, path/query/body decoding, JSON and status
+handling are generated). \texttt{method: reactive} actions become websocket
+sessions with \texttt{on\_open}/\texttt{on\_message}/\texttt{on\_close} callbacks and
+typed \texttt{\_send()}/\texttt{\_broadcast()}. \texttt{--tags mongoose-server} generates the
+same action headers on top of Mongoose's event loop instead, which runs on
+macOS, Linux, Windows and ESP-IDF (bring your own \texttt{mongoose.c}/\texttt{.h}).
+See \texttt{examples/esp-server}.
+\begin{lstlisting}
+emi c --path module.emi.yml --output ./main/emi --tags esp-server
+\end{lstlisting}
+
+\paragraph{SQLite entities.} \texttt{--tags sqlite} turns the module's entities into C structs with
+storage on \texttt{sqlite3.h}: \texttt{Entity\_insert/\_get/\_update/\_patch/\_delete/\_list/\_query} and a
+\texttt{<module>\_schema\_apply(db)} that creates and extends the tables. The tables and the
+row layout come from the same code as \texttt{emi entity-sql --tags sqlite}, so the C code and the
+SQL script agree on every column. Scalars, flattened objects and arrays of objects are stored.
+\texttt{Entity\_query} takes an \texttt{EmiSqlQuery}: a json-logic filter (the format of the Go Browse
+action; values are bound, unknown fields are refused), a sort, \texttt{start\_index} and
+\texttt{items\_per\_page}, and returns the matching entities with the total. \texttt{Entity\_patch}
+changes only the fields of a json object.
+
+\paragraph{Packed entities, without SQLite.} \texttt{--tags pack} gives every entity
+\texttt{Entity\_pack} and \texttt{Entity\_unpack} (and \texttt{\_unpack\_prefix} for several in a row): a
+compact binary string for a file, an NVS blob or a message, where there is no SQLite. It works alone
+(no \texttt{sqlite3.h}) or together with \texttt{sqlite}, and uses the same layout. No field names or
+types are stored: a null/bool/``needs 8 bytes'' flag pair per field, integers as zigzag varints, floats
+as 4 bytes when that is exact, strings with a length. A 190-byte json entity packs to about 55 bytes.
+Fields may only be appended to an entity which has been stored: a newer program reads an older blob
+(missing fields keep their defaults), an older program refuses a newer one, and damaged or truncated input
+is refused without reading out of bounds. A header compiled with \texttt{-DEMI\_NO\_SQLITE} leaves the
+SQLite functions out. A handler of the server targets can say why it fails with
+\texttt{emihttpd\_set\_error("...")} before returning \texttt{NULL} and a status of 400 or more.
+
 \subsection{C++: generic and Unreal Engine}
 One compiler, two dialects, picked with \texttt{--dialect} (or the
 equivalent \texttt{--tags unreal}, handy when a caller is already

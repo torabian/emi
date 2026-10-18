@@ -207,6 +207,14 @@ func Get{{ $item.FullClassName }}CliFlags(prefix string) []emigo.CliFlag {
 		// with it here - not with the main struct chunk, which never references
 		// encoding.TextUnmarshaler itself. See PrepareStruct in
 		// go-struct-generator-common.go for the fuller explanation.
+		// Likewise, a field whose type is provided by another go package makes
+		// the generated Cast<Type>FromCli call be qualified (userdefs.CastXFromCli),
+		// so that package's import must travel with the split-off *Cli.go file too.
+		// PrepareStruct computes it for the main chunk, but v.Res is discarded here.
+		for _, item := range CollectTargets(fields, goctx.RootClassName) {
+			j.CodeChunkDependensies = append(j.CodeChunkDependensies, castDtoNameToCodeChunk(item).CodeChunkDependensies...)
+		}
+
 		if DetectIfComplexIsUsed(fields) {
 			j.CodeChunkDependensies = append(j.CodeChunkDependensies, core.CodeChunkDependency{
 				Location: "encoding",

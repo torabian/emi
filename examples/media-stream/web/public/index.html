@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media stream</title>
+  <style>
+    body { font: 15px system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 16px; }
+    button { font: inherit; padding: .4rem .9rem; }
+    img { width: 100%; background: #222; aspect-ratio: 4/3; margin: 1rem 0; }
+    pre { background: #f4f4f4; padding: .6rem; min-height: 4rem; overflow: auto; }
+    @media (prefers-color-scheme: dark) { body { background: #111; color: #eee; } pre { background: #222; } }
+  </style>
+</head>
+<body>
+  <h1>Microphone + camera to Go</h1>
+  <p>
+    <label>Device id <input id="device" value="browser"></label>
+    <button id="start">Start</button> <button id="stop" disabled>Stop</button>
+  </p>
+  <div id="stats">idle</div>
+  <p>Latest frame the server received:</p>
+  <img id="preview" alt="latest frame from the server">
+  <pre id="log"></pre>
+  <script type="module" src="app.js"></script>
+  <script>
+    // Poll the server's copy of the newest camera frame (proves the round trip).
+    setInterval(() => {
+      const id = document.getElementById("device").value.trim() || "browser";
+      if (document.getElementById("stop").disabled) return;
+      document.getElementById("preview").src = "/latest/" + encodeURIComponent(id) + ".jpg?t=" + Date.now();
+    }, 500);
+  </script>
+</body>
+</html>

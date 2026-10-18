@@ -24,3 +24,14 @@ docs/latex/*.toc
 docs/latex/*.fls
 docs/latex/*.fdb_latexmk
 docs/latex/sections/*.aux
+
+# examples/media-stream build output
+examples/media-stream/device/media-device
+examples/media-stream/device/cJSON.o
+examples/media-stream/server/out
+examples/media-stream/device-c/media-device-c
+examples/media-stream/web/node_modules
+examples/media-stream/web/public/app.js
+examples/media-stream/esp-idf-mic/build
+examples/media-stream/esp-idf-mic/sdkconfig
+examples/media-stream/esp-idf-mic/sdkconfig.old

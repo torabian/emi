@@ -28,5 +28,5 @@ func CppActionRender(
 	if dialect == DialectUnreal {
 		return cppUnrealActionRender(realms, deps)
 	}
-	return cppGenericActionRender(realms, deps)
+	return cppGenericActionRender(action, realms, deps)
 }

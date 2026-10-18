@@ -59,6 +59,11 @@ func JsActionFetchAndMetaData(action core.EmiRpcAction, realms jsActionRealms, c
 
 	if action.MethodUpper() == EMI_METHOD_REACTIVE {
 		fetchctx.IsClassicHttpCall = false
+		if a, ok := action.(interface{ GetBinaryType() string }); ok {
+			if bt := a.GetBinaryType(); bt == "arraybuffer" || bt == "blob" {
+				fetchctx.BinaryType = bt
+			}
+		}
 	}
 
 	if realms.RequestHeadersClass != nil {

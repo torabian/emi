@@ -101,7 +101,7 @@ func swiftDataStructureType(field *core.EmiField, rootClassName string) string {
 		return fmt.Sprintf("[%s: %s]", swiftPrimitiveTypeName(field.GetMapKeyType()), swiftPrimitiveTypeName(field.GetMapValueType()))
 	case core.FieldTypeOne, core.FieldTypeOneNullable:
 		target := swiftResolveTarget(field.Target, rootClassName)
-		if field.Module != "" {
+		if field.Module != "" && field.Provider == "" { // Provider/Module are Go-only: same Swift module otherwise
 			return field.Module + target
 		}
 		return target
@@ -109,7 +109,7 @@ func swiftDataStructureType(field *core.EmiField, rootClassName string) string {
 		return field.PublicName()
 	case core.FieldTypeCollection, core.FieldTypeCollectionNullable:
 		target := swiftResolveTarget(field.Target, rootClassName)
-		if field.Module != "" {
+		if field.Module != "" && field.Provider == "" { // Provider/Module are Go-only: same Swift module otherwise
 			return fmt.Sprintf("[%s%s]", field.Module, target)
 		}
 		return fmt.Sprintf("[%s]", target)

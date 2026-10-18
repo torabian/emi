@@ -18,6 +18,14 @@ type Event struct {
 	// Description explains, for a human, what this event represents, keyed by locale.
 	Description map[string]string
 
+	// Message is the sentence shown to a person when the event has happened, keyed by
+	// locale: a PAST TENSE sentence addressed to the user ("You have been invited to
+	// join a workspace."). It is what a notification, email or sms says - Description
+	// above documents the event itself and is not meant to be sent to anyone. The value
+	// declared in the module's events list is the default; WithMessage replaces it for
+	// one occurrence.
+	Message map[string]string
+
 	// Permissions is a list of permission combinations that grant visibility into this
 	// event: the outer slice is OR'd together, and each inner slice of permission keys
 	// is AND'd - e.g. [[A, B], [C, D]] means "(A and B) or (C and D)". Empty means no
@@ -42,6 +50,46 @@ func (x Event) GetName() map[string]string {
 
 func (x Event) GetDescription() map[string]string {
 	return x.Description
+}
+
+func (x Event) GetMessage() map[string]string {
+	return x.Message
+}
+
+// WithMessage returns a copy of the event whose Message is message instead of the one
+// declared in the module's events list - for the occasions where this particular firing
+// has something more specific to tell the person ("Ali invited you to Acme."). A nil or
+// empty message keeps the declared one, so a caller can pass an optional override
+// straight through.
+func (x Event) WithMessage(message map[string]string) Event {
+	if len(message) > 0 {
+		x.Message = message
+	}
+	return x
+}
+
+// MessageFor is the Message in the given locale, falling back to "en" and then to any
+// available locale, or "" when the event declares no message at all.
+func (x Event) MessageFor(locale string) string {
+	return pickLocale(x.Message, locale)
+}
+
+func pickLocale(values map[string]string, locale string) string {
+	if len(values) == 0 {
+		return ""
+	}
+	if v := values[locale]; v != "" {
+		return v
+	}
+	if v := values["en"]; v != "" {
+		return v
+	}
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 func (x Event) GetPermissions() [][]string {

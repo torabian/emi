@@ -12,8 +12,6 @@ import (
 	"slices"
 	"strings"
 	"text/template"
-
-	"gopkg.in/yaml.v2"
 )
 
 // ====================
@@ -312,25 +310,25 @@ func (m *Emi) StripActionUrlTypeAnnotations() {
 
 func StringToEmiAction(content string) (EmiAction, error) {
 	var action EmiAction
-	err := yaml.Unmarshal([]byte(content), &action)
+	err := unmarshalLenient([]byte(content), &action)
 	return action, err
 }
 
 func StringToEmiFields(content string) ([]*EmiField, error) {
 	var fields []*EmiField
-	err := yaml.Unmarshal([]byte(content), &fields)
+	err := unmarshalLenient([]byte(content), &fields)
 	return fields, err
 }
 
 func StringToEmiHeaders(content string) ([]EmiHeader, error) {
 	var headers []EmiHeader
-	err := yaml.Unmarshal([]byte(content), &headers)
+	err := unmarshalLenient([]byte(content), &headers)
 	return headers, err
 }
 
 func StringToEmiDto(content string) (EmiDto, error) {
 	var dto EmiDto
-	err := yaml.Unmarshal([]byte(content), &dto)
+	err := unmarshalLenient([]byte(content), &dto)
 	return dto, err
 }
 
@@ -345,7 +343,7 @@ func StringToEmi(content string) (Emi, error) {
 // already-absolute path is left as-is); passing "" behaves exactly like StringToEmi.
 func StringToEmiWithPath(content string, path string) (Emi, error) {
 	var module Emi
-	if err := yaml.Unmarshal([]byte(content), &module); err != nil {
+	if err := unmarshalLenient([]byte(content), &module); err != nil {
 		return module, err
 	}
 	if path != "" {
@@ -367,7 +365,7 @@ func StringToEmiWithPath(content string, path string) (Emi, error) {
 // core.BaseAction.Name, so any action-scoped expansions apply.
 func StringToEmiForAction(content string, action string) (Emi, error) {
 	var module Emi
-	if err := yaml.Unmarshal([]byte(content), &module); err != nil {
+	if err := unmarshalLenient([]byte(content), &module); err != nil {
 		return module, err
 	}
 	if err := module.PreprocessForAction(action); err != nil {
@@ -379,7 +377,7 @@ func StringToEmiForAction(content string, action string) (Emi, error) {
 // Based on the emi tag on the root, we detect what is the type of compile.
 func DetectEmiStringContentType(content string) (string, error) {
 	var module EmiCatalog
-	err := yaml.Unmarshal([]byte(content), &module)
+	err := unmarshalLenient([]byte(content), &module)
 
 	if err != nil {
 		return "", err
@@ -428,7 +426,7 @@ func ReadEmiFromFile(path string) (*Emi, error) {
 
 func ReadEmiActionFromString(content string) (*EmiAction, error) {
 	var data EmiAction
-	if err := yaml.Unmarshal([]byte(content), &data); err != nil {
+	if err := unmarshalLenient([]byte(content), &data); err != nil {
 		return nil, err
 	}
 	return &data, nil

@@ -1,0 +1,20 @@
+namespace: media
+
+actions:
+  # Continuous mic + camera. One long-lived WebSocket; every frame is BINARY
+  # (see MediaFrame in emigo/MediaFrame.go and EmiMediaFrame.hpp), the stream
+  # parameters are typed query params so no JSON handshake is needed.
+  - name: streamMedia
+    url: /media/stream/:deviceId
+    method: reactive
+    binaryType: arraybuffer
+    description: Device -> server raw audio (PCM/Opus) and video (MJPEG/H264) frames.
+    qs:
+      - name: sampleRate
+        type: int
+      - name: channels
+        type: int
+      - name: audioCodec
+        type: string
+      - name: videoCodec
+        type: string

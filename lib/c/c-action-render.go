@@ -30,6 +30,10 @@ func CActionRender(
 		return nil, err
 	}
 
+	if serverBackendHeader(ctx) != "" {
+		return cActionRenderServer(action, ctx, realms)
+	}
+
 	res := &core.CodeChunkCompiled{
 		Tokens: []core.GeneratedScriptToken{
 			{Name: TOKEN_ORIGINAL_NAME, Value: realms.ActionName},
@@ -39,6 +43,11 @@ func CActionRender(
 
 	if realms.HasUrl {
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, core.CodeChunkDependency{Location: "fetchx.h"})
+		if realms.IsBinaryReactive {
+			res.CodeChunkDependensies = append(res.CodeChunkDependensies,
+				core.CodeChunkDependency{Location: "emiws.h"},
+				core.CodeChunkDependency{Location: "emimedia.h"})
+		}
 	}
 	if realms.RequestStruct != nil {
 		res.CodeChunkDependensies = append(res.CodeChunkDependensies, realms.RequestStruct.CodeChunkDependensies...)
@@ -76,7 +85,16 @@ func CActionRender(
 	if realms.RequestHeadersStruct != nil {
 		params = append(params, fmt.Sprintf("const %vRequestHeaders* headers", realms.ActionName))
 	}
-	if !realms.IsReactive {
+	if realms.IsBinaryReactive {
+		// A websocket: the caller owns the EmiWebSocket + EmiStream, no body/headers/response.
+		params = []string{"EmiWebSocket* ws", "EmiStream* stream", "const FetchxContext* ctx"}
+		if realms.PathParameter != nil {
+			params = append(params, fmt.Sprintf("const %vPathParameters* path", realms.ActionName))
+		}
+		if realms.QueryStruct != nil {
+			params = append(params, fmt.Sprintf("const %vQueryParams* query", realms.ActionName))
+		}
+	} else if !realms.IsReactive {
 		params = append(params, "FetchxResponse* out_response")
 	}
 
@@ -112,7 +130,34 @@ func CActionRender(
 {{ end }}
 {{ if .realms.HasUrl }}
 /* Communicates with {{ .realms.ActionName }} ({{ .realms.HttpMethod }} {{ .realms.Url }}) */
-{{ if .realms.IsReactive }}
+{{ if .realms.IsBinaryReactive }}
+/* Opens the {{ .realms.ActionName }} websocket (binary frames, see emiws.h / emimedia.h).
+ *
+ *   EmiWebSocket ws; emiws_init(&ws);              // then set ws.on_binary / ws.on_text / ws.user
+ *   EmiPosixStream state; EmiStream stream; emiws_posix_stream_init(&stream, &state);
+ *   if ({{ .realms.FunctionName }}(&ws, &stream, ctx{{ if .realms.PathParameter }}, &path{{ end }}{{ if .realms.QueryStruct }}, &query{{ end }}) == 0) {
+ *       while (ws.open) emiws_poll(&ws);              // or only send, e.g. with EmiMediaSender
+ *   }
+ *
+ * Returns 0 once the handshake completed. Close with emiws_close(&ws). */
+static inline int {{ .realms.FunctionName }}({{ .paramList }}) {
+    char* base = fetchx_build_url(ctx ? ctx->base_url : "", {{ .realms.Url | cString }});
+{{ if .realms.PathParameter }}    char* url1 = {{ .realms.ActionName }}PathParameters_apply(path, base);
+    free(base);
+    base = url1;
+{{ end }}
+{{ if .realms.QueryStruct }}    char* url2 = {{ .realms.ActionName }}QueryParams_apply(query, base);
+    free(base);
+    base = url2;
+{{ end }}
+    char* ws_url = emiws_http_to_ws(base);
+    free(base);
+    int rc = ws_url ? emiws_connect(ws, stream, ws_url) : -1;
+    free(ws_url);
+    return rc;
+}
+
+{{ else if .realms.IsReactive }}
 static inline FetchxEventList {{ .realms.FunctionName }}({{ .paramList }}) {
     char* base = fetchx_build_url(ctx ? ctx->base_url : "", {{ .realms.Url | cString }});
 {{ if .realms.PathParameter }}    char* url1 = {{ .realms.ActionName }}PathParameters_apply(path, base);

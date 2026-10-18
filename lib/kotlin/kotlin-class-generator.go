@@ -171,7 +171,9 @@ func kotlinCollectTargetDeps(fields []*core.EmiField, currentName string) []core
 				if target == currentName {
 					continue
 				}
-				if field.Module != "" {
+				// field.Provider is a Go import path, with field.Module as its Go alias;
+				// neither names a Kotlin package, so such a target is a same-package class.
+				if field.Module != "" && field.Provider == "" {
 					deps = append(deps, core.CodeChunkDependency{
 						Location: field.Module + "." + target,
 					})

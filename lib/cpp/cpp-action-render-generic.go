@@ -14,7 +14,7 @@ import (
 	"github.com/torabian/emi/lib/core"
 )
 
-func cppGenericActionRender(realms cppActionRealms, deps []core.CodeChunkDependency) (*core.CodeChunkCompiled, error) {
+func cppGenericActionRender(action core.EmiRpcAction, realms cppActionRealms, deps []core.CodeChunkDependency) (*core.CodeChunkCompiled, error) {
 	res := &core.CodeChunkCompiled{
 		Tokens: []core.GeneratedScriptToken{
 			{Name: TOKEN_ORIGINAL_NAME, Value: realms.ActionName},
@@ -24,7 +24,7 @@ func cppGenericActionRender(realms cppActionRealms, deps []core.CodeChunkDepende
 	}
 
 	if realms.IsReactive {
-		return cppGenericReactiveActionRender(realms, res)
+		return cppGenericReactiveActionRender(action, realms, res)
 	}
 
 	hasBody := realms.RequestClassName != "" || realms.RequestClass != nil
