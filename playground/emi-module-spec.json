@@ -213,6 +213,10 @@
           "type": "string",
           "description": "Envelop the content"
         },
+        "list": {
+          "type": "boolean",
+          "description": "The response is a list of the dto or fields. The envelope carries it as items with the total."
+        },
         "fields": {
           "items": {
             "$ref": "#/definitions/EmiField"
@@ -560,6 +564,18 @@
           "type": "string",
           "description": "Env allows you to override the default environment variable name"
         },
+        "min": {
+          "type": "string",
+          "description": "Lower bound of an int config. Only used by the C kconfig output (Kconfig range). Needs max as well."
+        },
+        "max": {
+          "type": "string",
+          "description": "Upper bound of an int config. Only used by the C kconfig output (Kconfig range). Needs min as well."
+        },
+        "depends": {
+          "type": "string",
+          "description": "Kconfig expression (\u0026\u0026"
+        },
         "fields": {
           "items": {
             "$ref": "#/definitions/EmiConfig"
@@ -649,6 +665,13 @@
           },
           "type": "object",
           "description": "Explains what this event represents"
+        },
+        "message": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "The sentence shown to a user when this event has happened. Write it in the past tense and address the user: You have been invited to join a workspace. It is a Go template: payload fields and the params of the firing call are available by name as {{.firstName}}. Quote the message in yaml when it starts with a brace. Notifications say this while description only documents the event itself. A firing call may override it for one occurrence."
         },
         "permissions": {
           "items": {
@@ -1505,6 +1528,10 @@
         "intent": {
           "type": "boolean",
           "description": "When true every action generated for this entity (create/update/get/browse/delete preview/delete) is also exposed as an intent (MCP tool) named listBooks/getBook/createBook/updateBook/previewDeleteBooks/deleteBooks for an entity named book. A hand-declared intent of the same name wins."
+        },
+        "defaultPermissions": {
+          "type": "boolean",
+          "description": "When true (default false) the compiler adds a permission group named after the entity to the module permissions: \u003centity\u003e.* with children \u003centity\u003e.query / .create / .update / .delete. A hand-declared permission of the same name wins."
         },
         "features": {
           "$ref": "#/definitions/Module3EntityFeatures",
