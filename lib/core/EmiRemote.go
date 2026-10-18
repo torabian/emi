@@ -113,6 +113,11 @@ func (x EmiRemote) GetResponseDto() string {
 	return x.Out.Dto
 }
 
+// GetResponseIsList reports whether the response is a list of items (Out.List).
+func (x EmiRemote) GetResponseIsList() bool {
+	return x.HasResponse() && x.Out.List
+}
+
 func (x EmiRemote) GetResponseEnvelopeClass() string {
 	if !x.HasResponse() {
 		return ""

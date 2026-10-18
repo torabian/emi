@@ -10,6 +10,11 @@ type EmiActionBody struct {
 	// Envelop the content, for fields, dto automatically
 	Envelope string `yaml:"envelope,omitempty" json:"envelope,omitempty" jsonschema:"description=Envelop the content, for fields, dto automatically."`
 
+	// The response is a list of the dto/fields (an envelope carries it as items, with the total), not one item.
+	// Only the generators which need to know it before data arrives (the C server) read it; the others see
+	// the list in the data itself.
+	List bool `yaml:"list,omitempty" json:"list,omitempty" jsonschema:"description=The response is a list of the dto or fields. The envelope carries it as items with the total."`
+
 	// Defines the fields directly, and DTO will be generated
 	// and assigned automatically.
 	Fields []*EmiField `yaml:"fields,omitempty" json:"fields,omitempty" jsonschema:"Defines the fields directly and DTO will be generated and assigned automatically"`

@@ -213,6 +213,10 @@
           "type": "string",
           "description": "Envelop the content"
         },
+        "list": {
+          "type": "boolean",
+          "description": "The response is a list of the dto or fields. The envelope carries it as items with the total."
+        },
         "fields": {
           "items": {
             "$ref": "#/definitions/EmiField"

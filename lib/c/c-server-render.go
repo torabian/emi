@@ -104,9 +104,28 @@ const cServerHttpTmpl = `
  *
  *   {{ $A }}Binding* b = {{ $fn }}_register(server, my_handler, my_user_data);
  *
- * The handler returns {{ if .returnsTyped }}a newly allocated {{ .responseType }}* (freed for you with {{ .responseType }}_free){{ else }}a malloc'd JSON string (freed for you){{ end }},
+ * The handler returns {{ if .isList }}a newly allocated {{ $A }}Result* (the items of a page and the total, sent as data.items of the {{ .envelope }} envelope){{ else if .returnsTyped }}a newly allocated {{ .responseType }}* (freed for you with {{ .responseType }}_free){{ else }}a malloc'd JSON string (freed for you){{ end }},
  * or NULL. *status starts at 0: leave it for 200 (204 when NULL is returned)
  * or set any code - with NULL and status >= 400 an error body is sent. */
+{{ if .isList }}
+/* What the handler gives back: the items of one page and how many there are in all (the envelope's data.items and
+ * data.totalItems). Freed for you with {{ $A }}Result_free, items included. */
+typedef struct {{ $A }}Result {
+    {{ .responseType }}** items;
+    size_t items_count;
+    int64_t total_items;
+    int32_t start_index;
+    int32_t items_per_page;
+    char* cursor; /* optional, malloc'd */
+} {{ $A }}Result;
+static inline void {{ $A }}Result_free({{ $A }}Result* self) {
+    if (!self) return;
+    for (size_t i = 0; i < self->items_count; i++) {{ .responseType }}_free(self->items[i]);
+    free(self->items);
+    free(self->cursor);
+    free(self);
+}
+{{ end }}
 typedef struct {{ $A }}Call {
     emihttpd_req_t* req; /* the backend's request: headers, connection, raw response if needed */
 {{- if .realms.PathParameter }}
@@ -121,7 +140,7 @@ typedef struct {{ $A }}Call {
     void* user;
 } {{ $A }}Call;
 
-typedef {{ if .returnsTyped }}{{ .responseType }}*{{ else }}char*{{ end }} (*{{ $A }}Handler)(const {{ $A }}Call* call, int* status);
+typedef {{ if .isList }}{{ $A }}Result*{{ else if .returnsTyped }}{{ .responseType }}*{{ else }}char*{{ end }} (*{{ $A }}Handler)(const {{ $A }}Call* call, int* status);
 
 typedef struct {{ $A }}Binding {
     {{ $A }}Handler handler;
@@ -222,12 +241,74 @@ static inline int {{ $fn }}_serve(emihttpd_req_t* req, void* ctx) {
 {{- end }}
 
     {
-{{- if .returnsTyped }}
+{{- if .isList }}
+        {{ $A }}Result* res = binding->handler(&call, &status);
+        if (!res) {
+{{- if .envelope }}
+            if (status >= 400) {
+                char ebuf[EMIHTTPD_ERROR_MAX + 64];
+                emihttpd_error_envelope(ebuf, sizeof(ebuf), status, emihttpd_take_error("request failed"));
+                rc = emihttpd_reply_json(req, status, ebuf);
+            } else {
+                rc = emihttpd_reply_json(req, 204, NULL);
+            }
+{{- else }}
+            rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error("request failed")) : emihttpd_reply_json(req, 204, NULL);
+{{- end }}
+        } else {
+            cJSON* out = cJSON_CreateArray();
+            for (size_t i = 0; out && i < res->items_count; i++) {
+                cJSON* one = {{ .responseType }}_to_json(res->items[i]);
+                if (one) cJSON_AddItemToArray(out, one);
+            }
+{{- if .envelope }}
+            cJSON* root = cJSON_CreateObject();
+            cJSON* data = root ? cJSON_AddObjectToObject(root, "data") : NULL;
+            if (data && out) {
+                cJSON_AddItemToObject(data, "items", out);
+                out = NULL;
+                cJSON_AddNumberToObject(data, "currentItemCount", (double) res->items_count);
+                cJSON_AddNumberToObject(data, "totalItems", (double) res->total_items);
+                cJSON_AddNumberToObject(data, "startIndex", res->start_index);
+                cJSON_AddNumberToObject(data, "itemsPerPage", res->items_per_page);
+                if (res->cursor) cJSON_AddStringToObject(data, "cursor", res->cursor);
+            }
+            cJSON_Delete(out);
+            char* text = root ? cJSON_PrintUnformatted(root) : NULL;
+            cJSON_Delete(root);
+{{- else }}
+            char* text = out ? cJSON_PrintUnformatted(out) : NULL;
+            cJSON_Delete(out);
+{{- end }}
+            rc = text ? emihttpd_reply_json(req, status ? status : 200, text) : emihttpd_reply_error(req, 500, "cannot serialize response");
+            free(text);
+            {{ $A }}Result_free(res);
+        }
+{{- else if .returnsTyped }}
         {{ .responseType }}* res = binding->handler(&call, &status);
         if (!res) {
+{{- if .envelope }}
+            if (status >= 400) {
+                char ebuf[EMIHTTPD_ERROR_MAX + 64];
+                emihttpd_error_envelope(ebuf, sizeof(ebuf), status, emihttpd_take_error("request failed"));
+                rc = emihttpd_reply_json(req, status, ebuf);
+            } else {
+                rc = emihttpd_reply_json(req, 204, NULL);
+            }
+{{- else }}
             rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error("request failed")) : emihttpd_reply_json(req, 204, NULL);
+{{- end }}
         } else {
             cJSON* out = {{ .responseType }}_to_json(res);
+{{- if .envelope }}
+            cJSON* root = cJSON_CreateObject();
+            if (root && out) {
+                cJSON_AddItemToObject(cJSON_AddObjectToObject(root, "data"), "item", out);
+                out = root;
+            } else {
+                cJSON_Delete(root);
+            }
+{{- end }}
             char* text = out ? cJSON_PrintUnformatted(out) : NULL;
             cJSON_Delete(out);
             rc = text ? emihttpd_reply_json(req, status ? status : 200, text) : emihttpd_reply_error(req, 500, "cannot serialize response");
@@ -662,6 +743,17 @@ func cActionRenderServer(
 	responseType := realms.ResponseTypeName
 	returnsTyped := realms.HasResponseShape && responseType != "" && !realms.ResponseIsAmbiguous
 
+	// GResponse is the one envelope the server knows: the response goes out as {"data":{"item":..}} (list: "items" and the
+	// totals), an error as {"error":{"code":..,"message":..}}, what the generated clients of the same yml expect.
+	envelope := ""
+	if realms.ResponseEnvelope == "GResponse" && !realms.IsReactive {
+		envelope = realms.ResponseEnvelope
+	}
+	isList := realms.ResponseIsList && !realms.IsReactive
+	if isList && !returnsTyped {
+		return nil, fmt.Errorf("server mode: action %q is a list, so it needs a dto or fields to list", realms.ActionName)
+	}
+
 	if !realms.HasUrl {
 		return nil, fmt.Errorf("esp-server: action %q has no url to serve", realms.ActionName)
 	}
@@ -686,6 +778,8 @@ func cActionRenderServer(
 		"requestType":  requestType,
 		"responseType": responseType,
 		"returnsTyped": returnsTyped,
+		"isList":       isList,
+		"envelope":     envelope,
 		"pathFields":   pathFields,
 		"queryFields":  queryFields,
 		"binary":       realms.IsBinaryReactive,

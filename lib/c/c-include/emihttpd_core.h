@@ -59,6 +59,12 @@ static inline const char* emihttpd_take_error(const char* fallback) {
     return taken;
 }
 
+/* The error body of the GResponse envelope - {"error":{"code":404,"message":"..."}} - into buf. message must be json safe
+ * (emihttpd_set_error / emihttpd_take_error make it so). */
+static inline void emihttpd_error_envelope(char* buf, size_t size, int status, const char* message) {
+    snprintf(buf, size, "{\"error\":{\"code\":%d,\"message\":\"%s\"}}", status, message ? message : "");
+}
+
 /* Largest request body a generated handler will buffer (413 above it). */
 #ifndef EMIHTTPD_MAX_BODY
 #define EMIHTTPD_MAX_BODY 8192

@@ -263,7 +263,8 @@ static inline int emihttpd_req_body(emihttpd_req_t* req, char** out) {
 /* ---- port: answering ------------------------------------------------------------------------ */
 
 static inline int emihttpd_reply_json(emihttpd_req_t* req, int status, const char* json) {
-    mg_http_reply(req->c, status, "Content-Type: application/json\r\n", "%s", json ? json : "");
+    /* an answer with no body is not a json one: a client which reads the body of "application/json" would fail on it */
+    mg_http_reply(req->c, status, json ? "Content-Type: application/json\r\n" : "", "%s", json ? json : "");
     return 0;
 }
 

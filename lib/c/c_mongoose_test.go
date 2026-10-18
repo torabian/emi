@@ -253,8 +253,10 @@ func TestMongooseServer(t *testing.T) {
 	if code, body, _ = do("GET", "/api/state?verbose=1&filter%5Bzone%5D=ab&filter[page][n]=3&filter%5Bpage%5D%5Bsize%5D=7", ""); code != 200 || !strings.Contains(body, `"inside":309`) {
 		t.Errorf("nested query: %d %s", code, body)
 	}
-	if code, _, _ = do("GET", "/api/state", ""); code != 204 {
+	if code, _, hdr = do("GET", "/api/state", ""); code != 204 {
 		t.Errorf("NULL response should be 204: %d", code)
+	} else if hdr.Get("Content-Type") != "" {
+		t.Errorf("an empty answer is not json: Content-Type %q", hdr.Get("Content-Type"))
 	}
 
 	// websocket: handshake with path param, a typed message answered by the handler

@@ -166,7 +166,7 @@ func buildEntityBrowseAction(entity *Module3Entity) *EmiAction {
 		// Note: emigorm.QueryDSL.Scope (a second, handler-enforced filter - e.g.
 		// workspace isolation) deliberately has no qs field here at all - it's
 		// json:"-", only ever set by a caller's own handler code, never from a request.
-		Out: &EmiActionBody{Dto: BuildEntityOptionalDto(entity).GetClassName(), Envelope: entityActionResponseEnvelope},
+		Out: &EmiActionBody{Dto: BuildEntityOptionalDto(entity).GetClassName(), Envelope: entityActionResponseEnvelope, List: true},
 	}
 }
 

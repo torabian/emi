@@ -59,3 +59,31 @@ func depHasLocation(deps []core.CodeChunkDependency, loc string) bool {
 	}
 	return false
 }
+
+// A field typed by another go package must bring that import into the split *Cli.go file,
+// because Cast<Type>FromCli is called package-qualified there.
+func TestSplitCliExternalProviderImport(t *testing.T) {
+	fields := []*core.EmiField{
+		{
+			Name:     "User",
+			Type:     core.FieldTypeOneNullable,
+			Provider: "github.com/x/user/defs",
+			Module:   "UserEntity",
+		},
+	}
+	ctx := core.MicroGenContext{Tags: "split-cli"}
+	goctx := GoCommonStructContext{RootClassName: "Sample"}
+
+	particles, err := GoCommonStructGenerator(fields, ctx, goctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if particles.CliHelpers == nil {
+		t.Fatalf("expected CliHelpers to be split out")
+	}
+	t.Logf("cli script: %s", particles.CliHelpers.ActualScript)
+	t.Logf("cli deps: %+v", particles.CliHelpers.CodeChunkDependensies)
+	if !depHasLocation(particles.CliHelpers.CodeChunkDependensies, "github.com/x/user/defs") {
+		t.Errorf("BUG: CliHelpers misses the import of the package providing UserEntity")
+	}
+}

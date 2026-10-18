@@ -27,10 +27,14 @@ type cActionRealms struct {
 	RequestTypeName    string
 	RequestIsAmbiguous bool
 
-	ResponseStruct       *core.CodeChunkCompiled
-	ResponseTypeName     string
-	ResponseIsAmbiguous  bool
-	HasResponseShape     bool
+	ResponseStruct      *core.CodeChunkCompiled
+	ResponseTypeName    string
+	ResponseIsAmbiguous bool
+	HasResponseShape    bool
+	// ResponseEnvelope is Out.Envelope; the server wraps the response in it (only GResponse is known). ResponseIsList:
+	// Out.List - the handler gives many items and the server sends them as data.items with the total.
+	ResponseEnvelope     string
+	ResponseIsList       bool
 	RequestHeadersStruct *core.CodeChunkCompiled
 }
 
@@ -97,6 +101,11 @@ func cGetActionRealms(
 	} else if action.HasResponseDto() {
 		realms.ResponseTypeName, realms.ResponseIsAmbiguous = firstDtoNameOrAmbiguous(action.GetResponseDto())
 		realms.HasResponseShape = true
+	}
+
+	realms.ResponseEnvelope = action.GetResponseEnvelopeClass()
+	if a, ok := action.(interface{ GetResponseIsList() bool }); ok {
+		realms.ResponseIsList = a.GetResponseIsList()
 	}
 
 	if action.HasRequestHeaders() {

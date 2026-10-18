@@ -215,7 +215,8 @@ static inline int emihttpd_req_body(emihttpd_req_t* req, char** out) {
 /* Sends `json` (may be NULL for an empty body) with the given status. 0 on success. */
 static inline int emihttpd_reply_json(emihttpd_req_t* req, int status, const char* json) {
     httpd_resp_set_status(req, emihttpd_status_line(status));
-    httpd_resp_set_type(req, "application/json");
+    /* an answer with no body is not a json one: a client which reads the body of "application/json" would fail on it */
+    if (json) httpd_resp_set_type(req, "application/json");
     return httpd_resp_send(req, json ? json : "", json ? HTTPD_RESP_USE_STRLEN : 0) == ESP_OK ? 0 : -1;
 }
 
