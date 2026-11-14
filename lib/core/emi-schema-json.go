@@ -51,6 +51,10 @@ func EmiFieldToJSONSchema(f *EmiField) map[string]any {
 		schema["description"] = f.Description
 	}
 
+	if f.Default != nil {
+		schema["default"] = f.Default
+	}
+
 	switch base {
 	case string(FieldTypeEnum):
 		schema["type"] = "string"

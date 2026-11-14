@@ -199,6 +199,7 @@ type scope struct {
 	colPrefix  string   // set while flattening objects
 	nullable   bool     // inside object?, all columns are nullable
 	root       bool     // root of the entity, where id / uniqueId are reserved
+	child      bool     // a table of an array's items: it has an id and a unique_id of its own, a field of that name gets another column
 	path       []string // json keys from the row of the table down to the field, see Layout
 }
 
@@ -253,6 +254,9 @@ func (p *plan) addField(s scope, f *core.EmiField) error {
 	nullable := strings.HasSuffix(t, "?")
 	base := core.FieldType(strings.TrimSuffix(t, "?"))
 	colName := s.colPrefix + core.ToSnakeCase(f.Name)
+	if s.child && s.colPrefix == "" && (colName == "id" || colName == "unique_id" || colName == "linker_id") {
+		colName = "item_" + colName // the json key stays the field's name, only the column is renamed
+	}
 	key, visible := fieldKey(f)
 	path := append(append([]string{}, s.path...), key)
 
@@ -285,7 +289,7 @@ func (p *plan) addField(s scope, f *core.EmiField) error {
 			table:      child,
 			structName: childStruct,
 			entityName: s.entityName,
-			root:       true,
+			child:      true,
 		}, f.Fields)
 
 	case core.FieldTypeOne, core.FieldTypeClass:

@@ -247,13 +247,13 @@ static inline int {{ $fn }}_serve(emihttpd_req_t* req, void* ctx) {
 {{- if .envelope }}
             if (status >= 400) {
                 char ebuf[EMIHTTPD_ERROR_MAX + 64];
-                emihttpd_error_envelope(ebuf, sizeof(ebuf), status, emihttpd_take_error("request failed"));
+                emihttpd_error_envelope(ebuf, sizeof(ebuf), status, emihttpd_take_error_for(status));
                 rc = emihttpd_reply_json(req, status, ebuf);
             } else {
                 rc = emihttpd_reply_json(req, 204, NULL);
             }
 {{- else }}
-            rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error("request failed")) : emihttpd_reply_json(req, 204, NULL);
+            rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error_for(status)) : emihttpd_reply_json(req, 204, NULL);
 {{- end }}
         } else {
             cJSON* out = cJSON_CreateArray();
@@ -290,13 +290,13 @@ static inline int {{ $fn }}_serve(emihttpd_req_t* req, void* ctx) {
 {{- if .envelope }}
             if (status >= 400) {
                 char ebuf[EMIHTTPD_ERROR_MAX + 64];
-                emihttpd_error_envelope(ebuf, sizeof(ebuf), status, emihttpd_take_error("request failed"));
+                emihttpd_error_envelope(ebuf, sizeof(ebuf), status, emihttpd_take_error_for(status));
                 rc = emihttpd_reply_json(req, status, ebuf);
             } else {
                 rc = emihttpd_reply_json(req, 204, NULL);
             }
 {{- else }}
-            rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error("request failed")) : emihttpd_reply_json(req, 204, NULL);
+            rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error_for(status)) : emihttpd_reply_json(req, 204, NULL);
 {{- end }}
         } else {
             cJSON* out = {{ .responseType }}_to_json(res);
@@ -318,7 +318,7 @@ static inline int {{ $fn }}_serve(emihttpd_req_t* req, void* ctx) {
 {{- else }}
         char* text = binding->handler(&call, &status);
         if (!text) {
-            rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error("request failed")) : emihttpd_reply_json(req, 204, NULL);
+            rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error_for(status)) : emihttpd_reply_json(req, 204, NULL);
         } else {
             rc = emihttpd_reply_json(req, status ? status : 200, text);
             free(text);

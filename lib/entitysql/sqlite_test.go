@@ -261,6 +261,45 @@ func TestSQLiteLayoutUsesSQLiteTypes(t *testing.T) {
 	}
 }
 
+// An array's items may have a field called id (React Flow's node id, say): the item table has an id of its own, so the column is
+// item_id, but the field is still in the layout under its json key, so it is stored and packed.
+func TestArrayItemMayHaveAnIdField(t *testing.T) {
+	m, err := core.StringToEmi(`
+entities:
+  - name: sheet
+    fields:
+      - name: title
+        type: string
+      - name: nodes
+        type: array
+        fields:
+          - name: id
+            type: string
+          - name: label
+            type: string
+`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := Generate(m.Entities, Options{Dialect: SQLite})
+	if err != nil {
+		t.Fatal(err)
+	}
+	child := r.Layouts[0].Children[0].Layout
+	found := false
+	for _, c := range child.Columns {
+		if len(c.Path) == 1 && c.Path[0] == "id" {
+			found = c.Column == "item_id"
+		}
+	}
+	if !found {
+		t.Errorf("the item's id field is not in the layout as item_id: %+v", child.Columns)
+	}
+	if !strings.Contains(r.Script, `"item_id"`) {
+		t.Errorf("the script has no item_id column:\n%s", r.Script)
+	}
+}
+
 func TestDialectFromTags(t *testing.T) {
 	for tags, want := range map[string]Dialect{"": Postgres, "postgres": Postgres, "sqlite": SQLite, "typescript, sqlite": SQLite, "x,y": Postgres} {
 		got, err := DialectFromTags(tags)

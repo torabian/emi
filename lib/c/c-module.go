@@ -64,6 +64,11 @@ func AsFullDocument(x *core.CodeChunkCompiled) string {
 	return string(core.EscapeLines([]byte(sb.String())))
 }
 
+// textTransport: the tags which need emitext.h (the command line runs its requests through the text transport).
+func textTransport(ctx core.MicroGenContext) bool {
+	return ctx.HasTag(MongooseServer) && (ctx.HasTag(TextRouter) || ctx.HasTag(Cli))
+}
+
 // DiscoverComplexes finds every module-level complex type compiled for the
 // general/C target, mirroring the same helper in the sibling generators.
 // ImportLocation here is a header to #include (`"vector3.h"` or
@@ -211,6 +216,19 @@ func CModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core
 		})
 	}
 
+	if (ctx.HasTag(TextRouter) || ctx.HasTag(Cli)) && !ctx.HasTag(MongooseServer) {
+		return nil, fmt.Errorf("text-router and cli need the mongoose-server backend (--tags mongoose-server,text-router,cli)")
+	}
+	if ctx.HasTag(Cli) {
+		cfile, err := CCliVirtualFile(module, ctx, complexes)
+		if err != nil {
+			return nil, err
+		}
+		if cfile != nil {
+			files = append(files, *cfile)
+		}
+	}
+
 	skipSdk := ctx.HasTag(NoSdk)
 	if !skipSdk {
 		backend := serverBackendHeader(ctx)
@@ -222,6 +240,12 @@ func CModuleFullVirtualFiles(module *core.Emi, ctx core.MicroGenContext) ([]core
 				continue
 			}
 			if name == "emihttpd_core.h" && backend == "" {
+				continue
+			}
+			if name == "emitext.h" && !textTransport(ctx) {
+				continue
+			}
+			if (name == "emicli.h" || strings.HasPrefix(name, "argparse/")) && !ctx.HasTag(Cli) {
 				continue
 			}
 			if name == "emisql.h" && !ctx.HasTag(Sqlite) {
@@ -288,6 +312,15 @@ that you implement; ` + "`method: reactive`" + ` actions get websocket sessions 
 Set ` + "`config.uri_match_fn = emihttpd_uri_match`" + ` on the ` + "`httpd_config_t`" + ` so ` + "`/users/:id`" + ` routes match,
 enable ` + "`CONFIG_HTTPD_WS_SUPPORT`" + ` for reactive actions (` + "`--tags mongoose-server`" + ` instead targets Mongoose: macOS/Linux/Windows/ESP-IDF, bring your own mongoose.c/.h), and add the ` + "`cjson`" + `/` + "`emihttpd.h`" + ` files to
 your component. Example: examples/esp-server.
+
+Text transport (` + "`--tags mongoose-server,text-router`" + `): the routes also answer a line of text - ` + "`:::get /api/device`" + ` gives
+` + "`:::200 {...}`" + ` - read from a serial port, a USB endpoint or a BLE characteristic. ` + "`emihttpd_text_link_init`" + ` + ` + "`emitext_link_feed`" + `
+(bytes in, answers written in pieces of an mtu), or one call: ` + "`emihttpd_text_call(&router, \"get /api/device\")`" + `. The line format, the
+USB and BLE profiles are in emitext.h.
+
+Command line (` + "`--tags mongoose-server,cli`" + `): ` + "`emi_cli.h`" + ` has one command per action (path parameters, query fields and request
+fields are the flags) and ` + "`emi_cli_main(&router, argc, argv)`" + ` runs it on the registered handlers, in process. Compile
+` + "`argparse/argparse.c`" + ` (vendored, MIT) with the program. See emicli.h.
 
 SQLite storage (` + "`--tags sqlite`" + `): every entity of the module also gets, in its own header, ` + "`Entity_insert/_get/_update/_patch/_delete/_list/_query`" + `
 over sqlite3 (` + "`_query`" + ` takes an ` + "`EmiSqlQuery`" + `: a json-logic filter, a sort, paging, and returns the total;

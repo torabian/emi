@@ -37,6 +37,10 @@ type EmiIntent struct {
 	// tool listed.
 	Permission string `yaml:"permission,omitempty" json:"permission,omitempty" jsonschema:"description=Permission key from this module's Permissions tree required to see/call this tool."`
 
+	// Recovery tells the model what to do after a failed call (e.g. "Call listInvoices
+	// to obtain a valid uniqueId."); surfaced as recoveryHint in the tool's error result.
+	Recovery string `yaml:"recovery,omitempty" json:"recovery,omitempty" jsonschema:"description=Hint telling the model how to recover from a failed call e.g. which tool to call to obtain a valid identifier. Returned as recoveryHint in the error result."`
+
 	// resolvedFrom is the EmiAction this intent was derived from (via From),
 	// stashed here by preprocessIntents purely so a compiler backend can pull
 	// its own Query/Url path params into the tool's combined input schema

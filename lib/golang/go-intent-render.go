@@ -286,6 +286,12 @@ func renderIntentToolRegistration(goName string, it *core.EmiIntent, ctx core.Mi
 	actionName := src.GetName()
 	bodyType := bodyGoTypeName(src)
 
+	invalidHint := "Re-read the tool's input schema and call it again with corrected arguments."
+	failHint := it.Recovery
+	if failHint == "" {
+		failHint = invalidHint
+	}
+
 	pathRealms, err := GoActionPathParamsRealms(src, ctx)
 	if err != nil {
 		return "", nil, false, err
@@ -309,7 +315,7 @@ func renderIntentToolRegistration(goName string, it *core.EmiIntent, ctx core.Mi
 	fmt.Fprintf(&b, "\t\targs := map[string]interface{}{}\n")
 	fmt.Fprintf(&b, "\t\tif len(call.Input) > 0 {\n")
 	fmt.Fprintf(&b, "\t\t\tif err := json.Unmarshal(call.Input, &args); err != nil {\n")
-	fmt.Fprintf(&b, "\t\t\t\treturn \"invalid arguments: \" + err.Error(), true\n")
+	fmt.Fprintf(&b, "\t\t\t\treturn emigo.ToolErrorContent(\"Invalid arguments: \" + err.Error(), %q), true\n", invalidHint)
 	fmt.Fprintf(&b, "\t\t\t}\n")
 	fmt.Fprintf(&b, "\t\t}\n\n")
 
@@ -342,20 +348,20 @@ func renderIntentToolRegistration(goName string, it *core.EmiIntent, ctx core.Mi
 			case "bool":
 				fmt.Fprintf(&b, "\t\t\tparsed, parseErr := strconv.ParseBool(fmt.Sprintf(\"%%v\", v))\n")
 				fmt.Fprintf(&b, "\t\t\tif parseErr != nil {\n")
-				fmt.Fprintf(&b, "\t\t\t\treturn \"invalid \\\"%s\\\" argument: \" + parseErr.Error(), true\n", p.PlaceHolderValue)
+				fmt.Fprintf(&b, "\t\t\t\treturn emigo.ToolErrorContent(\"Invalid \\\"%s\\\" argument: \" + parseErr.Error(), %q), true\n", p.PlaceHolderValue, invalidHint)
 				fmt.Fprintf(&b, "\t\t\t}\n")
 				fmt.Fprintf(&b, "\t\t\tpathParams.%s = parsed\n", p.GolangFieldName)
 			case "float32", "float64":
 				fmt.Fprintf(&b, "\t\t\tparsed, parseErr := strconv.ParseFloat(fmt.Sprintf(\"%%v\", v), 64)\n")
 				fmt.Fprintf(&b, "\t\t\tif parseErr != nil {\n")
-				fmt.Fprintf(&b, "\t\t\t\treturn \"invalid \\\"%s\\\" argument: \" + parseErr.Error(), true\n", p.PlaceHolderValue)
+				fmt.Fprintf(&b, "\t\t\t\treturn emigo.ToolErrorContent(\"Invalid \\\"%s\\\" argument: \" + parseErr.Error(), %q), true\n", p.PlaceHolderValue, invalidHint)
 				fmt.Fprintf(&b, "\t\t\t}\n")
 				fmt.Fprintf(&b, "\t\t\tpathParams.%s = %s(parsed)\n", p.GolangFieldName, p.GolangType)
 			default:
 				// int, int32, int64, uint, uint32, uint64, uint8, uint16, ...
 				fmt.Fprintf(&b, "\t\t\tparsed, parseErr := strconv.ParseInt(fmt.Sprintf(\"%%v\", v), 10, 64)\n")
 				fmt.Fprintf(&b, "\t\t\tif parseErr != nil {\n")
-				fmt.Fprintf(&b, "\t\t\t\treturn \"invalid \\\"%s\\\" argument: \" + parseErr.Error(), true\n", p.PlaceHolderValue)
+				fmt.Fprintf(&b, "\t\t\t\treturn emigo.ToolErrorContent(\"Invalid \\\"%s\\\" argument: \" + parseErr.Error(), %q), true\n", p.PlaceHolderValue, invalidHint)
 				fmt.Fprintf(&b, "\t\t\t}\n")
 				fmt.Fprintf(&b, "\t\t\tpathParams.%s = %s(parsed)\n", p.GolangFieldName, p.GolangType)
 			}
@@ -368,11 +374,11 @@ func renderIntentToolRegistration(goName string, it *core.EmiIntent, ctx core.Mi
 	if bodyType != "" {
 		fmt.Fprintf(&b, "\t\tbodyJSON, err := json.Marshal(args)\n")
 		fmt.Fprintf(&b, "\t\tif err != nil {\n")
-		fmt.Fprintf(&b, "\t\t\treturn \"invalid arguments: \" + err.Error(), true\n")
+		fmt.Fprintf(&b, "\t\t\treturn emigo.ToolErrorContent(\"Invalid arguments: \" + err.Error(), %q), true\n", invalidHint)
 		fmt.Fprintf(&b, "\t\t}\n")
 		fmt.Fprintf(&b, "\t\tvar body %s\n", bodyType)
 		fmt.Fprintf(&b, "\t\tif err := json.Unmarshal(bodyJSON, &body); err != nil {\n")
-		fmt.Fprintf(&b, "\t\t\treturn \"invalid arguments: \" + err.Error(), true\n")
+		fmt.Fprintf(&b, "\t\t\treturn emigo.ToolErrorContent(\"Invalid arguments: \" + err.Error(), %q), true\n", invalidHint)
 		fmt.Fprintf(&b, "\t\t}\n\n")
 	}
 
@@ -387,11 +393,11 @@ func renderIntentToolRegistration(goName string, it *core.EmiIntent, ctx core.Mi
 	}
 	fmt.Fprintf(&b, "\t\t})\n")
 	fmt.Fprintf(&b, "\t\tif err != nil {\n")
-	fmt.Fprintf(&b, "\t\t\treturn err.Error(), true\n")
+	fmt.Fprintf(&b, "\t\t\treturn emigo.ToolErrorFrom(err, %q), true\n", failHint)
 	fmt.Fprintf(&b, "\t\t}\n")
 	fmt.Fprintf(&b, "\t\tb, err := json.Marshal(resp.Payload)\n")
 	fmt.Fprintf(&b, "\t\tif err != nil {\n")
-	fmt.Fprintf(&b, "\t\t\treturn err.Error(), true\n")
+	fmt.Fprintf(&b, "\t\t\treturn emigo.ToolErrorFrom(err, %q), true\n", failHint)
 	fmt.Fprintf(&b, "\t\t}\n")
 	fmt.Fprintf(&b, "\t\treturn string(b), false\n")
 	fmt.Fprintf(&b, "\t})\n")

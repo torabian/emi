@@ -4,7 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"math"
 	"reflect"
+	"strconv"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -67,10 +69,34 @@ func (n Nullable[T]) Value() (driver.Value, error) {
 		return nil, nil
 	}
 
+	// database/sql only allows int64, float64, bool, []byte, string and time.Time as a driver.Value. Some
+	// drivers (pgx) accept the other integer widths anyway, strict ones (sqlite) refuse them, so widen here.
 	switch v := any(*n.value).(type) {
-	case string, []byte, int64, float64, bool, int, int32, int16, int8,
-		uint, uint64, uint32, uint16, uint8:
+	case string, []byte, int64, float64, bool:
 		return v, nil
+	case int:
+		return int64(v), nil
+	case int32:
+		return int64(v), nil
+	case int16:
+		return int64(v), nil
+	case int8:
+		return int64(v), nil
+	case uint:
+		return int64(v), nil
+	case uint32:
+		return int64(v), nil
+	case uint16:
+		return int64(v), nil
+	case uint8:
+		return int64(v), nil
+	case uint64:
+		if v > math.MaxInt64 {
+			return strconv.FormatUint(v, 10), nil
+		}
+		return int64(v), nil
+	case float32:
+		return float64(v), nil
 	default:
 		// fallback json
 		return json.Marshal(v)

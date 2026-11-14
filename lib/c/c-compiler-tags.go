@@ -31,6 +31,16 @@ const Kconfig core.CTag = "kconfig"
 // (macOS, Linux, Windows, ESP-IDF); the developer supplies mongoose.c/.h.
 const MongooseServer core.CTag = "mongoose-server"
 
+// TextRouter makes the routes of a mongoose-server also answer a line of text (":::get /api/device"): the runtime
+// emitext.h (line protocol, a link for serial / USB / BLE bytes, chunking to an mtu) is shipped next to the backend,
+// which then dispatches text requests into the same route table as http ones.
+const TextRouter core.CTag = "text-router"
+
+// Cli generates emi_cli.h, the command table of the module (one command per non reactive action: the flags are its path
+// parameters, query fields and request fields), and ships emicli.h with the vendored argparse: emi_cli_main(&router,
+// argc, argv) runs a command on the router the handlers are registered on, in process, as the text transport does.
+const Cli core.CTag = "cli"
+
 // CompilerTags lists every tag this package understands, for `emi tags` to
 // display. Keep in sync with the const list above.
 var CompilerTags = []core.CompilerTagDoc{
@@ -40,5 +50,7 @@ var CompilerTags = []core.CompilerTagDoc{
 	{Tag: Pack, Description: "Generate the entities of the module as C structs with Entity_pack/Entity_unpack, a compact binary form for storage without SQLite (a file, an NVS blob); no sqlite3.h needed"},
 	{Tag: MongooseServer, Description: "Generate Mongoose server handlers (incl. websocket sessions for reactive actions) for macOS/Linux/Windows/ESP-IDF; bring your own mongoose.c/.h"},
 	{Tag: Kconfig, Description: "Generate Kconfig.<module> from the config: block (bool/int/string, default, min/max, depends); symbols are <MODULE>_<NAME>, so C sees CONFIG_<MODULE>_<NAME>"},
+	{Tag: TextRouter, Description: "With mongoose-server: ship emitext.h so the same routes also answer text requests (\":::get /api/device\" -> \":::200 {...}\") over serial, USB or BLE bytes"},
+	{Tag: Cli, Description: "With mongoose-server: generate emi_cli.h, one command line command per action (path parameters, query and request fields as flags), run in process on the registered handlers with emi_cli_main; ships emicli.h and the vendored argparse (compile argparse/argparse.c)"},
 	{Tag: EspServer, Description: "Generate ESP-IDF esp_http_server handlers (incl. websocket sessions for reactive actions) instead of client functions"},
 }

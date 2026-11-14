@@ -45,6 +45,26 @@ func cStructTypeRef(typeName, selfTypeName string) string {
 	return typeName
 }
 
+// cKeywords are the words a C struct member can not be called: the keywords of C11 and the macros of <stdbool.h>, which every generated
+// header includes. A field named like one (a `default` of a form field, say) gets a trailing underscore in the struct; its json key is
+// unchanged.
+var cKeywords = map[string]bool{
+	"auto": true, "break": true, "case": true, "char": true, "const": true, "continue": true, "default": true, "do": true,
+	"double": true, "else": true, "enum": true, "extern": true, "float": true, "for": true, "goto": true, "if": true,
+	"inline": true, "int": true, "long": true, "register": true, "restrict": true, "return": true, "short": true,
+	"signed": true, "sizeof": true, "static": true, "struct": true, "switch": true, "typedef": true, "union": true,
+	"unsigned": true, "void": true, "volatile": true, "while": true, "_Bool": true, "_Complex": true, "_Imaginary": true,
+	"bool": true, "true": true, "false": true,
+}
+
+// cMember is name as a C struct member.
+func cMember(name string) string {
+	if cKeywords[name] {
+		return name + "_"
+	}
+	return name
+}
+
 func jsonKey(name string) string {
 	b, _ := jsonMarshal(name)
 	return b
@@ -60,8 +80,8 @@ func jsonMarshal(s string) (string, error) {
 // field: its declaration, and its `_init`/`_free_fields`/`_to_json`/
 // `_from_json_into` contributions.
 func cResolveField(field *core.EmiField, prefixName string, selfTypeName string, complexes []RecognizedComplex) cFieldPlan {
-	name := field.Name
-	key := jsonKey(name)
+	name := cMember(field.Name)
+	key := jsonKey(field.Name) // the wire keeps the name as written, only the C member is renamed
 	nestedType := cFieldNestedTypeName(field, prefixName)
 
 	if field.Complex != "" {
