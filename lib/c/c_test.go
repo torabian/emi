@@ -378,3 +378,32 @@ int main(void) {
 		t.Fatalf("websocket/media checks failed: %v\n%s", err, out)
 	}
 }
+
+// A field named like a C keyword (a form field called `default`, a flag called `bool`) must still give a struct which compiles: the member
+// gets a trailing underscore, the json key stays as written.
+func TestCFieldNamedLikeAKeyword(t *testing.T) {
+	fields := []*core.EmiField{
+		{Name: "default", Type: core.FieldTypeString},
+		{Name: "register", Type: core.FieldTypeInt},
+		{Name: "bool", Type: core.FieldTypeBool},
+		{Name: "plain", Type: core.FieldTypeString},
+	}
+	chunk, err := CCommonObjectGenerator(fields, core.MicroGenContext{}, CCommonObjectContext{RootTypeName: "Sample"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	script := string(chunk.ActualScript)
+	for _, want := range []string{
+		`char* default_;`, `self->default_ = strdup("");`, `"default", self->default_`, `self->default_ = strdup(v->valuestring);`,
+		`int32_t register_;`, `bool bool_;`, `char* plain;`,
+	} {
+		if !strings.Contains(script, want) {
+			t.Errorf("missing %q in:\n%s", want, script)
+		}
+	}
+	for _, bad := range []string{`char* default;`, `self->default =`, `int32_t register;`, `bool bool;`} {
+		if strings.Contains(script, bad) {
+			t.Errorf("a keyword is used as a member: %q", bad)
+		}
+	}
+}

@@ -42,6 +42,12 @@ func cliBoldYamlKeys(doc string, out *os.File) string {
 	return cliYamlKey.ReplaceAllString(doc, "${1}"+cliHelpBold+"${2}"+cliHelpReset+":${3}")
 }
 
+// HighlightYamlKeys styles the keys of a YAML document exactly like the cli's own yaml output
+// does, when out is an interactive terminal (NO_COLOR turns it off); otherwise doc comes back
+// untouched. For code outside emigo that prints yaml to a terminal itself (a streaming chat, a
+// search), so every command looks the same.
+func HighlightYamlKeys(doc string, out *os.File) string { return cliBoldYamlKeys(doc, out) }
+
 // ansi 256-color 33 stays readable on dark and light backgrounds.
 const (
 	cliHelpBold  = "\x1b[1m"

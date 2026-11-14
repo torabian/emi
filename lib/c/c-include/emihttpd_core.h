@@ -59,6 +59,37 @@ static inline const char* emihttpd_take_error(const char* fallback) {
     return taken;
 }
 
+/* What a status means when no handler said more: the text of a reply that has no message of its own. A 501 is the usual one on a small device: the
+ * feature behind the route is not built in (a Kconfig flag is off) or not supported by this target. */
+static inline const char* emihttpd_status_text(int status) {
+    switch (status) {
+    case 400: return "bad request: the request could not be understood (malformed path, query or body)";
+    case 401: return "not authenticated";
+    case 403: return "not allowed";
+    case 404: return "not found: no such item";
+    case 405: return "this route does not accept that method";
+    case 409: return "conflict with the current state of the device";
+    case 413: return "the request body is too large for this device";
+    case 415: return "unsupported content type";
+    case 422: return "refused: a value of the request is not acceptable";
+    case 429: return "too many requests, try again in a moment";
+    case 500: return "the handler failed inside the device (no reason was reported; see the serial log)";
+    case 501: return "not available in this build: the feature behind this route is switched off in the firmware configuration, or this target does not support it";
+    case 503: return "temporarily unavailable: the device is busy or the service is not running yet";
+    default: return NULL;
+    }
+}
+/* The text a handler set (and forgets it), else what the status means, else "request failed (status N)". The result is valid until the next call. */
+static inline const char* emihttpd_take_error_for(int status) {
+    static char text[EMIHTTPD_ERROR_MAX];
+    const char* set = emihttpd_take_error(NULL);
+    if (set) return set;
+    const char* known = emihttpd_status_text(status);
+    if (known) return known;
+    snprintf(text, sizeof(text), "request failed (status %d)", status);
+    return text;
+}
+
 /* The error body of the GResponse envelope - {"error":{"code":404,"message":"..."}} - into buf. message must be json safe
  * (emihttpd_set_error / emihttpd_take_error make it so). */
 static inline void emihttpd_error_envelope(char* buf, size_t size, int status, const char* message) {
@@ -80,6 +111,29 @@ static inline void emihttpd_error_envelope(char* buf, size_t size, int status, c
 /* Websocket clients tracked per reactive action. */
 #ifndef EMIHTTPD_MAX_CLIENTS
 #define EMIHTTPD_MAX_CLIENTS 8
+#endif
+
+/* Access-Control-Allow-Headers of a preflight is not a fixed list: a client sends headers of its own (workspace-id, ...), and the answer must
+ * name every one it asks for (Access-Control-Request-Headers), so the runtime echoes them; this is only what it says when none are asked. */
+#define EMIHTTPD_CORS_DEFAULT_ALLOW_HEADERS "Content-Type, Authorization, Accept"
+
+/* Cross origin requests: every answer carries Access-Control-Allow-Origin (EMIHTTPD_CORS_ORIGIN, "*" unless defined otherwise) and an
+ * OPTIONS request no route handles is answered as a preflight (204), so a page served from another origin can call the api. Define
+ * EMIHTTPD_NO_CORS to send none of it. EMIHTTPD_CORS_HEADERS is a string literal of header lines for any reply function to prepend. */
+#ifndef EMIHTTPD_CORS_ORIGIN
+#define EMIHTTPD_CORS_ORIGIN "*"
+#endif
+#ifdef EMIHTTPD_NO_CORS
+#define EMIHTTPD_CORS_ON 0
+#define EMIHTTPD_CORS_HEADERS ""
+#define EMIHTTPD_CORS_PREFLIGHT_HEADERS ""
+#else
+#define EMIHTTPD_CORS_ON 1
+#define EMIHTTPD_CORS_HEADERS "Access-Control-Allow-Origin: " EMIHTTPD_CORS_ORIGIN "\r\n"
+#define EMIHTTPD_CORS_PREFLIGHT_HEADERS                                                          \
+    EMIHTTPD_CORS_HEADERS                                                                        \
+    "Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS\r\n"            \
+    "Access-Control-Max-Age: 86400\r\n"
 #endif
 
 typedef enum EmiHttpdMethod {

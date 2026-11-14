@@ -574,7 +574,7 @@
         },
         "depends": {
           "type": "string",
-          "description": "Kconfig expression (\u0026\u0026"
+          "description": "Kconfig expression (&&"
         },
         "fields": {
           "items": {
@@ -1153,6 +1153,10 @@
         "permission": {
           "type": "string",
           "description": "Permission key from this module's Permissions tree required to see/call this tool."
+        },
+        "recovery": {
+          "type": "string",
+          "description": "Hint telling the model how to recover from a failed call e.g. which tool to call to obtain a valid identifier. Returned as recoveryHint in the error result."
         }
       },
       "additionalProperties": false,
@@ -1184,7 +1188,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "Name of the interface in camel case. The generated type is the PascalCase form (purchasable -\u003e Purchasable)."
+          "description": "Name of the interface in camel case. The generated type is the PascalCase form (purchasable -> Purchasable)."
         },
         "description": {
           "type": "string",
@@ -1323,7 +1327,7 @@
         },
         "params": {
           "$ref": "#/definitions/EmiActionBody",
-          "description": "Parameters that scope this permission (e.g. the workspaceId a grant applies within). fields becomes a typed DTO named \u003cFullKey\u003ePermissionParams in go"
+          "description": "Parameters that scope this permission (e.g. the workspaceId a grant applies within). fields becomes a typed DTO named <FullKey>PermissionParams in go"
         }
       },
       "additionalProperties": false,
@@ -1441,7 +1445,7 @@
             "$ref": "#/definitions/EmiFieldTemplate"
           },
           "type": "array",
-          "description": "Reusable field shapes. Any field can build itself from one with use: \u003cname\u003e."
+          "description": "Reusable field shapes. Any field can build itself from one with use: <name>."
         }
       },
       "additionalProperties": false,
@@ -1531,7 +1535,7 @@
         },
         "defaultPermissions": {
           "type": "boolean",
-          "description": "When true (default false) the compiler adds a permission group named after the entity to the module permissions: \u003centity\u003e.* with children \u003centity\u003e.query / .create / .update / .delete. A hand-declared permission of the same name wins."
+          "description": "When true (default false) the compiler adds a permission group named after the entity to the module permissions: <entity>.* with children <entity>.query / .create / .update / .delete. A hand-declared permission of the same name wins."
         },
         "features": {
           "$ref": "#/definitions/Module3EntityFeatures",

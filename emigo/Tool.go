@@ -3,6 +3,7 @@ package emigo
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -95,4 +96,39 @@ func (r *ToolRegistry) Execute(ctx context.Context, req EmiRequestContexts, call
 		return fmt.Sprintf("unknown tool %q", call.Name), true
 	}
 	return h(ctx, req, call)
+}
+
+// ToolError is a model-facing failure: a message plus a hint telling the model what
+// to do next. A handler may return one (or wrap one) to have its text surfaced
+// verbatim; any other handler error is considered internal and is replaced by a
+// generic message so database/server details never reach the model.
+type ToolError struct {
+	Message      string `json:"error"`
+	RecoveryHint string `json:"recoveryHint,omitempty"`
+}
+
+func (e *ToolError) Error() string { return e.Message }
+
+// ToolErrorContent renders a failed tool result as {"error","recoveryHint"} JSON.
+func ToolErrorContent(message, recoveryHint string) string {
+	b, err := json.Marshal(ToolError{Message: message, RecoveryHint: recoveryHint})
+	if err != nil {
+		return message
+	}
+	return string(b)
+}
+
+// ToolErrorFrom converts a handler error into failed tool content. A *ToolError
+// (found via errors.As) is passed through, with defaultHint filled in when it has
+// none; anything else becomes a generic message plus defaultHint.
+func ToolErrorFrom(err error, defaultHint string) string {
+	var te *ToolError
+	if errors.As(err, &te) {
+		hint := te.RecoveryHint
+		if hint == "" {
+			hint = defaultHint
+		}
+		return ToolErrorContent(te.Message, hint)
+	}
+	return ToolErrorContent("The operation failed.", defaultHint)
 }

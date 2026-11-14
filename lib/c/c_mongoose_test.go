@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -54,9 +55,11 @@ static void on_msg(const StateStreamActionSession* s, const StateStreamActionReq
     state_stream_action_send(g_stream, s->conn, r);
     StateStreamActionResponse_free(r);
 }
+static void on_request(void* user) { (void) user; printf("request\n"); fflush(stdout); }
 int main(int argc, char** argv) {
     struct mg_mgr mgr; mg_mgr_init(&mgr);
     EmiHttpdRouter router; emihttpd_router_init(&router, &mgr);
+    router.on_request = on_request; /* told of every HTTP request, whichever route (or none) answers it */
     set_temperature_action_register(&router, on_set, NULL);
     get_state_action_register(&router, on_state, NULL);
     StateStreamActionCallbacks cb = {.on_open = on_open, .on_message = on_msg};
@@ -210,12 +213,17 @@ func TestMongooseServer(t *testing.T) {
 	if !ready {
 		t.Fatal("server did not start")
 	}
+	var heard, asked atomic.Int32 // requests the server's on_request hook reported / requests this test made
 	go func() {
 		for lines.Scan() {
+			if lines.Text() == "request" {
+				heard.Add(1)
+			}
 		}
 	}()
 
 	do := func(method, path, body string) (int, string, http.Header) {
+		asked.Add(1)
 		req, _ := http.NewRequest(method, "http://"+addr+path, strings.NewReader(body))
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -232,6 +240,19 @@ func TestMongooseServer(t *testing.T) {
 	}
 	if hdr.Get("Content-Type") != "application/json" {
 		t.Errorf("content type %q", hdr.Get("Content-Type"))
+	}
+	if hdr.Get("Access-Control-Allow-Origin") != "*" {
+		t.Errorf("an answer must allow any origin, got %q", hdr.Get("Access-Control-Allow-Origin"))
+	}
+	// the preflight of a cross origin request: no route handles OPTIONS, the runtime answers it
+	pre, _ := http.NewRequest("OPTIONS", "http://"+addr+"/api/ot/set-temp/7", nil)
+	pre.Header.Set("Access-Control-Request-Headers", "workspace-id, content-type")
+	if resp, err := http.DefaultClient.Do(pre); err != nil || resp.Header.Get("Access-Control-Allow-Headers") != "workspace-id, content-type" {
+		t.Errorf("a preflight must allow the headers it asks for: %v %v", err, resp)
+	}
+	code, _, hdr = do("OPTIONS", "/api/ot/set-temp/7", "")
+	if code != 204 || hdr.Get("Access-Control-Allow-Origin") != "*" || !strings.Contains(hdr.Get("Access-Control-Allow-Methods"), "PATCH") || !strings.Contains(hdr.Get("Access-Control-Allow-Headers"), "Content-Type") {
+		t.Errorf("preflight: %d %v", code, hdr)
 	}
 	if code, body, _ = do("POST", "/api/ot/set-temp/7", `{"target":50}`); code != 422 {
 		t.Errorf("handler status not used: %d", code)
@@ -275,4 +296,145 @@ func TestMongooseServer(t *testing.T) {
 	if !strings.Contains(rstatus, "403") {
 		t.Errorf("rejected client should get 403: %s", rstatus)
 	}
+
+	// on_request heard every plain request (routes, 404s) and the websocket upgrades; give the output pipe a moment
+	deadline := time.Now().Add(2 * time.Second)
+	for heard.Load() < asked.Load() && time.Now().Before(deadline) {
+		time.Sleep(20 * time.Millisecond)
+	}
+	if heard.Load() < asked.Load() || asked.Load() == 0 {
+		t.Errorf("on_request heard %d of %d requests", heard.Load(), asked.Load())
+	}
+}
+
+// A small device has few sockets and a browser keeps the connections of a page open for minutes: with -DEMIHTTPD_IDLE_MS a plain HTTP connection which has asked for nothing for that
+// long is closed by the server, one in use is not, and a new one works.
+func TestMongooseIdleConnectionsAreClosed(t *testing.T) {
+	mg := os.Getenv("MONGOOSE_DIR")
+	if mg == "" {
+		t.Skip("set MONGOOSE_DIR to a directory with mongoose.c/mongoose.h to run")
+	}
+	cc, err := exec.LookPath("cc")
+	if err != nil {
+		t.Skip("no C compiler available")
+	}
+	content, err := os.ReadFile("../../examples/esp-server/thermo.emi.yml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	module, err := core.StringToEmi(string(content))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := core.MicroGenContext{Content: string(content), Flags: map[string]string{}, Tags: string(MongooseServer)}
+	files, err := CModuleFullVirtualFiles(&module, ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	for _, f := range files {
+		full := filepath.Join(dir, f.Location, f.Name+f.Extension)
+		if err := os.MkdirAll(filepath.Dir(full), 0755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(full, []byte(f.ActualScript), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(dir, "main.c"), []byte(mongooseHostMain), 0644); err != nil {
+		t.Fatal(err)
+	}
+	bin := filepath.Join(dir, "srv")
+	if out, err := exec.Command(cc, "-std=c99", "-D_POSIX_C_SOURCE=200809L", "-D_DARWIN_C_SOURCE", "-Wall", "-Wextra", "-DEMIHTTPD_IDLE_MS=400",
+		"-I", dir, "-I", mg, filepath.Join(dir, "main.c"), filepath.Join(dir, "cjson", "cJSON.c"),
+		filepath.Join(mg, "mongoose.c"), "-o", bin, "-lm", "-lpthread").CombinedOutput(); err != nil {
+		t.Fatalf("generated mongoose server with an idle limit failed to compile:\n%s", out)
+	}
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := ln.Addr().String()
+	_ = ln.Close()
+	cmd := exec.Command(bin, "http://"+addr)
+	stdout, _ := cmd.StdoutPipe()
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = cmd.Process.Kill(); _ = cmd.Wait() }()
+	lines := bufio.NewScanner(stdout)
+	ready := false
+	for lines.Scan() {
+		if lines.Text() == "ready" {
+			ready = true
+			break
+		}
+	}
+	if !ready {
+		t.Fatal("server did not start")
+	}
+	go func() {
+		for lines.Scan() {
+		}
+	}()
+
+	const request = "GET /nothing-here HTTP/1.1\r\nHost: x\r\n\r\n"
+	// closedWithin: whether the server closes the connection (a read ends with EOF) within the time, without our sending anything
+	closedWithin := func(c net.Conn, d time.Duration) bool {
+		_ = c.SetReadDeadline(time.Now().Add(d))
+		buf := make([]byte, 4096)
+		for {
+			if _, err := c.Read(buf); err != nil {
+				ne, isNet := err.(net.Error)
+				return !(isNet && ne.Timeout())
+			}
+		}
+	}
+
+	// a keep-alive connection which was used and is left alone: closed
+	c1, err := net.Dial("tcp", addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c1.Close()
+	_, _ = c1.Write([]byte(request))
+	_ = c1.SetReadDeadline(time.Now().Add(2 * time.Second))
+	if n, err := c1.Read(make([]byte, 4096)); err != nil || n == 0 {
+		t.Fatalf("no answer to the request: %v", err)
+	}
+	if !closedWithin(c1, 3*time.Second) {
+		t.Error("an idle keep-alive connection must be closed by the server")
+	}
+
+	// one that never asked for anything is closed too
+	c2, err := net.Dial("tcp", addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c2.Close()
+	if !closedWithin(c2, 3*time.Second) {
+		t.Error("a connection which asks for nothing must be closed by the server")
+	}
+
+	// one in use is not closed: a request every 150 ms for 1.2 s (three idle limits) is answered every time
+	c3, err := net.Dial("tcp", addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c3.Close()
+	for i := 0; i < 8; i++ {
+		_, _ = c3.Write([]byte(request))
+		_ = c3.SetReadDeadline(time.Now().Add(2 * time.Second))
+		if n, err := c3.Read(make([]byte, 4096)); err != nil || n == 0 {
+			t.Fatalf("request %d on a connection in use was not answered: %v", i, err)
+		}
+		time.Sleep(150 * time.Millisecond)
+	}
+
+	// and a new connection works after all that
+	resp, err := http.Get("http://" + addr + "/nothing-here")
+	if err != nil {
+		t.Fatalf("a new connection must work: %v", err)
+	}
+	_ = resp.Body.Close()
 }

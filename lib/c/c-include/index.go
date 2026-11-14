@@ -8,5 +8,5 @@ package cinclude
 
 import "embed"
 
-//go:embed cjson fetchx.h emiws.h emimedia.h emihttpd_core.h emihttpd_esp.h emihttpd_mongoose.h emisql.h emilayout.h emipack.h
+//go:embed cjson fetchx.h emiws.h emimedia.h emihttpd_core.h emihttpd_esp.h emihttpd_mongoose.h emisql.h emilayout.h emipack.h emitext.h emicli.h argparse
 var Content embed.FS

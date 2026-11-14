@@ -106,6 +106,7 @@ static char fake_status[64];
 static char fake_type[64];
 static char fake_resp[2048];
 static inline esp_err_t httpd_resp_set_status(httpd_req_t* r, const char* s) { (void) r; snprintf(fake_status, sizeof(fake_status), "%s", s); return ESP_OK; }
+static inline esp_err_t httpd_resp_set_hdr(httpd_req_t* r, const char* k, const char* v) { (void) r; (void) k; (void) v; return ESP_OK; }
 static inline esp_err_t httpd_resp_set_type(httpd_req_t* r, const char* t) { (void) r; snprintf(fake_type, sizeof(fake_type), "%s", t); return ESP_OK; }
 static inline esp_err_t httpd_resp_send(httpd_req_t* r, const char* b, long len) {
     (void) r;
