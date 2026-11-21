@@ -184,6 +184,47 @@ static inline void {{ $A }}QueryParams_parse({{ $A }}QueryParams* self, const ch
 }
 {{ end }}
 
+{{ if .isList }}
+/* The JSON of the answer, written by emijson.h (the text cJSON_PrintUnformatted of the tree would be). */
+static void {{ $fn }}_emit_response(const void* value, EmiJson* j) {
+    const {{ $A }}Result* res = (const {{ $A }}Result*) value;
+{{- if .envelope }}
+    emijson_lit(j, "{\"data\":{\"items\":");
+{{- end }}
+    emijson_ch(j, '[');
+    for (size_t i = 0; i < res->items_count; i++) {
+        if (i) emijson_ch(j, ',');
+        {{ .responseType }}_emit(res->items[i], j);
+    }
+    emijson_ch(j, ']');
+{{- if .envelope }}
+    emijson_lit(j, ",\"currentItemCount\":");
+    emijson_num(j, (double) res->items_count);
+    emijson_lit(j, ",\"totalItems\":");
+    emijson_num(j, (double) res->total_items);
+    emijson_lit(j, ",\"startIndex\":");
+    emijson_num(j, res->start_index);
+    emijson_lit(j, ",\"itemsPerPage\":");
+    emijson_num(j, res->items_per_page);
+    if (res->cursor) {
+        emijson_lit(j, ",\"cursor\":");
+        emijson_str(j, res->cursor);
+    }
+    emijson_lit(j, "}}");
+{{- end }}
+}
+{{ else if .returnsTyped }}
+/* The JSON of the answer, written by emijson.h (the text cJSON_PrintUnformatted of the tree would be). */
+static void {{ $fn }}_emit_response(const void* value, EmiJson* j) {
+{{- if .envelope }}
+    emijson_lit(j, "{\"data\":{\"item\":");
+{{- end }}
+    {{ .responseType }}_emit((const {{ .responseType }}*) value, j);
+{{- if .envelope }}
+    emijson_lit(j, "}}");
+{{- end }}
+}
+{{ end }}
 static inline int {{ $fn }}_serve(emihttpd_req_t* req, void* ctx) {
     {{ $A }}Binding* binding = ({{ $A }}Binding*) ctx;
     {{ $A }}Call call;
@@ -256,32 +297,7 @@ static inline int {{ $fn }}_serve(emihttpd_req_t* req, void* ctx) {
             rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error_for(status)) : emihttpd_reply_json(req, 204, NULL);
 {{- end }}
         } else {
-            cJSON* out = cJSON_CreateArray();
-            for (size_t i = 0; out && i < res->items_count; i++) {
-                cJSON* one = {{ .responseType }}_to_json(res->items[i]);
-                if (one) cJSON_AddItemToArray(out, one);
-            }
-{{- if .envelope }}
-            cJSON* root = cJSON_CreateObject();
-            cJSON* data = root ? cJSON_AddObjectToObject(root, "data") : NULL;
-            if (data && out) {
-                cJSON_AddItemToObject(data, "items", out);
-                out = NULL;
-                cJSON_AddNumberToObject(data, "currentItemCount", (double) res->items_count);
-                cJSON_AddNumberToObject(data, "totalItems", (double) res->total_items);
-                cJSON_AddNumberToObject(data, "startIndex", res->start_index);
-                cJSON_AddNumberToObject(data, "itemsPerPage", res->items_per_page);
-                if (res->cursor) cJSON_AddStringToObject(data, "cursor", res->cursor);
-            }
-            cJSON_Delete(out);
-            char* text = root ? cJSON_PrintUnformatted(root) : NULL;
-            cJSON_Delete(root);
-{{- else }}
-            char* text = out ? cJSON_PrintUnformatted(out) : NULL;
-            cJSON_Delete(out);
-{{- end }}
-            rc = text ? emihttpd_reply_json(req, status ? status : 200, text) : emihttpd_reply_error(req, 500, "cannot serialize response");
-            free(text);
+            rc = emihttpd_reply_emit(req, status ? status : 200, {{ $fn }}_emit_response, res);
             {{ $A }}Result_free(res);
         }
 {{- else if .returnsTyped }}
@@ -299,20 +315,7 @@ static inline int {{ $fn }}_serve(emihttpd_req_t* req, void* ctx) {
             rc = (status >= 400) ? emihttpd_reply_error(req, status, emihttpd_take_error_for(status)) : emihttpd_reply_json(req, 204, NULL);
 {{- end }}
         } else {
-            cJSON* out = {{ .responseType }}_to_json(res);
-{{- if .envelope }}
-            cJSON* root = cJSON_CreateObject();
-            if (root && out) {
-                cJSON_AddItemToObject(cJSON_AddObjectToObject(root, "data"), "item", out);
-                out = root;
-            } else {
-                cJSON_Delete(root);
-            }
-{{- end }}
-            char* text = out ? cJSON_PrintUnformatted(out) : NULL;
-            cJSON_Delete(out);
-            rc = text ? emihttpd_reply_json(req, status ? status : 200, text) : emihttpd_reply_error(req, 500, "cannot serialize response");
-            free(text);
+            rc = emihttpd_reply_emit(req, status ? status : 200, {{ $fn }}_emit_response, res);
             {{ .responseType }}_free(res);
         }
 {{- else }}

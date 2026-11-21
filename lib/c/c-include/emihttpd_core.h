@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "emijson.h"
 #if defined(_MSC_VER)
 #define strcasecmp _stricmp
 #else
@@ -392,6 +393,24 @@ static inline size_t emihttpd_clients_snapshot(EmiHttpdClients* c, emihttpd_conn
     }
     emihttpd_mutex_unlock(&c->lock);
     return n;
+}
+
+
+/* ---- answering from a generated `Type_emit` (emijson.h) --------------------------------------------- */
+
+/* What writes a value as JSON text into an EmiJson (a generated `Type_emit` wrapped to take a void pointer). */
+typedef void (*emihttpd_emit_fn)(const void* value, EmiJson* j);
+
+/* The text of a value: counted, then written once into a block of exactly its size (a transport which needs a string). NULL when there is no memory; the caller frees it. */
+static inline char* emihttpd_emit_string(emihttpd_emit_fn emit, const void* value) {
+    EmiJson count = {0, 0, 0};
+    emit(value, &count);
+    char* buf = (char*) malloc(count.len + 1);
+    if (!buf) return NULL;
+    EmiJson write = {buf, 0, count.len};
+    emit(value, &write);
+    buf[count.len] = '\0';
+    return buf;
 }
 
 #endif /* EMISDK_EMIHTTPD_CORE_H */

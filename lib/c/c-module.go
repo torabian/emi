@@ -16,6 +16,7 @@ import (
 // file.
 var commonIncludes = []string{
 	`"cjson/cJSON.h"`,
+	`"emijson.h"`,
 	"<stdbool.h>",
 	"<stddef.h>",
 	"<stdint.h>",

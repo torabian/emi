@@ -430,6 +430,35 @@ static inline int emihttpd_reply_error(emihttpd_req_t* req, int status, const ch
     return 0;
 }
 
+/* Answers with the JSON a generated `Type_emit` (emijson.h) writes: the length is counted first, the send buffer of the connection is made that size once, and the text is written straight
+ * into it. No tree of JSON nodes and no print buffer which doubles are made (and, with a buffer which grows a step at a time, no copy of the answer for each step): on a chip with
+ * little RAM they were three to ten times the answer in memory at once. The text is the one cJSON_PrintUnformatted(Type_to_json(x)) makes. */
+static inline int emihttpd_reply_emit(emihttpd_req_t* req, int status, emihttpd_emit_fn emit, const void* value) {
+#ifdef EMIHTTPD_TEXT
+    if (req->text) {
+        char* text = emihttpd_emit_string(emit, value);
+        int rc = text ? emitext_reply(req->text, status, text) : emihttpd_reply_error(req, 500, "cannot serialize response");
+        free(text);
+        return rc;
+    }
+#endif
+    struct mg_connection* c = req->c;
+    EmiJson count = {0, 0, 0};
+    emit(value, &count);
+    const size_t total = count.len;
+    const size_t head_max = 320 + sizeof(EMIHTTPD_CORS_HEADERS); /* the status line, the headers and Content-Length */
+    if (c->send.size < c->send.len + head_max + total && !mg_iobuf_resize(&c->send, c->send.len + head_max + total)) {
+        return emihttpd_reply_error(req, 500, "cannot serialize response");
+    }
+    mg_printf(c, "HTTP/1.1 %s\r\n" EMIHTTPD_CORS_HEADERS "Content-Type: application/json\r\nContent-Length: %lu\r\n\r\n", emihttpd_status_line(status), (unsigned long) total);
+    const size_t at = c->send.len;
+    mg_iobuf_add(&c->send, at, NULL, total); /* room for the body: the buffer is big enough, nothing is allocated */
+    EmiJson write = {(char*) c->send.buf + at, 0, total};
+    emit(value, &write);
+    c->is_resp = 0;
+    return 0;
+}
+
 /* ---- port: websocket frames ------------------------------------------------------------------ */
 
 /* How much a connection may have waiting to be sent before frames for it are dropped (a client which reads slower than the server writes must not take all the memory). */

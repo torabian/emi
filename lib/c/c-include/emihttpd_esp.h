@@ -223,6 +223,15 @@ static inline int emihttpd_reply_json(emihttpd_req_t* req, int status, const cha
     return httpd_resp_send(req, json ? json : "", json ? HTTPD_RESP_USE_STRLEN : 0) == ESP_OK ? 0 : -1;
 }
 
+/* Answers with the JSON a generated `Type_emit` writes (the text is made once, counted and written, with no cJSON tree). */
+static inline int emihttpd_reply_emit(emihttpd_req_t* req, int status, emihttpd_emit_fn emit, const void* value) {
+    char* text = emihttpd_emit_string(emit, value);
+    if (!text) return emihttpd_reply_json(req, 500, "{\"error\":\"cannot serialize response\"}");
+    int rc = emihttpd_reply_json(req, status, text);
+    free(text);
+    return rc;
+}
+
 /* Sends `{"error":"<msg>"}` - msg must not need JSON escaping (use plain text). */
 static inline int emihttpd_reply_error(emihttpd_req_t* req, int status, const char* msg) {
     char buf[160];

@@ -23,6 +23,7 @@ type cFieldPlan struct {
 	Init       []string // `_init` function body line(s)
 	FreeFields []string // `_free_fields` function body line(s)
 	ToJson     []string // `_to_json` function body line(s) - builds into local `cJSON *json`
+	Emit       []string // `_emit` function body line(s) - writes the same text into `EmiJson* j`; `first` says whether the member is the first of the object (see emijson.h)
 	FromJson   []string // `_from_json_into` function body line(s) - reads from local `const cJSON *json`
 	InlineEnum *cRenderedEnum
 }
@@ -161,7 +162,9 @@ func cResolveField(field *core.EmiField, prefixName string, selfTypeName string,
 func cStringField(name, key string, nullable bool) cFieldPlan {
 	init := fmt.Sprintf(`self->%s = strdup("");`, name)
 	toJSON := fmt.Sprintf(`cJSON_AddStringToObject(json, %s, self->%s ? self->%s : "");`, key, name, name)
+	emit := []string{fmt.Sprintf(`emijson_key(j, &first, %s); emijson_str(j, self->%s ? self->%s : "");`, key, name, name)}
 	if nullable {
+		emit = []string{fmt.Sprintf(`emijson_key(j, &first, %s); if (self->%s) { emijson_str(j, self->%s); } else { emijson_null(j); }`, key, name, name)}
 		init = fmt.Sprintf("self->%s = NULL;", name)
 		toJSON = fmt.Sprintf(
 			"if (self->%s) { cJSON_AddStringToObject(json, %s, self->%s); } else { cJSON_AddNullToObject(json, %s); }",
@@ -177,6 +180,7 @@ func cStringField(name, key string, nullable bool) cFieldPlan {
 			fmt.Sprintf("self->%s = NULL;", name),
 		},
 		ToJson: []string{toJSON},
+		Emit:   emit,
 		FromJson: []string{
 			"{",
 			fmt.Sprintf("    const cJSON *v = cJSON_GetObjectItemCaseSensitive(json, %s);", key),
@@ -198,8 +202,10 @@ func cScalarField(name, key, ctype string) cFieldPlan {
 	// of a device would otherwise see 1/0.
 	toJson := fmt.Sprintf("cJSON_AddNumberToObject(json, %s, (double) self->%s);", key, name)
 	toJsonLines := []string{toJson}
+	emitLines := []string{fmt.Sprintf("emijson_key(j, &first, %s); emijson_num(j, (double) self->%s);", key, name)}
 	if ctype == "bool" {
 		toJsonLines = []string{fmt.Sprintf("cJSON_AddBoolToObject(json, %s, self->%s);", key, name)}
+		emitLines = []string{fmt.Sprintf("emijson_key(j, &first, %s); emijson_bool(j, self->%s);", key, name)}
 	}
 	if ctype == "float" {
 		// a float widened to double prints as 22.027399063110352; round-trip it
@@ -211,11 +217,19 @@ func cScalarField(name, key, ctype string) cFieldPlan {
 			fmt.Sprintf("    cJSON_AddNumberToObject(json, %s, strtod(float_buf, NULL));", key),
 			"}",
 		}
+		emitLines = []string{
+			"{",
+			"    char float_buf[32];",
+			fmt.Sprintf("    snprintf(float_buf, sizeof(float_buf), \"%%.7g\", (double) self->%s);", name),
+			fmt.Sprintf("    emijson_key(j, &first, %s); emijson_num(j, strtod(float_buf, NULL));", key),
+			"}",
+		}
 	}
 	return cFieldPlan{
 		Decl:   []string{fmt.Sprintf("%s %s;", ctype, name)},
 		Init:   []string{fmt.Sprintf("self->%s = %s;", name, zero)},
 		ToJson: toJsonLines,
+		Emit:   emitLines,
 		FromJson: []string{
 			"{",
 			fmt.Sprintf("    const cJSON *v = cJSON_GetObjectItemCaseSensitive(json, %s);", key),
@@ -239,6 +253,9 @@ func cRelationField(name, key, targetType, selfTypeName string) cFieldPlan {
 		},
 		ToJson: []string{
 			fmt.Sprintf("if (self->%s) { cJSON_AddItemToObject(json, %s, %s_to_json(self->%s)); }", name, key, targetType, name),
+		},
+		Emit: []string{
+			fmt.Sprintf("if (self->%s) { emijson_key(j, &first, %s); %s_emit(self->%s, j); }", name, key, targetType, name),
 		},
 		FromJson: []string{
 			"{",
@@ -270,6 +287,9 @@ func cObjectField(name, key, nestedType string, alwaysNull bool) cFieldPlan {
 		},
 		ToJson: []string{
 			fmt.Sprintf("if (self->%s) { cJSON_AddItemToObject(json, %s, %s_to_json(self->%s)); }", name, key, nestedType, name),
+		},
+		Emit: []string{
+			fmt.Sprintf("if (self->%s) { emijson_key(j, &first, %s); %s_emit(self->%s, j); }", name, key, nestedType, name),
 		},
 		FromJson: []string{
 			"{",
@@ -309,6 +329,11 @@ func cObjectArrayField(name, key, elemType, selfTypeName string) cFieldPlan {
 			fmt.Sprintf("    cJSON *arr = cJSON_AddArrayToObject(json, %s);", key),
 			fmt.Sprintf("    for (size_t i = 0; i < self->%s; i++) { cJSON_AddItemToArray(arr, %s_to_json(&self->%s[i])); }", countField, elemType, name),
 			"}",
+		},
+		Emit: []string{
+			fmt.Sprintf("emijson_key(j, &first, %s); emijson_ch(j, '[');", key),
+			fmt.Sprintf("for (size_t i = 0; i < self->%s; i++) { if (i) emijson_ch(j, ','); %s_emit(&self->%s[i], j); }", countField, elemType, name),
+			"emijson_ch(j, ']');",
 		},
 		FromJson: []string{
 			"{",
@@ -354,6 +379,11 @@ func cScalarArrayField(name, key, ctype string) cFieldPlan {
 			fmt.Sprintf("    for (size_t i = 0; i < self->%s; i++) { cJSON_AddItemToArray(arr, cJSON_CreateNumber((double) self->%s[i])); }", countField, name),
 			"}",
 		},
+		Emit: []string{
+			fmt.Sprintf("emijson_key(j, &first, %s); emijson_ch(j, '[');", key),
+			fmt.Sprintf("for (size_t i = 0; i < self->%s; i++) { if (i) emijson_ch(j, ','); emijson_num(j, (double) self->%s[i]); }", countField, name),
+			"emijson_ch(j, ']');",
+		},
 		FromJson: []string{
 			"{",
 			fmt.Sprintf("    const cJSON *v = cJSON_GetObjectItemCaseSensitive(json, %s);", key),
@@ -397,6 +427,11 @@ func cStringArrayField(name, key string) cFieldPlan {
 			fmt.Sprintf("    for (size_t i = 0; i < self->%s; i++) { cJSON_AddItemToArray(arr, cJSON_CreateString(self->%s[i] ? self->%s[i] : \"\")); }", countField, name, name),
 			"}",
 		},
+		Emit: []string{
+			fmt.Sprintf("emijson_key(j, &first, %s); emijson_ch(j, '[');", key),
+			fmt.Sprintf("for (size_t i = 0; i < self->%s; i++) { if (i) emijson_ch(j, ','); emijson_str(j, self->%s[i] ? self->%s[i] : \"\"); }", countField, name, name),
+			"emijson_ch(j, ']');",
+		},
 		FromJson: []string{
 			"{",
 			fmt.Sprintf("    const cJSON *v = cJSON_GetObjectItemCaseSensitive(json, %s);", key),
@@ -433,6 +468,9 @@ func cRawJsonField(name, key string) cFieldPlan {
 		ToJson: []string{
 			fmt.Sprintf("if (self->%s) { cJSON_AddItemToObject(json, %s, cJSON_Duplicate(self->%s, cJSON_True)); }", name, key, name),
 		},
+		Emit: []string{
+			fmt.Sprintf("if (self->%s) { emijson_key(j, &first, %s); emijson_cjson(j, self->%s); }", name, key, name),
+		},
 		FromJson: []string{
 			"{",
 			fmt.Sprintf("    const cJSON *v = cJSON_GetObjectItemCaseSensitive(json, %s);", key),
@@ -455,6 +493,9 @@ func cEnumField(name, key, enumType string) cFieldPlan {
 		Init: []string{fmt.Sprintf("self->%s = (%s) 0;", name, enumType)},
 		ToJson: []string{
 			fmt.Sprintf("cJSON_AddStringToObject(json, %s, %s_to_string(self->%s));", key, enumType, name),
+		},
+		Emit: []string{
+			fmt.Sprintf("emijson_key(j, &first, %s); emijson_str(j, %s_to_string(self->%s));", key, enumType, name),
 		},
 		FromJson: []string{
 			"{",

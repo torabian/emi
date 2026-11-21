@@ -116,6 +116,7 @@ static inline void {{ .TypeName }}_free({{ .TypeName }}* self);
 static inline void {{ .TypeName }}_from_json_into({{ .TypeName }}* self, const cJSON* json);
 static inline {{ .TypeName }}* {{ .TypeName }}_from_json(const cJSON* json);
 static inline cJSON* {{ .TypeName }}_to_json(const {{ .TypeName }}* self);
+static inline void {{ .TypeName }}_emit(const {{ .TypeName }}* self, EmiJson* j);
 
 static inline void {{ .TypeName }}_init({{ .TypeName }}* self) {
     if (!self) return;
@@ -171,6 +172,21 @@ static inline cJSON* {{ .TypeName }}_to_json(const {{ .TypeName }}* self) {
 {{- end }}
 {{- end }}
     return json;
+}
+
+/* The same text as cJSON_PrintUnformatted({{ .TypeName }}_to_json(self)), written straight into j (see emijson.h): no tree, no print buffer. */
+static inline void {{ .TypeName }}_emit(const {{ .TypeName }}* self, EmiJson* j) {
+    emijson_ch(j, '{');
+    int first = 1;
+    (void) first;
+    if (self) {
+{{- range .Fields }}
+{{- range .Emit }}
+        {{ . }}
+{{- end }}
+{{- end }}
+    }
+    emijson_ch(j, '}');
 }
 {{ end }}
 `))
